@@ -1,0 +1,42 @@
+{
+  "name": "@web-native-js/chtml",
+  "title": "CHTML",
+  "description": "&lt;C&sbquo;HTML /&gt; - UI Componentization in plain HTML! CHTML (Component-oriented HTML) is the first markup-level component system. And this is an important new possibility!",
+  "keywords": [
+    "HTML components",
+    "UI components",
+    "Frontend framework",
+    "Plain HTML"
+  ],
+  "homepage": "https://www.web-native.dev",
+  "icon": "https://www.web-native.dev/icon.svg",
+  "author": "Oxford Harrison <oxharriscreative@gmail.com>",
+  "version": "0.0.3",
+  "license": "MIT",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/web-native/chtml.git"
+  },
+  "main": "src/index.js",
+  "scripts": {
+    "test": "node ./tests/index.js",
+    "build": "webpack --config ../webpack.config.js",
+    "watch": "webpack --watch"
+  },
+  "dependencies": {
+    "@web-native-js/commons": "0.0.1",
+    "@web-native-js/reflex": "^0.0.0",
+    "@web-native-js/jsen": "^0.0.2"
+  },
+  "devDependencies": {
+    "webpack": "^4.41.6",
+    "webpack-cli": "^3.3.11"
+  },
+  "browser": {
+    "fs": false
+  },
+  "bugs": {
+    "url": "https://github.com/web-native/chtml/issues"
+  }
+}
