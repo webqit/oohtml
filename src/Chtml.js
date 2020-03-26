@@ -113,7 +113,7 @@ export default class Chtml extends Core {
 				if (_isTypeObject(data) && data) {
 					// Mirror
 					Reflex.observe(data, changes => {
-						return this.remodel(data, namespaceParse.subnamespace, globalParams.remodelCallback);
+						return this.populate(data, namespaceParse.subnamespace, globalParams.remodelCallback);
 					}, {tags:['#mirror', this]});
 				}
 				if (_isTypeObject(_data) && _data) {
@@ -121,7 +121,7 @@ export default class Chtml extends Core {
 					Reflex.unobserve(_data, null, null, {tags:['#mirror', this]});
 				}
 				// Initial Sync...
-				return this.remodel(data || {}, namespaceParse.subnamespace, globalParams.remodelCallback);
+				return this.populate(data || {}, namespaceParse.subnamespace, globalParams.remodelCallback);
 			}
 		});
 	}
@@ -172,7 +172,7 @@ export default class Chtml extends Core {
 	 *
 	 * @return Reflex.MutationEvent
 	 */
-	remodel(srcModel, subnamespace, remodelCallback = null) {
+	populate(srcModel, subnamespace, remodelCallback = null) {
 		// --------------
 		var nodeNamespaceArray = subnamespace.split('//');
 		// Create a namespace hash...

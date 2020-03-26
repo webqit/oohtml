@@ -13,8 +13,8 @@ export default {
 		namespace: 'c-namespace',
 		superrole: 'c-role',
 		subrole: 'c-role',
-		nocompose: ['nocompose', 'shadow',],
 		bundle: 'c-bundle',
+		nocompose: ['nocompose', 'shadow',],
 	},
 	tagMap: {
 		jsen: 'script[type="text/jsen"]',

@@ -20,17 +20,17 @@ const Bundler = class {
 	 * and runs the bundling process.
 	 *
 	 * @param string		baseDir
-	 * @param string		nsAttrName
-	 * @param function		nsCallback
+	 * @param object		params
 	 *
 	 * @return void
 	 */
-	constructor(baseDir, nsAttrName = 'c-namespace', nsCallback = null) {
+	constructor(baseDir, params = {}) {
 		if (!baseDir.endsWith('/')) {
 			baseDir += '/';
 		}
-		this.baseDir = baseDir;
-		this.nsAttrName = nsAttrName;
+		this.params = params;
+		this.params.namespaceKey = this.params.namespaceKey || 'c-namespace';
+		this.params.assetsPublicBase = this.params.assetsPublicBase || '/';
 		this.bundle = [];
 		const walk = dir => {
 			fs.readdirSync(dir).forEach(f => {
@@ -42,8 +42,8 @@ const Bundler = class {
 					var fnameNoExt = resource
 						.substr(0, resource.length - ext.length)
 						.substr(this.baseDir.length);
-					if (nsCallback) {
-						var ns = nsCallback(resource, fnameNoExt, ext);
+					if (this.params.namespaceCallback) {
+						var ns = this.params.namespaceCallback(resource, fnameNoExt, ext);
 					} else {
 						var ns = (ext ? ext.replace('.', '') + '/' : '') + fnameNoExt.replace(/\\/g, '/');
 					}
@@ -67,19 +67,19 @@ const Bundler = class {
 	 * @return string
 	 */
 	load(file, ns, ext) {
-		var nsAttrName = this.nsAttrName + '="' + ns + '"';
+		var nsAttrName = this.params.namespaceKey + '="' + ns + '"';
 		if (ext in Bundler.mime) {
 			this.bundle.push({
 				ns:ns,
 				html:(baseDir, assetsDir) => {
-					if (fs.statSync(file).size < Bundler.maxDataURLsize) {
+					if (fs.statSync(file).size < this.params.maxDataURLsize) {
 						var url = 'data:' + Bundler.mime[ext] + ';base64,' + fs.readFileSync(file).toString('base64');
 					} else {
 						var relFilename = path.join(assetsDir, path.relative(this.baseDir, file));
 						var absFilename = path.join(baseDir, relFilename);
 						fs.mkdirSync(path.dirname(absFilename), {recursive:true});
 						fs.copyFileSync(file, absFilename);
-						var url = relFilename.replace(/\\/g, '/');
+						var url = this.params.assetsPublicBase + relFilename.replace(/\\/g, '/');
 					}
 					return "\r\n\t<img " + nsAttrName + " src=\"" + url + "\" />\r\n";
 				},
@@ -143,26 +143,22 @@ const Bundler = class {
 	 *
 	 * @param string|object	from
 	 * @param string		to
+	 * @param object		params
 	 *
 	 * @return string|object
 	 */
-	static bundle(from, to = null) {
+	static bundle(from, to = null, params = {}) {
 		if (_isObject(from)) {
 			var bundles = {};
 			_each(from, (name, basePath) => {
 				var saveName = to ? to.replace(/\[name\]/g, name) : '';
-				bundles[name] = (new Bundler(basePath)).output(saveName);
+				bundles[name] = (new Bundler(basePath, params)).output(saveName);
 			});
 			return bundles;
 		}
-		return (new Bundler(from)).output(to);
+		return (new Bundler(from, params)).output(to);
 	}
 }
-
-/**
- * @var float
- */
-Bundler.maxDataURLsize = 0;
 
 /**
  * @var object
