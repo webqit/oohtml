@@ -54,16 +54,22 @@ export default function() {
 					}).then(content => {
 						this.innerHTML = content;
 						// Dispatch the event.
-						this.dispatchEvent(new Window.Event('bundleloadsuccess'));
+						this.dispatchEvent(new Window.Event('bundleloadsuccess', {
+							bubbles:true,
+						}));
 					}).catch(error => {
 						// Dispatch the event.
 						console.warn('Error fetching the bundle at ' + src + '. (' + error + ')');
-						this.dispatchEvent(new Window.Event('bundleloaderror'));
+						this.dispatchEvent(new Window.Event('bundleloaderror', {
+							bubbles:true,
+						}));
 					});
 				} else {
 					setTimeout(() => {
 						// Otherwise, this event will fire BEFORE the code that binds to it
-						this.dispatchEvent(new Window.Event('bundleloadsuccess'));
+						this.dispatchEvent(new Window.Event('bundleloadsuccess', {
+							bubbles:true,
+						}));
 					}, 0);
 				}
 			}

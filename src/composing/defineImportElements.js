@@ -81,12 +81,16 @@ export default function(loadingBundlesPromise) {
 						if (this.hasAttribute('shadow')) {
 							if (!this.parentNode.shadowRoot) {
 								this.parentNode.attachShadow({mode: 'open'});
-							}
+							} 
 							this.parentNode.shadowRoot.append(resolved);
 							this.remove();
 						} else {
 							this.replaceWith(resolved);
 						}
+						resolved.setAttribute('autoimported', 'true');
+						resolved.dispatchEvent(new Window.Event('imported', {
+							bubbles:true,
+						}));
 					}
 				}
 			});

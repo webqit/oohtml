@@ -28,8 +28,9 @@ const Bundler = class {
 		if (!baseDir.endsWith('/')) {
 			baseDir += '/';
 		}
+		this.baseDir = baseDir;
 		this.params = params;
-		this.params.namespaceKey = this.params.namespaceKey || 'c-namespace';
+		this.params.namespaceKey = this.params.namespaceKey || 'data-namespace';
 		this.params.assetsPublicBase = this.params.assetsPublicBase || '/';
 		this.bundle = [];
 		const walk = dir => {

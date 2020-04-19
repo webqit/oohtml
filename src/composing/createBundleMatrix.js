@@ -2,6 +2,7 @@
 /**
  * @imports
  */
+import _arrFrom from '@web-native-js/commons/arr/from.js';
 import _divide from '@web-native-js/commons/arr/divide.js';
 import globalParams from '../params.js';
 import recompose from './recompose.js';
@@ -44,7 +45,7 @@ export default function(bundleElements, promiseReciever = null) {
 		var CSSEscape = globalParams.context.CSS 
 			? globalParams.context.CSS.escape 
 			: str => str;
-		var el = bundle.content.querySelector('[' + CSSEscape(globalParams.attrMap.namespace) + '="' + _namespace + '"]');
+		var el = _arrFrom(bundle.content.children).filter(node => node.matches('[' + CSSEscape(globalParams.attrMap.namespace) + '="' + _namespace + '"]'))[0]
 
 		if (el && superEl) {
 			try {

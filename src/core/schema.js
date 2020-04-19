@@ -220,7 +220,7 @@ const Schema = {
 		div: {
 			type: ['#flow', '#palpable'],
 			/*complicated*/
-			model: [{'dl > div': ['dt', 'dd']}, {':not(dl > div)': ['#flow']}],
+			model: [{'dl > div': ['dt', 'dd']}, {div/*TODO':not(dl > div)'*/: ['#flow']}],
 		},
 		dl: {
 			/*complicated*/
@@ -551,7 +551,7 @@ const Schema = {
 	 *
 	 * @return array
 	 */
-	getContentModelFor(el) {
+	getContentModelFor(el) { 
 		var elTagName = el.nodeName.toLowerCase();
 		return Schema.std[elTagName] ? Schema.expandRules(el, Schema.std[elTagName].model || []) : [];
 	},

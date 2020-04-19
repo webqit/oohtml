@@ -9,8 +9,9 @@ import _isArray from '@web-native-js/commons/js/isArray.js';
 import _isNumeric from '@web-native-js/commons/js/isNumeric.js';
 import _isFunction from '@web-native-js/commons/js/isFunction.js';
 import _arrFrom from '@web-native-js/commons/arr/from.js';
-import _inherit from '@web-native-js/commons/obj/inherit.js';
+import _merge from '@web-native-js/commons/obj/merge.js';
 import _each from '@web-native-js/commons/obj/each.js';
+import _copy from '@web-native-js/commons/obj/copy.js';
 import _before from '@web-native-js/commons/str/before.js';
 import disconnectedCallback from './disconnectedCallback.js';
 import createElement from './createElement.js';
@@ -35,8 +36,13 @@ export default class Core {
 	 */
 	constructor(el, params = {}) {
 		Object.defineProperty(this, 'params', {
-			value:_inherit(globalParams, params),
+			value:_merge(globalParams, params),
 		});
+		// ---------------------------
+		Object.defineProperty(this, 'descendantParams', {
+			value:_copy(this.params),
+		});
+		// ---------------------------
 		Object.defineProperty(this, '_el', {value:el, enumerable:true,});
 		Object.defineProperty(this, 'el', {
 			value:el.nodeName === '#document' ? el.querySelector('html') : el,
@@ -101,8 +107,7 @@ export default class Core {
 	 */
 	getExplicitNode(requestNodeName) {
 		// If given a rolecase, we can perform a query if we understand the semantics.
-		if ((this.roles && this.roles.length)
-		|| (this.roles = (this.el.getAttribute(globalParams.attrMap.superrole) || '').replace('  ', ' ').split(' ')).length) {
+		if (this.roles && this.roles.length) {
 			var roles = globalParams.rolecase ? [globalParams.rolecase] : this.roles;
 			// Find matches...
 			var CSSEscape = globalParams.context.CSS ? globalParams.context.CSS.escape : str => str;
@@ -171,6 +176,9 @@ export default class Core {
 					}
 				}
 			});
+			if (!matches && trie.schema && !trie.schema.singleton) {
+				matches = [];
+			}
 		});
 		return matches;
 	}
@@ -187,9 +195,9 @@ export default class Core {
 		var nodeComponent, factory = this.params.factory || ((el, params) => new Core(el, params));
 		if (_isArray(node)) {
 			// Still set the collection as node, even tho it wont be reused.
-			nodeComponent = node.map(_node => factory(_node, this.params));
+			nodeComponent = node.map(_node => factory(_node, this.descendantParams));
 		} else {
-			nodeComponent = factory(node, this.params);
+			nodeComponent = factory(node, this.descendantParams);
 			// We'll remove from tree at the
 			// time it leaves the DOM
 			disconnectedCallback(node, () => {

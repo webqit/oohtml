@@ -8,6 +8,7 @@ import Jsen, {
 import _wrapped from '@web-native-js/commons/str/wrapped.js';
 import _unwrap from '@web-native-js/commons/str/unwrap.js';
 import _merge from '@web-native-js/commons/obj/merge.js';
+import _isString from '@web-native-js/commons/js/isString.js';
 
 /**
  * ---------------------------
@@ -16,55 +17,6 @@ import _merge from '@web-native-js/commons/obj/merge.js';
  */				
 
 export default class Directives extends Statements {
-	
-	/**
-	 * Rewrites directives.
-	 *
-	 * @return array
-	 */
-	flatten() {
-		var directives = [];
-		// ======================
-		// Flatten directives
-		// ======================
-		var addDirective = (directive, assertion = '') => {
-			if (directive.jsenType === 'IfConditional') {
-				// ======================
-				// On true
-				// ======================
-				var _assertion = '(' + directive.assertion.toString() + ')';
-				if (directive.onTrue.jsenType === 'Statements') {
-					directive.onTrue.stmts.forEach(_directive => {
-						addDirective(_directive, (assertion ? assertion + ' && ' : '') + _assertion)
-					});
-				} else {
-					addDirective(directive.onTrue, (assertion ? assertion + ' && ' : '') + _assertion)
-				}
-				// ======================
-				// On false
-				// ======================
-				if (directive.onFalse) {
-					if (directive.onFalse.jsenType === 'Statements') {
-						directive.onFalse.stmts.forEach(_directive => {
-							addDirective(_directive, (assertion ? assertion + ' && ' : '') + '!' + _assertion)
-						});
-					} else {
-						addDirective(directive.onFalse, (assertion ? assertion + ' && ' : '') + '!' + _assertion)
-					}
-				}
-			} else {
-				if (assertion) {
-					directives.push(Jsen.parse(assertion + ' && "[ENDIF]" && ' + directive.toString()));
-				} else {
-					directives.push(directive);
-				}
-			}
-		};
-		this.stmts.forEach(directive => {
-			addDirective(directive);
-		});
-		return directives;
-	}
 	 
 	/**
 	 * Returns a flat list of rules whose
@@ -76,7 +28,14 @@ export default class Directives extends Statements {
 		// -------------------
 		// CASCADING AND OVERRIDING
 		// -------------------
-		var directives = this.flatten().reduce((build, current) => {
+		var directives = [];
+		this.stmts.forEach(directive => {
+			Directives.flatten(directive, _directive => {
+				directives.push(_directive);
+			});
+		});
+		// -------------------
+		directives = directives.reduce((build, current) => {
 			build.forEach(existing => {
 				if (existing.isDuplicate || existing.overridden) {
 					return;
@@ -97,7 +56,48 @@ export default class Directives extends Statements {
 		// -------------------
 		return directives.filter(directive => !directive.isDuplicate && !directive.overridden);
 	}
-	 
+	
+	/**
+	 * Rewrites directives.
+	 *
+	 * @return array
+	 */
+	static flatten(directive, callback, assertion = '') {
+		if (directive.jsenType === 'IfConditional') {
+			// ======================
+			// On true
+			// ======================
+			var _assertion = '(' + directive.assertion.toString() + ')';
+			if (directive.onTrue) {
+				if (directive.onTrue.jsenType === 'Statements') {
+					directive.onTrue.stmts.forEach(_directive => {
+						Directives.flatten(_directive, callback, (assertion ? assertion + ' && ' : '') + _assertion)
+					});
+				} else {
+					Directives.flatten(directive.onTrue, callback, (assertion ? assertion + ' && ' : '') + _assertion)
+				}
+			}
+			// ======================
+			// On false
+			// ======================
+			if (directive.onFalse) {
+				if (directive.onFalse.jsenType === 'Statements') {
+					directive.onFalse.stmts.forEach(_directive => {
+						Directives.flatten(_directive, callback, (assertion ? assertion + ' && ' : '') + '!' + _assertion)
+					});
+				} else {
+					Directives.flatten(directive.onFalse, callback, (assertion ? assertion + ' && ' : '') + '!' + _assertion)
+				}
+			}
+		} else {
+			if (assertion) {
+				callback(Jsen.parse(assertion + ' && "[ENDIF]" && ' + directive.toString()));
+			} else {
+				callback(directive);
+			}
+		}
+	}
+
 	/**
 	 * @inheritdoc
 	 */

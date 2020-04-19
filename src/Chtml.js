@@ -2,7 +2,7 @@
 /**
  * @imports
  */
-import Jsen from '@web-native-js/jsen';
+import Jsen, {Contexts} from '@web-native-js/jsen';
 import Reflex from '@web-native-js/reflex';
 import _arrFrom from '@web-native-js/commons/arr/from.js';
 import _isTypeObject from '@web-native-js/commons/js/isTypeObject.js';
@@ -41,6 +41,14 @@ export default class Chtml extends Core {
 		// Create the factory used in Core
 		this.params.factory = this.constructor.from;
 		
+		// ------------------
+		// Auto-imported elements
+		// ------------------
+		this.el.addEventListener('imported', e => {
+			this.params.factory(e.target);
+			e.stopImmediatePropagation();
+		});
+
 		// ------------
 		// NAMESPACE
 		// ------------
@@ -49,66 +57,12 @@ export default class Chtml extends Core {
 		Object.defineProperty(this, 'namespace', {value:namespaceParse.namespace, enumerable:true,});
 		
 		// ------------
-		// DIRECTIVES
-		// ------------
-		
-		const directives = [];
-		Reflex.defineProperty(this, 'directives', {value:directives, enumerable:true,});
-		var stringifyEach = list => _unique(list.map(expr => _before(_before(expr.toString(), '['), '(')));
-		Reflex.observe(this.directives, (entries, exits, e) => {
-			Object.keys(entries).forEach(k => {
-				// ------------
-				// Unbind exits
-				if (exits[k]) {
-					Reflex.unobserve(this, null, null, {tags:['#directive', exits[k]]});
-				}
-				// ------------
-				// Bind entries
-				if (entries[k]) {
-					if (this.autoEval !== false) {
-						entries[k].eval(this, {get:Reflex.get});
-					}
-					Reflex.observe(this, stringifyEach(entries[k].meta.vars), (newState, oldState, e) => {
-						var evalReturn = entries[k].eval(this, {get:Reflex.get});
-						// If the result of this evaluation is false,
-						// e.stopPropagation will be called and subsequent expressions
-						// will not be evaluated. So we must not allow false to be returned.
-						// All expressions are meant to be evaluated in parallel, independent of each other.
-						if (evalReturn !== false) {
-							return evalReturn;
-						}
-					}, {tags:['#directive', entries[k]]});
-				}
-			});
-		});
-		// ------------
-		setTimeout(() => {
-			var directives;
-			if (!(this.dataBlockScript = _arrFrom(el.children).filter(node => node.matches(globalParams.tagMap.jsen))[0])
-			|| !(directives = Directives.parse((this.dataBlockScript.textContent || '').trim()))) {
-				directives = new Directives;
-			}
-			// ------------
-			var directivesPush = Reflex.get(this.directives, 'push');
-			directives.filter().forEach(directive => {
-				this.autoEval = globalParams.initialRendering;
-				directivesPush(directive);
-				this.autoEval = true;
-			});
-			// ------------
-			if (this.dataBlockScript && globalParams.hideDataBlockScript) {
-				this.dataBlockScript.remove();
-			}
-		}, 0);
-		// ------------
-		
-		// ------------
 		// MIRROR
 		// ------------
 		
-		Reflex.init(this, globalParams.modelProperty);
+		Reflex.init(this, globalParams.bindingProperty);
 		// Setup mirror
-		Reflex.observe(this, globalParams.modelProperty, (data, _data, e) => {
+		Reflex.observe(this, globalParams.bindingProperty, (data, _data, e) => {
 			if (namespaceParse.subnamespace) {
 				if (_isTypeObject(data) && data) {
 					// Mirror
@@ -124,6 +78,68 @@ export default class Chtml extends Core {
 				return this.populate(data || {}, namespaceParse.subnamespace, globalParams.remodelCallback);
 			}
 		});
+		
+		// ------------
+		// DIRECTIVES
+		// ------------
+		
+		const directives = [];
+		Reflex.defineProperty(this, 'directives', {value:directives, enumerable:true,});
+		// ---------------------------------
+		// ---------------------------------
+		// evaluationContext will be "this" as main context, and params.env as super context
+		var localContext = {};
+		var superContext = this.params.env;
+		var evaluationContext = new Contexts(this, superContext, localContext);
+		// Descendants will recieve my localContext and superContext
+		this.descendantParams.env = new Contexts(localContext, superContext);
+		// ---------------------------------
+		// ---------------------------------
+		// Stringifies JSEN vars
+		var stringifyEach = list => _unique(list.map(expr => _before(_before(expr.toString(), '['), '(')));
+		// We handle directives as they make entry
+		Reflex.observe(this.directives, (entries, exits, e) => {
+			Object.keys(entries).forEach(k => {
+				// ------------
+				// Unbind exits
+				if (exits[k]) {
+					Reflex.unobserve(this, null, null, {tags:['#directive', exits[k]],});
+				}
+				// ------------
+				// Bind entries
+				if (entries[k]) {
+					if (this.autoEval !== false) {
+						entries[k].eval(evaluationContext, Reflex);
+					}
+					Reflex.observe(this, stringifyEach(entries[k].meta.vars), (newState, oldState, e) => {
+						var evalReturn = entries[k].eval(evaluationContext, Reflex);
+						// If the result of this evaluation is false,
+						// e.stopPropagation will be called and subsequent expressions
+						// will not be evaluated. So we must not allow false to be returned.
+						// All expressions are meant to be evaluated in parallel, independent of each other.
+						if (evalReturn !== false) {
+							return evalReturn;
+						}
+					}, {data: false, tags:['#directive', entries[k]]});
+				}
+			});
+		});
+		// ------------
+		setTimeout(() => {
+			if (this.dataBlockScript = _arrFrom(el.children).filter(node => node.matches(globalParams.tagMap.jsen))[0]) {
+				var directivesPush = Reflex.get(this.directives, 'push');
+				Directives.parse((this.dataBlockScript.textContent || '').trim()).filter().forEach(directive => {
+					this.autoEval = globalParams.initialRendering;
+					directivesPush(directive);
+					this.autoEval = true;
+				});
+			}
+			// ------------
+			if (this.dataBlockScript && globalParams.hideDataBlockScript) {
+				this.dataBlockScript.remove();
+			}
+		}, 0);
+		// ------------
 	}
 	
 	/**
@@ -145,10 +161,10 @@ export default class Chtml extends Core {
 	 * @return Event
 	 */
 	bind(context) {
-		if (!globalParams.modelProperty) {
+		if (!globalParams.bindingProperty) {
 			throw new Error('Data key has not been set!');
 		}
-		return Reflex.set(this, globalParams.modelProperty, context);
+		return Reflex.set(this, globalParams.bindingProperty, context);
 	}	
 	/**
 	 * Clears the instance of its context.
@@ -156,10 +172,10 @@ export default class Chtml extends Core {
 	 * @return Event
 	 */
 	unbind() {
-		if (!globalParams.modelProperty) {
+		if (!globalParams.bindingProperty) {
 			throw new Error('Data key has not been set!');
 		}
-		return Reflex.del(this, globalParams.modelProperty);
+		return Reflex.set(this, globalParams.bindingProperty, null);
 	}
 	
 	/**
@@ -339,7 +355,6 @@ export default class Chtml extends Core {
 		var el = input;
 		if (_isString(input) && !input.trim().startsWith('<') && input.indexOf('/') !== -1) {
 			if (!(el = Chtml.import(_before(input, '//')))) {
-
 				throw new Error('No element found on the namespace "' + input + '"!');
 			}
 		} else {
