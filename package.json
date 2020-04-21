@@ -21,10 +21,16 @@
   "main": "src/index.js",
   "scripts": {
     "test": "node ./tests/index.js",
+    "build-prod": "webpack --config ../webpack.config.prod.js",
     "build": "webpack --config ../webpack.config.js",
     "watch": "webpack --watch"
   },
   "dependencies": {
+    "@web-native-js/commons": "file:../commons",
+    "@web-native-js/reflex": "file:../reflex",
+    "@web-native-js/jsen": "file:../jsen"
+  },
+  "--dependencies": {
     "@web-native-js/commons": "0.0.1",
     "@web-native-js/reflex": "^0.0.2",
     "@web-native-js/jsen": "^0.0.5"

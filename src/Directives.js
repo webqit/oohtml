@@ -91,7 +91,7 @@ export default class Directives extends Statements {
 			}
 		} else {
 			if (assertion) {
-				callback(Jsen.parse(assertion + ' && "[ENDIF]" && ' + directive.toString()));
+				callback(Jsen.parse(assertion + ' && "[ENDIF]" && (' + directive.toString() + ')'));
 			} else {
 				callback(directive);
 			}
