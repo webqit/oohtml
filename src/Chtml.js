@@ -140,6 +140,9 @@ export default class Chtml extends Core {
 			}
 		}, 0);
 		// ------------
+		
+		// CHTML is singleton
+		Object.defineProperty(el, '< c h t m l >', {value: this});
 	}
 	
 	/**
@@ -263,6 +266,7 @@ export default class Chtml extends Core {
 		this.directives.forEach(
 			binding => Reflex.unobserve(this, null, null, {tags:['#directive', binding]})
 		);
+		delete this.el['< c h t m l >'];
 		if (this.dataBlockScript && globalParams.hideDataBlockScript) {
 			this.prepend(this.dataBlockScript);
 		}
@@ -378,7 +382,7 @@ export default class Chtml extends Core {
 				console.warn('Namespace resolution failed: ' + ns);
 			}
 		}
-		return new Static(el, params);
+		return el['< c h t m l >'] || new Static(el, params);
 	}
 	
 	/**
