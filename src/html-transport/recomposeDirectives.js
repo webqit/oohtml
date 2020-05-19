@@ -7,8 +7,7 @@ import _unique from '@web-native-js/commons/arr/unique.js';
 import _isFunction from '@web-native-js/commons/js/isFunction.js';
 import _isString from '@web-native-js/commons/js/isString.js';
 import _isArray from '@web-native-js/commons/js/isArray.js';
-import recomposeDirectives from './recomposeDirectives.js';
-import globalParams from '../params.js';
+import ENV from './ENV.js';
 
 /**
  * Composes definitions from elFrom into elTo.
@@ -21,15 +20,15 @@ import globalParams from '../params.js';
  * @return HTMLElement
  */
 export default function(elFrom, elTo, appendOrPrepend, norecompose = []) {
-	norecompose = norecompose.concat([globalParams.attrMap.namespace, ...globalParams.attrMap.nocompose]);
+	norecompose = norecompose.concat([ENV.params.namespaceAttribute, ...ENV.params.norecomposeAttributes]);
 	if (elTo.hasAttribute('norecompose')) {
 		norecompose = norecompose.concat((elTo.getAttribute('norecompose') || '*').split(' ').map(val => val.trim()));
 	}
 	// ----------------------------
 	// Custom Composition...
 	// ----------------------------
-	if (_isFunction(globalParams.recomposeCallback)) {
-		var disposition = globalParams.recomposeCallback(elFrom, elTo, appendOrPrepend, norecompose);
+	if (_isFunction(ENV.params.recomposeCallback)) {
+		var disposition = ENV.params.recomposeCallback(elFrom, elTo, appendOrPrepend, norecompose);
 		if (disposition === false) {
 			return false;
 		} else if (_isString(disposition) || _isArray(disposition)) {
@@ -39,7 +38,11 @@ export default function(elFrom, elTo, appendOrPrepend, norecompose = []) {
 	// ----------------------------
 	// Merge list attributes...
 	// ----------------------------
-	_unique(globalParams.listAttributes.concat([globalParams.attrMap.hint, globalParams.attrMap.superrole, globalParams.attrMap.subrole, 'role', 'class'])).forEach(type => {
+	var listAttributes = ENV.params.listAttributes.concat(['role', 'class']);
+	if (ENV.scopedHTML) {
+		listAttributes = listAttributes.concat([ENV.ScopedHTML.params.partsHintAttribute, ENV.ScopedHTML.params.scopeAttribute, ENV.ScopedHTML.params.partAttribute,]);
+	}
+	_unique(listAttributes).forEach(type => {
 		var b_attr, a_attr;
 		if (!norecompose.includes(type) && !norecompose.includes('*') && (b_attr = elFrom.getAttribute(type))) {
 			if (a_attr = elTo.getAttribute(type)) {
@@ -54,7 +57,7 @@ export default function(elFrom, elTo, appendOrPrepend, norecompose = []) {
 	// ----------------------------
 	// Merge key/val attributes...
 	// ----------------------------
-	_unique(globalParams.keyValAttributes.concat('style')).forEach(type => {
+	_unique(ENV.params.keyValAttributes.concat('style')).forEach(type => {
 		var b_attr, a_attr;
 		if (!norecompose.includes(type) && !norecompose.includes('*') && (b_attr = elFrom.getAttribute(type))) {
 			if (a_attr = elTo.getAttribute(type)) {
@@ -82,11 +85,11 @@ export default function(elFrom, elTo, appendOrPrepend, norecompose = []) {
 	// ----------------------------
 	// For data blocks...
 	// ----------------------------
-	if (!norecompose.includes('@directives') && !norecompose.includes('*')) {
+	if (!norecompose.includes('<scoped-js>') && !norecompose.includes('*') && ENV.ScopedJS) {
 		var elToDefs = _arrFrom((elTo.shadowRoot || elTo).children)
-			.filter(node => node.matches(globalParams.tagMap.jsen));
+			.filter(node => node.matches(ENV.ScopedJS.params.scriptElement));
 		var elFromDefs = _arrFrom((elFrom.shadowRoot || elFrom).children)
-			.filter(node => node.matches(globalParams.tagMap.jsen));
+			.filter(node => node.matches(ENV.ScopedJS.params.scriptElement));
 		if (elFromDefs.length) {
 			if (elToDefs.length) {
 				elToDefs[0][appendOrPrepend](elFromDefs[0].textContent);

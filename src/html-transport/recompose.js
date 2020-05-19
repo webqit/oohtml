@@ -4,7 +4,7 @@
  */
 import recomposeNodes from './recomposeNodes.js';
 import recomposeDirectives from './recomposeDirectives.js';
-import globalParams from '../params.js';
+import ENV from './ENV.js';
 
 /**
  * Composes a component from a super component.
@@ -19,7 +19,7 @@ import globalParams from '../params.js';
  * @return HTMLElement
  */
 export default function(elFrom, elTo) {
-	if (elTo.matches(globalParams.tagMap.import)) {
+	if (elTo.matches(ENV.params.importElement)) {
 		return recomposeNodes(elTo/*from import actually*/, elFrom/*to element actually*/);
 	}
 	// We will append defs from the elFrom into elTo

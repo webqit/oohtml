@@ -1,11 +1,18 @@
-# &lt;CHTML /&gt;
-> An HTML-based, UI design system that’s as simple and universal as HTML Itself!
+> Put up amazing UIs in one go - complete with styling and automatic functionality without leaving HTML!
 
-CHTML is a pure HTML-based, **UI functional design system** that lets you build your UI from smaller html components and have everything work as one wonderful piece of craftsmanship. This is a fundamental shift that finally brings UI development from the **engineering** realm of JavaScript back to the **design** field of HTML (the original markup language for the web)!
+# CHTML
+CHTML is a suite of short specifications and technologies that bring a component architecture to the HTML language itself. This lets you create your UI and its components entirely in HTML.
 
-Build elegant user interfaces without learning a template syntax or a build tool! Share your html-based components around and use them anywhere HTML works and forget about a compile step or a dependency! This is the luxury of an HTML-based design system! CHTML empowers the design side of you and enriches your overall design experience by *minimizing your engagement with JavaScript* on the UI; all that engineering should really be the concern of the application layer.
+A pure-HTML approach is new and requires no build tools, nor compilers, nor even a template syntax!
 
-Visit the [project homepage](https://docs.web-native.dev/chtml/) to learn more!
+## Overview
+CHTML is centered on using the web platform itself to put up elegant user interfaces. A few specifications and technologies come into play here to ease out platform limitions that have made this difficult to do.
++ [**Scoped HTML**](https://docs.web-native.dev/chtml/guide/scoped-html) - Scope-based markup pattern that lets us break an HTML document into smaller-sized structural boundaries.
++ [**Scoped JS**](https://docs.web-native.dev/chtml/guide/scoped-js) - JavaScript-based presentational logic that works within the realms of its containing element.
++ [**Scoped CSS**](https://docs.web-native.dev/chtml/guide/scoped-css) - CSS styling that is only applicable to its containing element and its descendants.
++ [**Micro Modules**](https://docs.web-native.dev/chtml/guide/micro-modules) - An import/export distribution system that lets us define, use, and extend HTML components.
+
+While all four technologies fit together seamlessly, they can also be used independently.
 
 ## Documentation
 Visit the official documentation at [docs.web-native.dev/chtml/](https://docs.web-native.dev/chtml/).

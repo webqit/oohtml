@@ -2,9 +2,7 @@
 /**
  * @imports
  */
-import _before from '@web-native-js/commons/str/before.js';
-import recompose from './recompose.js';
-import globalParams from '../params.js';
+import ENV from './ENV.js';
 
 /**
  * ---------------------------
@@ -13,13 +11,11 @@ import globalParams from '../params.js';
  */
 export default function() {
 	
-	const Window = globalParams.context;
-
 	/**
 	 * Define the customized built-in template element
 	 * that supports remote content.
 	 */
-	Window.customElements.define(globalParams.attrMap.bundle, class extends Window.HTMLTemplateElement {
+	ENV.Window.customElements.define(ENV.params.bundleElement, class extends ENV.Window.HTMLTemplateElement {
 	
 		/**
 		 * This handles both triggers remote loading
@@ -48,26 +44,26 @@ export default function() {
 				console.warn('A CHTML bundle must define only either a remote content or local content! Bundle ignored.');
 			} else if (src) {
 				// Missing in jsdom
-				if (Window.fetch) {
-					Window.fetch(src).then(response => {
+				if (ENV.Window.fetch) {
+					ENV.Window.fetch(src).then(response => {
 						return response.ok ? response.text() : Promise.reject(response.statusText);
 					}).then(content => {
 						this.innerHTML = content;
 						// Dispatch the event.
-						this.dispatchEvent(new Window.Event('bundleloadsuccess', {
+						this.dispatchEvent(new ENV.Window.Event('bundleloadsuccess', {
 							bubbles:true,
 						}));
 					}).catch(error => {
 						// Dispatch the event.
 						console.warn('Error fetching the bundle at ' + src + '. (' + error + ')');
-						this.dispatchEvent(new Window.Event('bundleloaderror', {
+						this.dispatchEvent(new ENV.Window.Event('bundleloaderror', {
 							bubbles:true,
 						}));
 					});
 				} else {
 					setTimeout(() => {
 						// Otherwise, this event will fire BEFORE the code that binds to it
-						this.dispatchEvent(new Window.Event('bundleloadsuccess', {
+						this.dispatchEvent(new ENV.Window.Event('bundleloadsuccess', {
 							bubbles:true,
 						}));
 					}, 0);

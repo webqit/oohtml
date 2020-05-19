@@ -2,17 +2,20 @@
 /**
  * @imports
  */
-import params from './params.js';
-import Chtml from './index.js';
 import Reflex from '@web-native-js/reflex';
 import Jsen from '@web-native-js/jsen';
-params.env = 'browser';
+import Chtml from './Chtml.js';
+import './scoped-html/browser-entry.js';
+import './scoped-js/browser-entry.js';
+import './scoped-css/browser-entry.js';
+import './html-transport/browser-entry.js';
 
-// As globals
-if (!window.WebNative) {
-	window.WebNative = {};
+if (!window.WebNative.Chtml) {
+	window.WebNative.Chtml = Chtml;
 }
-window.WebNative.Chtml = Chtml;
-window.WebNative.Chtml.params = params;
-window.WebNative.Chtml.Reflex = Reflex;
-window.WebNative.Chtml.Jsen = Jsen;
+if (!window.WebNative.Reflex) {
+	window.WebNative.Reflex = Reflex;
+}
+if (!window.WebNative.Jsen) {
+	window.WebNative.Jsen = Jsen;
+}

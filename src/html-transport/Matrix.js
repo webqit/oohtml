@@ -23,12 +23,33 @@ export default class Matrix {
 	 * @return this
 	 */
 	constructor(sources, namespace, getter, carry = null) {
-		this.sources = _arrFrom(sources);
 		this.namespace = _arrFrom(namespace);
 		this.getter = getter;
 		this.carry = carry;
 		this.collections = {};
 		this.value;
+		// -----------------
+		this.sources = [];
+		this.loadingSources = new Promise((res, rej) => {
+			var loadingSources = [];
+			_arrFrom(sources).forEach(source => {
+				if (source instanceof Promise) {
+					loadingSources.push(source);
+					source.then(loaded => {
+						loadingSources = loadingSources.filter(_source => _source !== source);
+						this.sources.push(loaded);
+						if (!loadingSources.length) {
+							res();
+						}
+					});
+				}  else {
+					this.sources.push(source);
+				}
+			});
+			if (!loadingSources.length) {
+				res();
+			}
+		});	
 	}
 
 	/**

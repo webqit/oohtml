@@ -11,7 +11,7 @@
   "homepage": "https://www.web-native.dev",
   "icon": "https://www.web-native.dev/icon.svg",
   "author": "Oxford Harrison <oxharriscreative@gmail.com>",
-  "version": "0.1.1",
+  "version": "0.5.0",
   "license": "MIT",
   "type": "module",
   "repository": {
@@ -21,19 +21,13 @@
   "main": "src/index.js",
   "scripts": {
     "test": "node ./tests/index.js",
-    "build-prod": "webpack --config ../webpack.config.prod.js",
-    "build": "webpack --config ../webpack.config.js",
-    "watch": "webpack --watch"
+    "build-dev": "webpack --config ../webpack.config.chtml.dev.js",
+    "build": "webpack --config ../webpack.config.chtml.js"
   },
   "dependencies": {
-    "@web-native-js/commons": "file:../commons",
-    "@web-native-js/reflex": "file:../reflex",
-    "@web-native-js/jsen": "file:../jsen"
-  },
-  "--dependencies": {
-    "@web-native-js/commons": "0.0.1",
-    "@web-native-js/reflex": "^0.0.2",
-    "@web-native-js/jsen": "^0.0.5"
+    "@web-native-js/commons": "^0.0.3",
+    "@web-native-js/reflex": "^0.0.5",
+    "@web-native-js/jsen": "^0.1.0"
   },
   "devDependencies": {
     "webpack": "^4.41.6",

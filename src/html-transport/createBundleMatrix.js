@@ -3,29 +3,28 @@
  * @imports
  */
 import _arrFrom from '@web-native-js/commons/arr/from.js';
-import _divide from '@web-native-js/commons/arr/divide.js';
-import globalParams from '../params.js';
 import recompose from './recompose.js';
 import Matrix from './Matrix.js';
+import ENV from './ENV.js';
 
 /**
  * ---------------------------
  * The client-build entry
  * ---------------------------
  */
-export default function(bundleElements, promiseReciever = null) {
-	
-	var [loadingBundles, readyBundles] = _divide(bundleElements, b => b instanceof Promise);
-	const loadingBundlesPromise = Promise.all(loadingBundles).then(fetchedBundles => {
-		readyBundles.push(...fetchedBundles);
-		loadingBundles = [];
+export default function(bundleElements) {
+	// Convert raw templates
+	bundleElements = bundleElements.map(b => {
+		if (!(b instanceof Promise) && !(b instanceof ENV.Window.HTMLTemplateElement)) {
+			var template = ENV.Window.document.createElement('template');
+			template.innerHTML = b.toString();
+			b = template;
+		}
+		return b;
 	});
-	if (promiseReciever) {
-		promiseReciever(loadingBundlesPromise);
-	}
-	var warnedEarlyBundleAccess;
+	// Instantiate Matrix
 	const anticyclicBundlesQuery = [];
-	const bundleMatrix = new Matrix(readyBundles/*sources*/, []/*namespace*/, (bundle, namespace, superEl, bundleIndex) => {
+	const bundleMatrix = new Matrix(bundleElements/*sources*/, []/*namespace*/, (bundle, namespace, superEl, bundleIndex) => {
 		var _namespace = namespace.join('/');
 		// ------------------
 		// Is the current import process trying to be cyclic?
@@ -35,18 +34,12 @@ export default function(bundleElements, promiseReciever = null) {
 		}
 		anticyclicBundlesQuery.push(_namespace);
 		// ------------------
-		// Is someone trying to import while bundles are still loading?
-		if (loadingBundles.length && !warnedEarlyBundleAccess) {
-			warnedEarlyBundleAccess = true;
-			console.warn('Remote bundles are still loading at this time! You should probabbly wrap bundle-dependent code within Chtml.ready(callback[, true/*waitForBundles*/]).');
-		}
-		// ------------------
 		// We query now...
-		var CSSEscape = globalParams.context.CSS 
-			? globalParams.context.CSS.escape 
+		var CSSEscape = ENV.Window.CSS 
+			? ENV.Window.CSS.escape 
 			: str => str;
-		var el = _arrFrom(bundle.content.children).filter(node => node.matches('[' + CSSEscape(globalParams.attrMap.namespace) + '="' + _namespace + '"]'))[0]
-
+		var el = _arrFrom(bundle.content.children).filter(node => node.matches('[' + CSSEscape(ENV.params.namespaceAttribute) + '="' + _namespace + '"]'))[0];
+		// ------------------
 		if (el && superEl) {
 			try {
 				var norecompose = [];
