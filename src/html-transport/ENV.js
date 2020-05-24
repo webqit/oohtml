@@ -9,8 +9,8 @@ const ENV = {
     ScopedJS: null,
     params: {
         namespaceAttribute: 'namespace',
-        bundleElement: 'chtml-bundle',
-        importElement: 'chtml-import',
+        bundleElement: 'html-bundle',
+        importElement: 'html-import',
         keyValAttributes: [],
         listAttributes: [],
         norecomposeAttributes: ['nocompose', 'shadow',],

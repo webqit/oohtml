@@ -8,7 +8,7 @@ const ENV = {
     params: {
         scriptElement: 'script[type="text/scoped-js"]',
         bindMethodName: 'bind',
-        innertContexts: [],
+        inertContexts: [],
         autoHide: true,
         bindCallback: null,
     },

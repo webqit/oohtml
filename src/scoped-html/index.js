@@ -17,10 +17,10 @@ ScopedHTML.init = function(Window, Trap = Reflex) {
     if (!ENV.Window || !('Element' in ENV.Window)) {
         throw new Error('The "Element" class not found in global context!');
     }
-    if (ENV.params.scopePropertyName in ENV.Window.Element.prototype) {
-        throw new Error('The "Element" class already has a "' + ENV.params.scopePropertyName + '" property!');
+    if (ENV.params.scopeTreePropertyName in ENV.Window.Element.prototype) {
+        throw new Error('The "Element" class already has a "' + ENV.params.scopeTreePropertyName + '" property!');
     }
-    Object.defineProperty(ENV.Window.Element.prototype, ENV.params.scopePropertyName, {
+    Object.defineProperty(ENV.Window.Element.prototype, ENV.params.scopeTreePropertyName, {
         get: function() {
             if (!this['.scopedHTML']) {
                 new ScopedHTML(this);

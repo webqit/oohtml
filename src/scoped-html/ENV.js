@@ -6,10 +6,10 @@ const ENV = {
     Window: null,
     Trap: null,
     params: {
-        scopeAttribute: 'scope',
-        partAttribute: 'scope',
-        partsHintAttribute: 'parts-hint',
-        scopePropertyName: 'scope',
+        rootAttribute: 'root',
+        scopedIdAttribute: 'scoped:id',
+        idHintsAttribute: 'scope-hint',
+        scopeTreePropertyName: 'scopeTree',
         addCallback: null,
     },
 }

@@ -40,7 +40,7 @@ export default function(elFrom, elTo, appendOrPrepend, norecompose = []) {
 	// ----------------------------
 	var listAttributes = ENV.params.listAttributes.concat(['role', 'class']);
 	if (ENV.scopedHTML) {
-		listAttributes = listAttributes.concat([ENV.ScopedHTML.params.partsHintAttribute, ENV.ScopedHTML.params.scopeAttribute, ENV.ScopedHTML.params.partAttribute,]);
+		listAttributes = listAttributes.concat([ENV.ScopedHTML.params.idHintsAttribute]);
 	}
 	_unique(listAttributes).forEach(type => {
 		var b_attr, a_attr;
@@ -77,7 +77,8 @@ export default function(elFrom, elTo, appendOrPrepend, norecompose = []) {
 	// ----------------------------
 	for (var i = 0; i < elFrom.attributes.length; i ++) {
 		var attr = elFrom.attributes[i];
-		if (!norecompose.includes(attr.name) && !norecompose.includes('*') && !elTo.hasAttribute(attr.name)) {
+		if (!norecompose.includes(attr.name) && !norecompose.includes('*') 
+		&& (!elTo.hasAttribute(attr.name) || [ENV.ScopedHTML.params.rootAttribute, ENV.ScopedHTML.params.scopedIdAttribute,].includes(attr.name))) {
 			elTo.setAttribute(attr.name, attr.value);
 			norecompose.push(attr.name);
 		}
@@ -85,7 +86,7 @@ export default function(elFrom, elTo, appendOrPrepend, norecompose = []) {
 	// ----------------------------
 	// For data blocks...
 	// ----------------------------
-	if (!norecompose.includes('<scoped-js>') && !norecompose.includes('*') && ENV.ScopedJS) {
+	if (!norecompose.includes('--scoped-js') && !norecompose.includes('*') && ENV.ScopedJS) {
 		var elToDefs = _arrFrom((elTo.shadowRoot || elTo).children)
 			.filter(node => node.matches(ENV.ScopedJS.params.scriptElement));
 		var elFromDefs = _arrFrom((elFrom.shadowRoot || elFrom).children)

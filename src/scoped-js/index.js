@@ -5,6 +5,7 @@
 import Reflex from '@web-native-js/reflex';
 import _arrFrom from '@web-native-js/commons/arr/from.js';
 import _any from '@web-native-js/commons/arr/any.js';
+import _isFunction from '@web-native-js/commons/js/isFunction.js';
 import ScopedJS from './ScopedJS.js';
 import Scope from './Scope.js';
 import ENV from './ENV.js';
@@ -23,7 +24,7 @@ ScopedJS.init = function(Window, Trap = Reflex) {
         var notify = () => query().forEach(callback);
         var query = () => {
             return _arrFrom(ENV.Window.document.scripts)
-            .filter(script => script.matches(ENV.params.scriptElement) && !script['.scopedJS-scooped'] && !_any(ENV.params.innertContexts, innertContext => script.closest(innertContext)))
+            .filter(script => script.matches(ENV.params.scriptElement) && !script['.scopedJS-scooped'] && !_any(ENV.params.inertContexts, innertContext => script.closest(innertContext)))
             .map(script => {
                 script['.scopedJS-scooped'] = true;
                 return script;
@@ -96,7 +97,10 @@ ScopedJS.init = function(Window, Trap = Reflex) {
             };
             var scope = new Scope(_main);
             // --------
-            getBase(target).AST.eval(scope, ENV.Trap);
+            var returnValue = getBase(target).AST.eval(scope, ENV.Trap);
+            if (_isFunction(returnValue)) {
+                returnValue(binding);
+            }
         }
         
     };

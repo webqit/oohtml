@@ -36,9 +36,7 @@ export default class ScopedHTML {
 		// ROLES
 		// ------------
 		
-		const scopeDefinition = (el.getAttribute(ENV.params.scopeAttribute) || '')
-			.split(' ').map(r => r.trim()).filter(r => r && (!ENV.params.scopeNamePrefix || r.startsWith(ENV.params.scopeNamePrefix)));
-		Object.defineProperty(this, 'definition', {value:scopeDefinition});
+		this.isRoot = el.hasAttribute(ENV.params.rootAttribute);
 		
 		// ------------
 		// TREE
@@ -53,12 +51,12 @@ export default class ScopedHTML {
 				}, {type:'get'});
 			}
 			if (ENV.Trap.link) {
-				ENV.Trap.link(this.el, ENV.params.scopePropertyName, this.store);
+				ENV.Trap.link(this.el, ENV.params.scopeTreePropertyName, this.store);
 			}
 			if (ENV.Trap.init) {
 				// The following nodes, being prelisted,
 				// can be accessed dynamically
-				const nodesHint = (el.getAttribute(ENV.params.partsHintAttribute) || '')
+				const nodesHint = (el.getAttribute(ENV.params.idHintsAttribute) || '')
 					.split(' ').map(r => r.trim()).filter(r => r);
 				ENV.Trap.init(this.store, nodesHint);
 			}
@@ -142,33 +140,27 @@ export default class ScopedHTML {
 	/**
 	 * Attempts to resolve a node from explicit tree.
 	 *
-	 * @param string				requestNodeName
+	 * @param string				scopedID
 	 *
 	 * @return HTMLElement
 	 */
-	findExplicit(requestNodeName) {
+	findExplicit(scopedID) {
 		// If given a rolecase, we can perform a query if we understand the semantics.
-		if (this.definition && this.definition.length) {
-			var definition = this.case ? [this.case] : this.definition;
+		if (this.isRoot) {
 			// Find matches...
 			var CSSEscape = ENV.Window.CSS ? ENV.Window.CSS.escape : str => str;
-			return definition.reduce((matchedNode, role) => {
-				if (!matchedNode) {
-					var closestSuperSelector = '[' + CSSEscape(ENV.params.scopeAttribute) + '~="' + role + '"]';
-					var nodeSelector = '[' + CSSEscape(ENV.params.partAttribute) + '~="' + role + '-' + requestNodeName + '"]';
-					var closestSuper, _matchedNode;
-					if ((_matchedNode = (this.el.shadowRoot || this.el).querySelector(nodeSelector))
-					// If this.el has a shadowRoot, we don't expect _matchedNode to be able to find is superRole element.
-					// If it finds one, then its not for the curren superRole element.
-					&& ((this.el.shadowRoot && !(_matchedNode.parentNode.closest && _matchedNode.parentNode.closest(closestSuperSelector)))
-					// _matchedNode must find this.el as its superRole element to qualify.
-						|| (!this.el.shadowRoot && _matchedNode.parentNode && (closestSuper = _matchedNode.parentNode.closest(closestSuperSelector)) && closestSuper.isSameNode(this.el))
-					)) {
-						matchedNode = _matchedNode;
-					}
-				}
-				return matchedNode;
-			}, null);
+			var closestSuperSelector = '[' + CSSEscape(ENV.params.rootAttribute) + ']';
+			var nodeSelector = '[' + CSSEscape(ENV.params.scopedIdAttribute) + '="' + scopedID + '"]';
+			var closestSuper, _matchedNode;
+			if ((_matchedNode = (this.el.shadowRoot || this.el).querySelector(nodeSelector))
+			// If this.el has a shadowRoot, we don't expect _matchedNode to be able to find is superRole element.
+			// If it finds one, then its not for the curren superRole element.
+			&& ((this.el.shadowRoot && !(_matchedNode.parentNode.closest && _matchedNode.parentNode.closest(closestSuperSelector)))
+			// _matchedNode must find this.el as its superRole element to qualify.
+				|| (!this.el.shadowRoot && _matchedNode.parentNode && (closestSuper = _matchedNode.parentNode.closest(closestSuperSelector)) && closestSuper.isSameNode(this.el))
+			)) {
+				return _matchedNode;
+			}
 		}
 	}
 	

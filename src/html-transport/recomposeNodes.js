@@ -21,8 +21,7 @@ import ENV from './ENV.js';
 export default function(elFrom, elTo) {
 	elTo = elTo.cloneNode(true);
 	var elFromNs = elFrom.getAttribute(ENV.params.namespaceAttribute);
-	var elToNs = elTo.getAttribute(ENV.params.namespaceAttribute);
-	var elToRoles = !ENV.ScopedHTML ? [] : (elTo.getAttribute(ENV.ScopedHTML.params.scopeAttribute) || '').split(' ').map(r => r.trim());
+	var elToisRoot = ENV.ScopedHTML && elTo.hasAttribute(ENV.ScopedHTML.params.rootAttribute);
 	// -------------------------
 	// So we concat() the role attribute
 	// -------------------------
@@ -40,26 +39,17 @@ export default function(elFrom, elTo) {
 			return;
 		}
 		replacementNode = replacementNode.cloneNode(true);
-		var applicableContextRoles = [], applicableReplacementNodeRoles = [];
-		var replacementNodeRoles = (replacementNode.getAttribute(ENV.ScopedHTML.params.partAttribute) || '').split(' ').map(r => r.trim());
-		replacementNodeRoles.forEach(replacementNodeRole => {
-			var _applicableContextRoles = elToRoles.filter(contextRole => replacementNodeRole.startsWith(contextRole + '-'));
-			if (_applicableContextRoles.length) {
-				applicableContextRoles.push(_applicableContextRoles[0]);
-				applicableReplacementNodeRoles.push(replacementNodeRole);
-			}
-		});
-		var CSSEscape = ENV.Window.CSS ? ENV.Window.CSS.escape : str => str;
-		if (applicableContextRoles.length) {
-			var slotNodes;
-			var contextSelector = applicableContextRoles.map(contextRole => '[' + CSSEscape(ENV.ScopedHTML.params.scopeAttribute) + '~="' + contextRole + '"]');
-			var slotNodeSelector = applicableReplacementNodeRoles.map(replacementNodeRole => '[' + CSSEscape(ENV.ScopedHTML.params.partAttribute) + '~="' + replacementNodeRole + '"]');
-			if ((elTo.shadowRoot && (slotNodes = elTo.shadowRoot.querySelectorAll(slotNodeSelector)))
-			|| ((slotNodes = elTo.querySelectorAll(slotNodeSelector)).length === 1 && slotNodes[0].closest(contextSelector) === elTo)) {
+		var scopedID, CSSEscape = ENV.Window.CSS ? ENV.Window.CSS.escape : str => str;
+		if (elToisRoot && (scopedID = replacementNode.getAttribute(ENV.ScopedHTML.params.scopedIdAttribute))) {
+			var slotNode,
+				rootSelector = '[' + CSSEscape(ENV.ScopedHTML.params.rootAttribute) + ']',
+				slotNodeSelector = '[' + CSSEscape(ENV.ScopedHTML.params.scopedIdAttribute) + '="' + scopedID + '"]';
+			if ((elTo.shadowRoot && (slotNode = elTo.shadowRoot.querySelector(slotNodeSelector)))
+			|| ((slotNode = elTo.querySelector(slotNodeSelector)) && slotNode.parentNode.closest(rootSelector) === elTo)) {
 				// We will prepend defs from the slot node into replacement node
-				recomposeDirectives(slotNodes[0], replacementNode, 'prepend');
+				recomposeDirectives(slotNode, replacementNode, 'prepend');
 				// Port to target...
-				slotNodes[0].replaceWith(replacementNode);
+				slotNode.replaceWith(replacementNode);
 			} else {
 				//throw new Error('Composition Error: Node #' + i + ' (at ' + elFromNs + ') must match exactly one targetNode in ' + elToNs + '! (' + slotNodes.length + ' matched)');
 				elTo.append(replacementNode);
