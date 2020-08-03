@@ -1,17 +1,23 @@
 {
   "name": "@web-native-js/chtml",
   "title": "CHTML",
-  "description": "&lt;C&sbquo;HTML /&gt; - UI Componentization in plain HTML! CHTML (Component-oriented HTML) is the first markup-level component system. And this is an important new possibility!",
+  "description": "A suite of new DOM features that brings language support for modern UI development paradigms: a component-based architecture, data binding, and reactivity.",
   "keywords": [
+    "Scoped HTML",
+    "Scoped CSS",
+    "Scoped JS",
+    "HTML Partials",
     "HTML components",
     "UI components",
-    "Frontend framework",
-    "Plain HTML"
+    "Frontend framework"
   ],
   "homepage": "https://www.web-native.dev",
   "icon": "https://www.web-native.dev/icon.svg",
-  "author": "Oxford Harrison <oxharriscreative@gmail.com>",
-  "version": "1.0.0",
+  "author": {
+    "name": "Oxford Harrison",
+    "email": "oxharris.dev@gmail.com"
+  },
+  "version": "1.0.1",
   "license": "MIT",
   "type": "module",
   "repository": {
