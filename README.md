@@ -6,17 +6,17 @@ CHTML is a suite of new DOM features that brings language support for modern UI 
 
 ## Documentation
 
-+ [Scoped HTML](https://docs.web-native.dev/chtml/v1/scoped-html/) - Structure your document as a hierarchy of *scopes* and *subscopes*.
-+ [Scoped CSS](https://docs.web-native.dev/chtml/v1/scoped-css/) - Put stylesheets where you need them using Scoped CSS.
-+ [Scoped JS](https://docs.web-native.dev/chtml/v1/scoped-js/) - Create behaviours on the fly with scoped scripts.
-+ [HTML Partials](https://docs.web-native.dev/chtml/v1/html-partials/) - Define, extend, import/export reusable HTML snippets.
++ [Scoped HTML](https://docs.web-native.dev/chtml/scoped-html) - Structure your document as a hierarchy of *scopes* and *subscopes*.
++ [Scoped CSS](https://docs.web-native.dev/chtml/scoped-css) - Put stylesheets where you need them using Scoped CSS.
++ [Scoped JS](https://docs.web-native.dev/chtml/scoped-js) - Create behaviours on the fly with scoped scripts.
++ [HTML Partials](https://docs.web-native.dev/chtml/html-partials) - Define, extend, import/export reusable HTML snippets.
 
-If you'd be interested in the motivation for this project, [here](https://docs.web-native.dev/chtml/v1/explainer.md)'s the explainer.
+If you'd be interested in the motivation for this project, [here](https://docs.web-native.dev/chtml/explainer)'s the explainer.
 
 ## Getting Started
 
-+ [Installation](https://docs.web-native.dev/chtml/v1/Installation.md) - Follow the installation guide to add CHTML to your page.
-+ [Examples](https://docs.web-native.dev/chtml/v1/examples) - Get a head start with these few examples.
++ [Installation](https://docs.web-native.dev/chtml/Installation) - Follow the installation guide to add CHTML to your page.
++ [Examples](https://docs.web-native.dev/chtml/examples) - Get a head start with these few examples.
 
 ## Issues
 
