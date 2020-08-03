@@ -15,7 +15,7 @@ If you'd be interested in the motivation for this project, [here](https://docs.w
 
 ## Getting Started
 
-+ [Installation](https://docs.web-native.dev/chtml/Installation) - Follow the installation guide to add CHTML to your page.
++ [Installation](https://docs.web-native.dev/chtml/installation) - Follow the installation guide to add CHTML to your page.
 + [Examples](https://docs.web-native.dev/chtml/examples) - Get a head start with these few examples.
 
 ## Issues
