@@ -2,11 +2,13 @@
 /**
  * @imports
  */
+import Fs from 'fs';
+import Path from 'path';
 import _each from '@web-native-js/commons/obj/each.js';
 import _isObject from '@web-native-js/commons/js/isObject.js';
 import _isFunction from '@web-native-js/commons/js/isFunction.js';
-import * as fs from 'fs';
-import * as path from 'path';
+import _beforeLast from '@web-native-js/commons/str/beforeLast.js';
+import _afterLast from '@web-native-js/commons/str/afterLast.js';
 
 /**
  * ---------------------------
@@ -30,23 +32,30 @@ const Bundler = class {
 		}
 		this.baseDir = baseDir;
 		this.params = params;
-		this.params.namespaceKey = this.params.namespaceKey || 'data-namespace';
+		this.params.exportIdAttribute = this.params.exportIdAttribute || 'namespace';
 		this.params.assetsPublicBase = this.params.assetsPublicBase || '/';
 		this.bundle = [];
 		const walk = dir => {
-			fs.readdirSync(dir).forEach(f => {
-				let resource = path.join(dir, f);
-				if (fs.statSync(resource).isDirectory()) {
+			Fs.readdirSync(dir).forEach(f => {
+				let resource = Path.join(dir, f);
+				if (Fs.statSync(resource).isDirectory()) {
 					walk(resource);
 				} else {
-					var ext = path.extname(resource) || '';
+					var ext = Path.extname(resource) || '';
 					var fnameNoExt = resource
 						.substr(0, resource.length - ext.length)
 						.substr(this.baseDir.length);
-					if (this.params.namespaceCallback) {
-						var ns = this.params.namespaceCallback(resource, fnameNoExt, ext);
+					var ns, _ns;
+					var _ext = ext ? ext.replace('.', '') + '/' : '', _fnameNoExt = fnameNoExt.replace(/\\/g, '/');
+					if (this.params.namespaceScheme === 2) {
+						var _fnameNoExtSplit = _fnameNoExt.split('/');
+						_fnameNoExtSplit.unshift(_fnameNoExtSplit.pop());
+						_ns = _ext + _fnameNoExtSplit.join('/');
 					} else {
-						var ns = (ext ? ext.replace('.', '') + '/' : '') + fnameNoExt.replace(/\\/g, '/');
+						_ns = _ext + _fnameNoExt;
+					}
+					if (!this.params.namespaceCallback || !(ns = this.params.namespaceCallback(_ns, resource, fnameNoExt, ext))) {
+						ns = _ns;
 					}
 					if (ns) {
 						this.load(resource, ns, ext);
@@ -68,32 +77,33 @@ const Bundler = class {
 	 * @return string
 	 */
 	load(file, ns, ext) {
-		var nsAttrName = this.params.namespaceKey + '="' + ns + '"';
+		var nsAttrName = this.params.exportIdAttribute + '="' + ns + '"';
 		if (ext in Bundler.mime) {
 			this.bundle.push({
-				ns:ns,
-				html:(baseDir, assetsDir) => {
-					if (fs.statSync(file).size < this.params.maxDataURLsize) {
-						var url = 'data:' + Bundler.mime[ext] + ';base64,' + fs.readFileSync(file).toString('base64');
+				ns: ns,
+				html: (baseDir, assetsDir) => {
+					if (Fs.statSync(file).size < this.params.maxDataURLsize) {
+						var url = 'data:' + Bundler.mime[ext] + ';base64,' + Fs.readFileSync(file).toString('base64');
 					} else {
-						var relFilename = path.join(assetsDir, path.relative(this.baseDir, file));
-						var absFilename = path.join(baseDir, relFilename);
-						fs.mkdirSync(path.dirname(absFilename), {recursive:true});
-						fs.copyFileSync(file, absFilename);
+						var relFilename = Path.join(assetsDir, Path.relative(this.baseDir, file));
+						var absFilename = Path.join(baseDir, relFilename);
+						Fs.mkdirSync(Path.dirname(absFilename), {recursive:true});
+						Fs.copyFileSync(file, absFilename);
 						var url = this.params.assetsPublicBase + relFilename.replace(/\\/g, '/');
 					}
 					return "\r\n\t<img " + nsAttrName + " src=\"" + url + "\" />\r\n";
 				},
 			});
 		} else {
-			var contents = fs.readFileSync(file).toString();
-			if (contents.trim().startsWith('<') && !contents.trim().startsWith('<?xml')) {
+			var contents = Fs.readFileSync(file).toString();
+			var contentsTrimmed = contents.trim();
+			if (contentsTrimmed.startsWith('<') && !contentsTrimmed.startsWith('<!') && !contentsTrimmed.startsWith('<?xml')) {
 				// Add a namespace attribute on the first available
 				// space on the start tag
 				var namespacedContent = contents.replace(/<([a-z\-]+)/, '<$1 ' + nsAttrName);
 				this.bundle.push({
-					ns:ns,
-					html:namespacedContent,
+					ns: ns,
+					html: namespacedContent,
 				});
 			}
 		}
@@ -101,7 +111,7 @@ const Bundler = class {
 		
 	/**
 	 * Stringifies the bundle
-	 * and optionally saves it to a path.
+	 * and optionally saves it to a Path.
 	 *
 	 * @param string			filename
 	 * @param string|function	assetResolver
@@ -111,20 +121,19 @@ const Bundler = class {
 	output(filename = null, assetsDir = 'assets') {
 		var dirname;
 		if (filename) {
-			filename = !path.isAbsolute(filename) 
-				? path.resolve(this.baseDir, filename) 
+			filename = !Path.isAbsolute(filename) 
+				? Path.resolve(this.baseDir, filename) 
 				: filename;
-			dirname = path.dirname(filename);
+			dirname = Path.dirname(filename);
 		}
-		var bundleStr = this.bundle
-			.map(b => {
+		var bundleStr = this.bundle.map(b => {
 				var html = _isFunction(b.html) ? b.html(dirname, assetsDir) : b.html;
 				var ws = (html.match(/^[\s]+/) || [''])[0].replace(new RegExp("\r\n\r\n", 'g'), "\r\n");
 				return "\r\n" + ws + "<!-- NAMESPACE: " + b.ns + " -->" + ws + html.trim();
 			}).join("\r\n\r\n");
 		if (filename) {
-			fs.mkdirSync(dirname, {recursive:true});
-			fs.writeFileSync(filename, bundleStr);
+			Fs.mkdirSync(dirname, {recursive:true});
+			Fs.writeFileSync(filename, bundleStr);
 		}
 		return bundleStr;
 	}

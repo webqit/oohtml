@@ -2,20 +2,47 @@
 /**
  * @imports
  */
-import SCOPED_HTML_ENV from './scoped-html/ENV.js';
-import SCOPED_JS_ENV from './scoped-js/ENV.js';
-import HTML_TRANSPORT_ENV from './html-transport/ENV.js';
+import Observer from '@web-native-js/observer';
+import SCOPED_HTML from './scoped-html/ENV.js';
+import SCOPED_JS from './scoped-js/ENV.js';
+import HTML_PARTIALS from './html-partials/ENV.js';
 
-SCOPED_JS_ENV.params.inertContexts.push(HTML_TRANSPORT_ENV.params.importElement);
-// Default common Trap
-HTML_TRANSPORT_ENV.ScopedHTML = SCOPED_HTML_ENV;
-HTML_TRANSPORT_ENV.ScopedJS = SCOPED_JS_ENV;
-// Individual Access
-const ENV = {
-    ScopedHTML: SCOPED_HTML_ENV,
-    ScopedJS: SCOPED_JS_ENV,
-    HTMLTransport: HTML_TRANSPORT_ENV,
+// Set cross package parameters
+SCOPED_JS.params.inertContexts.push(
+    HTML_PARTIALS.params.slotElement, 
+    HTML_PARTIALS.params.moduleElement
+);
+SCOPED_HTML.params.inertSubjects.push(
+    HTML_PARTIALS.params.slotElement, 
+);
+
+// Define cross package ENV
+var window, trap, ENV = {
+
+    get window() { return window; },
+    set window(_window) {
+        window = _window;
+        SCOPED_HTML.window = _window;
+        SCOPED_JS.window = _window;
+        HTML_PARTIALS.window = _window;
+    },
+
+    get trap() { return trap; },
+    set trap(_trap) {
+        trap = _trap;
+        SCOPED_HTML.trap = _trap;
+        SCOPED_JS.trap = _trap;
+        HTML_PARTIALS.trap = _trap;
+    },
+
+    params: {
+        SCOPED_HTML: SCOPED_HTML.params,
+        SCOPED_JS: SCOPED_JS.params,
+        HTML_PARTIALS: HTML_PARTIALS.params,
+    },
 };
+
+ENV.trap = Observer;
 
 /**
  * @exports

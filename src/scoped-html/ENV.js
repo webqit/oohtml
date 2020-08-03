@@ -1,18 +1,24 @@
 
 /**
- * We expect the following here
+ * @imports
+ */
+import Observer from '@web-native-js/observer';
+export { default as merge } from '@web-native-js/commons/obj/merge.js';
+
+/**
+ * @ENV
  */
 const ENV = {
-    Window: null,
-    Trap: null,
+    window: null,
+    trap: Observer,
     params: {
         rootAttribute: 'root',
         scopedIdAttribute: 'scoped:id',
-        idHintsAttribute: 'scope-hint',
-        scopeTreePropertyName: 'scopeTree',
-        addCallback: null,
+        namespacePropertyName: 'idrefs',
+        inertContexts: [],
+        inertSubjects: [],
     },
-}
+};
 
 /**
  * @exports

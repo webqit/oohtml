@@ -11,12 +11,16 @@
   "homepage": "https://www.web-native.dev",
   "icon": "https://www.web-native.dev/icon.svg",
   "author": "Oxford Harrison <oxharriscreative@gmail.com>",
-  "version": "0.6.0",
+  "version": "1.0.0",
   "license": "MIT",
   "type": "module",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/web-native/chtml.git"
+  },
+  "funding": {
+    "type": "patreon",
+    "url": "https://patreon.com/ox_harris"
   },
   "main": "src/index.js",
   "scripts": {
@@ -25,9 +29,9 @@
     "build": "webpack --config ../webpack.config.chtml.js"
   },
   "dependencies": {
-    "@web-native-js/commons": "^0.0.3",
-    "@web-native-js/reflex": "^0.0.5",
-    "@web-native-js/jsen": "^0.1.0"
+    "@web-native-js/commons": "^0.5.0",
+    "@web-native-js/jsen": "^0.5.0",
+    "@web-native-js/observer": "^1.0.0"
   },
   "devDependencies": {
     "webpack": "^4.41.6",

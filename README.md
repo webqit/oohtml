@@ -1,24 +1,27 @@
-> Put up amazing UIs in one go - complete with styling and automatic functionality without leaving HTML!
+# Overview
 
-# CHTML
-CHTML is a suite of short specifications and technologies that bring a component architecture to the HTML language itself. This lets you create your UI and its components entirely in HTML.
+CHTML is a suite of new DOM features that brings language support for modern UI development paradigms: a component-based architecture, data binding, and reactivity. This lets us build elegant user interfaces using the web platform itself.
 
-A pure-HTML approach is new and requires no build tools, nor compilers, nor even a template syntax!
-
-## Overview
-CHTML is centered on using the web platform itself to put up elegant user interfaces. A few specifications and technologies come into play here to ease out platform limitions that have made this difficult to do.
-+ [**Scoped HTML**](https://docs.web-native.dev/chtml/guide/scoped-html) - Scope-based markup pattern that lets us break an HTML document into smaller-sized structural boundaries.
-+ [**Scoped JS**](https://docs.web-native.dev/chtml/guide/scoped-js) - JavaScript-based presentational logic that works within the realms of its containing element.
-+ [**Scoped CSS**](https://docs.web-native.dev/chtml/guide/scoped-css) - CSS styling that is only applicable to its containing element and its descendants.
-+ [**Micro Modules**](https://docs.web-native.dev/chtml/guide/micro-modules) - An import/export distribution system that lets us define, use, and extend HTML components.
-
-While all four technologies fit together seamlessly, they can also be used independently.
+[Check this project out on GitHub](https://github.com/web-native/chtml).
 
 ## Documentation
-Visit the official documentation at [docs.web-native.dev/chtml/](https://docs.web-native.dev/chtml/).
+
++ [Scoped HTML](https://docs.web-native.dev/chtml/v1/scoped-html/) - Structure your document as a hierarchy of *scopes* and *subscopes*.
++ [Scoped CSS](https://docs.web-native.dev/chtml/v1/scoped-css/) - Put stylesheets where you need them using Scoped CSS.
++ [Scoped JS](https://docs.web-native.dev/chtml/v1/scoped-js/) - Create behaviours on the fly with scoped scripts.
++ [HTML Partials](https://docs.web-native.dev/chtml/v1/html-partials/) - Define, extend, import/export reusable HTML snippets.
+
+If you'd be interested in the motivation for this project, [here](https://docs.web-native.dev/chtml/v1/explainer.md)'s the explainer.
+
+## Getting Started
+
++ [Installation](https://docs.web-native.dev/chtml/v1/Installation.md) - Follow the installation guide to add CHTML to your page.
++ [Examples](https://docs.web-native.dev/chtml/v1/examples) - Get a head start with these few examples.
 
 ## Issues
-To report bugs or request features, please submit an issue to this repository.
+
+To report bugs or request features, please submit an [issue](https://github.com/web-native/chtml/issues).
 
 ## License
+
 MIT.

@@ -1,18 +1,22 @@
 
 /**
- * We expect the following here
+ * @imports
+ */
+import Observer from '@web-native-js/observer';
+export { default as merge } from '@web-native-js/commons/obj/merge.js';
+
+/**
+ * @ENV
  */
 const ENV = {
-    Window: null,
-    Trap: null,
+    window: null,
+    trap: Observer,
     params: {
-        scriptElement: 'script[type="text/scoped-js"]',
-        bindMethodName: 'bind',
+        scriptElement: 'script[type="scoped"]',
+        globalBindingMethod: 'bind',
+        localBindingMethod: 'bind',
         inertContexts: [],
-        autoHide: true,
-        bindCallback: null,
     },
-    globals: {},
 };
 
 /**

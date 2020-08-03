@@ -2,14 +2,8 @@
 /**
  * @imports
  */
-import ScopedJS, {ENV} from './index.js';
+import INIT from './index.js';
+import ENV from './ENV.js';
 
-/**
- * @window
- */
-ScopedJS.init(window);
-if (!window.WebNative) {
-    window.WebNative = {};
-}
-window.WebNative.ScopedJS = ScopedJS;
-window.WebNative.ScopedJS.ENV = ENV;
+ENV.window = window;
+INIT();

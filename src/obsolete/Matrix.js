@@ -15,7 +15,7 @@ export default class Matrix {
 	/**
 	 * Creates a new Matrix instance.
 	 *
-	 * @param array 			sources
+	 * @param array|Promise		sources
 	 * @param string|array 		namespace
 	 * @param function 			getter
 	 * @param MatrixInterface	carry
@@ -30,26 +30,36 @@ export default class Matrix {
 		this.value;
 		// -----------------
 		this.sources = [];
-		this.loadingSources = new Promise((res, rej) => {
-			var loadingSources = [];
-			_arrFrom(sources).forEach(source => {
-				if (source instanceof Promise) {
-					loadingSources.push(source);
-					source.then(loaded => {
-						loadingSources = loadingSources.filter(_source => _source !== source);
-						this.sources.push(loaded);
-						if (!loadingSources.length) {
-							res();
-						}
-					});
-				}  else {
-					this.sources.push(source);
+		const readyPromise = new Promise((res, rej) => {
+			var init = sources => {
+				var promises = [];
+				_arrFrom(sources).forEach(source => {
+					if (source instanceof Promise) {
+						promises.push(source);
+						source.then(loaded => {
+							promises = promises.filter(_source => _source !== source);
+							this.sources.push(loaded);
+							if (!promises.length) {
+								this.isReady = true;
+								res(this.sources);
+							}
+						});
+					}  else {
+						this.sources.push(source);
+					}
+				});
+				if (!promises.length) {
+					this.isReady = true;
+					res(this.sources);
 				}
-			});
-			if (!loadingSources.length) {
-				res();
+			};
+			if (sources instanceof Promise) {
+				sources.then(init);
+			} else {
+				init(sources);
 			}
-		});	
+		});
+		this.ready = callback => readyPromise.then(callback);
 	}
 
 	/**
@@ -106,6 +116,9 @@ export default class Matrix {
 	 * @return object
 	 */
 	find(namespace) {
+		if (!namespace) {
+			return;
+		}
 		var nsArray = namespace.split('/');
 		var subMatrix, nsKey, nsDrill = this;
 		while((nsKey = nsArray.shift()) && (nsDrill = nsDrill.enter(nsKey))) {

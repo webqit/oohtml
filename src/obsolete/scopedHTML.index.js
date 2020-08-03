@@ -6,9 +6,9 @@ import _isArray from '@web-native-js/commons/js/isArray.js';
 import _isNumeric from '@web-native-js/commons/js/isNumeric.js';
 import _arrFrom from '@web-native-js/commons/arr/from.js';
 import _each from '@web-native-js/commons/obj/each.js';
+import { window, trap, params } from '../scoped-html/ENV.js';
 import disconnectedCallback from './disconnectedCallback.js';
-import Schema from './Schema.js';
-import ENV from './ENV.js';
+//import Schema from './Schema.js';
 
 /**
  * ---------------------------
@@ -26,17 +26,18 @@ export default class ScopedHTML {
 	 * @return void
 	 */
 	constructor(el) {
-		// ---------------------------
-		Object.defineProperty(this, '_el', {value:el});
+
+        Object.defineProperty(this, '_el', {value: el});
 		Object.defineProperty(this, 'el', {
-			value:el.nodeName === '#document' ? el.querySelector('html') : el,
+			value: el.nodeName === '#document' ? el.querySelector('html') : el,
 		});
 		Object.defineProperty(this.el, '.scopedHTML', {value: this});
+        
 		// ------------
 		// ROLES
 		// ------------
 		
-		this.isRoot = el.hasAttribute(ENV.params.rootAttribute);
+		this.isRoot = this.el.hasAttribute(params.rootAttribute) || this.el.matches('html');
 		
 		// ------------
 		// TREE
@@ -44,21 +45,21 @@ export default class ScopedHTML {
 		
 		const store = {};
 		Object.defineProperty(this, 'store', {value:store});
-		if (ENV.Trap) {
-			if (ENV.Trap.trap) {
-				ENV.Trap.trap(store, (e, recieved, next) => {
+		if (trap) {
+			if (trap.trap) {
+				trap.trap(store, (e, recieved, next) => {
 					return next(recieved || this.find(e.query));
 				}, {type:'get'});
 			}
-			if (ENV.Trap.link) {
-				ENV.Trap.link(this.el, ENV.params.scopeTreePropertyName, this.store);
+			if (trap.link) {
+				trap.link(this.el, params.scopeTreePropertyName, this.store);
 			}
-			if (ENV.Trap.init) {
+			if (trap.init) {
 				// The following nodes, being prelisted,
 				// can be accessed dynamically
-				const nodesHint = (el.getAttribute(ENV.params.idHintsAttribute) || '')
+				const nodesHint = (this.el.getAttribute(params.idHintsAttribute) || '')
 					.split(' ').map(r => r.trim()).filter(r => r);
-				ENV.Trap.init(this.store, nodesHint);
+				trap.init(this.store, nodesHint);
 			}
 		}
 	}
@@ -75,14 +76,14 @@ export default class ScopedHTML {
 		var add = (target, key, node, isNode = false) => {
 			var _node = node;
 			if (isNode) {
-				if (ENV.params.addCallback) {
-					_node = ENV.params.addCallback(_node, this);
+				if (params.addCallback) {
+					_node = params.addCallback(_node, this);
 				}
 				new ScopedHTML(_node);
 			}
 			// Set with trap?
-			if (ENV.Trap && ENV.Trap.set) {
-				ENV.Trap.set(target, key, _node);
+			if (trap && trap.set) {
+				trap.set(target, key, _node);
 			} else if (_isArray(target)) {
 				target.push(_node);
 			} else {
@@ -92,8 +93,8 @@ export default class ScopedHTML {
 				// We'll remove from tree at the
 				// time it leaves the DOM
 				disconnectedCallback(node, () => {
-					if (ENV.Trap && ENV.Trap.deleteProperty) {
-						ENV.Trap.deleteProperty(target, key);
+					if (trap && trap.deleteProperty) {
+						trap.deleteProperty(target, key);
 					} else if (_isArray(target)) {
 						_remove(target, _node);
 					} else {
@@ -117,7 +118,7 @@ export default class ScopedHTML {
 	 *
 	 * @param string|int|array	 nodeNames
 	 *
-	 * @return Chtml|array|object
+	 * @return Chtml|array
 	 */
 	find(nodeNames) {
 		_arrFrom(nodeNames).forEach(nodeName => {
@@ -130,7 +131,7 @@ export default class ScopedHTML {
 			}
 			var node;
 			if ((node = this.findExplicit(nodeName))
-			|| (node = this.findImplicit(nodeName))) {
+			/*|| (node = this.findImplicit(nodeName))*/) {
 				this.add(nodeName, node);
 			}
 		});
@@ -148,9 +149,9 @@ export default class ScopedHTML {
 		// If given a rolecase, we can perform a query if we understand the semantics.
 		if (this.isRoot) {
 			// Find matches...
-			var CSSEscape = ENV.Window.CSS ? ENV.Window.CSS.escape : str => str;
-			var closestSuperSelector = '[' + CSSEscape(ENV.params.rootAttribute) + ']';
-			var nodeSelector = '[' + CSSEscape(ENV.params.scopedIdAttribute) + '="' + scopedID + '"]';
+			var CSSEscape = window.CSS ? window.CSS.escape : str => str;
+			var closestSuperSelector = '[' + CSSEscape(params.rootAttribute) + '],html';
+			var nodeSelector = '[' + CSSEscape(params.scopedIdAttribute) + '="' + scopedID + '"]';
 			var closestSuper, _matchedNode;
 			if ((_matchedNode = (this.el.shadowRoot || this.el).querySelector(nodeSelector))
 			// If this.el has a shadowRoot, we don't expect _matchedNode to be able to find is superRole element.
@@ -216,3 +217,67 @@ export default class ScopedHTML {
 		return matches;
 	}
 };
+
+/**
+ * @exports
+ */
+export {
+	params,
+};
+
+/**
+ * @init
+ */
+
+// ----------------------
+// Capture scoped elements
+// ----------------------
+
+const scopedElementsCallback = callback => {
+	var selector = '[' + CSSEscape(params.scopedIdAttribute) + ']';
+    var notify = () => _arrFrom(window.document.querySelector(selector)).forEach(el => callback(el, true));
+    // On DOM-ready
+    window.document.addEventListener('DOMContentLoaded', notify, false);
+    if (window.document.readyState === 'complete') {
+        notify();
+    }
+    // On DOM mutation
+    if (window.MutationObserver) {
+		mutationCallback(selector, (connectedState, ...els) => {
+			els.forEach(el => callback(el, connectedState));
+		});
+    }
+};
+if (!window || !('Element' in window)) {
+    throw new Error('The "Element" class not found in global context!');
+}
+if (params.namespaceAttribute in window.Element.prototype) {
+    throw new Error('The "Element" class already has a "' + params.namespaceAttribute + '" property!');
+}
+Object.defineProperty(window.Element.prototype, params.namespaceAttribute, {
+    get: function() {
+        if (!this['.scopedHTML']) {
+            this['.scopedHTML'] = {};
+        }
+        return this['.scopedHTML'];
+    }
+});
+
+// Dynamically form relationships
+scopedElementsCallback((el, connectedState) => {
+	if (connectedState && _any(params.inertContexts, innertContext => el.closest(innertContext))) {
+		return;
+	}
+	var scopedId = el.getAttribute(params.scopedIdAttribute),
+		ownerRoot = el.parentNode.closest('[' + CSSEscape(params.rootAttribute) + '],html'),
+		namespaceStore = ownerRoot[params.namespaceAttribute];
+	if (trap.link) {
+		trap.link(ownerRoot, params.namespaceAttribute, namespaceStore);
+	}
+	if (connectedState) {
+		trap.set(namespaceStore, scopedId, el);
+	} else {
+		trap.deleteProperty(namespaceStore, scopedId);
+	}
+});
+

@@ -2,7 +2,7 @@
 /**
  * @imports
  */
-import {Contexts} from '@web-native-js/jsen';
+import { Contexts } from '@web-native-js/jsen';
 
 /**
  * ---------------------------

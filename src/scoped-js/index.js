@@ -2,134 +2,243 @@
 /**
  * @imports
  */
-import Reflex from '@web-native-js/reflex';
+import JSEN, { Block } from '@web-native-js/jsen';
+import _merge from '@web-native-js/commons/obj/merge.js';
 import _arrFrom from '@web-native-js/commons/arr/from.js';
+import _remove from '@web-native-js/commons/arr/remove.js';
 import _any from '@web-native-js/commons/arr/any.js';
 import _isFunction from '@web-native-js/commons/js/isFunction.js';
-import ScopedJS from './ScopedJS.js';
+import { capture, meta } from '../dom.js';
 import Scope from './Scope.js';
 import ENV from './ENV.js';
 
 /**
+ * @ENV
+ */
+export {
+    ENV,
+};
+
+/**
+ * ---------------------------
+ * The ScopedJS class
+ * ---------------------------
+ */				
+export class ScopedJS {
+    static parse(script, params = {}) {
+        var AST;
+        if (!(AST = JSEN.parse(script, [Block], _merge({assert:false}, params)))) {
+            AST = new Block([JSEN.parse(script, null, params)]);
+        }
+        return AST;
+    }
+};
+
+/**
  * @init
  */
-ScopedJS.init = function(Window, Trap = Reflex) {
-    ENV.Window = Window;
-    ENV.Trap = Trap;
+var inited = false;
+export default function() {
+	if (inited) {
+		return;
+	}
+	inited = true;
 
-    // ----------------------
-    // Capture scripts
-    // ----------------------
-    const scriptElementsCallback = callback => {
-        var notify = () => query().forEach(callback);
-        var query = () => {
-            return _arrFrom(ENV.Window.document.scripts)
-            .filter(script => script.matches(ENV.params.scriptElement) && !script['.scopedJS-scooped'] && !_any(ENV.params.inertContexts, innertContext => script.closest(innertContext)))
-            .map(script => {
-                script['.scopedJS-scooped'] = true;
-                return script;
-            });
-        };
-        // Document-readiness
-        ENV.Window.document.addEventListener('DOMContentLoaded', () => setTimeout(notify, 0), false);
-        ENV.Window.addEventListener('load', () => setTimeout(notify, 0), false);
-        if (ENV.Window.document.readyState === 'complete') {
-            notify();
-        }
-        // On new scripts
-        if (ENV.Window && ENV.Window.MutationObserver) {
-            var observer = new ENV.Window.MutationObserver(() => notify());
-            observer.observe(ENV.Window.document, {childList: true, subtree: true,});
-        }
-    };
-
-    // ----------------------
-    // Run
-    // ----------------------
-    scriptElementsCallback(scriptElement => {
-        var script;
-        if (getBase(scriptElement.parentNode).AST) {
-            throw new Error('An element must only have one scopedJS instance!');
-        }
-        if (!(script = (scriptElement.textContent || '').trim())) {
-            return;
-        }
-         // Parse
-         getBase(scriptElement.parentNode).AST = ScopedJS.parse(script);
-         applyBinding(scriptElement.parentNode);
-        // Remove
-        if (ENV.params.autoHide) {
-            scriptElement.remove();
-        } 
-    });
+    var preInitList = [];
 
     // ----------------------
     // Helpers
     // ----------------------
-    var getBase = function(target) {
-        if (!target['.scopedJS']) {
-            var base = {};
-            Object.defineProperty(target, '.scopedJS', {
-                get: function() {
-                    return base
-                },
-            })
+
+    const setVal = (target, key, value) => {
+        if (ENV.trap) {
+            ENV.trap.set(target, key, value);
+        } else {
+            target[key] = value;
         }
-        return target['.scopedJS'];
-    };
-    var applyBinding = function(target) {
-        if (getBase(target).AST) {
-            var binding = getBase(target).binding || {};
-            // --------
-            // Create eval scope...
-            var _super = {
-                main: {}, 
-                super: ENV.globals,
-            };
-            if (ENV.Trap) {
-                ENV.Trap.set(_super.main, 'this', target);
-            } else {
-                _super.main['this'] = target;
-            }
-            var _main = {
-                main: binding, 
-                super: new Scope(_super),
-            };
-            var scope = new Scope(_main);
-            // --------
-            var returnValue = getBase(target).AST.eval(scope, ENV.Trap);
-            if (_isFunction(returnValue)) {
-                returnValue(binding);
-            }
-        }
-        
+        return target;
     };
 
+    const getScriptBase = function(target) {
+        if (!target['.chtml']) {
+            target['.chtml'] = {};
+        }
+        if (!target['.chtml'].scopedJS) {
+            // Create scope
+            target['.chtml'].scopedJS = {
+                scope: new Scope(setVal({
+                    super: new Scope(setVal({
+                        super: globalScopeInstance,
+                    }, 'main', setVal({}, 'this', target))),
+                }, 'main', {})),
+            };
+            // Watch scope
+            target['.chtml'].scopedJS.scope.observe(ENV.trap, e => {
+                if (!preInitList) {
+                    applyBinding(target, e);
+                }
+            });
+        }
+        return target['.chtml'].scopedJS;
+    };
+
+    const applyBinding = function(target, e) {
+        var targetScriptBase = getScriptBase(target);
+        if (targetScriptBase.AST) {
+            var returnValue = targetScriptBase.AST.eval(targetScriptBase.scope, e, ENV.trap);
+            if (_isFunction(returnValue)) {
+                returnValue(targetScriptBase.scope.stack.main);
+            }
+        }
+    };
+
+    const globalScopeInstance = new Scope(setVal({}, 'main', {}), {
+        errorLevel:ENV.params.errorLevel,
+    });
+
     // ----------------------
-    // Define the bind() method
+    // Capture scripts
     // ----------------------
-     if (!ENV.Window || !('Element' in ENV.Window)) {
-        throw new Error('The "Element" class not found in global context!');
+
+    capture(ENV.params.scriptElement, scriptElement => {
+        if (_any(ENV.params.inertContexts, inertContext => scriptElement.closest(inertContext))) {
+            return;
+        }
+        // Remove
+        var srcCode, parentNode = scriptElement.parentNode, scriptBase = getScriptBase(parentNode);
+        if (meta('isomorphic') !== true) {
+            scriptElement.remove();
+        } 
+        if (scriptBase.AST) {
+            throw new Error('An element must only have one scopedJS instance!');
+        }
+        scriptBase.scriptElement = scriptElement;
+        if (!(srcCode = (scriptElement.textContent || '').trim())) {
+            return;
+        }
+        // ------
+        // Parse
+        // ------
+        var explain = [], shouldExplain = scriptElement.hasAttribute('explain') 
+            ? scriptElement.getAttribute('explain')
+            : meta('script-explain');
+        scriptBase.AST = ScopedJS.parse(srcCode, {
+            explain: shouldExplain ? explain : null,
+        });
+        if (shouldExplain) {
+            var consoleId = scriptElement.getAttribute('console-id');
+            console.log('START ---------------------' + consoleId);
+            console.log(explain);
+            console.log('END ---------------------' + consoleId);
+        }
+        // ------
+        // Eval
+        // ------
+        var errors = scriptElement.hasAttribute('errors') 
+            ? parseInt(scriptElement.getAttribute('errors'))
+            : meta('script-errors');
+        scriptBase.scope.params.errorLevel = errors;
+        if (preInitList && !scriptElement.hasAttribute('autorun')) {
+            preInitList.push(parentNode);
+        } else {
+            applyBinding(parentNode);
+        }
+    });
+
+    // ----------------------
+    // Define the "local" binding method on Element.prototype
+    // ----------------------
+
+    if (ENV.params.localBindingMethod in ENV.window.Element.prototype) {
+        throw new Error('The "Element" class already has a "' + ENV.params.localBindingMethod + '" property!');
     }
-    if (ENV.params.bindMethodName in ENV.Window.Element.prototype) {
-        throw new Error('The "Element" class already has a "' + ENV.params.bindMethodName + '" property!');
-    }
-    Object.defineProperty(ENV.Window.Element.prototype, ENV.params.bindMethodName, {
+    Object.defineProperty(ENV.window.Element.prototype, ENV.params.localBindingMethod, {
         value: function(binding) {
-            var _binding = getBase(this).binding;
-            getBase(this).binding = binding;
-            applyBinding(this);
-            if (ENV.params.bindCallback) {
-                ENV.params.bindCallback(this, binding, _binding);
+            setVal(getScriptBase(this).scope.stack, 'main', binding);
+            if (preInitList && preInitList.includes(this)) {
+                applyBinding(this);
+                _remove(preInitList, this);
+                if (!preInitList.length) {
+                    preInitList = null;
+                }
             }
         }
     });
-};
 
-/**
- * @exports
- */
-export {
-    ScopedJS as default,
-    ENV,
-}
+    if ('bindings' in ENV.window.Element.prototype) {
+        throw new Error('The "Element" class already has a "bindings" property!');
+    }
+    Object.defineProperty(ENV.window.Element.prototype, 'bindings', {
+        get: () => {
+            var scriptBase = getScriptBase(this), _this = this;
+            if (!scriptBase.scopeInstanceProxy) {
+                // Same proxy instance, even if scriptBase.scope.stack.main
+                // is later changed
+                scriptBase.scopeInstanceProxy = new Proxy({}, {
+                    set: (target, key, value) => {
+                        if (ENV.trap) {
+                            return EMV.trap.set(scriptBase.scope.stack.main, key, value);
+                        } else {
+                            scriptBase.scope.stack.main[key] = value;
+                            true;
+                        }
+                        if (preInitList && preInitList.includes(_this)) {
+                            applyBinding(_this);
+                            _remove(preInitList, _this);
+                            if (!preInitList.length) {
+                                preInitList = null;
+                            }
+                        }
+                    },
+                });
+            }
+            return scriptBase.scopeInstanceProxy;
+        },
+    });
+
+    // ----------------------
+    // Define the global "scopedJS" object
+    // ----------------------
+
+    if (ENV.params.globalBindingMethod in ENV.window.document) {
+        throw new Error('document already has a "' + ENV.params.globalBindingMethod + '" property!');
+    }
+    Object.defineProperty(ENV.window.document, ENV.params.globalBindingMethod, {
+        value: function(binding) {
+            setVal(globalScopeInstance.stack, 'main', binding);
+            if (preInitList) {
+                preInitList.forEach(el => applyBinding(el));
+                preInitList = null;
+            }
+        },
+    });
+
+    if ('bindings' in ENV.window.document) {
+        throw new Error('document already has a "bindings" property!');
+    }
+    var globalScopeInstanceProxy;
+    Object.defineProperty(ENV.window.document, 'bindings', {
+        get: () => {
+            if (!globalScopeInstanceProxy) {
+                // Same proxy instance, even if globalScopeInstance.stack.main
+                // is later changed
+                globalScopeInstanceProxy = new Proxy({}, {
+                    set: (target, key, value) => {
+                        if (ENV.trap) {
+                            ENV.trap.set(globalScopeInstance.stack.main, key, value);
+                        } else {
+                            globalScopeInstance.stack.main[key] = value;
+                        }
+                        if (preInitList) {
+                            preInitList.forEach(el => applyBinding(el));
+                            preInitList = null;
+                        }
+                        return true;
+                    },
+                });
+            }
+            return globalScopeInstanceProxy;
+        },
+    });
+
+};

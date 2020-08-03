@@ -5,6 +5,7 @@
 import _isObject from '@web-native-js/commons/js/isObject.js';
 import _pushUnique from '@web-native-js/commons/arr/pushUnique.js';
 import _intersect from '@web-native-js/commons/arr/intersect.js';
+import { window } from '../scoped-html/ENV.js';
 
 /**
  * ---------------------------
@@ -604,10 +605,10 @@ const Schema = {
 	 * @return bool
 	 */
 	assertNodeBelongsInContentModel(context, node) {
-		var contextModel = context instanceof HTMLElement 
+		var contextModel = context instanceof window.HTMLElement 
 			? Schema.getContentModelFor(context)
 			: context;
-		var nodeCategories = node instanceof HTMLElement 
+		var nodeCategories = node instanceof window.HTMLElement 
 			? Schema.getCategoriesFor(node)
 			: node;
 		if (_intersect(contextModel, ['#nothing', '#text']).length) {
