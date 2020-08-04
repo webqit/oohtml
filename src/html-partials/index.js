@@ -161,7 +161,7 @@ export default function() {
                     chtml(this).templates = {};
                 }
                 if (!chtml(this).templates[templateId] || this.hasAttribute('template-nocache')) {
-                    var imported = templateId.split('/').reduce((context, item) => {
+                    var imported = templateId.split('/').filter(n => n).reduce((context, item) => {
                         return context ? context.templates[item] : null;
                     }, ENV.window.document);
                     if (imported) {
