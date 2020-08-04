@@ -17,7 +17,7 @@
     "name": "Oxford Harrison",
     "email": "oxharris.dev@gmail.com"
   },
-  "version": "1.0.1",
+  "version": "1.0.5",
   "license": "MIT",
   "type": "module",
   "repository": {
@@ -36,7 +36,7 @@
   },
   "dependencies": {
     "@web-native-js/commons": "^0.5.0",
-    "@web-native-js/jsen": "^0.5.0",
+    "@web-native-js/jsen": "^0.5.3",
     "@web-native-js/observer": "^1.0.0"
   },
   "devDependencies": {

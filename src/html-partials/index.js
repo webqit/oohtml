@@ -64,16 +64,16 @@ export default function() {
 
     const addTemplate = el => {
         var name = el.getAttribute(ENV.params.templateNamespaceAttribute);
-        if (name in document.templates) {
+        if (name in ENV.window.document.templates) {
             console.warn('"' + name + '" already exists in document.templates!');
         }
-        document.templates[name] = el;
+        ENV.window.document.templates[name] = el;
     };
     capture('template[' + CSSEscape(ENV.params.templateNamespaceAttribute) + ']', el => {
         // --------------------------
         addTemplate(el);
         attrChangeCallback(el, attrs => {
-            delete document.templates[attrs[0].oldValue];
+            delete ENV.window.document.templates[attrs[0].oldValue];
             addTemplate(el);
         }, [ENV.params.templateNamespaceAttribute]);
         // --------------------------

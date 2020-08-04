@@ -59,6 +59,17 @@ export default function() {
         return target;
     };
 
+    const mergeVal = (target, value) => {
+        if (ENV.trap) {
+            ENV.trap.set(target, value);
+        } else {
+            Object.keys(value).forEach(key => {
+                target[key] = value[key];
+            });
+        }
+        return target;
+    };
+
     const getScriptBase = function(target) {
         if (!target['.chtml']) {
             target['.chtml'] = {};
@@ -153,8 +164,12 @@ export default function() {
         throw new Error('The "Element" class already has a "' + ENV.params.localBindingMethod + '" property!');
     }
     Object.defineProperty(ENV.window.Element.prototype, ENV.params.localBindingMethod, {
-        value: function(binding) {
-            setVal(getScriptBase(this).scope.stack, 'main', binding);
+        value: function(binding, replace = true) {
+            if (replace === false) {
+                mergeVal(getScriptBase(this).scope.stack.main, binding);
+            } else {
+                setVal(getScriptBase(this).scope.stack, 'main', binding);
+            }
             if (preInitList && preInitList.includes(this)) {
                 applyBinding(this);
                 _remove(preInitList, this);
@@ -204,8 +219,12 @@ export default function() {
         throw new Error('document already has a "' + ENV.params.globalBindingMethod + '" property!');
     }
     Object.defineProperty(ENV.window.document, ENV.params.globalBindingMethod, {
-        value: function(binding) {
-            setVal(globalScopeInstance.stack, 'main', binding);
+        value: function(binding, replace = true) {
+            if (replace === false) {
+                mergeVal(globalScopeInstance.stack.main, binding);
+            } else {
+                setVal(globalScopeInstance.stack, 'main', binding);
+            }
             if (preInitList) {
                 preInitList.forEach(el => applyBinding(el));
                 preInitList = null;
