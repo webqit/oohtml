@@ -19,43 +19,60 @@
 
 ## Background
 
-After over many years now of trying to make success of web components, it has still been necessary to propose additional platform features to better support modern UI development. I have stopped counting the many proposals at [WICG](https://discourse.wicg.io) and on GitHub, and the posts out there in the community, that are all underscoring just how much we still need on the platform to natively drive composability, componentization, and reactivity. In this document, I have sought to put these seemingly disparate issues under one problem domain and have offered one suite to fulfill them all so we call it a day.
+After over many years now of trying to make success of web components, it has still been necessary to propose additional platform features to better support modern UI development. We find a good number of proposals at [WICG](https://discourse.wicg.io) and GitHub, and important posts out there in the community in this problem domain. In this document, I have explored having a new technology suite that brings platform support for modern UI development paradigms - bindings, reactivity, component distribution, and lots more.
 
-Now, we could go on and on talking over additions to Web Components. But the problems in front of us aren't just deficiencies in Web Components; we've got to look at the HTML language itself! This proposal is pursuant to empowering the platform as a whole, not just a subset of it.
+While we could go on and on talking over additions to Web Components, this proposal is pursuant to empowering the platform as a whole, not just a subset of it. As we will see, the problems dicussed here aren't just deficiencies in Web Components; these are gaps at the language level that we've got to address at the language level!
+
+\* My personal conclusions from exploring this path brings us close, by coincidence, to some of the disparate ideas from across the web. This is more than enough to establish the problems in front of us. I have been able to reference a few of these related ideas down the line and can see each of them finding their fulfillment in this one suite. It seems we can finally call it a day!
 
 ### Features Missing in HTML, Also Missing in Web Components
 
-+ **A UI Component Model.** We've historically lacked a way to draw a component-to-component relationship over an HTML document - where a *component* maintains references to the other elements that make up its role as a component. Everything we do currently still ends with components working in siloes. (Contrast this with ARIA relational attributes and the Accessibility Tree. Also see the point with Stuart P.'s [Parts and Walls](https://github.com/stuartpb/pwalls-spec) proposal from 2015.)
++ **A Roles Model.** We've historically lacked a way to find elements by roles and subroles. Web Components still did not provide a way to access components and subcomponents by their roles. We see our markup somewhat following a *roles* model but lack a standard way to draw the role-to-role relationships. We resort to CSS class-naming conventions to try to achieve this but acquire more of a problem than a solution; and we lose so much time in the process!
 
-    Interestingly, we do have two naming systems in Web Components:
-    + Shadow Parts - but this is for styling purposes;
-    + Slots - and this is for composition purposes.
-    
-    What's missing is a naming system that translates to a structural API for exposing a component's internals for applications. We really shouldn't have to suffer the guesswork of querying a component's subtree with CSS selectors; these are implementation details that should be known only to the component - in the true sense of a component.
+    A good case study is [this dialog-modal example](https://www.w3.org/TR/wai-aria-practices/examples/dialog-modal/dialog.html#sc1_label) on WAI-ARIA Practices. Here we find a collection of widgets each with the role `role="dialog"` and structural class names like `class="dialog_label"`, `class="dialog_form"`, `class="dialog_form_item"`, `class="label_text"`, `class="dialog_desc"`, `class="dialog_form_actions"`, etc. With some effort, we can figure out the role structure of the first dialog to be:
 
-    But should this be considered for an addition to Custom Elements? My position is to bring this feature to the HTML language itself as *Scoped IDs*.
+    ```html
+    dialog                                                       - <div role="dialog">
+      |-label                                                    -   <h2 id="dialog1_label" class="dialog_label">
+      |-form                                                     -   <div class="dialog_form">
+      |  |-item (Street)                                         -     <div class="dialog_form_item">
+      |  |-item (City)                                           -     <div class="dialog_form_item">
+      |  |-item (State)                                          -     <div class="dialog_form_item">
+      |  |-item (Zip)                                            -     <div class="dialog_form_item">
+      |  |-item (Special instructions)                           -     <div class="dialog_form_item">
+      |-form_actions                                             -   <div class="dialog_form_actions">
+    ```
 
-+ **Bindings.** Our idea of a UI component is of a UI block that is bound to a corresponding part of an application. We want to be able to keep the UI in sync with application state without having to manually track and apply changes. This is so fundamental to modern UI develipment that every framework out there is featuring the joint concept of *bindings* and *reactivity*. Covering this bulk of work is where the current frameworks have got to really outshine the platform. At this point, this is no longer a nice to have, but a critically needed feature on the platform. (I found [this early-stage idea](https://discourse.wicg.io/t/extension-of-template/447) for a template syntax by Jonathan Kingston way back in 2014. See it come back in [this proposal](https://github.com/whatwg/html/issues/2254) from 2017.)
+    We find the associated JavaScript to be tightly-coupled to the implementation details of the component (with queries like `element.parentNode`, `getElementById()`), rather than the more bankable role structure of the component (something like `dialog->label`, `dialog->form`, etc).
 
-    While the first wave of ideas have considered a new syntax on top of HTML, we find that the platform already has what it takes to unlock this feature, as the concept of logic is something inherit to HTML. That brings us closer to a more native solution. My proposition below explores a new way to use standard scripts in HTML for reactve presentational logic: *Scoped JS*.
+    So far, Web Components has seen the point with exposing a component's internals by name:
+    + Shadow Parts - for styling purposes;
+    + Slots - for composition purposes.
+    What's missing everywhere is a structural API for applications. (See the point with Stuart P.'s [Parts and Walls](https://github.com/stuartpb/pwalls-spec) proposal from 2015.)
+
+    But should this be considered as an addition to Custom Elements? We've got to look at the bigger picture of the HTML language as a whole, and this I come bringing in this suite as [*Scoped HTML*](#scoped-html).
+
++ **Bindings.** Our idea of a UI component is of a UI block that is bound to a corresponding part of an application. We want to be able to keep the UI in sync with application state without having to manually track and apply changes. This magic has swept modern UI develipment so much that every framework out there is featuring the joint concept of *bindings* and *reactivity*. This is where these frameworks have got to really outshine the platform. We now see this as a critically needed feature on the platform, no longer a nice to have. (I found [this early-stage idea](https://discourse.wicg.io/t/extension-of-template/447) for a template syntax by Jonathan Kingston way back in 2014. See it come back in [this proposal](https://github.com/whatwg/html/issues/2254) from 2017.)
+
+    While the first wave of ideas have considered a new `{{` syntax `}}` on top of HTML, we find that the platform already has what it takes to unlock this feature, by building on the language's existing provision for logic. I explored this possibility of using standard scripts in HTML for reactve presentational logic and come bringing it as [*Scoped JS*](#scoped-js).
 
 ### Features Exclusive to the Shadow DOM, but Fundamentally Needed in HTML as a Whole
 
-+ **Slots-Based Composition.** Slots-Based composition is one killer feature to come to HTML. Unfortunately, they were imagined for use only in the Shadow DOM, whereas, in fact, the use case is everywhere as long as the UI is concerned. Encapsulation (by the Shadow DOM) and composition shouldn't be tied as we don't always need them together. Even as they happen to be, the whole idea falls apart for apps that have to render on the server as [the Shadow DOM still can't be serialized for client-side hydration](https://github.com/w3c/webcomponents/blob/gh-pages/proposals/Declarative-Shadow-DOM.md)! Now it looks like we're [trying hard to force a square shape into a round opening](https://www.petergoes.nl/blog/my-stab-at-rendering-shadow-dom-server-side/) - being as the Shadow DOM is all we've got!
++ **Slots-Based Composition.** Slots-Based composition is one killer feature to come to HTML. Unfortunately, it was imagined for use only in the Shadow DOM, whereas, in fact, the use case is everywhere as long as the UI is concerned. Even as it is, the whole idea of slots-based composition falls apart for apps that have to render server-side as the Shadow DOM still can't be serialized for client-side hydration. But since the Shadow DOM is all we've got for this, we're now having to [think counter-intuitive to its concept of encapsulation](https://github.com/w3c/webcomponents/blob/gh-pages/proposals/Declarative-Shadow-DOM.md), just so we could have it for [a more general usecase](https://www.petergoes.nl/blog/my-stab-at-rendering-shadow-dom-server-side/)!
 
-For a moment, how about slots for HTML generally? That could change everything! This is the prospect for us in *HTML Partials*.
+    For a moment, how about slots-based composition for HTML generally? That could save us from looking to the Shadow DOM for something it wasn't designed for! This is the prospect for us in the [*HTML Partials*](#html-partials) feature of this suite.
 
-+ **Scoping.** One of the earliest of our needs in HTML is scoping - a way to keep things out of the browser's global scope. Having every CSS in one global scope has been much of a pain until now. The trouble gets doubled with scripts that have to use these globally Scoped CSS selectors to query the document. And while selecting by IDs would give perfect specificity, a terrible challenge lies in writing collision-free names, as IDs, like CSS selectors, also share one global namespace - a problem that has been underdiscussed. This gives us three things to worry about: stylesheets, scripts (that manipulate the DOM, usually as presentational logic), and IDs.
++ **Scoping.** One of the earliest of our needs in HTML is scoping - a way to keep things out of the browser's global scope. Having CSS run in one global scope has been much of a pain until now. While the case for Scoped CSS has long been established, it happened that we took back the fine step we made toward this direction in favour of the Shadow DOM's encapsulation. What we've realized at this point is that we don't need the Shadow DOM as much as we need to scope some CSS. Specificity is a common design problem and should be given a *handy* solution. A number of developers in the community are joining the call to return Scoped CSS. And the fact that many frameworks are currently offering this feature is another big measure of the usecase. Making this a general feature, and not just a feature of the Shadow DOM, is everyone's position.
 
-    While the case for Scoped CSS has long been established, it happened that we took back the fine step we made toward this direction in favour of the Shadow DOM's encapsulation. What we've realized at this point is that we can't use the Shadow DOM just because we need to scope some CSS. Specificity is a common design problem and should be given a *handy* solution. A number of developers in the community are joining the call to return Scoped CSS. And the fact that many frameworks are currently offering this feature is another big measure of the usecase. Making this a general feature, and not just a feature of the Shadow DOM, is everyone's position.
-
-    But the case for Scoped CSS should also help us understand the problem with globally-scoped IDs and scripts. Why, we can find a *consistent way* to keep all three out of a global scope, as in *Scoped IDs*, *Scoped CSS*, and *Scoped JS* - in one word, scoping for HTML! This I have explored below!
+    Now, we find the problem we're trying to solve with Scoped CSS also present with scripts (usually presentational logic) that have to use CSS selectors to manipulate the document. And while selecting by IDs would give perfect specificity, a terrible challenge lies in writing collision-free names, as IDs, like CSS selectors, also share one global namespace - a problem that has been underdiscussed. This gives us three things to wrestle with at the global level: CSS selectors, IDs, and scripts. But why, we can find a *consistent way* to keep all three out of a global scope. And this is what I come bringing in this suite as *Scoped HTML*, *Scoped CSS*, and *Scoped JS*!
 
 ## Introducing CHTML - One More Technology Suite, Side-By-Side With Web Components
 
-CHTML is a suite of new DOM features that brings language support for modern UI development paradigms: a component-based architecture, data binding, and reactivity. Instead of introducing totally new ideas, CHTML chooses to *look within* to find new possibilities with existing platform features. It is designed to work side-by-side with Web Components and to bring some of Shadow DOM's exclusive features to the language generally.
+CHTML is a suite of new DOM features that brings language support for modern UI development paradigms: a component-based architecture, data binding, and reactivity. It aims to make it possible to build functional user interfaces out of language primitives and native APIs. This way, we can bank more on the platform and less on abstractions.
 
-CHTML's development has been driven by real-world usecases and is currently obtainable from the [Web-Native](https://web-native.dev) project as a polyfill.
+Now, instead of introducing totally new ideas, CHTML chooses to *look within* to find new possibilities with existing platform features. It is designed to work side-by-side with Web Components and to bring some of Shadow DOM's exclusive features to the language generally.
+
+CHTML's development has been driven by real-world usecases with a working prototype currently obtainable from the [Web-Native](https://web-native.dev) project.
 
 ### Scoped HTML
 
@@ -201,7 +218,7 @@ CHTML *reproposes* the ability to scope a stylesheet as a language feature and n
             font-style: italics;
         }
     </style>
-    <div root>
+    <div>
         <div id="title"></div>
         <div root id="content">
             <div id="sub-content"></div>
@@ -411,7 +428,7 @@ Scoped JS features a way to handle syntax or reference errors that may occur wit
     </head>
     <body>
         <h1></h1>
-        <script type="scoped" errors="1">
+        <script scoped errors="1">
             this.querySelectorSelectorSelector('h1').innerHTML = headline;
         </script>
     </body>
@@ -431,7 +448,7 @@ The script tag of a scoped script is not always needed for the lifetime of the p
     </head>
     <body>
         <h1></h1>
-        <script type="scoped">
+        <script scoped>
             this.querySelector('h1').innerHTML = headline;
         </script>
     </body>
@@ -448,7 +465,7 @@ Sometimes, we want certain bindings to apply only on the server; sometimes, only
 
 ```html
 <div>
-    <script type="scoped">
+    <script scoped>
         if (condition) {
             this.animate(...);
         }
@@ -460,7 +477,7 @@ Above, *condition* could be a simple question about the current environment, and
 
 ```html
 <div>
-    <script type="scoped">
+    <script scoped>
         if (env !== 'server') {
             this.anumate([
                 {color:'red'},
