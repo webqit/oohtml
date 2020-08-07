@@ -11,7 +11,7 @@ CHTML is a suite of new DOM features that brings language support for modern UI 
 + [Scoped JS](https://docs.web-native.dev/chtml/scoped-js) - Create behaviours on the fly with scoped scripts.
 + [HTML Partials](https://docs.web-native.dev/chtml/html-partials) - Define, extend, import/export reusable HTML snippets.
 
-If you'd be interested in the motivation for this project, [here](https://docs.web-native.dev/chtml/explainer)'s the explainer.
+If you'd be interested in the motivation for this project, [here](https://github.com/web-native/chtml/blob/master/explainer.md)'s the explainer.
 
 ## Getting Started
 
