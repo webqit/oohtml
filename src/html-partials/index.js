@@ -35,6 +35,7 @@ export default function() {
     // Primer
     // ----------------------
 
+    const isIsomorphic = meta('isomorphic') === true || meta('isomorphic') === 1;
     const chtml = el => {
         if (!el['.chtml']) {
             el['.chtml'] = {};
@@ -78,7 +79,7 @@ export default function() {
         }, [ENV.params.templateNamespaceAttribute]);
         // --------------------------
         var src;
-        if (src = el.getAttribute('src')) {
+        if ((src = el.getAttribute('src')) && !el.content.children.length) {
             loadingTemplates.push(new Promise((resolve, reject) => {
                 // Missing in jsdom
                 if (ENV.window.fetch) {
@@ -86,9 +87,6 @@ export default function() {
                         return response.ok ? response.text() : Promise.reject(response.statusText);
                     }).then(content => {
                         el.innerHTML = content;
-                        if (meta('isomorphic') === true) {
-                            el.removeAttribute('src');
-                        }
                         resolve(el);
                     }).catch(error => {
                         // Dispatch the event.
@@ -106,14 +104,14 @@ export default function() {
     // ----------------------
 
     const discoverContents = template => {
-        if (_isEmpty(chtml(template).templates) || template.closest('[live]')) {
+        if (_isEmpty(chtml(template).partials) || template.closest('[live]')) {
             // -----------------------
             // Templates and partials
             chtml(template).templates = {};
             chtml(template).partials = {};
             // -----------------------
             // Own partials
-            _arrFrom(template.content.children).forEach(el => {
+            _arrFrom((template.content || template).children).forEach(el => {
                 var templateName, partialsName;
                 if ((el instanceof ENV.window.HTMLTemplateElement) && (templateName = el.getAttribute(ENV.params.templateNamespaceAttribute))) {
                     chtml(template).templates[templateName] = el;
@@ -160,12 +158,12 @@ export default function() {
                 if (!chtml(this).templates) {
                     chtml(this).templates = {};
                 }
-                if (!chtml(this).templates[templateId] || this.hasAttribute('template-nocache')) {
+                if (!chtml(this).templates[templateId]) {
                     var imported = templateId.split('/').filter(n => n).reduce((context, item) => {
                         return context ? context.templates[item] : null;
                     }, ENV.window.document);
                     if (imported) {
-                        chtml(this).templates[templateId] = imported.cloneNode(true);
+                        chtml(this).templates[templateId] = imported;
                     }
                 }
                 return chtml(this).templates[templateId];
@@ -206,27 +204,12 @@ export default function() {
 		 */
 		hydrate(anchorNode, slottedElements, compositionBlock) {
             this.anchorNode = anchorNode;
-            this._slottedElements = slottedElements;
-            this.compositionBlock = compositionBlock;
+            chtml(this).slottedElements = slottedElements;
+            chtml(this).compositionBlock = compositionBlock;
             this._bindSlotted(slottedElements);
             this._connectToCompositionBlock();
         }
-
-        /**
-		 * This triggers resolution
-		 *
-		 * @param string	name
-		 * @param string	oldValue
-		 * @param string	newValue
-		 *
-		 * @return void
-		 */
-		attributeChangedCallback(name, oldValue, newValue) {
-			if (name === ENV.params.slotNameAttribute) {
-				this.name = newValue;
-			}
-        }
-        
+      
 		/**
 		 * This triggers self-resolution
 		 *
@@ -234,11 +217,13 @@ export default function() {
 		 */
 		connectedCallback() {
 			if (!this.anchorNode) {
-                this.anchorNode = meta('isomorphic') === true
+                this.anchorNode = isIsomorphic
                     ? ENV.window.document.createComment(this.outerHTML)
                     : ENV.window.document.createTextNode('');
                 this.after(this.anchorNode);
-                this.compositionBlock = this.parentNode.closest('[' + CSSEscape(ENV.params.templateReferenceAttribute) + ']');
+                chtml(this).compositionBlock = !this.hasAttribute(ENV.params.templateReferenceAttribute)
+                    ? this.parentNode.closest('[' + CSSEscape(ENV.params.templateReferenceAttribute) + ']')
+                    : null;
                 this._connectToCompositionBlock();
                 ready(() => {
                     Promise.all(loadingTemplates).then(() => {
@@ -272,11 +257,11 @@ export default function() {
             partials.forEach(partial => {
                 partial.slotReference = this;
             });
-            this.slottedObserver = mutationCallback(partials, removed => {
+            chtml(this).slottedObserver = mutationCallback(partials, removed => {
                 removed.forEach(remd => {
                     // Let's ensure this wasn't slotted againe
                     if (!remd.parentNode) {
-                        _remove(this._slottedElements, remd);
+                        _remove(this.slottedElements, remd);
                     }
                     // if the slotted hasnt been slotted somewhere
                     if (remd.slotReference === this) {
@@ -285,7 +270,7 @@ export default function() {
                 });
                 // If this was the last of the s,ottable in the same family of IDs,
                 // we should restore the original slot
-                if (!this._slottedElements.length) {
+                if (!this.slottedElements.length) {
                     // Must be assigned bu now
                     // for it to be removed in the first place
                     this.anchorNode.before(this);
@@ -302,17 +287,15 @@ export default function() {
             }
             // -----------------
             // Global import or scoped slot?
+            var template, partials;
             if (this.hasAttribute(ENV.params.templateReferenceAttribute)) {
                 // Did we previously had a compositionBlock?
                 // Let's remove ourself
                 if (this.compositionBlock && chtml(this.compositionBlock).slots[this.name] === this) {
                     delete chtml(this.compositionBlock).slots[this.name];
                 }
-                var partials;
-                if (this.template && (partials = this.template.partials[this.name])) {
-                    this.fill(partials);
-                } else {
-                    this.empty();
+                if (template = this.template) {
+                    partials = template.partials[this.name];
                 }
             } else {
                 if (!this.compositionBlock) {
@@ -320,12 +303,14 @@ export default function() {
                     return;
                 }
                 // We dont want this proccessed again on restoration to its position
-                var partials;
-                if (this.compositionBlock.template && (partials = this.compositionBlock.template.partials[this.name])) {
-                    this.fill(partials);
-                } else {
-                    this.empty();
+                if (template = this.compositionBlock.template) {
+                    partials = template.partials[this.name];
                 }
+            }
+            if (template) {
+                this.fill(partials);
+            } else {
+                this.empty();
             }
         }
 
@@ -337,7 +322,7 @@ export default function() {
 		 * @return void
 		 */
         fill(partials) {
-            partials = _arrFrom(partials, false/* castObject */);
+            partials = _arrFrom(partials, false/* castObject */).map(partial => partial.cloneNode(true));
             // ---------------------
             // Discard previous slotted elements
             // But this intentional removal should not trigger slot restoration
@@ -348,8 +333,11 @@ export default function() {
             partials.forEach(partial => {
                 // ---------------------
                 // Implement the slot?
-                if (partial.getAttribute(ENV.params.templateReferenceAttribute) === 'slot') {
-                    mergePartials(partial, this);
+                if (partial.getAttribute(ENV.params.templateReferenceAttribute) === '@slot') {
+                    if (!chtml(partial).templates) {
+                        chtml(partial).templates = {};
+                    }
+                    chtml(partial).templates['@slot'] = this;
                 }
                 // Inherit attributes from the slot element before replacement
                 mergeAttributes(partial, this);
@@ -363,10 +351,7 @@ export default function() {
             this._bindSlotted(partials);
             // ---------------------
             // Updatate records
-            if (!this._slottedElements) {
-                this._slottedElements = [];
-            }
-            this._slottedElements.push(...partials);
+            this.slottedElements.push(...partials);
         }
 
         /**
@@ -377,23 +362,54 @@ export default function() {
 		 * @return void
 		 */
         empty(silently = false) {
-            if (this._slottedElements) {
-                var slottedElements = this._slottedElements;
+            if (this.slottedElements) {
+                var slottedElements = this.slottedElements;
                 if (silently && this.slottedObserver) {
                     this.slottedObserver.disconnect();
-                    slottedElements = this._slottedElements.splice(0);
+                    slottedElements = this.slottedElements.splice(0);
                 }
                 slottedElements.forEach(slottedElement => slottedElement.remove());
             }
         }
-        
+
+        /**
+		 * Returns the slot's name.
+		 *
+		 * @return string
+		 */
+        get name() {
+            return this.getAttribute(ENV.params.slotNameAttribute) || 'default';
+        }
+ 
 		/**
-		 * Returns the instance's slotted elements.
+		 * Returns the slot's compositionBlock, if any.
+		 *
+		 * @return array
+		 */
+		get compositionBlock() {
+			return chtml(this).compositionBlock;
+        }
+ 
+		/**
+		 * Returns the slot's slotted elements.
 		 *
 		 * @return array
 		 */
 		get slottedElements() {
-			return this._slottedElements;
+            if (!chtml(this).slottedElements) {
+                chtml(this).slottedElements = [];
+            }
+			return chtml(this).slottedElements;
+        }
+
+		/**
+		 * Returns the slot's implementable partials
+		 *
+		 * @return array
+		 */
+        get partials() {
+            discoverContents(this);
+            return chtml(this).partials;
         }
                 
 		/**
@@ -470,7 +486,7 @@ export default function() {
             ENV.window.document.templatesReadyState = 'complete';
             ENV.window.document.dispatchEvent(new ENV.window.Event('templatesreadystatechange'));
         });
-        if (meta('isomorphic') === true) {
+        if (isIsomorphic) {
             hydrateSlots();
         }
     });

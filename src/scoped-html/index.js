@@ -53,11 +53,6 @@ export default function() {
 			ownerRoot = el.parentNode.closest('[' + CSSEscape(ENV.params.rootAttribute) + '],html'),
 			namespaceStore = ownerRoot[ENV.params.namespacePropertyName];
 		if (namespaceStore[scopedId] !== el) {
-			if (namespaceStore[scopedId]) {
-				// Properly remove any previous thing
-				ENV.trap.deleteProperty(namespaceStore, scopedId);
-			}
-			// Set new now
 			ENV.trap.set(namespaceStore, scopedId, el);
 		}
 		// On remove

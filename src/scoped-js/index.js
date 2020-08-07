@@ -44,6 +44,7 @@ export default function() {
 	}
 	inited = true;
 
+    const isIsomorphic = meta('isomorphic') === true || meta('isomorphic') === 1;
     var preInitList = [];
 
     // ----------------------
@@ -117,10 +118,12 @@ export default function() {
         }
         // Remove
         var srcCode, parentNode = scriptElement.parentNode, scriptBase = getScriptBase(parentNode);
-        if (meta('isomorphic') !== true) {
+        if (!isIsomorphic) {
             scriptElement.remove();
-        } 
-        if (scriptBase.AST) {
+        }
+        if (scriptBase.scriptElement === scriptElement) {
+            return;
+        } else if (scriptBase.scriptElement) {
             throw new Error('An element must only have one scopedJS instance!');
         }
         scriptBase.scriptElement = scriptElement;

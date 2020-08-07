@@ -123,7 +123,7 @@ export default function() {
     }
     Object.defineProperty(ENV.window.Element.prototype, ENV.params.itemsBindingMethod, {
         value: function(items, addedCallback, removedCallback = null) {
-            if (_isTypeObject(items) && items) {
+            if (_isTypeObject(items) && items) { 
                 // Mirror
                 ENV.trap.observe(items, () => {
                     return itemize(this, items, addedCallback, removedCallback);
