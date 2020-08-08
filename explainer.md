@@ -955,26 +955,27 @@ Below is a TODO list composed from a JavaScript array using Scoped HTML, Scoped 
 
     <head>
 
-        <template name="item-template">
-            <li slot="item">
-                <script scoped>this.innerHTML = content;</script>
+        <template name="items">
+
+            <li>
+                <script scoped>this.innerHTML = desc;</script>
             </li>
+
         </template>
 
     </head>
 
     <body>
 
-        <div root id="todo" template="item-template">
+        <div root id="todo" template="items">
 
             <h2 id="title"></h2>
-
             <ul id="items"></ul>
 
             <script scoped>
                 this.idrefs.title.innerHTML = title;
                 items.forEach(itemBinding => {
-                    let itemElement = this.template.partials.item[0].cloneNode(true);
+                    let itemElement = this.template.partials.default[0].cloneNode(true);
                     itemElement.bind(itemBinding);
                     this.idrefs.items.append(itemElement);
                 });
@@ -986,9 +987,9 @@ Below is a TODO list composed from a JavaScript array using Scoped HTML, Scoped 
             document.querySelector('#todo').bind({
                 title: 'My TODOs',
                 items: [
-                    {content: 'TODO-1'},
-                    {content: 'TODO-2'},
-                    {content: 'TODO-3'},
+                    {desc: 'TODO-1'},
+                    {desc: 'TODO-2'},
+                    {desc: 'TODO-3'},
                 ],
             });
         </script>
@@ -1004,55 +1005,65 @@ We could even add the ability to add/remove items. For the *remove* feature, we'
 
     <head>
 
-        <template name="item-template">
-            <li root slot="item">
-                <span id="content"></span>
+        <title>A TODO Example</title>
+        <template name="items">
+            
+            <li root>
+                <span id="desc"></span>
                 <button id="remover">Remove</button>
                 <script scoped>
-                    this.idrefs.content.innerHTML = content;
+                    this.idrefs.desc.innerHTML = desc;
                     this.idrefs.remover.addEventListener('click', () => this.remove());
                 </script>
             </li>
+
         </template>
 
     </head>
 
     <body>
 
-        <div root id="todo" template="item-template">
+        <div root id="todo">
 
             <h2 id="title"></h2>
-
-            <ul id="items"></ul>
-
+            <ol id="items" template="items"></ol>
             <button id="adder">Add</button>
 
             <script scoped>
                 this.idrefs.title.innerHTML = title;
-                items.forEach(itemBinding => {
-                    let itemElement = this.template.partials.item[0].cloneNode(true);
-                    this.idrefs.items.append(itemElement.bind(itemBinding));
-                });
+                $(this.idrefs.items).itemize(items, (el, data) => el.bind(data));
                 this.idrefs.adder.addEventListener('click', () => addItem());
             </script>
 
         </div>
 
         <script src="//unpkg.com/@web-native-js/observer/dist/main.js"></script>
+        <script src="//unpkg.com/@web-native-js/play-ui/dist/main.js"></script>
         <script>
+            // Declare our tools
             let Obs = window.WebNative.Observer;
-            let count = 4;
-            document.querySelector('#todo').bind({
-                title: 'My TODOs',
+            let $ = window.WebNative.PlayUI;
+
+            // Create the app
+            let todo = {
+                $,
+                title: 'My TODOsrr',
                 items: [
-                    {content: 'TODO-1'},
-                    {content: 'TODO-2'},
-                    {content: 'TODO-3'},
+                    {desc: 'Task-1'},
+                    {desc: 'Task-2'},
+                    {desc: 'Task-3'},
                 ],
                 addItem() {
-                    Obs.proxy(this.items).push({content: 'TODO-' + count ++});
+                    window.todoItems.push({desc: prompt('Task description'),});
                 },
-            });
+            };
+            
+            // Bind the app to the UI
+            document.querySelector('#todo').bind(todo);
+
+            // Make the items available globally
+            // so that we can always manipulate them
+            window.todoItems = Obs.proxy(todo.items);
         </script>
     </body>
 

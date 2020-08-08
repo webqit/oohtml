@@ -38,7 +38,6 @@ export function ready(callback) {
 export function capture(selector, callback, params = {}) {
 	// On DOM-ready
 	ready(() => {
-		_arrFrom(ENV.window.document.querySelectorAll(selector)).forEach(el => callback(el, 1));
 		// On DOM mutation
 		if (ENV.window.MutationObserver) {
 			if (!params.on) {
@@ -48,6 +47,8 @@ export function capture(selector, callback, params = {}) {
 				els.forEach(el => callback(el, connectedState));
 			}, params);
 		}
+		// IMPORTANT: This must come after having observed mutations above
+		_arrFrom(ENV.window.document.querySelectorAll(selector)).forEach(el => callback(el, 1));
 	});
 };;
 

@@ -86,7 +86,7 @@ export default function() {
             };
             // Watch scope
             target['.chtml'].scopedJS.scope.observe(ENV.trap, e => {
-                if (!preInitList) {
+                if (!preInitList || target['.chtml'].scopedJS.hasBindings) {
                     applyBinding(target, e);
                 }
             });
@@ -94,10 +94,20 @@ export default function() {
         return target['.chtml'].scopedJS;
     };
 
-    const applyBinding = function(target, e) {
+    const applyBinding = function(target, event) {
         var targetScriptBase = getScriptBase(target);
+        var params = {
+            references: (event || {}).references, 
+            catch: e => {
+                if (targetScriptBase.errorLevel === 2) {
+                    console.error(target, e);
+                } else if (targetScriptBase.errorLevel !== 0) {
+                    console.warn(target, e.message);
+                }
+            },
+        };
         if (targetScriptBase.AST) {
-            var returnValue = targetScriptBase.AST.eval(targetScriptBase.scope, e, ENV.trap);
+            var returnValue = targetScriptBase.AST.eval(targetScriptBase.scope, params, ENV.trap);
             if (_isFunction(returnValue)) {
                 returnValue(targetScriptBase.scope.stack.main);
             }
@@ -133,29 +143,23 @@ export default function() {
         // ------
         // Parse
         // ------
-        var explain = [], shouldExplain = scriptElement.hasAttribute('explain') 
-            ? scriptElement.getAttribute('explain')
-            : meta('script-explain');
+        var explain = [], shouldExplain = scriptElement.hasAttribute('explain') || meta('script-explain');
         scriptBase.AST = ScopedJS.parse(srcCode, {
             explain: shouldExplain ? explain : null,
         });
         if (shouldExplain) {
-            var consoleId = scriptElement.getAttribute('console-id');
-            console.log('START ---------------------' + consoleId);
-            console.log(explain);
-            console.log('END ---------------------' + consoleId);
+            console.log(parentNode, explain);
         }
         // ------
         // Eval
         // ------
-        var errors = scriptElement.hasAttribute('errors') 
+        scriptBase.errorLevel = scriptElement.getAttribute('errors') 
             ? parseInt(scriptElement.getAttribute('errors'))
             : meta('script-errors');
-        scriptBase.scope.params.errorLevel = errors;
-        if (preInitList && !scriptElement.hasAttribute('autorun')) {
-            preInitList.push(parentNode);
-        } else {
+        if (scriptElement.hasAttribute('autorun') || meta('script-errors') || scriptBase.hasBindings || !preInitList) {
             applyBinding(parentNode);
+        } else {
+            preInitList.push(parentNode);
         }
     });
 
@@ -168,17 +172,18 @@ export default function() {
     }
     Object.defineProperty(ENV.window.Element.prototype, ENV.params.localBindingMethod, {
         value: function(binding, replace = true) {
+            let scriptBase = getScriptBase(this);
             if (replace === false) {
-                mergeVal(getScriptBase(this).scope.stack.main, binding);
+                mergeVal(scriptBase.scope.stack.main, binding);
             } else {
-                setVal(getScriptBase(this).scope.stack, 'main', binding);
+                setVal(scriptBase.scope.stack, 'main', binding);
             }
+            scriptBase.hasBindings = true;
             if (preInitList && preInitList.includes(this)) {
-                applyBinding(this);
-                _remove(preInitList, this);
                 if (!preInitList.length) {
                     preInitList = null;
                 }
+                applyBinding(this);
             }
         }
     });
@@ -200,12 +205,13 @@ export default function() {
                             scriptBase.scope.stack.main[key] = value;
                             true;
                         }
+                        scriptBase.hasBindings = true;
                         if (preInitList && preInitList.includes(_this)) {
-                            applyBinding(_this);
                             _remove(preInitList, _this);
                             if (!preInitList.length) {
                                 preInitList = null;
                             }
+                            applyBinding(_this);
                         }
                     },
                 });
