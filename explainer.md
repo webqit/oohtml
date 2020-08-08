@@ -27,52 +27,55 @@ While we could go on and on talking over additions to Web Components, this propo
 
 ### Features Missing in HTML, Also Missing in Web Components
 
-+ **A Roles Model.** We've historically lacked a way to find elements by roles and subroles. Web Components still did not provide a way to access components and subcomponents by their roles. We see our markup somewhat following a *roles* model but lack a standard way to draw the role-to-role relationships. We resort to CSS class-naming conventions to try to achieve this but acquire more of a problem than a solution; and we lose so much time in the process!
++ **A Roles API.** We've historically lacked a way to access elements by roles and subroles. Web Components still did not provide a way to access components and subcomponents by their roles. We see our markup somewhat following a *roles* model but lack a standard way to draw the role-to-role relationships. We resort to CSS class-naming conventions (like [BEM](https://getbem.com)) to try to achieve this but acquire more of a problem than a solution; and we lose so much time in the process!
 
     A good case study is [this dialog-modal example](https://www.w3.org/TR/wai-aria-practices/examples/dialog-modal/dialog.html#sc1_label) on WAI-ARIA Practices. Here we find a collection of widgets each with the role `role="dialog"` and structural class names like `class="dialog_label"`, `class="dialog_form"`, `class="dialog_form_item"`, `class="label_text"`, `class="dialog_desc"`, `class="dialog_form_actions"`, etc. With some effort, we can figure out the role structure of the first dialog to be:
 
     ```html
-    dialog                                                       - <div role="dialog">
-      |-label                                                    -   <h2 id="dialog1_label" class="dialog_label">
-      |-form                                                     -   <div class="dialog_form">
-      |  |-item (Street)                                         -     <div class="dialog_form_item">
-      |  |-item (City)                                           -     <div class="dialog_form_item">
-      |  |-item (State)                                          -     <div class="dialog_form_item">
-      |  |-item (Zip)                                            -     <div class="dialog_form_item">
-      |  |-item (Special instructions)                           -     <div class="dialog_form_item">
-      |-form_actions                                             -   <div class="dialog_form_actions">
+    dialog                                   -      <div role="dialog">
+      |-label                                -        <h2 id="dialog1_label" class="dialog_label">
+      |-form                                 -        <div class="dialog_form">
+      |  |-item (Street)                     -          <div class="dialog_form_item">
+      |  |-item (City)                       -          <div class="dialog_form_item">
+      |  |-item (State)                      -          <div class="dialog_form_item">
+      |  |-item (Zip)                        -          <div class="dialog_form_item">
+      |  |-item (Special instructions)       -          <div class="dialog_form_item">
+      |-form_actions                         -        <div class="dialog_form_actions">
     ```
 
-    We find the associated JavaScript to be tightly-coupled to the implementation details of the component (with queries like `element.parentNode`, `getElementById()`), rather than the more bankable role structure of the component (something like `dialog->label`, `dialog->form`, etc).
+    Now, we find the associated JavaScript to be tightly-coupled to the implementation details of the component (with queries like `element.parentNode`, `getElementById()`), and here comes the specificity wars and volatility associated with this approach. Contrast this with a more bankable roles API (in a form like `dialog->label`, `dialog->form`, etc) that lets a component hide its implementation details. (See the point with Stuart P.'s [Parts and Walls](https://github.com/stuartpb/pwalls-spec) proposal from 2015.)
 
-    So far, Web Components has seen the point with exposing a component's internals by name:
+    So far, Web Components has seen the point with exposing a component's internals by name. We have:
     + Shadow Parts - for styling purposes;
     + Slots - for composition purposes.
-    What's missing everywhere is a structural API for applications. (See the point with Stuart P.'s [Parts and Walls](https://github.com/stuartpb/pwalls-spec) proposal from 2015.)
 
-    But should this be considered as an addition to Custom Elements? We've got to look at the bigger picture of the HTML language as a whole, and this I come bringing in this suite as [*Scoped HTML*](#scoped-html).
+    What's missing everywhere is a structural API for applications.
 
-+ **Bindings.** Our idea of a UI component is of a UI block that is bound to a corresponding part of an application. We want to be able to keep the UI in sync with application state without having to manually track and apply changes. This magic has swept modern UI develipment so much that every framework out there is featuring the joint concept of *bindings* and *reactivity*. This is where these frameworks have got to really outshine the platform. We now see this as a critically needed feature on the platform, no longer a nice to have. (I found [this early-stage idea](https://discourse.wicg.io/t/extension-of-template/447) for a template syntax by Jonathan Kingston way back in 2014. See it come back in [this proposal](https://github.com/whatwg/html/issues/2254) from 2017.)
+    But, should this be considered as an addition to Custom Elements? Here is where we've got to look at the bigger picture of the HTML language as a whole, and this I come bringing in this suite as [*Scoped HTML*](#scoped-html).
 
-    While the first wave of ideas have considered a new `{{` syntax `}}` on top of HTML, we find that the platform already has what it takes to unlock this feature, by building on the language's existing provision for logic. I explored this possibility of using standard scripts in HTML for reactve presentational logic and come bringing it as [*Scoped JS*](#scoped-js).
++ **Bindings.** Our idea of a UI component is of a UI block that is bound to a corresponding part of an application. We want to be able to keep the UI in sync with application state without having to manually track and apply changes. This magic has swept modern UI develipment so much that every framework out there is featuring the joint concept of *bindings* and *reactivity*. This is where these frameworks have got to really outshine the platform. This becomes a critically-needed feature on the platform if we must natively drive UI development. (I found [this early-stage idea](https://discourse.wicg.io/t/extension-of-template/447) for a template syntax by Jonathan Kingston all the way from 2014. See it come back in [this proposal](https://github.com/whatwg/html/issues/2254) from 2017.)
+
+    While these first wave of ideas have considered a new `{{` syntax `}}` on top of HTML, we find that the platform already has what it takes to unlock this feature, considering the language's existing provision for logic. I explored this possibility of using standard scripts in HTML for reactve presentational logic and come bringing it as [*Scoped JS*](#scoped-js).
 
 ### Features Exclusive to the Shadow DOM, but Fundamentally Needed in HTML as a Whole
 
-+ **Slots-Based Composition.** Slots-Based composition is one killer feature to come to HTML. Unfortunately, it was imagined for use only in the Shadow DOM, whereas, in fact, the use case is everywhere as long as the UI is concerned. Even as it is, the whole idea of slots-based composition falls apart for apps that have to render server-side as the Shadow DOM still can't be serialized for client-side hydration. But since the Shadow DOM is all we've got for this, we're now having to [think counter-intuitive to its concept of encapsulation](https://github.com/w3c/webcomponents/blob/gh-pages/proposals/Declarative-Shadow-DOM.md), just so we could have it for [a more general usecase](https://www.petergoes.nl/blog/my-stab-at-rendering-shadow-dom-server-side/)!
++ **Slots-Based Composition.** Slots-based composition is one killer feature to come to HTML. Unfortunately, it was imagined for use only in the Shadow DOM, whereas, in fact, the usecase of composition is everywhere as long as the UI is concerned. Even as it is, the whole idea of slots-based composition falls apart for apps that have to render server-side as the Shadow DOM still can't be serialized for client-side hydration. And since the Shadow DOM is all we've got for this, we're now having to [think counter-intuitive to its concept of encapsulation](https://github.com/w3c/webcomponents/blob/gh-pages/proposals/Declarative-Shadow-DOM.md), just so we could have it for [a more general usecase](https://www.petergoes.nl/blog/my-stab-at-rendering-shadow-dom-server-side/)!
 
     For a moment, how about slots-based composition for HTML generally? That could save us from looking to the Shadow DOM for something it wasn't designed for! This is the prospect for us in the [*HTML Partials*](#html-partials) feature of this suite.
 
-+ **Scoping.** One of the earliest of our needs in HTML is scoping - a way to keep things out of the browser's global scope. Having CSS run in one global scope has been much of a pain until now. While the case for Scoped CSS has long been established, it happened that we took back the fine step we made toward this direction in favour of the Shadow DOM's encapsulation. What we've realized at this point is that we don't need the Shadow DOM as much as we need to scope some CSS. Specificity is a common design problem and should be given a *handy* solution. A number of developers in the community are joining the call to return Scoped CSS. And the fact that many frameworks are currently offering this feature is another big measure of the usecase. Making this a general feature, and not just a feature of the Shadow DOM, is everyone's position.
++ **Scoping.** We've long ago realized the need for scoping in HTML - a way to keep things out of the browser's global scope. We tasted Scoped CSS but were forced to drop it in favour the Shadow DOM's encapsulation. What we've realized at this point is that the Shadow DOM doesn't fit the generic usecase of being able to scope a stylesheet. We're now back to the *selector wars* as we style in the open HTML.
 
-    Now, we find the problem we're trying to solve with Scoped CSS also present with scripts (usually presentational logic) that have to use CSS selectors to manipulate the document. And while selecting by IDs would give perfect specificity, a terrible challenge lies in writing collision-free names, as IDs, like CSS selectors, also share one global namespace - a problem that has been underdiscussed. This gives us three things to wrestle with at the global level: CSS selectors, IDs, and scripts. But why, we can find a *consistent way* to keep all three out of a global scope. And this is what I come bringing in this suite as *Scoped HTML*, *Scoped CSS*, and *Scoped JS*!
+    The time is now, more than ever, right to return Scoped CSS as we look to the platform to better support modern UI development. Why, even frameworks out there can see this as a great feature for the UI. Making this a general language feature, and not just a feature of the Shadow DOM, is everyone's position.
+
+    At the same time, we find the problem we're trying to solve with Scoped CSS also present with scripts (usually presentational logic) that have to use CSS selectors to manipulate the document. And while selecting by IDs would give perfect specificity, a terrible challenge lies in writing collision-free names, as IDs, like CSS selectors, also share one global namespace - a problem that has been underdiscussed. This has given us three things to wresttle with at the global level: CSS selectors, IDs, and, by extension, scripts. This proposal soughts to address all three scoping issues with three new language features: [*Scoped HTML*](#scoped-html), [*Scoped CSS*](#scoped-css), and [*Scoped JS*](#scoped-js)!
 
 ## Introducing CHTML - One More Technology Suite, Side-By-Side With Web Components
 
-CHTML is a suite of new DOM features that brings language support for modern UI development paradigms: a component-based architecture, data binding, and reactivity. It aims to make it possible to build functional user interfaces out of language primitives and native APIs. This way, we can bank more on the platform and less on abstractions.
+CHTML is a suite of new DOM features that brings language support for modern UI development paradigms: a component-based architecture, data binding, and reactivity. It aims to make it possible to build functional user interfaces out of language primitives and native APIs. This will be helping us bank more on the platform and less on abstractions.
 
-Now, instead of introducing totally new ideas, CHTML chooses to *look within* to find new possibilities with existing platform features. It is designed to work side-by-side with Web Components and to bring some of Shadow DOM's exclusive features to the language generally.
+Now, instead of introducing totally new ideas, CHTML chooses to *look within* to find new possibilities with existing platform features. It is designed to work side-by-side with Web Components and to bring some of Shadow DOM's exclusive features to the open HTML.
 
-CHTML's development has been driven by real-world usecases with a working prototype currently obtainable from the [Web-Native](https://web-native.dev) project.
+\* I'm excited to say that CHTML is already a working prototype today and obtainable from the [Web-Native](https://web-native.dev) project. By simply including the polyfill on a page, the ideas discussed here can be seen. In fact, the Web-Native website is a live example of CHTML at work.
 
 ### Scoped HTML
 
@@ -82,7 +85,7 @@ Scopes are designated with the `root` Boolean attribute.
 
 ```html
 <div root>
-    <div id="..."></div>
+    <div id="some-id"></div>
 </div>
 ```
 
@@ -141,9 +144,9 @@ Below is a hierarchy of scopes.
 </body>
 ```
 
-Scoped HTML turns out the ideal, clean, modular naming convention compared to current class-based alternatives like [BEM](https://getbem.com).
+Scoped HTML turns out the ideal, clean, modular naming convention compared to current class-based alternatives like we saw [earlier](#features-missing-in-html-also-missing-in-web-components).
 
-Above, what we get is simply a hierarchy of scopes:
+Here, what we get is simply a hierarchy of scopes:
 
 ```html
 continents
@@ -155,9 +158,9 @@ continents
     |- countries
 ```
 
-#### Scope API
+#### A Roles API
 
-A hierarchy of scopes makes it possible to have a *structural API*, or a UI component model, that an application can bank on. Scoped HTML exposes a new DOM property `idrefs` for accessing scope trees.
+A hierarchy of scopes with scoped IDs makes it possible to have a *roles API*, or a UI component model, that an application can bank on. Scoped HTML exposes a new DOM property `idrefs` for accessing scope trees.
 
 ```js
 // The regular querySelector() function would give us the #article element
@@ -183,24 +186,28 @@ Obs.observe(element.idrefs, changes => {
 });
 ```
 
-#### Scope Selectors – (Coming soon to the CHTML at Web-Native)
+#### Scope-Based Selectors – (Coming soon to the CHTML at Web-Native)
 
 With the introduction of Scoped HTML, a few backwards-compatible changes will now be neccessary:
 
-+ The regular ID selector `#` should now respect scope boudaries.
-+ The forward slash `/` should be used to denote a scope boundary. Now, deeply-scoped IDs may even be queried from the global scope using the path notation: `#continents / #europe / #about`.
-+ Two new query selectors (`scopeSelector()` and `scopeSelectorAll()`) should now be created, or the regular `querySelector()` and `querySelectorAll()` DOM methods can be upgraded to support Scope Selectors.
-+ URL fragment identifiers should now be path-based to reference an element deep in the scope hierarchy. (Discussions are already underway [here](https://github.com/whatwg/html/issues/3509), and probabbly elswhere too, to reform fragment identifiers; this becomes a good time to bake-in path notation.)
++ The regular ID selector `#` can be made to respect scope boudaries.
++ The forward slash `/` can be used to denote a scope boundary. Querying deeply-scoped IDs would now look like: `#continents / #europe / #about`.
++ Two new query selectors (`scopeSelector()` and `scopeSelectorAll()`) would now be created, or the regular `querySelector()` and `querySelectorAll()` DOM methods can be upgraded to support scope boudaries.
++ URL fragment identifiers would now need to be path-based to reference an element deep in the scope hierarchy. (We find that discussions are already underway [here](https://github.com/whatwg/html/issues/3509), and probabbly elswhere too, to reform the nature of fragment identifiers; this becomes a good time to bake-in path notation.)
 
 #### Current Implementation of Scoped HTML
 
-All of *Scoped HTML*, excluding Scope Selectors, is currently implemented in the CHTML at Web-Native, but with the use of mutation observers. The implementation is also making do with the `scoped:id` attribute instead of the actual `id` attribute - to respect the current validition of HTML documents. Interestingly, a native implementation of scoped IDs can come at no risk to pre-CHTML websites as their lack of *roots* can forever keep their IDs scoped to the document root. Or possibly, a meta tag, or document-wide attribute can be required for Scoped HTML-based documents.
+All of *Scoped HTML*, excluding Scope Selectors, is currently implemented in the CHTML at Web-Native. This implementation makes use of mutation observers. It is also making do with the `scoped:id` attribute instead of the actual `id` attribute - to respect the current validition of HTML documents.
+
+On the feasibility of a native implementation of scoped IDs, we find that this can come no risk to pre-CHTML websites as their lack of *roots* can forever keep their IDs scoped to the document root.
 
 [Read the full Scoped HTML docs](https://docs.web-native.dev/chtml/scoped-html)
 
 ### Scoped CSS
 
-CHTML *reproposes* the ability to scope a stylesheet as a language feature and not just a Shadow DOM feature. With component-oriented HTML in mind, we now have a better use-case for Scoped CSS. With support for Scope Selectors, Scoped CSS could look like this:
+CHTML *reproposes* the ability to scope a stylesheet as a language feature and not just a Shadow DOM feature. With component-oriented HTML in mind, we now have a better use-case for Scoped CSS.
+
+With support for Scope Selectors, Scoped CSS could look like this:
 
 ```html
 <div>
@@ -231,7 +238,7 @@ CHTML *reproposes* the ability to scope a stylesheet as a language feature and n
 
 ### Scoped JS
 
-This feature makes it possible for scripts to be scoped to their containing element and completely out of the global browser scope. Scoped scripts have their `this` variable implicitly bound to their containing element. They are defined with the `scoped` Boolean attribute.
+This feature makes it possible for scripts to be scoped to their containing element and completely out of the global browser scope. Scoped scripts have their `this` variable implicitly bound to their immediate container element. They are defined with the `scoped` Boolean attribute.
 
 ```html
 <div>
@@ -269,13 +276,13 @@ Other variables in a scoped script are to be explicitly-bound from external valu
 </body>
 ```
 
-Scoped JS gives us this special ability to bring DOM manipulation logic closer to their targets and away from an application. It has *presentational logic* as its sole responsibility and thus helps us keep the main application layer void of the implementation details of the UI. As shown above, an application simply binds its hard-earned values and ends it there!
+Scoped JS gives us this special ability to bring DOM manipulation logic closer to their targets and away from an application. It has *presentational logic* as its sole responsibility and thus helps us keep the main application layer void of the implementation details of the UI. As shown above, an application simply binds its hard-earned values and is freeeeee!
 
 Scoped JS is to HTML what a template syntax is to a UI component framework. But by coming in a script tag, as opposed to being in text-based string interpolation, we get to avoid repurposing HTML's plain text content for logic, or the required compile step that must sniff those tokens for special interpretation. Overall, we can now finally use the web's exact language for logic rightly for logic! (Contrast this with [Apple's proposal](https://github.com/w3c/webcomponents/blob/gh-pages/proposals/Template-Instantiation.md) from 2017 for the problem domain.)
 
 #### Selective Execution
 
-Scoped JS follows the normal top-down execution of a script. Calling the `.bind()` method with different variable-bindings reruns the script top-down. But as a UI binding langauge, it also features *Selective Execution* where an update to a variable gets to rerun only the corresponding statements within the script - skipping the other statements. This makes for the most-efficient way to keep a block of the UI in sync with little updates from an application. 
+Scoped JS follows the normal top-down execution of a script. Calling the `.bind()` method with different variable-bindings reruns the script top-down. But as a UI binding langauge, it also features *Selective Execution* where we update a variable to rerun only the corresponding statements within the script that depend on the update - skipping the other statements. This makes for the most-efficient way to keep a block of the UI in sync with little updates from an application. 
 
 To update a variable or multiple variables, call `.bind()` with `false` as a second paremeter.
 
@@ -322,7 +329,7 @@ This is illustrated in the clock below.
 </body>
 ```
 
-Scoped JS also supports the [Observer API](https://docs.web-native.dev/observer) for object observability. With Observer, Scoped JS is able to respond to mutations on the bound data object. So the clock above could be driven by direct updates to the data object.
+Scoped JS also supports the [Observer API](https://docs.web-native.dev/observer) for object observability. With Observer, Scoped JS is able to respond to mutations made directly on the bound data object. So the clock above could be driven by direct updates to the data object.
 
 ```html
 <script>
@@ -339,7 +346,7 @@ Scoped JS also supports the [Observer API](https://docs.web-native.dev/observer)
 </script>
 ```
 
-Scoped JS is also able to pick up deep mutations for statements that reference deep into an object, as in `clock.currentTime`.
+Scoped JS is also able to pick up deep mutations on the bound object for statements that reference deep into the object, as in `clock.currentTime`.
 
 ```html
 <body>
@@ -371,7 +378,7 @@ Scoped JS is also able to pick up deep mutations for statements that reference d
 </body>
 ```
 
-Within the script, the dependency chain is followed even when broken into local variables. Below, a change to `clock.currentTime` will still propagate through `variable1` and  `variable2`. (While the first and last statements in the script are left untouched, as expected.)
+On updating a variable, the dependency chain within the script is followed even when broken into local variables. Below, a change to `clock.currentTime` will still propagate through `variable1` and  `variable2`. (While the first and last statements in the script are left untouched, as expected.)
 
 ```html
 <body>
@@ -382,6 +389,7 @@ Within the script, the dependency chain is followed even when broken into local 
         <script scoped>
             this.querySelector('.greeting').innerHTML = clock.greeting;
             let variable1 = clock.currentTime;
+            this.style.backgroundColor = 'yellow';
             let variable2 = variable1;
             this.querySelector('.current-time').innerHTML = variable2;
             this.style.color = 'blue';
@@ -392,18 +400,20 @@ Within the script, the dependency chain is followed even when broken into local 
 ```
 
 From a high-level view, there will now be a one-to-one correspondence between CSS and JS:
-+ `<style scoped>` (for styling) - `<script scoped>` (for behaviour).
-+ `element.style` (for styling) - `element.bindings` (for behaviour).
++ `<style scoped>` (for styling) - `<script scoped>` (for logic).
++ `element.style` (for styling) - `element.bindings` (for logic).
 
 #### Globals
 
-By default, scoped scripts have no access to anything besides what has been explicitly bound into the scope. But they also have an idea of a global scope - that is, bindings seen by every scoped script. This global scope is created by binding on the `document` object itself, using a new `document.bind()` method.
+By default, scoped scripts have no access to anything besides what is explicitly bound into the scope. But they also have an idea of a global scope - that is, bindings seen by every scoped script. This global scope is created by binding on the `document` object itself, using a new `document.bind()` method.
 
 ```js
 document.bind({
     greeting: 'Good Afternoon!',
 });
 ```
+
+Providing `false` as a second parameter to this method performs *Selective Execution*.
 
 There is also the `document.bindings` property for selectively updating *globals*.
 
@@ -473,7 +483,7 @@ Sometimes, we want certain bindings to apply only on the server; sometimes, only
 </div>
 ```
 
-Above, *condition* could be a simple question about the current environment, and this is acheivable by simply exposing a global `env` variable: `document.bind({env:'server', headline: 'Hello World'})`.
+Above, `condition` could be a simple question about the current environment, and this is acheivable by simply exposing a global `env` variable: `document.bind({env:'server', headline: 'Hello World'})`.
 
 ```html
 <div>
@@ -490,9 +500,9 @@ Above, *condition* could be a simple question about the current environment, and
 
 #### Current Implementation of Scoped JS
 
-All of *Scoped JS* is currently implemented in the CHTML at Web-Native, but with the use of a custom MIME type for the script tag: `<script type="scoped"></script>`. A custom MIME type helps exclude the script from normal browser processing. Native implementation may want to, instead, use the `scoped` Boolean attribute as in `<script scoped></script>`, to correspond with `<style scoped></style>` and to retain the role of the `type` attribute for scoped scripts.
+All of *Scoped JS* is currently implemented in the CHTML at Web-Native, but with the use of a custom MIME type for the script tag: `<script type="scoped"></script>`. A custom MIME type helps exclude the script from normal browser processing. Native implementation may want to really use the `scoped` Boolean attribute as in `<script scoped></script>`, to correspond with `<style scoped></style>` and to retain the role of the `type` attribute for scoped scripts.
 
-The implementation is based on the [JSEN library](https://docs.web-native.dev/jsen) - an experimental implementation of a subset of the JavaScript language for user-defined use-cases.
+The implementation is based on the [JSEN library](https://docs.web-native.dev/jsen) - an experimental implementation of a subset of the JavaScript language.
 
 [Read the full Scoped JS docs](https://docs.web-native.dev/chtml/scoped-js)
 
@@ -573,13 +583,13 @@ Composition takes place and the slots are replaced by the template's partials. T
 </html>
 ```
 
-An implementation block can implement another template by simply pointing to it; slots are disposed of their previous slotted contents and recomposed from the new template.
+An implementation block can implement another template by simply pointing to it; slots are disposed off of their previous slotted contents and recomposed from the new template.
 
 The `<slot>` element, even though replaced, is never really destroyed. It returns to its exact position whenever the last of its slotted elements get deleted, or whenever the slot has no corresponding partial in the next implemented template.
 
-A template is to the composition block what the Light DOM of a custom element is to the Shadow DOM - providing *slottable* contents for *slots*; called *slottables* in Web Components, *partials* in CHTML.
+Now, a template is to the composition block what the Light DOM of a custom element is to the Shadow DOM - providing *slottable* contents for *slots*; called *slottables* in Web Components, *partials* in CHTML.
 
-HTML Partials also supports *Default Slots*. A template's direct children without an explicit `slot` attribute are slotted into the *Default Slot* in the implementation block.
+HTML Partials also supports *Default Slots*. Here, a template's direct children without an explicit `slot` attribute are slotted into the *Default Slot* in the implementation block.
 
 **Unscoped Slots**
 
@@ -629,7 +639,7 @@ Both attributes and content can be inheritted this way.
 
 A slot's attributes, other than the slot-exclusive `name` and `template` attributes, are inheritted by every slotted element.
 
-On inheriting single-value attributes, like the `id` attribute, any such attribute is replaced on the slotted element. On inheriting space-delimitted attributes, like the `class` attribute, new and non-duplicate values are placed after any existing values. On inheriting key/value attributes, like the `style` attribute, new declarations are placed after any existing declarations, making CSS cascading work on the `style` attribute.
+When a partial inherits attributes from a slot, inheritted attributes are made to take priority over any existing attributes. On inheriting single-value attributes, like the `id` attribute, any such attribute is replaced on the slotted element. On inheriting space-delimitted attributes, like the `class` attribute, new and non-duplicate values are placed after any existing values. On inheriting key/value attributes, like the `style` attribute, new declarations are placed after any existing declarations, making CSS cascading work on the `style` attribute.
 
 Below, we are using Slot Attributes to recompose the same *partial* differently for each usecase.
 
@@ -660,9 +670,9 @@ Below, we are using Slot Attributes to recompose the same *partial* differently 
 
 **Content**
 
-A slot can have default content that renders before slotting takes place. But this content can instead be defined as a new set of *partials* that can be *implemented* by slotted elements. So we have the slot element acting as the *template* and the slotted element as the *implementation block*. (In the light/shadow paradigm, this is the slot element acting as an element's *Light DOM* and the slotted element as its *Shadow DOM*.)
+Normally, a slot can have default content that renders before slotting takes place. But this content can instead be defined as a new set of *partials* that can be *implemented* by slotted elements. This time, the slot element gets to act as the *template* and the slotted element as the *implementation block*. (In the light/shadow paradigm, this is the slot element acting as an element's *Light DOM* and the slotted element as its *Shadow DOM*.)
 
-To implement a slot, a *partial* would set its `template` attribute to the keyword *slot* instead of pointing to an actual template.
+To implement a slot, a *partial* would set its `template` attribute to the keyword `@slot` instead of pointing to an actual template.
 
 ```html
 <html>
@@ -672,7 +682,7 @@ To implement a slot, a *partial* would set its `template` attribute to the keywo
         <template name="template1">
 
             <!-- I am a recomposable partial. My ideal slot provides the partials for me -->
-            <div slot="slot-1" template="slot">
+            <div slot="slot-1" template="@slot">
                 <slot name="slot-1-1"></slot>
             </div>
             
@@ -730,7 +740,7 @@ Nested templates are referenced using a path notation:
 
 #### Remote Templates
 
-Templates may reference remote content using the `src` attribute.
+Templates may reference remote content using the `src` attribute. (We can even find similar ideas [here](https://discourse.wicg.io/t/add-src-attribute-to-template/2721) and [here](https://github.com/whatwg/html/issues/2791), and probbably elsewhere.)
 
 **Remote file: http://localhost/templates.html**
 
@@ -753,7 +763,7 @@ Templates may reference remote content using the `src` attribute.
 
 ```html
 <head>
-    <template name="template1" src="http://localhost/templates.html"></template>
+    <template name="template1" src="/templates.html"></template>
 </head>
 ```
 
@@ -769,6 +779,8 @@ HTML Partials introduces a few new DOM properties for working with composition.
     + `loading` - This is the initial value of this property.
     + `complete` - This is the value of this property when templates are done loading, or when there are no remote templates at all. For this state, the `templatesreadystatechange` event is fired on the document object.
 + `.templates` - This property represents the list of templates in the document. Templates are exposed here by name. So `document.templates.template1` should return the template element used in the examples above.
+
+    Very interestingly, `document.templates` has even been proposed [here](https://discourse.wicg.io/t/document-templates/1057)!
 
 **For the `<template>` element:**
 
@@ -814,7 +826,7 @@ HTML Partials introduces a few new DOM properties for working with composition.
 
 #### Isomorphic Rendering
 
-Persistent slots is the promise of slots-based composition; placeholders must never really lose their place. This promise is easy to keep on a live DOM, as slot positions can be easily maintained - even after a slot is replaced. Where the challenge lies is when rendering happens on the server and has to be serialized for the browser to take over; the browser must maintain references to all slots, even those replaced on the server. 
+Persistent slots is the promise of slots-based composition; placeholders must never really lose their place. This promise is easy to keep on a live DOM, as slot positions can be easily maintained - even after a slot is replaced. Where the challenge lies is when rendering happens on the server and slots replaced but all have to be hydrated on the browser. How would be the browser figure out the positions of replaced slots? 
 
 HTML Partials addresses this by serializing slot elements as *comment nodes* with a view to recreating the original slot elements from these comments on getting to the browser. This way, composition is able to continue. Now in the browser, deleting a server-slotted element, for example, should trigger the restoration of the original slot element; changing the `template` attribute of any element should dispose off all its server-slotted elements and recompose the block from the new referenced template.
 
@@ -825,7 +837,7 @@ HTML Partials addresses this by serializing slot elements as *comment nodes* wit
 
     <head>
 
-        <template namespace="module/two">
+        <template name="template1">
             <div slot="slot-1"></div>
             <div slot="slot-2"></div>
         </template>
@@ -834,11 +846,11 @@ HTML Partials addresses this by serializing slot elements as *comment nodes* wit
 
     <body>
 
-        <div template="module/one">
+        <div template="template1">
             <slot name="slot-1" id="headline" style="color:red">Default Headline</slot>
         </div>
 
-        <slot template="module/one" name="slot-1" style="color:blue"></slot>
+        <slot template="template1" name="slot-1" style="color:blue"></slot>
 
     </body>
 
@@ -852,7 +864,7 @@ HTML Partials addresses this by serializing slot elements as *comment nodes* wit
 
     <head>
 
-        <template namespace="module/two">
+        <template name="template1">
             <div slot="slot-1"></div>
             <div slot="slot-2"></div>
         </template>
@@ -861,13 +873,13 @@ HTML Partials addresses this by serializing slot elements as *comment nodes* wit
 
     <body>
 
-        <div template="module/one">
+        <div template="template1">
             <div slot="slot-1" id="headline" style="color:red"></div>
             <!-- <slot name="slot-1" id="headline" style="color:red">Default Headline</slot> -->
         </div>
 
         <div slot="slot-1" style="color:blue"></div>
-        <!-- <slot template="module/one" name="slot-1" style="color:blue"></slot> -->
+        <!-- <slot template="template1" name="slot-1" style="color:blue"></slot> -->
 
     </body>
 
@@ -883,7 +895,7 @@ Find and delete the server-slotted element with ID `#headline`. The original slo
 
     <head>
 
-        <template namespace="module/two">
+        <template name="template1">
             <div slot="slot-1"></div>
             <div slot="slot-2"></div>
         </template>
@@ -892,13 +904,13 @@ Find and delete the server-slotted element with ID `#headline`. The original slo
 
     <body>
 
-        <div template="module/one">
+        <div template="template1">
             <slot name="slot-1" id="headline" style="color:red">Default Headline</slot>
             <!-- <slot name="slot-1" id="headline" style="color:red">Default Headline</slot> -->
         </div>
 
         <div slot="slot-1" style="color:blue"></div>
-        <!-- <slot template="module/one" name="slot-1" style="color:blue"></slot> -->
+        <!-- <slot template="template1" name="slot-1" style="color:blue"></slot> -->
 
     </body>
 
@@ -943,9 +955,9 @@ Below is a TODO list composed from a JavaScript array using Scoped HTML, Scoped 
 
     <head>
 
-        <template namespace="module/item">
+        <template name="item-template">
             <li slot="item">
-                <script scoped>this.innerHTML = text;</script>
+                <script scoped>this.innerHTML = content;</script>
             </li>
         </template>
 
@@ -953,7 +965,7 @@ Below is a TODO list composed from a JavaScript array using Scoped HTML, Scoped 
 
     <body>
 
-        <div root id="todo" template="module/item">
+        <div root id="todo" template="item-template">
 
             <h2 id="title"></h2>
 
@@ -974,9 +986,9 @@ Below is a TODO list composed from a JavaScript array using Scoped HTML, Scoped 
             document.querySelector('#todo').bind({
                 title: 'My TODOs',
                 items: [
-                    {text: 'TODO-1'},
-                    {text: 'TODO-2'},
-                    {text: 'TODO-3'},
+                    {content: 'TODO-1'},
+                    {content: 'TODO-2'},
+                    {content: 'TODO-3'},
                 ],
             });
         </script>
@@ -985,19 +997,19 @@ Below is a TODO list composed from a JavaScript array using Scoped HTML, Scoped 
 </html>
 ```
 
-We could even add the ability to add/remove items. For the *remove* feature, we'd add a *click* event listener to the item element definition. For the *add* feature, we'd add a button to the TODO container that calls the `add()` method of the TODO application. 
+We could even add the ability to add/remove items. For the *remove* feature, we'd add a *click* event listener to the item element definition. For the *add* feature, we'd add a button to the TODO container that calls the `addItem()` method of the TODO application. 
 
 ```html
 <html>
 
     <head>
 
-        <template name="template1">
+        <template name="item-template">
             <li root slot="item">
                 <span id="content"></span>
                 <button id="remover">Remove</button>
                 <script scoped>
-                    this.idrefs.content.innerHTML = text;
+                    this.idrefs.content.innerHTML = content;
                     this.idrefs.remover.addEventListener('click', () => this.remove());
                 </script>
             </li>
@@ -1007,7 +1019,7 @@ We could even add the ability to add/remove items. For the *remove* feature, we'
 
     <body>
 
-        <div root id="todo" template="template1">
+        <div root id="todo" template="item-template">
 
             <h2 id="title"></h2>
 
@@ -1018,7 +1030,7 @@ We could even add the ability to add/remove items. For the *remove* feature, we'
             <script scoped>
                 this.idrefs.title.innerHTML = title;
                 items.forEach(itemBinding => {
-                    let itemElement = this.partials.item[0].cloneNode(true);
+                    let itemElement = this.template.partials.item[0].cloneNode(true);
                     this.idrefs.items.append(itemElement.bind(itemBinding));
                 });
                 this.idrefs.adder.addEventListener('click', () => addItem());
@@ -1033,12 +1045,12 @@ We could even add the ability to add/remove items. For the *remove* feature, we'
             document.querySelector('#todo').bind({
                 title: 'My TODOs',
                 items: [
-                    {text: 'TODO-1'},
-                    {text: 'TODO-2'},
-                    {text: 'TODO-3'},
+                    {content: 'TODO-1'},
+                    {content: 'TODO-2'},
+                    {content: 'TODO-3'},
                 ],
                 addItem() {
-                    Obs.proxy(this.items).push({text: 'TODO-' + count ++});
+                    Obs.proxy(this.items).push({content: 'TODO-' + count ++});
                 },
             });
         </script>
@@ -1046,6 +1058,8 @@ We could even add the ability to add/remove items. For the *remove* feature, we'
 
 </html>
 ```
+
+[Check the live example here](https://web-native.dev/examples/todo.html)
 
 ### A Single Page Application Example
 
@@ -1108,6 +1122,8 @@ This example makes an SPA of *templates and slots* composition. Below, we're usi
 
 Navigate to a route that does not begin with `#/home` or `#/about`, you should see the default content showing *404*.
 
+[Check the live example here](https://web-native.dev/examples/spa.html)
+
 ### A Tooling Example
 
 That CHTML is a foundational technology just gives us every room to bring our own tooling. This example shows how we could make a DOM abstraction API, like jQuery, available to scoped scripts.
@@ -1161,11 +1177,13 @@ Tooling can also save the day on the efficiency of DOM manipulation. Generally, 
 </body>
 ```
 
+[Check the live example here](https://web-native.dev/examples/jquery.html)
+
 ## Conclusion
 
 Until now, we've suffered the consequences of the lack of platform support for a component-based HTML. It seemed that the days were gone for doing anything in vanilla HTML, CSS and JavaScript. But with the CHTML suite, we can now finally #justUseThePlatform!
 
-\*It seems that the letters "CHTML" should read "Component-Oriented HTML", "Composable HTML", or something else altogether that describes language-wide features for a component-based UI.
+\* It seems that the letters "CHTML" should read "Component-Oriented HTML", "Composable HTML", or something else altogether that describes language-wide features for a component-based UI.
 
 ### A Focus On the Language for Authouring Components
 
