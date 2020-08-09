@@ -399,7 +399,7 @@ On updating a variable, the dependency chain within the script is followed even 
 </body>
 ```
 
-From a high-level view, there will now be a one-to-one correspondence between CSS and JS:
+From a high-level view, we would now be striking new cords:
 + `<style scoped>` (for styling) - `<script scoped>` (for logic).
 + `element.style` (for styling) - `element.bindings` (for logic).
 
@@ -423,7 +423,9 @@ document.bindings.greeting = 'Good Evening!';
 
 #### Runtime
 
-By design, Scoped JS parses scoped scripts immediately they land on the DOM, but runs them only after the global scope has been initialized with `document.bind()` or the `document.bindings` property. Newer scipts are run immediately after this global runtime initilization. But the runtime of an individual script will begin before the global one on calling the element's `.bind()` method or assigning to its `.bindings` property, or by setting the `autorun` *Boolean* attribute on the script element.
+By design, Scoped JS parses scoped scripts immediately they land on the DOM, but runs them only after the global scope has been initialized with `document.bind()` or the `document.bindings` property. Newer scipts are run immediately after this global runtime initilization. But the runtime of an individual script will begin before the global one on calling the element's `.bind()` method or assigning to its `.bindings` property.
+
+Alternatively, the `autorun=true` directive may be set on the CHTML META tag. The `autorun` *Boolean* attribute may also be set on individual script elements.
 
 Also, an element may receive bindings before its scoped script is appended or is ready to run. The element's runtime begins the first time both are available.
 
@@ -931,10 +933,6 @@ Since slots serialization is only necessary for isomorphic pages, this feature i
 ```
 
 \* The trailing semi-colon (;) in the CHTML META tag is optional.
-
-##### So Why is Serializability Important?
-
-This is noteworthy because it is finally possible, so that we can stop looking to the Shadow DOM for something it wasn't designed for!
 
 #### Current Implementation of HTML Partials
 
