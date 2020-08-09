@@ -13,10 +13,7 @@
   ],
   "homepage": "https://www.web-native.dev",
   "icon": "https://www.web-native.dev/icon.svg",
-  "author": {
-    "name": "Oxford Harrison",
-    "email": "oxharris.dev@gmail.com"
-  },
+  "author": "Oxford Harrison <oxharris.dev@gmail.com>",
   "version": "1.0.9",
   "license": "MIT",
   "type": "module",
@@ -32,7 +29,7 @@
   "scripts": {
     "test": "node ./tests/index.js",
     "build-dev": "webpack --config ../webpack.config.chtml.dev.js",
-    "build": "webpack --config ../webpack.config.chtml.js"
+    "build": "npx projectz compile && webpack --config ../webpack.config.chtml.js"
   },
   "dependencies": {
     "@web-native-js/commons": "^0.5.0",
@@ -48,5 +45,21 @@
   },
   "bugs": {
     "url": "https://github.com/web-native/chtml/issues"
-  }
+  },
+  "badges": {
+    "list": [
+      "npmversion",
+      "npmdownloads",
+      "patreon"
+    ],
+    "config": {
+      "patreonUsername": "ox_harris",
+      "githubUsername": "web-native",
+      "githubRepository": "chtml",
+      "githubSlug": "web-native/chtml",
+      "npmPackageName": "@web-native-js/chtml"
+    }
+  },
+  "maintainers": [],
+  "contributors": []
 }
