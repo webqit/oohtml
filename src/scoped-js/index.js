@@ -105,9 +105,10 @@ export default function() {
                     console.warn(target, e.message);
                 }
             },
+            trap: ENV.trap,
         };
         if (targetScriptBase.AST) {
-            var returnValue = targetScriptBase.AST.eval(targetScriptBase.scope, params, ENV.trap);
+            var returnValue = targetScriptBase.AST.eval(targetScriptBase.scope, params);
             if (_isFunction(returnValue)) {
                 returnValue(targetScriptBase.scope.stack.main);
             }

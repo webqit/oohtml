@@ -2,7 +2,7 @@
 /**
  * @imports
  */
-import { Contexts } from '@web-native-js/jsen';
+import { Scope } from '@web-native-js/jsen';
 
 /**
  * ---------------------------
@@ -10,4 +10,4 @@ import { Contexts } from '@web-native-js/jsen';
  * ---------------------------
  */				
 
-export default Contexts;
+export default Scope;
