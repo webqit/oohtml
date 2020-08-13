@@ -11,7 +11,7 @@
 
 CHTML is a suite of new DOM features that brings language support for modern UI development paradigms: a component-based architecture, data binding, and reactivity. This lets us build elegant user interfaces using the web platform itself.
 
-CHTML is a [proposed web standard at the Web Incubator CG](https://discourse.wicg.io/t/proposal-chtml/4716) based on [this explainer](https://github.com/web-native/chtml/blob/master/explainer.md).
+> CHTML is being proposed as a [W3C standard at the Web Platform Incubator Community Group](https://discourse.wicg.io/t/proposal-chtml/4716) based on [this explainer](https://github.com/web-native/chtml/blob/master/explainer.md).
 
 ## Documentation
 
