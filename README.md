@@ -4,7 +4,6 @@
 
 <span class="badge-npmversion"><a href="https://npmjs.org/package/@web-native-js/chtml" title="View this project on NPM"><img src="https://img.shields.io/npm/v/@web-native-js/chtml.svg" alt="NPM version" /></a></span>
 <span class="badge-npmdownloads"><a href="https://npmjs.org/package/@web-native-js/chtml" title="View this project on NPM"><img src="https://img.shields.io/npm/dm/@web-native-js/chtml.svg" alt="NPM downloads" /></a></span>
-<span class="badge-patreon"><a href="https://patreon.com/ox_harris" title="Donate to this project using Patreon"><img src="https://img.shields.io/badge/patreon-donate-yellow.svg" alt="Patreon donate button" /></a></span>
 
 <!-- /BADGES -->
 
@@ -18,7 +17,7 @@ CHTML is a suite of new DOM features that brings native support for modern UI de
 + [Scoped HTML](https://docs.web-native.dev/chtml/scoped-html) - Structure your document as a hierarchy of *scopes* and *subscopes*.
 + [Scoped CSS](https://docs.web-native.dev/chtml/scoped-css) - Define styling as part of any element using scoped stylesheets.
 + [Scoped JS](https://docs.web-native.dev/chtml/scoped-js) - Define behaviour as part of any element using scoped scripts.
-+ [HTML Partials](https://docs.web-native.dev/chtml/html-partials) - Define, import/export, and compose with reusable HTML snippets.
++ [HTML Partials](https://docs.web-native.dev/chtml/html-partials) - Define, import, and compose with reusable HTML snippets.
 
 ## Getting Started
 

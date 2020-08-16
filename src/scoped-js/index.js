@@ -172,9 +172,9 @@ export default function() {
         throw new Error('The "Element" class already has a "' + ENV.params.localBindingMethod + '" property!');
     }
     Object.defineProperty(ENV.window.Element.prototype, ENV.params.localBindingMethod, {
-        value: function(binding, replace = true) {
+        value: function(binding, params = {}) {
             let scriptBase = getScriptBase(this);
-            if (replace === false) {
+            if (params.update) {
                 mergeVal(scriptBase.scope.stack.main, binding);
             } else {
                 setVal(scriptBase.scope.stack, 'main', binding);
@@ -229,8 +229,8 @@ export default function() {
         throw new Error('document already has a "' + ENV.params.globalBindingMethod + '" property!');
     }
     Object.defineProperty(ENV.window.document, ENV.params.globalBindingMethod, {
-        value: function(binding, replace = true) {
-            if (replace === false) {
+        value: function(binding, params = {}) {
+            if (params.update) {
                 mergeVal(globalScopeInstance.stack.main, binding);
             } else {
                 setVal(globalScopeInstance.stack, 'main', binding);

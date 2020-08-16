@@ -12,9 +12,9 @@ const ENV = {
     window: null,
     trap: Observer,
     params: {
-        rootAttribute: 'root',
+        rootAttribute: 'namespace',
         scopedIdAttribute: 'scoped:id',
-        namespacePropertyName: 'idrefs',
+        namespacePropertyName: 'namespace',
         inertContexts: [],
         inertSubjects: [],
     },
