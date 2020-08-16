@@ -1244,4 +1244,5 @@ At a time when HTML and CSS have been forced out of place into JavaScript - web 
 
 # Changelog
 
-+ [Aug 9, 2020](https://github.com/web-native/chtml/blob/master/explainer-1.md)
++ \[Aug 16, 2020\] - Current
++ \[[Aug 9, 2020](https://github.com/web-native/chtml/blob/master/explainer-1.md)\] - Initial draft
