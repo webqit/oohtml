@@ -33,7 +33,7 @@ Now, instead of introducing totally new ideas, CHTML chooses to *look within* to
 
 "Naming things" is a long-standing **pain** in HTML! We've been historically stuck with IDs and classes for naming and finding elements in a document. Now, we face a terrible challenge writing collision-free IDs and CSS selectors as HTML only thinks in a global namespace. And for those modular parts of our page - widgets, structural blocks, etc, we have to settle for clunky modular naming conventions, like [BEM](https://getbem.com).
 
-A token of this problem can be seen in the following *continents* article with repeating modular blocks:
+A token of this problem can be seen in the following *#continents* article with repeating modular blocks:
 
 ```html
 <article id="continents">
