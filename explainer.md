@@ -486,7 +486,7 @@ alertEl.append('<script scoped>this.innerHTML = message</script>');
 
 #### Error Handling
 
-Scoped JS features a way to handle *syntax* and *reference* errors that may occur within scoped scripts. Normally, these are shown in the console as warnings. But they can be silenced by setting a directive on the CHTML META tag. Induvidual scripts may also be given a directive, to override whatever the global directive is.
+Scoped JS features a way to handle *syntax* and *reference* errors that may occur within scoped scripts. Normally, these are shown in the console as warnings. But they can be silenced by setting a directive on the CHTML META tag. Individual scripts may also be given a directive, to override whatever the global directive is.
 
 ```html
 <html>
@@ -1038,7 +1038,7 @@ Below, we're simply binding the `$` variable globally for use in every scoped sc
 
 Tooling can also help us acheive more efficient DOM manipulation. Generally, surgically updating the DOM may have performance implications on the UI, as arising from layout thrashing (see [this article](https://developers.google.com/web/fundamentals/performance/rendering/avoid-large-complex-layouts-and-layout-thrashing) on Web Fundamentals). But we also don't need as much as a *Virtual DOM* for this. A technique like that of [fast DOM](https://github.com/wilsonpage/fastdom) could just suffice.
 
-This technique is a natively implemented by the [PlayUI](https://docs.web-native.dev/play-ui) library which has a jQuery-like API. We will now use PlayUI as a drop-in replacement for jQuery.
+This technique is natively implemented by the [PlayUI](https://docs.web-native.dev/play-ui) library which has a jQuery-like API. We will now use PlayUI as a drop-in replacement for jQuery.
 
 ```html
 <body>
