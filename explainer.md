@@ -9,7 +9,7 @@
     + [Scoped JS](#scoped-js)
     + [HTML Partials](#html-partials)
 + [Examples](#examples)
-    + [A Tooling Example](#a-tooling-example)
+    + [A Tool-Based Example](#a-tool-based-example)
     + [A TODO List Example](#a-todo-list-example)
     + [A Single Page Application Example](#a-single-page-application-example)
     + [Other Examples](#other-examples)
@@ -1009,7 +1009,7 @@ All of *HTML Partials* is currently implemented in [the CHTML polyfill](https://
 
 It would be nice to see how everything in CHTML fits together and how everything could work with other technologies. Here are a few examples.
 
-### A Tooling Example
+### A Tool-Based Example
 
 Being a foundational technology, CHTML gives us every room to bring our own tooling. This example shows how we could use a DOM abstraction library, like jQuery, from scoped scripts.
 
