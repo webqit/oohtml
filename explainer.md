@@ -12,8 +12,8 @@
     + [A Tooling Example](#a-tooling-example)
     + [A TODO List Example](#a-todo-list-example)
     + [A Single Page Application Example](#a-single-page-application-example)
+    + [Other Examples](#other-examples)
 + [Conclusion](#conclusion)
-    + [A Focus On the Language for Authouring Components](#a-Focus-on-the-language-for-authouring-components)
 
 ## Background
 
@@ -1229,6 +1229,9 @@ This example makes an SPA of *templates and slots* composition. Below, we're usi
 Navigate to a route that does not begin with `#/home` or `#/about`, you should see the default content showing *404*.
 
 [Check the live example here](https://web-native.dev/examples/spa.html)
+
+### Other Examples
++ [An Observable Wrapper for the Web Monetization API - for Reactive UI development with CHTML](https://github.com/web-native/observables/blob/master/src/web-monetization/README.md)
 
 ## Conclusion
 
