@@ -987,7 +987,7 @@ HTML Partials introduces a few new DOM properties for working with composition.
 
 **For every element:**
 
-+ `element.template` - This property represents a copy of the `<template>` element referenced by an element. So if an element implements a template as in `<div template="html/temp"></div>`, then `element.template` should be a reference to the `<template>` at the `module/temp` namespace; `element.template.partials.default` should thus return an array like the above.
++ `element.template` - This property is a reference to the `<template>` element pointed to by an element. So if an element implements a template as in `<div template="html/temp"></div>`, then `element.template` should be a reference to the `<template>` at the `module/temp` namespace; `element.template.partials.default` should thus return an array like the above.
 
 **For the `<slot>` element:**
 
