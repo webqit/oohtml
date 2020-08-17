@@ -54,7 +54,7 @@ The thought of the web settling for this for the long haul is disturbing!
 
 **What We Want**
 
-A **neat** and **collision-free** naming specs for HTNL!
+A **neat** and **collision-free** naming specs for HTML!
 
 **Scoped HTML**
 
@@ -75,7 +75,7 @@ The following ID is scoped:
 At scale, what we get is a **hierarchy of *scopes* and *subscopes***. Now, meet the more decent *#continents* article below.
 
 ```html
-<article namespace id="continents">
+<article id="continents" namespace>
     <section id="europe" namespace>
         <div id="about">About Europe</b></div>
         <div id="countries">Countries in Europe</div>
