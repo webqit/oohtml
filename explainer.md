@@ -130,7 +130,7 @@ This gives an application a more bankable tree than the DOM tree as it lets a UI
 
 ##### Scope Observability
 
-An element's `.namespace` property is implemented as a live object that reflects the element's namespace tree in real time. CHTML also supports the [Observer API](https://docs.web-native.dev/observer) for change detection; [`Obs.observe()`](https://docs.web-native.dev/observer/api/observe) can thus be used to observe when new IDs are added to the namespace or existing IDs removed.
+An element's `.namespace` property is implemented as a live object that reflects the element's namespace tree in real time. CHTML also supports the [Observer API](https://docs.web-native.dev/observer) for change detection; [`Obs.observe()`](https://docs.web-native.dev/observer/api/observe) can thus be used to observe when IDs enter or exit the namespace.
 
 ```js
 Obs.observe(continents.namespace, changes => {
@@ -319,7 +319,7 @@ Also, Scoped JS exposes a new DOM property `.bindings` for selectively updating 
 alertEl.bindings.message = 'New value',
 ```
 
-Below is a *clock* that uses the `.bindings` property.
+Below is a *#clock* that uses the `.bindings` property.
 
 ```html
 <body>
@@ -352,7 +352,7 @@ Below is a *clock* that uses the `.bindings` property.
 </body>
 ```
 
-Scoped JS also supports the [Observer API](https://docs.web-native.dev/observer) for object observability. With Observer, Scoped JS is able to respond to mutations made directly to the bound data object. So, the clock above could be *ticked* by direct updating the data object.
+Scoped JS also supports the [Observer API](https://docs.web-native.dev/observer) for object observability. With Observer, Scoped JS is able to respond to mutations made directly to the bound data object. So, the *#clock* above could be *ticked* by directly updating the data object.
 
 ```html
 <script>
