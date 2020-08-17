@@ -154,7 +154,7 @@ On the feasibility of a native implementation of scoped IDs, we find that this c
 
 ### Scoped CSS
 
-CHTML *reproposes* the ability to scope a stylesheet as a language feature and not just a thing of the Shadow DOM. With scope-based markup in mind, we now have an additional use-case for Scoped CSS.
+CHTML *reproposes* the ability to [scope a stylesheet as a language feature](https://github.com/w3c/csswg-drafts/issues/3547) and not just a thing of the Shadow DOM. With scope-based markup in mind, we now have an additional use-case for Scoped CSS.
 
 With support for [*Namespaced Selectors*](#namespaced-selectors), Scoped CSS would look like this:
 
@@ -187,7 +187,7 @@ With support for [*Namespaced Selectors*](#namespaced-selectors), Scoped CSS wou
 
 ### Scoped JS
 
-We've historically built applications in a way that merges presentional concerns into main application code. We find ourselves writing business logic and UI behaviours together in the same code. This can be seen below in an *alert* component.
+We've historically built applications in a way that merges presentional concerns into main application code. We find ourselves writing business logic and UI behaviours together in the same code. This can be seen in the *#alert* component below.
 
 **The HTML**
 
