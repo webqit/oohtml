@@ -1212,7 +1212,7 @@ We've also decided to use [the Observer API](https://docs.web-native.dev/observe
 
 ### A Single Page Application Example
 
-This example makes an SPA of *templates and slots* composition. Below, we're using the two template elements to each represent a route - each holding partials that are unique to a route. Then we point the body element to implement the template whose namespace matches the current URL.
+This example makes an SPA of *templates and slots* composition. Below, we're using the two `<template>` elements to each represent a route - each is holding partials that are unique to a route. Then we point the `<body>` element to implement the `<template>` whose namespace matches the current URL.
 
 ```html
 <html>
