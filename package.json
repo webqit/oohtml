@@ -14,7 +14,7 @@
   "homepage": "https://www.web-native.dev",
   "icon": "https://www.web-native.dev/icon.svg",
   "author": "Oxford Harrison <oxharris.dev@gmail.com>",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "license": "MIT",
   "type": "module",
   "repository": {
