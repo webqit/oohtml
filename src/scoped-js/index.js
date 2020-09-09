@@ -45,11 +45,18 @@ export default function() {
 	inited = true;
 
     const isIsomorphic = meta('isomorphic') === true || meta('isomorphic') === 1;
-    var preInitList = [];
+    var globalRuntimeInitializationWaitlist = [], globalRuntimeInitialized = meta('script-autorun');
 
     // ----------------------
     // Helpers
     // ----------------------
+
+    const getVal = (target, key) => {
+        if (ENV.trap) {
+            return ENV.trap.get(target, key);
+        }
+        return target[key];
+    };
 
     const setVal = (target, key, value) => {
         if (ENV.trap) {
@@ -86,7 +93,7 @@ export default function() {
             };
             // Watch scope
             target['.chtml'].scopedJS.scope.observe(ENV.trap, e => {
-                if (!preInitList || target['.chtml'].scopedJS.hasBindings) {
+                if (!target['.chtml'].scopedJS.inWaitlist) {
                     applyBinding(target, e);
                 }
             });
@@ -96,6 +103,7 @@ export default function() {
 
     const applyBinding = function(target, event) {
         var targetScriptBase = getScriptBase(target);
+        targetScriptBase.inWaitlist = false;
         var params = {
             references: (event || {}).references, 
             catch: e => {
@@ -157,10 +165,11 @@ export default function() {
         scriptBase.errorLevel = scriptElement.getAttribute('errors') 
             ? parseInt(scriptElement.getAttribute('errors'))
             : meta('script-errors');
-        if (scriptElement.hasAttribute('autorun') || meta('script-errors') || scriptBase.hasBindings || !preInitList) {
+        if (globalRuntimeInitialized || scriptBase.hasBindings || scriptElement.hasAttribute('autorun')) {
             applyBinding(parentNode);
         } else {
-            preInitList.push(parentNode);
+            scriptBase.inWaitlist = true;
+            globalRuntimeInitializationWaitlist.push(parentNode);
         }
     });
 
@@ -174,16 +183,16 @@ export default function() {
     Object.defineProperty(ENV.window.Element.prototype, ENV.params.localBindingMethod, {
         value: function(binding, params = {}) {
             let scriptBase = getScriptBase(this);
+            // NOTE that this element if in waitlist won't be called by this mergeVal()/setVal()
             if (params.update) {
                 mergeVal(scriptBase.scope.stack.main, binding);
             } else {
                 setVal(scriptBase.scope.stack, 'main', binding);
             }
             scriptBase.hasBindings = true;
-            if (preInitList && preInitList.includes(this)) {
-                if (!preInitList.length) {
-                    preInitList = null;
-                }
+            // Explicitly remove from waitlist
+            if (globalRuntimeInitializationWaitlist.includes(this)) {
+                _remove(globalRuntimeInitializationWaitlist, this);
                 applyBinding(this);
             }
         }
@@ -193,27 +202,26 @@ export default function() {
         throw new Error('The "Element" class already has a "bindings" property!');
     }
     Object.defineProperty(ENV.window.Element.prototype, 'bindings', {
-        get: () => {
+        get: function() {
+            console.log(this)
             var scriptBase = getScriptBase(this), _this = this;
             if (!scriptBase.scopeInstanceProxy) {
                 // Same proxy instance, even if scriptBase.scope.stack.main
                 // is later changed
                 scriptBase.scopeInstanceProxy = new Proxy({}, {
                     set: (target, key, value) => {
-                        if (ENV.trap) {
-                            return EMV.trap.set(scriptBase.scope.stack.main, key, value);
-                        } else {
-                            scriptBase.scope.stack.main[key] = value;
-                            true;
-                        }
+                        // NOTE that this element if in waitlist won't be called by this setVal()
+                        setVal(scriptBase.scope.stack.main, key, value);
                         scriptBase.hasBindings = true;
-                        if (preInitList && preInitList.includes(_this)) {
-                            _remove(preInitList, _this);
-                            if (!preInitList.length) {
-                                preInitList = null;
-                            }
+                        // Explicitly remove from waitlist
+                        if (globalRuntimeInitializationWaitlist.includes(_this)) {
+                            _remove(globalRuntimeInitializationWaitlist, _this);
                             applyBinding(_this);
                         }
+                        return true;
+                    },
+                    get: (target, key) => {
+                        return getVal(scriptBase.scope.stack.main, key);
                     },
                 });
             }
@@ -230,15 +238,18 @@ export default function() {
     }
     Object.defineProperty(ENV.window.document, ENV.params.globalBindingMethod, {
         value: function(binding, params = {}) {
+            // NOTE that elements in waitlist won't be called by this mergeVal()/setVal()
             if (params.update) {
                 mergeVal(globalScopeInstance.stack.main, binding);
             } else {
                 setVal(globalScopeInstance.stack, 'main', binding);
             }
-            if (preInitList) {
-                preInitList.forEach(el => applyBinding(el));
-                preInitList = null;
+            // Explicitly empty waitlist
+            var waitingElement;
+            while(waitingElement = globalRuntimeInitializationWaitlist.shift()) {
+                applyBinding(waitingElement);
             }
+            globalRuntimeInitialized = true;
         },
     });
 
@@ -247,22 +258,24 @@ export default function() {
     }
     var globalScopeInstanceProxy;
     Object.defineProperty(ENV.window.document, 'bindings', {
-        get: () => {
+        get: function() {
             if (!globalScopeInstanceProxy) {
                 // Same proxy instance, even if globalScopeInstance.stack.main
                 // is later changed
                 globalScopeInstanceProxy = new Proxy({}, {
                     set: (target, key, value) => {
-                        if (ENV.trap) {
-                            ENV.trap.set(globalScopeInstance.stack.main, key, value);
-                        } else {
-                            globalScopeInstance.stack.main[key] = value;
+                        // NOTE that elements in waitlist won't be called by this setVal()
+                        setVal(globalScopeInstance.stack.main, key, value);
+                        // Explicitly empty waitlist
+                        var waitingElement;
+                        while(waitingElement = globalRuntimeInitializationWaitlist.shift()) {
+                            applyBinding(waitingElement);
                         }
-                        if (preInitList) {
-                            preInitList.forEach(el => applyBinding(el));
-                            preInitList = null;
-                        }
+                        globalRuntimeInitialized = true;
                         return true;
+                    },
+                    get: (target, key) => {
+                        return getVal(globalScopeInstance.stack.main, key);
                     },
                 });
             }
