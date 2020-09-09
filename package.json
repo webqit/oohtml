@@ -14,7 +14,7 @@
   "homepage": "https://www.web-native.dev",
   "icon": "https://www.web-native.dev/icon.svg",
   "author": "Oxford Harrison <oxharris.dev@gmail.com>",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "license": "MIT",
   "type": "module",
   "repository": {
@@ -34,11 +34,11 @@
   "dependencies": {
     "@web-native-js/commons": "^0.5.0",
     "@web-native-js/jsen": "^0.6.1",
-    "@web-native-js/observer": "^1.0.2"
+    "@web-native-js/observer": "^1.0.4"
   },
   "devDependencies": {
-    "webpack": "^4.41.6",
-    "webpack-cli": "^3.3.11"
+    "webpack": "^4.44.1",
+    "webpack-cli": "^3.3.12"
   },
   "browser": {
     "fs": false
