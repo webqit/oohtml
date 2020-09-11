@@ -3,12 +3,13 @@
  * @imports
  */
 import JSEN, { Block } from '@web-native-js/jsen';
-import _merge from '@web-native-js/commons/obj/merge.js';
-import _arrFrom from '@web-native-js/commons/arr/from.js';
-import _remove from '@web-native-js/commons/arr/remove.js';
-import _any from '@web-native-js/commons/arr/any.js';
-import _isFunction from '@web-native-js/commons/js/isFunction.js';
-import { capture, meta } from '../dom.js';
+import { onPresent } from '@onephrase/util/dom/mutation.js';
+import _merge from '@onephrase/util/obj/merge.js';
+import _arrFrom from '@onephrase/util/arr/from.js';
+import _remove from '@onephrase/util/arr/remove.js';
+import _any from '@onephrase/util/arr/any.js';
+import _isFunction from '@onephrase/util/js/isFunction.js';
+import { meta } from '../dom.js';
 import Scope from './Scope.js';
 import ENV from './ENV.js';
 
@@ -37,12 +38,24 @@ export class ScopedJS {
 /**
  * @init
  */
-var inited = false;
-export default function() {
-	if (inited) {
-		return;
-	}
-	inited = true;
+var _window;
+export function init(params = {}, window = null, trap = null) {
+    if (params) {
+        _merge(ENV.params, params);
+    }
+    if (window && window === _window) {
+        // We could be called
+        // just for "params"
+        return;
+    }
+    if (_window) {
+        throw new Error('"init()" already called with a window!');
+    }
+    ENV.window = window;
+    _window = window;
+    if (trap) {
+        ENV.trap = trap;
+    }
 
     const isIsomorphic = meta('isomorphic') === true || meta('isomorphic') === 1;
     var globalRuntimeInitializationWaitlist = [], globalRuntimeInitialized = meta('script-autorun');
@@ -131,7 +144,7 @@ export default function() {
     // Capture scripts
     // ----------------------
 
-    capture(ENV.params.scriptElement, scriptElement => {
+    onPresent(ENV.params.scriptElement, scriptElement => {
         if (_any(ENV.params.inertContexts, inertContext => scriptElement.closest(inertContext))) {
             return;
         }

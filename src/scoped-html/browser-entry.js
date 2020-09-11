@@ -2,8 +2,6 @@
 /**
  * @imports
  */
-import INIT from './index.js';
-import ENV from './ENV.js';
+import { init } from './index.js';
 
-ENV.window = window;
-INIT();
+init({}, window);

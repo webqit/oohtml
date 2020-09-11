@@ -2,15 +2,17 @@
 /**
  * @imports
  */
-import _isEmpty from '@web-native-js/commons/js/isEmpty.js';
-import _any from '@web-native-js/commons/arr/any.js';
-import _arrFrom from '@web-native-js/commons/arr/from.js';
-import _remove from '@web-native-js/commons/arr/remove.js';
-import _each from '@web-native-js/commons/obj/each.js';
-import { ready, capture, mutationCallback, attrChangeCallback, CSSEscape, meta } from '../dom.js';
+import ready from '@onephrase/util/dom/ready.js';
+import { onPresent, onRemoved, onAttrChange } from '@onephrase/util/dom/mutation.js';
+import _isEmpty from '@onephrase/util/js/isEmpty.js';
+import _any from '@onephrase/util/arr/any.js';
+import _arrFrom from '@onephrase/util/arr/from.js';
+import _remove from '@onephrase/util/arr/remove.js';
+import _each from '@onephrase/util/obj/each.js';
+import _merge from '@onephrase/util/obj/merge.js';
 import { mergeAttributes, mergePartials } from './composition.js';
 import * as composition from './composition.js';
-import lcINIT, { itemize } from './listCompose.js';
+import { meta } from '../dom.js';
 import ENV from './ENV.js';
 
 /**
@@ -23,13 +25,24 @@ export {
 /**
  * @init
  */
-var inited = false;
-export default function() {
-	if (inited) {
-		return;
-	}
-    inited = true;
-    lcINIT();
+var _window;
+export function init(params = {}, window = null, trap = null) {
+    if (params) {
+        _merge(ENV.params, params);
+    }
+    if (window && window === _window) {
+        // We could be called
+        // just for "params"
+        return;
+    }
+    if (_window) {
+        throw new Error('"init()" already called with a window!');
+    }
+    ENV.window = window;
+    _window = window;
+    if (trap) {
+        ENV.trap = trap;
+    }
 
     // ----------------------
     // Primer
@@ -70,10 +83,10 @@ export default function() {
         }
         ENV.window.document.templates[name] = el;
     };
-    capture('template[' + CSSEscape(ENV.params.templateNamespaceAttribute) + ']', el => {
+    onPresent('template[' + ENV.window.CSS.escape(ENV.params.templateNamespaceAttribute) + ']', el => {
         // --------------------------
         addTemplate(el);
-        attrChangeCallback(el, attrs => {
+        onAttrChange(el, attrs => {
             delete ENV.window.document.templates[attrs[0].oldValue];
             addTemplate(el);
         }, [ENV.params.templateNamespaceAttribute]);
@@ -175,12 +188,12 @@ export default function() {
     // Capture composable elements
     // ----------------------
 
-    capture('[' + CSSEscape(ENV.params.templateReferenceAttribute) + ']', el => {
+    onPresent('[' + ENV.window.CSS.escape(ENV.params.templateReferenceAttribute) + ']', el => {
         var inerts = ENV.params.inertContexts.concat(ENV.params.inertSubjects);
         if (_any(inerts, inertContext => el.closest(inertContext))) {
             return;
         }
-        attrChangeCallback(el, () => {
+        onAttrChange(el, () => {
             _each(chtml(el).slots, (name, slot) => {
                 slot.resolve();
             });
@@ -222,7 +235,7 @@ export default function() {
                     : ENV.window.document.createTextNode('');
                 this.after(this.anchorNode);
                 chtml(this).compositionBlock = !this.hasAttribute(ENV.params.templateReferenceAttribute)
-                    ? this.parentNode.closest('[' + CSSEscape(ENV.params.templateReferenceAttribute) + ']')
+                    ? this.parentNode.closest('[' + ENV.window.CSS.escape(ENV.params.templateReferenceAttribute) + ']')
                     : null;
                 this._connectToCompositionBlock();
                 ready(() => {
@@ -257,7 +270,7 @@ export default function() {
             partials.forEach(partial => {
                 partial.slotReference = this;
             });
-            chtml(this).slottedObserver = mutationCallback(partials, removed => {
+            chtml(this).slottedObserver = onRemoved(partials, removed => {
                 removed.forEach(remd => {
                     // Let's ensure this wasn't slotted againe
                     if (!remd.parentNode) {
@@ -275,7 +288,7 @@ export default function() {
                     // for it to be removed in the first place
                     this.anchorNode.before(this);
                 }
-            }, {on:'disconnected', onceEach:true});
+            }, {onceEach:true});
         }
 
         /**
@@ -427,13 +440,13 @@ export default function() {
     // ----------------------
 
     const hydrateSlots = () => {
-        _arrFrom(ENV.window.document.querySelectorAll('[' + CSSEscape(ENV.params.slotReferenceAttribute) + ']')).forEach(partial => {
+        _arrFrom(ENV.window.document.querySelectorAll('[' + ENV.window.CSS.escape(ENV.params.slotReferenceAttribute) + ']')).forEach(partial => {
             // Scan
             if (!chtml(partial.parentNode).slotsCan) {
                 var slottedElements = [];
                 partial.parentNode.childNodes.forEach(node => {
                     var nodeValue;
-                    if (node.nodeType === 1/** ELEMENT_NODE */ && node.matches('[' + CSSEscape(ENV.params.slotReferenceAttribute) + ']')) {
+                    if (node.nodeType === 1/** ELEMENT_NODE */ && node.matches('[' + ENV.window.CSS.escape(ENV.params.slotReferenceAttribute) + ']')) {
                         slottedElements.push(node);
                     } else if (node.nodeType === 8/** COMMENT_NODE */ && (nodeValue = node.nodeValue.trim())
                     && nodeValue.startsWith('<' + ENV.params.slotElement)
@@ -444,7 +457,7 @@ export default function() {
                             // Belongs to a composition block?
                             var compositionBlock;
                             if (!slot.hasAttribute(ENV.params.templateReferenceAttribute)) {
-                                compositionBlock = node.parentNode.closest('[' + CSSEscape(ENV.params.templateReferenceAttribute) + ']');
+                                compositionBlock = node.parentNode.closest('[' + ENV.window.CSS.escape(ENV.params.templateReferenceAttribute) + ']');
                             }
                             slot.hydrate(node, slottedElements, compositionBlock);
                             // Empty basket
@@ -468,7 +481,6 @@ export default function() {
     Object.defineProperty(ENV.window.document, 'partials', {
         value: {
             composition,
-            utils: { itemize },
         },
     });
 

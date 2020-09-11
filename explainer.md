@@ -1063,7 +1063,7 @@ This technique is natively implemented by the [PlayUI](https://docs.web-native.d
 </body>
 ```
 
-[Check the live example here](https://web-native.dev/examples/jquery.html) - based on the current CHTML polyfill.
+[Check the live example here](https://web-native.dev/chtml/docs/demos/jquery.html) - based on the current CHTML polyfill.
 
 ### A TODO List Example
 
@@ -1209,7 +1209,7 @@ We've also decided to use [the Observer API](https://docs.web-native.dev/observe
 </html>
 ```
 
-[Check the live example here](https://web-native.dev/examples/todo.html) - based on the current CHTML polyfill.
+[Check the live example here](https://web-native.dev/chtml/docs/demos/todo.html) - based on the current CHTML polyfill.
 
 ### A Single Page Application Example
 
@@ -1272,7 +1272,7 @@ This example makes an SPA of *templates and slots* composition. Below, we're usi
 
 Navigate to a route that does not begin with `#/home` or `#/about`, you should see the default content showing *404*.
 
-[Check the live example here](https://web-native.dev/examples/spa.html) - based on the current CHTML polyfill.
+[Check the live example here](https://web-native.dev/chtml/docs/demos/spa.html) - based on the current CHTML polyfill.
 
 ### Other Examples
 + [An Observable Wrapper for the Web Monetization API - for Reactive UI development with CHTML](https://github.com/web-native/observables/blob/master/src/web-monetization/README.md)

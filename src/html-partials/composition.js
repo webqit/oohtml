@@ -2,8 +2,8 @@
 /**
  * @imports
  */
-import _each from '@web-native-js/commons/obj/each.js';
-import _unique from '@web-native-js/commons/arr/unique.js';
+import _each from '@onephrase/util/obj/each.js';
+import _unique from '@onephrase/util/arr/unique.js';
 import ENV from './ENV.js';
 
 /**

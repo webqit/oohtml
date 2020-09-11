@@ -11,40 +11,43 @@
     "UI components",
     "Frontend framework"
   ],
-  "homepage": "https://www.web-native.dev",
-  "icon": "https://www.web-native.dev/icon.svg",
-  "author": "Oxford Harrison <oxharris.dev@gmail.com>",
-  "version": "1.2.3",
+  "homepage": "https://web-native.dev/package/chtml",
+  "version": "1.2.4",
   "license": "MIT",
-  "type": "module",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/web-native/chtml.git"
   },
-  "funding": {
-    "type": "patreon",
-    "url": "https://patreon.com/ox_harris"
+  "bugs": {
+    "url": "https://github.com/web-native/chtml/issues"
+  },
+  "type": "module",
+  "browser": {
+    "fs": false
   },
   "main": "src/index.js",
   "scripts": {
     "test": "node ./tests/index.js",
-    "build-dev": "webpack --config ../webpack.config.chtml.dev.js",
-    "build": "npx projectz compile && webpack --config ../webpack.config.chtml.js"
+    "build-dev": "npx projectz compile && webpack --config ./webpack.config.dev.cjs",
+    "build": "webpack --config ./webpack.config.cjs"
   },
   "dependencies": {
-    "@web-native-js/commons": "^0.5.0",
-    "@web-native-js/jsen": "^0.6.1",
-    "@web-native-js/observer": "^1.0.4"
+    "@onephrase/util": "^0.5.5",
+    "@web-native-js/jsen": "^0.6.3",
+    "@web-native-js/observer": "^1.0.7"
   },
   "devDependencies": {
     "webpack": "^4.44.1",
     "webpack-cli": "^3.3.12"
   },
-  "browser": {
-    "fs": false
-  },
-  "bugs": {
-    "url": "https://github.com/web-native/chtml/issues"
+  "author": "Oxford Harrison <oxharris.dev@gmail.com>",
+  "maintainers": [
+    "Oxford Harrison <oxharris.dev@gmail.com>"
+  ],
+  "contributors": [],
+  "funding": {
+    "type": "patreon",
+    "url": "https://patreon.com/ox_harris"
   },
   "badges": {
     "list": [
@@ -58,7 +61,5 @@
       "githubSlug": "web-native/chtml",
       "npmPackageName": "@web-native-js/chtml"
     }
-  },
-  "maintainers": [],
-  "contributors": []
+  }
 }

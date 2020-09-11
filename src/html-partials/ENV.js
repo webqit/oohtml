@@ -2,14 +2,14 @@
 /**
  * @imports
  */
+import ENV from '@onephrase/util/dom/ENV.js';
 import Observer from '@web-native-js/observer';
-export { default as merge } from '@web-native-js/commons/obj/merge.js';
 
 /**
  * @ENV
  */
-const ENV = {
-    window: null,
+export default {
+    window: ENV.window,
     trap: Observer,
     params: {
         bundleElement: 'partials-bundle',
@@ -29,8 +29,3 @@ const ENV = {
         recomposeCallback: null,
     },
 };
-
-/**
- * @exports
- */
-export default ENV;

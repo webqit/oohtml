@@ -1,6 +1,3 @@
-.DS_STORE
-.cache
-tests
+.*
+!/.gitignore
 node_modules
-*_notes
-docs

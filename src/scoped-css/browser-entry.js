@@ -2,4 +2,6 @@
 /**
  * @imports
  */
-import  './index.js';
+import { init } from './index.js';
+
+init(window);
