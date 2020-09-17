@@ -171,13 +171,11 @@ export function init(params = {}, window = null, trap = null) {
                 if (!chtml(this).templates) {
                     chtml(this).templates = {};
                 }
-                if (!chtml(this).templates[templateId]) {
+                if (!chtml(this).templates[templateId] || !this.hasAttribute('cache-template')) {
                     var imported = templateId.split('/').filter(n => n).reduce((context, item) => {
                         return context ? context.templates[item] || context.templates['*'] : null;
                     }, ENV.window.document);
-                    if (imported) {
-                        chtml(this).templates[templateId] = imported;
-                    }
+                    chtml(this).templates[templateId] = imported;
                 }
                 return chtml(this).templates[templateId];
             }
