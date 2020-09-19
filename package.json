@@ -12,7 +12,7 @@
     "Frontend framework"
   ],
   "homepage": "https://web-native.dev/package/chtml",
-  "version": "1.2.8",
+  "version": "1.2.9",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -33,7 +33,7 @@
   },
   "dependencies": {
     "@onephrase/util": "^0.5.5",
-    "@web-native-js/jsen": "^0.6.4",
+    "@web-native-js/jsen": "^0.6.5",
     "@web-native-js/observer": "^1.0.7"
   },
   "devDependencies": {
