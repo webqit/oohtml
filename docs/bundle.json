@@ -1,0 +1,12 @@
+{
+    "scoped-html": {},
+    "scoped-css": {},
+    "scoped-js": {},
+    "html-partials": {},
+    "examples": {
+        "jquery": {},
+        "spa": {},
+        "todo": {}
+    },
+    "installation": {}
+}

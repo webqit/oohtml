@@ -1,0 +1,985 @@
+
+	<template name="scoped-html" prev="" index="1/6" next="scoped-css">
+		<div partials-slot="readme">
+
+			<h1 id="scoped-html">Scoped HTML</h1>
+<p>Scoped HTML is a DOM feature that let's an element establish its own naming context for descendant elements. It makes it possible to keep IDs out of HTML's global namespace and gives us a document that is structured as a hierarchy of <em>scopes</em> and <em>subscopes</em>.</p>
+<h2 id="on-this-page">On this page:</h2>
+<ul>
+<li><a href="#convention">Convention</a></li>
+<li><a href="#scope-api">Scope API</a><ul>
+<li><a href="#scope-observability">Scope Observability</a></li></ul></li>
+</ul>
+<h2 id="convention">Convention</h2>
+<p>Scopes are designated with the <code>namespace</code> Boolean attribute.</p>
+<p>The following ID is scoped:</p>
+<pre><code class="html language-html">&lt;div namespace&gt;
+    &lt;div&gt;
+        &lt;div scoped:id="some-id"&gt;&lt;/div&gt;
+    &lt;/div&gt;
+&lt;/div&gt;</code></pre>
+<p>At scale, what we get is a <strong>hierarchy of <em>scopes</em> and <em>subscopes</strong></em>.</p>
+<pre><code class="html language-html">&lt;article namespace&gt;
+    &lt;section scoped:id="europe" namespace&gt;
+        &lt;div scoped:id="about"&gt;About Europe&lt;/b&gt;&lt;/div&gt;
+        &lt;div scoped:id="countries"&gt;Countries in Europe&lt;/div&gt;
+    &lt;/section&gt;
+    &lt;section scoped:id="asia" namespace&gt;
+        &lt;div scoped:id="about"&gt;About Asia&lt;/b&gt;&lt;/div&gt;
+        &lt;div scoped:id="countries"&gt;Countries in Asia&lt;/div&gt;
+    &lt;/section&gt;
+&lt;/article&gt;</code></pre>
+<p>A mental model of the hierarchy would be:</p>
+<pre><code class="html language-html">continents
+|- europe
+|   |- about
+|   |- countries
+|- asia
+    |- about
+    |- countries</code></pre>
+<h4 id="the-namespace-tree-api">The Namespace Tree API</h4>
+<p>Scoped HTML comes with a <em>namespace API</em> that models scope hierarchies.</p>
+<pre><code class="js language-js">let continents = document.querySelector('#continents');
+
+let europe = continents.namespace.europe;
+let asia = continents.namespace.asia;
+
+let aboutAfrica = continents.namespace.asia.namespace.about;</code></pre>
+<p>This gives an application a more bankable tree than the DOM tree as it lets a UI block hide its implementation details while exposing its relevant parts by role.</p>
+<h3 id="scope-observability">Scope Observability</h3>
+<p>An element's <code>.namespace</code> property is implemented as a live object that reflects the element's namespace tree in real time. CHTML also supports the <a href="https://docs.web-native.dev/observer">Observer API</a> for change detection; <a href="https://docs.web-native.dev/observer/api/observe"><code>Obs.observe()</code></a> can thus be used to observe when IDs enter or exit the namespace.</p>
+<pre><code class="js language-js">Obs.observe(continents.namespace, changes =&gt; {
+    console.log(changes.map(change =&gt; change.name));
+});</code></pre>
+<p>With the code below, our observer above should report having added a new ID <code>africa</code> to the namespace.</p>
+<pre><code class="js language-js">continents.append('&lt;section id="africa"&gt;&lt;/section&gt;');</code></pre>
+
+		</div>
+	</template>
+
+	<template name="scoped-css" prev="scoped-html" index="2/6" next="scoped-js">
+		<div partials-slot="readme">
+
+			<h1 id="scoped-css">Scoped CSS</h1>
+<p>Scoped CSS is currently a subject of discussion for CHTML. Please submit an issue on our github repo should you have a suggestion.</p>
+
+		</div>
+	</template>
+
+	<template name="scoped-js" prev="scoped-css" index="3/6" next="html-partials">
+		<div partials-slot="readme">
+
+			<h1 id="scoped-js">Scoped JS</h1>
+<p>Scoped JS is a DOM feature that makes it possible to scope a script to its immediate host element and completely out of the global browser scope.</p>
+<h2 id="on-this-page">On this page:</h2>
+<ul>
+<li><a href="#scoped-scripts">Scoped Scripts</a></li>
+<li><a href="#variable-bindings">Variable Bindings</a></li>
+<li><a href="#selective-execution">Selective Execution</a></li>
+<li><a href="#globals">Globals</a></li>
+<li><a href="#runtime">Runtime</a></li>
+<li><a href="#error-handling">Error Handling</a></li>
+<li><a href="#isomorphic-rendering">Isomorphic Rendering</a></li>
+</ul>
+<h2 id="scoped-scripts">Scoped Scripts</h2>
+<p>Scoped scripts have their <code>this</code> variable implicitly bound to their host element. They are defined with the <code>scoped</code> MIME type.</p>
+<pre><code class="html language-html">&lt;div id="alert"&gt;
+
+  &lt;script type="scoped"&gt;
+      &lt;/script&gt;
+
+&lt;/div&gt;</code></pre>
+<p>This lets us place behaviours just where we need them! This way, we are able to keep the main application layer void of the implementation details of the UI.</p>
+<p>Here's an <em>#alert</em> component with a "remove* feature.</p>
+<pre><code class="html language-html">&lt;div id="alert"&gt;
+
+    &lt;div class="message"&gt;&lt;/div&gt;
+    &lt;div class="exit" title="Close this message."&gt;X&lt;/div&gt;
+
+    &lt;script type="scoped"&gt;
+        // details of how the #alert block should behave...
+        this.querySelector('.exit').addEventListener('click', () =&gt; {
+            this.remove();
+        });
+    &lt;/script&gt;
+
+&lt;/div&gt;</code></pre>
+<h2 id="variable-bindings">Variable Bindings</h2>
+<p>Besides the <code>this</code> variable being implicitly bound to the script's host element, other variables in a scoped script are to be explicitly-bound to external values; variables are bound by name.</p>
+<p>Below, we're implementing a <code>message</code> variable in our <em>#alert</em> component. </p>
+<pre><code class="html language-html">&lt;body&gt;
+
+    &lt;div id="alert"&gt;
+        &lt;div class="message"&gt;&lt;/div&gt;
+        &lt;div class="exit" title="Close this message."&gt;X&lt;/div&gt;
+        &lt;script type="scoped"&gt;
+            // where to place the message within the alert block...
+            this.querySelector('.message').innerHTML = message;
+            // details of how the alert block should behave...
+            this.querySelector('.exit').addEventListener('click', () =&gt; {
+                this.remove();
+            });
+        &lt;/script&gt;
+    &lt;/div&gt;
+
+    &lt;script&gt;
+        document.querySelector('#alert').bind({
+            message: 'This task is now complete!',
+        });
+    &lt;/script&gt;
+
+&lt;/body&gt;</code></pre>
+<p>As shown above, an application simply binds its hard-earned values and is done!</p>
+<h2 id="selective-execution">Selective Execution</h2>
+<p>Scoped JS follows the normal top-down execution of a script. Calling the <code>.bind()</code> method with different variable-bindings reruns the script top-down. But as a UI binding langauge, it also features <em>Selective Execution</em> where an update to a variable gets to rerun only the corresponding statements within the script - skipping the other statements. This makes for the most-efficient way to keep a block of the UI in sync with little updates from an application. </p>
+<p>To update a variable or multiple variables, call <code>.bind()</code> with a <code>params</code> object as a second paremeter and set <code>params.update</code> to <code>true</code>.</p>
+<pre><code class="js language-js">alertEl.bind({
+    variable2: 'New value',
+    variable5: 'New value',
+}, {update:true});</code></pre>
+<p>Also, Scoped JS exposes a new DOM property <code>.bindings</code> for selectively updating an element's bindings.</p>
+<pre><code class="js language-js">alertEl.bindings.variable5 = 'New value',</code></pre>
+<p>This is illustrated in the clock below.</p>
+<pre><code class="html language-html">&lt;body&gt;
+
+    &lt;div id="clock"&gt;
+
+        &lt;div class="greeting"&gt;&lt;/div&gt;
+        &lt;div class="current-time"&gt;&lt;/div&gt;
+
+        &lt;script type="scoped"&gt;
+            this.querySelector('.greeting').innerHTML = greeting;
+            this.querySelector('.current-time').innerHTML = currentTime;
+        &lt;/script&gt;
+
+    &lt;/div&gt;
+
+    &lt;script&gt;
+        let clockEl = document.querySelector('#clock');
+        clockEl.bind({
+            greeting: 'Good Afternoon!',
+            currentTime: '00:00:00',
+        });
+
+                setInterval(() =&gt; {
+            clockEl.bindings.currentTime = (new Date).toLocaleString();
+        }, 100);
+    &lt;/script&gt;
+
+&lt;/body&gt;</code></pre>
+<p>Scoped JS also supports the <a href="https://docs.web-native.dev/observer">Observer API</a> for object observability. With Observer, Scoped JS is able to respond to mutations made directly to the bound data object. So, the <em>#clock</em> above could be <em>ticked</em> by directly updating the data object.</p>
+<pre><code class="html language-html">&lt;script&gt;
+    let clockState = {
+        greeting: 'Good Afternoon!',
+        currentTime: '00:00:00',
+    };
+    document.querySelector('#clock').bind(clockState);
+
+        setInterval(() =&gt; {
+        Obs.set(clockState, 'currentTime', (new Date).toLocaleString());
+    }, 100);
+&lt;/script&gt;</code></pre>
+<p>Statements may also reference deep mutations made on the bound data object, as in the <code>clock.currentTime</code> reference below.</p>
+<pre><code class="html language-html">&lt;body&gt;
+
+    &lt;div id="clock"&gt;
+
+        &lt;div class="greeting"&gt;&lt;/div&gt;
+        &lt;div class="current-time"&gt;&lt;/div&gt;
+
+        &lt;script type="scoped"&gt;
+            this.querySelector('.greeting').innerHTML = clock.greeting;
+            this.querySelector('.current-time').innerHTML = clock.currentTime;
+        &lt;/script&gt;
+
+    &lt;/div&gt;
+
+    &lt;script&gt;
+        let state = {
+            clock: {
+                greeting: 'Good Afternoon!',
+                currentTime: '00:00:00',
+            },
+        };
+        document.querySelector('#clock').bind(state);
+
+                setTimeout(() =&gt; {
+            Obs.set(state.clock, 'currentTime', (new Date).toLocaleString());
+        }, 100);
+    &lt;/script&gt;
+
+&lt;/body&gt;</code></pre>
+<p>Within the script, the dependency chain is followed even when broken into local variables. Below, a change to <code>clock.currentTime</code> will still propagate through <code>variable1</code> and  <code>variable2</code>. (The first and last statements in the script are left untouched touched, as expected.)</p>
+<pre><code class="html language-html">&lt;body&gt;
+
+    &lt;div id="clock"&gt;
+
+        &lt;div class="greeting"&gt;&lt;/div&gt;
+        &lt;div class="current-time"&gt;&lt;/div&gt;
+
+        &lt;script type="scoped"&gt;
+            this.querySelector('.greeting').innerHTML = clock.greeting;
+            let variable1 = clock.currentTime;
+            let variable2 = variable1;
+            this.querySelector('.current-time').innerHTML = variable2;
+            this.style.color = 'blue';
+        &lt;/script&gt;
+
+    &lt;/div&gt;
+
+&lt;/body&gt;</code></pre>
+<h2 id="globals">Globals</h2>
+<p>By default, scoped scripts have no access to anything besides what is explicitly bound into the scope. But they also have an idea of a global scope - that is, bindings seen by every scoped script. This global scope is created by binding on the <code>document</code> object itself, using a new <code>document.bind()</code> method.</p>
+<pre><code class="js language-js">document.bind({
+    greeting: 'Good Afternoon!',
+});</code></pre>
+<p>To update a <em>global</em> or multiple <em>globals</em>, call <code>document.bind()</code> with a <code>params</code> object as a second paremeter and set <code>params.update</code> to <code>true</code>.</p>
+<pre><code class="js language-js">document.bind({
+    greeting: 'Good Afternoon!',
+}, {update:true});</code></pre>
+<p>There is also the <code>document.bindings</code> property for selectively updating <em>globals</em>.</p>
+<pre><code class="js language-js">document.bindings.greeting = 'Good Evening!';</code></pre>
+<h2 id="runtime">Runtime</h2>
+<p>By design, Scoped JS parses scoped scripts immediately they land on the DOM, but runs them only after the global scope has been initialized with <code>document.bind()</code> or the <code>document.bindings</code> property. Newer scipts are run immediately after this global runtime initilization. But the runtime of an individual script will begin before the global one on calling the element's <code>.bind()</code> method or assigning to its <code>.bindings</code> property.</p>
+<p>Alternatively, the <code>autorun=true</code> directive may be set on the CHTML META tag. The <code>autorun</code> <em>Boolean</em> attribute may also be set on individual script elements.</p>
+<pre><code class="html language-html">&lt;html&gt;
+    &lt;head&gt;
+        &lt;meta name="chtml" content="autorun=true;" /&gt;
+    &lt;/head&gt;
+    &lt;body&gt;
+        &lt;div id="alert"&gt;
+            &lt;script type="scoped" autorun&gt;
+            ...
+            &lt;/script&gt;
+        &lt;/div&gt;
+    &lt;/body&gt;
+&lt;/html&gt;</code></pre>
+<p>Also, it is allowed for an element to receive bindings before its scoped script is appended or is ready to run. The element's runtime begins the first time both are available.</p>
+<pre><code class="js language-js">alertEl.bind({
+    message: 'This task is now complete!',
+});
+
+alertEl.append('&lt;script scoped&gt;this.innerHTML = message&lt;/script&gt;');</code></pre>
+<h2 id="error-handling">Error Handling</h2>
+<p>Scoped JS features a way to handle <em>syntax</em> or <em>reference</em> errors that may occur with scoped scripts. Normally, these are shown in the console as warnings. But they can be silently ignored by setting a directive on the CHTML META tag. Individual scripts may also be given a directive, to override whatever the global directive is.</p>
+<pre><code class="html language-html">&lt;html&gt;
+    &lt;head&gt;
+        &lt;meta name="chtml" content="script-errors=0;" /&gt;
+    &lt;/head&gt;
+    &lt;body&gt;
+        &lt;h1&gt;&lt;/h1&gt;
+        &lt;script type="scoped" errors="1"&gt;
+            this.querySelectorSelectorSelector('h1').innerHTML = headline;
+        &lt;/script&gt;
+    &lt;/body&gt;
+&lt;/html&gt;</code></pre>
+<h2 id="isomorphic-rendering">Isomorphic Rendering</h2>
+<p>The script tag of a scoped script is not always needed for the lifetime of the page. They are discarded by default after parsing. But when a page is rendered on the server and has to be <em>hydrated</em> by the browser, it becomes necessary to retain these scripts for revival on the browser. This feature is designed to be explicitly turned on with a directive on the CHTML META tag.</p>
+<pre><code class="html language-html">&lt;html&gt;
+    &lt;head&gt;
+        &lt;meta name="chtml" content="isomorphic=true;" /&gt;
+    &lt;/head&gt;
+    &lt;body&gt;
+        &lt;h1&gt;&lt;/h1&gt;
+        &lt;script type="scoped"&gt;
+            this.querySelector('h1').innerHTML = headline;
+        &lt;/script&gt;
+    &lt;/body&gt;
+&lt;/html&gt;</code></pre>
+<p>Now, this binding will always be there for when we run the code <code>document.bind({headline: 'Hello World'})</code> - whether on the server and on the browser.</p>
+<p><strong>Environment-Specific Bindings</strong></p>
+<p>Sometimes, we want certain bindings to apply only on the server; sometimes, only on the browser. For example, animation is only a thing in the browser. This is the perfect use-case for conditionals.</p>
+<pre><code class="html language-html">&lt;div&gt;
+    &lt;script type="scoped"&gt;
+        if (condition) {
+            this.animate(...);
+        }
+    &lt;/script&gt;
+&lt;/div&gt;</code></pre>
+<p>Above, <code>condition</code> could be a simple question about the current environment, and this can be acheived by simply binding a global variable, <code>env</code>, for example: <code>document.bind({env:'server', headline: 'Hello World'})</code>.</p>
+<pre><code class="html language-html">&lt;div&gt;
+    &lt;script type="scoped"&gt;
+        if (env !== 'server') {
+            this.anumate([
+                {color:'red'},
+                {color:'blue'},
+            ], {duration:600,});
+        }
+    &lt;/script&gt;
+&lt;/div&gt;</code></pre>
+
+		</div>
+	</template>
+
+	<template name="html-partials" prev="scoped-js" index="4/6" next="examples">
+		<div partials-slot="readme">
+
+			<h1 id="html-partials">HTML Partials</h1>
+<p>HTML Partials is a DOM feature that lets us define, import, access, and compose with reusable HTML snippets using the <em>template</em>, <em>partials</em>, and <em>slots</em> paradigm.</p>
+<h2 id="on-this-page">On this page:</h2>
+<ul>
+<li><a href="#templates-partials-and-slots">Templates, Partials and Slots</a></li>
+<li><a href="#slot-properties">Slot Properties</a></li>
+<li><a href="#nested-templates">Nested Templates</a></li>
+<li><a href="#remote-templates">Remote Templates</a></li>
+<li><a href="#partials-api">Partials API</a></li>
+<li><a href="#isomorphic-rendering">Isomorphic Rendering</a></li>
+</ul>
+<h2 id="templates-partials-and-slots">Templates, Partials and Slots</h2>
+<p>A <em>template</em> is a collection of independent <em>partials</em> that can be consumed from anywhere in the main document.</p>
+<pre><code class="html language-html">&lt;head&gt;
+
+    &lt;template name="template1"&gt;
+        &lt;div id="partial-1"&gt;&lt;/div&gt;
+        &lt;div id="partial-2"&gt;&lt;/div&gt;
+    &lt;/template&gt;
+
+&lt;/head&gt;</code></pre>
+<p>An element in the main document, called the <em>implementation block</em> or the <em>composition area</em>, can define <code>&lt;partials-slot&gt;</code>s, and then, point to a <code>&lt;template&gt;</code> to have the template's partials mapped to its slots. </p>
+<pre><code class="html language-html">&lt;html&gt;
+
+    &lt;head&gt;
+
+        &lt;template name="template1"&gt;
+            &lt;div id="partial-2" partials-slot="slot-1"&gt;&lt;/div&gt;
+            &lt;div id="partial-2" partials-slot="slot-2"&gt;&lt;/div&gt;
+        &lt;/template&gt;
+
+    &lt;/head&gt;
+
+    &lt;body&gt;
+
+        &lt;div template="template1"&gt;
+            &lt;h2&gt;I have slots&lt;/h2&gt;
+            &lt;partials-slot name="slot-1"&gt;&lt;/partials-slot&gt;
+            &lt;div&gt;
+                &lt;partials-slot name="slot-2"&gt;&lt;/partials-slot&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+
+    &lt;/body&gt;
+
+&lt;/html&gt;</code></pre>
+<p>Composition takes place and the slots are replaced by the template's partials. The block is said to have <em>implemented</em> the <code>&lt;template&gt;</code>.</p>
+<pre><code class="html language-html">&lt;html&gt;
+
+    &lt;head&gt;
+
+        &lt;template name="template1"&gt;
+            &lt;div id="partial-2" partials-slot="slot-1"&gt;&lt;/div&gt;
+            &lt;div id="partial-2" partials-slot="slot-2"&gt;&lt;/div&gt;
+        &lt;/template&gt;
+
+    &lt;/head&gt;
+
+    &lt;body&gt;
+
+        &lt;div template="template1"&gt;
+            &lt;h2&gt;I have slots&lt;/h2&gt;
+            &lt;div id="partial-2" partials-slot="slot-1"&gt;&lt;/div&gt;
+            &lt;div&gt;
+                &lt;div id="partial-2" partials-slot="slot-2"&gt;&lt;/div&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+
+    &lt;/body&gt;
+
+&lt;/html&gt;</code></pre>
+<p>An implementation block can implement another <code>&lt;template&gt;</code> by simply pointing to it; <code>&lt;partials-slot&gt;</code>s are disposed off of their previous slotted contents and recomposed from the new <code>&lt;template&gt;</code>.</p>
+<p>The <code>&lt;partials-slot&gt;</code> element, even though replaced, is never really destroyed. It returns to its exact position whenever the last of its slotted elements get deleted, or whenever the slot has no corresponding partial in the next implemented <code>&lt;template&gt;</code>.</p>
+<p>HTML Partials also supports <em>Default Slots</em>. A template's direct children without an explicit <code>partials-slot</code> attribute are slotted into the <em>Default Slot</em> in the implementation block.</p>
+<p><strong>Universal Slots</strong></p>
+<p>By default, slots are scoped to their containing implementation block. But the <code>&lt;partials-slot&gt;</code> element may also be used independent of an implementation block to point to its own <code>&lt;template&gt;</code>.</p>
+<pre><code class="html language-html">&lt;html&gt;
+
+    &lt;head&gt;
+
+        &lt;template name="template1"&gt;
+            &lt;div partials-slot="slot-1"&gt;&lt;/div&gt;
+            &lt;div partials-slot="slot-2"&gt;&lt;/div&gt;
+        &lt;/template&gt;
+
+        &lt;template name="template2"&gt;
+            &lt;div partials-slot="slot-1"&gt;&lt;/div&gt;
+            &lt;div partials-slot="slot-2"&gt;&lt;/div&gt;
+        &lt;/template&gt;
+
+    &lt;/head&gt;
+
+    &lt;body&gt;
+
+        &lt;div template="template1"&gt;
+            &lt;h2&gt;I have slots&lt;/h2&gt;
+            &lt;partials-slot name="slot-1"&gt;&lt;/partials-slot&gt;
+            &lt;div&gt;
+                &lt;partials-slot name="slot-1" template="template2"&gt;&lt;/partials-slot&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+
+        &lt;partials-slot name="slot-2" template="template1"&gt;&lt;/partials-slot&gt;
+
+    &lt;/body&gt;
+
+&lt;/html&gt;</code></pre>
+<h2 id="slot-properties">Slot Properties</h2>
+<p>In HTML Partials, slots may be defined with extra properties that a slotted element can inherit. Every element slotted in its place will take on these properties.</p>
+<p>Inherittable properties can be both attributes and content.</p>
+<p><strong>Attributes</strong></p>
+<p>A <code>&lt;partials-slot&gt;</code>'s attributes (other than the <code>name</code> and <code>template</code> attributes) are inheritted by every slotted element.</p>
+<p>When a slotted element inherits attributes from a <code>&lt;partials-slot&gt;</code>, inheritted attributes are made to take priority over any existing attributes. On inheriting single-value attributes, like the <code>id</code> attribute, any such attribute is replaced on the slotted element. On inheriting space-delimitted attributes, like the <code>class</code> attribute, new and non-duplicate values are placed after any existing values on the slotted element. On inheriting key/value attributes, like the <code>style</code> attribute, new declarations are placed after any existing declarations on the slotted element (making CSS cascading work on the <code>style</code> attribute).</p>
+<p>Below, we are using <em>Slot Attributes inheritance</em> to recompose the same <em>partial</em> differently on each slotting - to adapt it for each usecase.</p>
+<pre><code class="html language-html">&lt;html&gt;
+
+    &lt;head&gt;
+
+        &lt;template name="template1"&gt;
+            &lt;div partials-slot="slot-1"&gt;&lt;/div&gt;
+            &lt;div partials-slot="slot-2"&gt;&lt;/div&gt;
+        &lt;/template&gt;
+
+    &lt;/head&gt;
+
+    &lt;body&gt;
+
+        &lt;div template="template1"&gt;
+            &lt;partials-slot name="slot-1" id="headline" style="color:red"&gt;&lt;/partials-slot&gt;
+        &lt;/div&gt;
+
+        &lt;partials-slot name="slot-1" template="template1" style="color:blue"&gt;&lt;/partials-slot&gt;
+
+    &lt;/body&gt;
+
+&lt;/html&gt;</code></pre>
+<p><strong>Content</strong></p>
+<p>Normally, a <code>&lt;partials-slot&gt;</code> can have default content that renders before slotting takes place. But this content can instead be defined as a new set of <em>partials</em> that can be <em>implemented</em> by slotted elements. This time, the <code>&lt;partials-slot&gt;</code> element gets to act as the <code>&lt;template&gt;</code> and the slotted element as the <em>implementation block</em>. (In the light/shadow terminology, this is the <code>&lt;partials-slot&gt;</code> element acting as an element's <em>Light DOM</em> and the slotted element as its <em>Shadow DOM</em>.)</p>
+<p>To implement a <code>&lt;partials-slot&gt;</code>, a <em>partial</em> would set its <code>template</code> attribute to the keyword <code>@slot</code> instead of pointing to an actual <code>&lt;template&gt;</code> element.</p>
+<pre><code class="html language-html">&lt;html&gt;
+
+    &lt;head&gt;
+
+        &lt;template name="template2"&gt;
+
+            &lt;!-- I am a recomposable partial. My ideal slot provides the partials for me --&gt;
+            &lt;div partials-slot="slot-1" template="@slot"&gt;
+                &lt;partials-slot name="slot-1-1"&gt;&lt;/partials-slot&gt;
+            &lt;/div&gt;
+
+            &lt;!-- I am a regular partial --&gt;
+            &lt;div partials-slot="slot-2"&gt;&lt;/div&gt;
+
+        &lt;/template&gt;
+
+    &lt;/head&gt;
+
+    &lt;body&gt;
+
+        &lt;div template="template1"&gt;
+
+            &lt;!-- I am an implementable slot. My ideal partial defines slots --&gt;
+            &lt;partials-slot name="slot-1"&gt;
+                &lt;div partials-slot="slot-1-1"&gt;&lt;/div&gt;
+            &lt;/partials-slot&gt;
+
+        &lt;/div&gt;
+
+    &lt;/body&gt;
+
+&lt;/html&gt;</code></pre>
+<h2 id="nested-templates">Nested Templates</h2>
+<p>Templates may be nested for organizational purposes. </p>
+<pre><code class="html language-html">&lt;template name="template1"&gt;
+
+    &lt;div partials-slot="slot1"&gt;&lt;/div&gt;
+    &lt;div partials-slot="slot2"&gt;&lt;/div&gt;
+
+    &lt;template name="nested1"&gt;
+        &lt;div partials-slot="slot3"&gt;&lt;/div&gt;
+        &lt;div partials-slot="slot4"&gt;&lt;/div&gt;
+    &lt;/template&gt;
+    &lt;template name="nested2"&gt;
+        &lt;div partials-slot="slot5"&gt;&lt;/div&gt;
+        &lt;div partials-slot="slot6"&gt;&lt;/div&gt;
+    &lt;/template&gt;
+
+&lt;/template&gt;</code></pre>
+<p>Nested templates are referenced using a path notation: </p>
+<pre><code class="html language-html">&lt;div template="template1/nested1"&gt;
+&lt;/div&gt;</code></pre>
+<h2 id="remote-templates">Remote Templates</h2>
+<p>Templates may reference remote content using the <code>src</code> attribute.</p>
+<p>**Remote file: <a href="http://localhost/templates.html**">http://localhost/templates.html**</a></p>
+<pre><code class="html language-html">    &lt;div partials-slot="slot-1"&gt;&lt;/div&gt;
+    &lt;div partials-slot="slot-2"&gt;&lt;/div&gt;
+
+    &lt;template name="extended"&gt;
+        &lt;div partials-slot="slot-3"&gt;&lt;/div&gt;
+        &lt;div partials-slot="slot-4"&gt;&lt;/div&gt;
+    &lt;/template&gt;
+&lt;p&gt;&lt;/p&gt;</code></pre>
+<p><strong>Document: http://localhost</strong></p>
+<pre><code class="html language-html">&lt;head&gt;
+    &lt;template name="template1" src="/templates.html"&gt;&lt;/template&gt;
+&lt;/head&gt;</code></pre>
+<p>Where remote templates are detected in a document, <code>&lt;partials-slot&gt;</code>s are resolved after all <code>&lt;template&gt;</code>s have loaded their content.</p>
+<h2 id="isomorphic-rendering">Isomorphic Rendering</h2>
+<p>When rendering happens on the server and has to be serialized for the browser to take over, the browser must still be able to maintain references to all <code>&lt;partials-slot&gt;</code>s, even those replaced on the server. HTML Partials addresses this by serializing <code>&lt;partials-slot&gt;</code> elements as <em>comment nodes</em> (<code>&lt;!-- &lt;partials-slot&gt;&lt;/partials-slot&gt; --&gt;</code>) with a view to recreating the original slot elements from these comments on getting to the browser. This way, composition is able to continue. Now in the browser, deleting a server-slotted element, for example, should trigger the restoration of the original <code>&lt;partials-slot&gt;</code> element; changing the <code>template</code> attribute of any element should dispose off all its server-slotted elements and recompose the block from the new referenced <code>&lt;template&gt;</code>.</p>
+<p><strong>Before Rendering on the Server</strong></p>
+<pre><code class="html language-html">&lt;html&gt;
+
+    &lt;head&gt;
+
+        &lt;template name="template2"&gt;
+            &lt;div partials-slot="slot-1"&gt;&lt;/div&gt;
+            &lt;div partials-slot="slot-2"&gt;&lt;/div&gt;
+        &lt;/template&gt;
+
+    &lt;/head&gt;
+
+    &lt;body&gt;
+
+        &lt;div template="template1"&gt;
+            &lt;partials-slot name="slot-1" id="headline" style="color:red"&gt;Default Headline&lt;/partials-slot&gt;
+        &lt;/div&gt;
+
+        &lt;partials-slot template="template1" name="slot-1" style="color:blue"&gt;&lt;/partials-slot&gt;
+
+    &lt;/body&gt;
+
+&lt;/html&gt;</code></pre>
+<p><strong>After Rendering on the Server</strong></p>
+<pre><code class="html language-html">&lt;html&gt;
+
+    &lt;head&gt;
+
+        &lt;template name="template2"&gt;
+            &lt;div partials-slot="slot-1"&gt;&lt;/div&gt;
+            &lt;div partials-slot="slot-2"&gt;&lt;/div&gt;
+        &lt;/template&gt;
+
+    &lt;/head&gt;
+
+    &lt;body&gt;
+
+        &lt;div template="template1"&gt;
+            &lt;div partials-slot="slot-1" id="headline" style="color:red"&gt;&lt;/div&gt;
+            &lt;!-- &lt;partials-slot name="slot-1" id="headline" style="color:red"&gt;Default Headline&lt;/partials-slot&gt; --&gt;
+        &lt;/div&gt;
+
+        &lt;div partials-slot="slot-1" style="color:blue"&gt;&lt;/div&gt;
+        &lt;!-- &lt;partials-slot template="template1" name="slot-1" style="color:blue"&gt;&lt;/partials-slot&gt; --&gt;
+
+    &lt;/body&gt;
+
+&lt;/html&gt;</code></pre>
+<p><strong>Now on the Browser</strong></p>
+<p>Find and delete the server-slotted element with ID <code>#headline</code>. The original <code>&lt;partials-slot&gt;</code> element should now be restored and ready to be replaced the next time composition takes place.</p>
+<pre><code class="html language-html">&lt;html&gt;
+
+    &lt;head&gt;
+
+        &lt;template name="template2"&gt;
+            &lt;div partials-slot="slot-1"&gt;&lt;/div&gt;
+            &lt;div partials-slot="slot-2"&gt;&lt;/div&gt;
+        &lt;/template&gt;
+
+    &lt;/head&gt;
+
+    &lt;body&gt;
+
+        &lt;div template="template1"&gt;
+            &lt;partials-slot name="slot-1" id="headline" style="color:red"&gt;Default Headline&lt;/partials-slot&gt;
+            &lt;!-- &lt;partials-slot name="slot-1" id="headline" style="color:red"&gt;Default Headline&lt;/partials-slot&gt; --&gt;
+        &lt;/div&gt;
+
+        &lt;div partials-slot="slot-1" style="color:blue"&gt;&lt;/div&gt;
+        &lt;!-- &lt;partials-slot template="template1" name="slot-1" style="color:blue"&gt;&lt;/partials-slot&gt; --&gt;
+
+    &lt;/body&gt;
+
+&lt;/html&gt;</code></pre>
+<p><strong>Enabliing Slots Serialization</strong></p>
+<p>Since slots serialization is only necessary for isomorphic pages, this feature is designed to be explicitly turned on on the CHTML META tag.</p>
+<pre><code class="html language-html">&lt;html&gt;
+    &lt;head&gt;
+        &lt;meta name="chtml" content="isomorphic=true;" /&gt;
+    &lt;/head&gt;
+    &lt;body&gt;&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+<h2 id="partials-api">Partials API</h2>
+<p>HTML Partials introduces a few new DOM properties for working with composition.</p>
+<p><strong>For the document object:</strong></p>
+<ul>
+<li><p><code>document.templatesReadyState</code> - (Much like the <a href="https://developer.mozilla.org/en-US/docs/Web/API/Document/readyState"><code>document.readyState</code></a> property.) This property reflects the document's loading status of remote templates:</p>
+<ul>
+<li><code>loading</code> - This is the initial value of this property.</li>
+<li><code>complete</code> - This is the value of this property when templates are done loading, or when there are no remote templates at all.</li></ul>
+<p>When the state of this property changes, the <code>templatesreadystatechange</code> event is fired on the document object.</p></li>
+<li><p><code>document.templates</code> - This property represents the list of <code>&lt;template&gt;</code>s in the document. References to templates are maintained here by name. So <code>document.templates.template1</code> should return the <code>&lt;template&gt;</code> element used in the examples above.</p></li>
+</ul>
+<p><strong>For the <code>&lt;template&gt;</code> element:</strong></p>
+<ul>
+<li><p><code>&lt;template&gt;.partials</code> - This property represents the list of <em>partials</em> defined by the <code>&lt;template&gt;</code>. References to <em>partials</em> are maintained here by name. Unnamed <em>partials</em> are treated as having the name <em>default</em>. So, for the <code>&lt;template&gt;</code> below,</p>
+<pre><code class="html language-html">&lt;template name="template1"&gt;
+    &lt;div partials-slot="one"&gt;&lt;/div&gt;
+    &lt;div partials-slot="two"&gt;&lt;/div&gt;
+    &lt;div partials-slot="default"&gt;&lt;/div&gt;
+    &lt;p&gt;&lt;/p&gt;
+&lt;/template&gt;</code></pre>
+<p>accessing <code>document.templates.template1.partials.one</code> should return an array containing the first <code>&lt;div&gt;</code>; while <code>document.templates.template1.partials.default</code> should return an array containing the last <code>&lt;div&gt;</code> and <code>&lt;p&gt;</code>.</p></li>
+<li><p><code>&lt;template&gt;.templates</code> - This property represents the list of <code>&lt;template&gt;</code>s nested within the <code>&lt;template&gt;</code>. References to templates are maintained here by name.</p>
+<pre><code class="html language-html">&lt;template name="template1"&gt;
+    &lt;template name="nested1"&gt;&lt;/template&gt;
+    &lt;template name="nested2"&gt;
+        &lt;div partials-slot="one"&gt;&lt;/div&gt;
+    &lt;/template&gt;
+&lt;/template&gt;</code></pre>
+<p>accessing <code>document.templates.template1.templates.nested1</code> should return the first nested <code>&lt;template&gt;</code>, while <code>document.templates.template1.templates.nested2</code> the second nested <code>&lt;template&gt;</code>. And the nesting can go on as much as code organization requires.</p></li>
+</ul>
+<p><strong>For every element:</strong></p>
+<ul>
+<li><code>element.template</code> - This property is a reference to the <code>&lt;template&gt;</code> element pointed to by an element. So if an element implements a template as in <code>&lt;div template="html/temp"&gt;&lt;/div&gt;</code>, then <code>element.template</code> should be a reference to the <code>&lt;template&gt;</code> at the <code>module/temp</code> namespace; <code>element.template.partials.default</code> should thus return an array like the above.</li>
+</ul>
+<p><strong>For the <code>&lt;partials-slot&gt;</code> element:</strong></p>
+<ul>
+<li><code>&lt;partials-slot&gt;.slottedElements</code> - (Much like the <a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLSlotElement/assignedElements"><code>HTMLSlotElement.assignedElements()</code></a> method.) This property represents the list of partials slotted into a slot.</li>
+<li><code>&lt;partials-slot&gt;.resolve()</code> - This method, without arguments, is used to programatically resolve a <code>&lt;partials-slot&gt;</code> from the appropriate <code>&lt;template&gt;</code> given in context.</li>
+<li><code>&lt;slot&gt;.empty([silently = false])</code> - This method is used to programatically empty the <em>slot</em> of its <em>partials</em>, thereby triggering the restoration of the <code>&lt;partials-slot&gt;</code> element itself. To empty the <em>slot</em> silently without restoring the original <code>&lt;partials-slot&gt;</code> element, provide <code>true</code> on the first parameter.</li>
+</ul>
+<p><strong>For slotted elements:</strong></p>
+<ul>
+<li><code>element.slotReference</code> - (Much like the <a href="https://developer.mozilla.org/en-US/docs/Web/API/Slottable/assignedSlot"><code>Slottable.assignedSlot</code></a> property.) This property gives a reference to the <code>&lt;partials-slot&gt;</code> element an element was assigned to.</li>
+</ul>
+
+		</div>
+	</template>
+
+	<template name="examples" prev="html-partials" index="5/6" next="installation">
+		<template name="jquery" prev="" index="1/3" next="spa">
+			<div partials-slot="readme">
+
+				<h2 id="a-tooling-example">A Tooling Example</h2>
+<p>Being a foundational technology, CHTML gives us every room to bring our own tooling. This example shows how we could use a DOM abstraction library, like jQuery, from scoped scripts.</p>
+<p>Below, we're simply binding the <code>$</code> variable globally for use in every scoped script.</p>
+<pre><code class="html language-html">&lt;body&gt;
+
+    &lt;div namespace id="alert"&gt;
+        &lt;div scoped:id="message"&gt;&lt;/div&gt;
+        &lt;script type="scoped"&gt;
+            $(this.namespace.message).html(message);
+        &lt;/script&gt;
+    &lt;/div&gt;
+
+    &lt;script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"&gt;&lt;/script&gt;
+    &lt;script&gt;
+        document.bind({$: window.jQuery});
+        document.querySelector('#alert').bind({
+            message: 'This task is now complete!',
+        });
+    &lt;/script&gt;
+
+&lt;/body&gt;</code></pre>
+<p>Tooling can also help us acheive more efficient DOM manipulation. Generally, surgically updating the DOM may have performance implications on the UI, as arising from layout thrashing (see <a href="https://developers.google.com/web/fundamentals/performance/rendering/avoid-large-complex-layouts-and-layout-thrashing">this article</a> on Web Fundamentals). But we also don't need as much as a <em>Virtual DOM</em> for this. A technique like that of <a href="https://github.com/wilsonpage/fastdom">fast DOM</a> could just suffice.</p>
+<p>This technique is natively implemented by the <a href="https://docs.web-native.dev/play-ui">PlayUI</a> library which has a jQuery-like API. We will now use PlayUI as a drop-in replacement for jQuery.</p>
+<p><a href="https://web-native.dev/package/chtml/docs/demos/jquery.html">Check the live example here</a></p>
+<pre><code class="html language-html">&lt;body&gt;
+
+    &lt;div namespace id="alert"&gt;
+        &lt;div scoped:id="message"&gt;&lt;/div&gt;
+        &lt;script type="scoped"&gt;
+            $(this.namespace.message).html(message).then(() =&gt; {
+                            });
+        &lt;/script&gt;
+    &lt;/div&gt;
+
+    &lt;script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"&gt;&lt;/script&gt;
+    &lt;script src="//unpkg.com/@web-native-js/play-ui/dist/main.js"&gt;&lt;/script&gt;
+    &lt;script&gt;
+        document.bind({$: window.WebNative.PlayUI});
+        document.querySelector('#alert').bind({
+            message: 'This task is now complete!',
+        });
+    &lt;/script&gt;
+
+&lt;/body&gt;</code></pre>
+
+			</div>
+		</template>
+
+		<div partials-slot="readme">
+
+			<h1 id="examples">Examples</h1>
+<p>Here are a few examples that you can try right now. You can simply copy and paste these codes to view on your browser. And you may edit your page live from the browser console.</p>
+<p>Be sure to include the CHTML polyfill from the <a href="/chtml/v1/installation.md">installation page</a>.</p>
+<ul>
+<li><a href="/chtml/v1/examples/todo/README.md">A TODO List Example</a></li>
+<li><a href="/chtml/v1/examples/spa/README.md">An SPA Example</a></li>
+<li><a href="/chtml/v1/examples/jquery/README.md">A jQuery Example</a></li>
+</ul>
+
+		</div>
+
+		<template name="spa" prev="jquery" index="2/3" next="todo">
+			<div partials-slot="readme">
+
+				<h2 id="a-single-page-application-example">A Single Page Application Example</h2>
+<p>This example makes an SPA of <em>templates and slots</em> composition. Below, we're using the two <code>&lt;template&gt;</code> elements to each represent a route - each is holding partials that are unique to a route. Then we point the <code>&lt;body&gt;</code> element to implement the <code>&lt;template&gt;</code> whose namespace matches the current URL.</p>
+<p><a href="https://web-native.dev/package/chtml/docs/demos/spa.html">Check the live example here</a></p>
+<pre><code class="html language-html">&lt;html&gt;
+
+    &lt;head&gt;
+
+        &lt;template name="route"&gt;
+
+            &lt;template name="home"&gt;
+                &lt;h1 partials-slot="headline"&gt;
+                    Welcome Home!
+                &lt;/h1&gt;
+                &lt;p partials-slot="content"&gt;
+                    &lt;a href="#/about"&gt;About Me&lt;/a&gt;
+                &lt;/p&gt;
+            &lt;/template&gt;
+
+            &lt;template name="about"&gt;
+                &lt;h1 partials-slot="headline"&gt;
+                    About Me!
+                &lt;/h1&gt;
+                &lt;p partials-slot="content"&gt;
+                    &lt;a href="#/home"&gt;Back to Home&lt;/a&gt;
+                &lt;/p&gt;
+            &lt;/template&gt;
+
+        &lt;/template&gt;
+
+    &lt;/head&gt;
+
+    &lt;body template="route/home"&gt;
+
+        &lt;header&gt;&lt;/header&gt;
+
+        &lt;main&gt;
+            &lt;div id="banner"&gt;
+                &lt;partials-slot name="headline"&gt;404&lt;/partials-slot&gt;
+            &lt;/div&gt;
+            &lt;div&gt;
+                &lt;partials-slot name="content"&gt;Page not Found!&lt;/partials-slot&gt;
+            &lt;/div&gt;
+        &lt;/main&gt;
+
+        &lt;footer&gt;&lt;/footer&gt;
+
+        &lt;script&gt;
+            window.addEventListener('popstate', e =&gt; {
+                let path = document.location.hash.substr(1);
+                document.body.setAttribute('template', 'route' + path);
+            });
+        &lt;/script&gt;
+    &lt;/body&gt;
+
+&lt;/html&gt;</code></pre>
+<p>Navigate to a route that does not begin with <code>#/home</code> or <code>#/about</code>, you should see the default content showing <em>404</em>.</p>
+
+			</div>
+		</template>
+
+		<template name="todo" prev="spa" index="3/3" next="">
+			<div partials-slot="readme">
+
+				<h2 id="a-todo-list-example">A TODO List Example</h2>
+<p>Below is a TODO list composed from a JavaScript array using Scoped HTML, Scoped JS in combination with the HTML Partials API.</p>
+<p>It features the ability to add/remove items. For the <em>remove</em> feature, we'd let the <code>&lt;li&gt;</code> element expose a <em>remover</em> button that the main <code>&lt;ul&gt;</code> logic can bind to the <code>removeItem()</code> method of the TODO application. For the <em>add</em> feature, we'd add a button to the TODO container that calls the <code>addItem()</code> method of the TODO application.</p>
+<p>We've also decided to use <a href="https://docs.web-native.dev/observer">the Observer API</a> and <a href="https://docs.web-native.dev/play-ui/api/dom/itemize">PlayUI's <code>.itemize()</code></a> method that provides a simple way to keep the list container in sync with application items.</p>
+<p><a href="https://web-native.dev/package/chtml/docs/demos/todo.html">Check the live example here</a></p>
+<pre><code class="html language-html">&lt;html&gt;
+
+    &lt;head&gt;
+
+        &lt;title&gt;A TODO Example&lt;/title&gt;
+        &lt;template name="items"&gt;
+
+            &lt;li namespace&gt;
+                &lt;span scoped:id="desc"&gt;&lt;/span&gt;
+                &lt;button scoped:id="remover"&gt;Remove&lt;/button&gt;
+                &lt;script type="scoped"&gt;
+                    this.namespace.desc.innerHTML = desc;
+                &lt;/script&gt;
+            &lt;/li&gt;
+
+        &lt;/template&gt;
+
+    &lt;/head&gt;
+
+    &lt;body&gt;
+
+        &lt;div namespace id="todo"&gt;
+
+            &lt;h2 scoped:id="title"&gt;&lt;/h2&gt;
+            &lt;ol scoped:id="items" template="items"&gt;&lt;/ol&gt;
+            &lt;button scoped:id="adder"&gt;Add&lt;/button&gt;
+            &lt;br /&gt;
+            &lt;br /&gt;
+            &lt;div&gt;Ypu can also add items from the console. Open your console and type: &lt;code&gt;todoItems.push({desc:"New Item"})&lt;/code&gt;&lt;/div&gt;
+
+            &lt;script type="scoped"&gt;
+                this.namespace.title.innerHTML = title;
+                $(this.namespace.items).itemize(items, (el, data, index, isUpdate) =&gt; {
+                    el.bind(data);
+                    $(el).attr('data-index', index);
+                    if (!isUpdate) {
+                                                el.namespace.remover.addEventListener('click', () =&gt; removeItem(el.getAttribute('data-index')));
+                    }
+                });
+                this.namespace.adder.addEventListener('click', () =&gt; addItem());
+            &lt;/script&gt;
+
+        &lt;/div&gt;
+
+        &lt;script src="//unpkg.com/@web-native-js/observer/dist/main.js"&gt;&lt;/script&gt;
+        &lt;script src="//unpkg.com/@web-native-js/play-ui/dist/main.js"&gt;&lt;/script&gt;
+        &lt;script src="//unpkg.com/@web-native-js/chtml/dist/main.js"&gt;&lt;/script&gt;
+        &lt;script&gt;
+                        let Obs = window.WN.Observer;
+            let $ = window.WN.PlayUI;
+
+                        let todo = {
+                $,
+                title: 'My TODO',
+                items: [
+                    {desc: 'Task-1'},
+                    {desc: 'Task-2'},
+                    {desc: 'Task-3'},
+                ],
+                addItem() {
+                    window.todoItems.push({desc: prompt('Task description'),});
+                },
+                removeItem(index) {
+                    window.todoItems.splice(index, 1);
+                },
+            };
+
+                        document.querySelector('#todo').bind(todo);
+
+                                    window.todoItems = Obs.proxy(todo.items);
+        &lt;/script&gt;
+    &lt;/body&gt;
+
+&lt;/html&gt;</code></pre>
+
+			</div>
+		</template>
+	</template>
+
+	<template name="installation" prev="examples" index="6/6" next="">
+		<div partials-slot="readme">
+
+			<h1 id="installation-guide">Installation Guide</h1>
+<p>This library is a polyfill for the proposed CHTML suite.</p>
+<h2 id="on-this-page">On this Page</h2>
+<ul>
+<li><a href="#embed-as-script">Embed As Script</a><ul>
+<li><a href="#embed-the-complete-suite">Embed The Complete Suite</a></li>
+<li><a href="#embed-individual-features">Embed Individual Features</a></li></ul></li>
+<li><a href="#install-via-npm">Install Via NPM</a><ul>
+<li><a href="#initialize-the-complete-suite">Initialize the Complete Suite</a></li>
+<li><a href="#initialize-individual-features">Initialize Individual Features</a></li></ul></li>
+<li><a href="#server-side-initialization">Server-Side Initialization</a></li>
+<li><a href="#next-steps">Next Steps</a></li>
+</ul>
+<h2 id="embed-as-script">Embed As Script</h2>
+<ul>
+<li><strong>Embed The Complete Suite</strong> - Embed the build below for everything about CHTML.</li>
+</ul>
+<pre><code class="html language-html">  &lt;script src="https://unpkg.com/@web-native-js/chtml/dist/main.js"&gt;&lt;/script&gt;</code></pre>
+<ul>
+<li><p><strong>Embed Individual Features</strong> - Find a build below for a specific CHTML feature.</p>
+<ul>
+<li><p><strong>Scoped HTML</strong> - <code>&lt;script src="https://unpkg.com/@web-native-js/chtml/dist/scoped-html.js"&gt;&lt;/script&gt;</code></p></li>
+<li><p><strong>Scoped CSS</strong> - <code>&lt;script src="https://unpkg.com/@web-native-js/chtml/dist/scoped-css.js"&gt;&lt;/script&gt;</code></p></li>
+<li><p><strong>Scoped JS</strong> - <code>&lt;script src="https://unpkg.com/@web-native-js/chtml/dist/scoped-js.js"&gt;&lt;/script&gt;</code></p></li>
+<li><p><strong>HTML Partials</strong> - <code>&lt;script src="https://unpkg.com/@web-native-js/chtml/dist/html-partials.js"&gt;&lt;/script&gt;</code></p></li></ul></li>
+</ul>
+<h2 id="install-via-npm">Install Via NPM</h2>
+<pre><code class="text language-text">$ npm i -g npm
+$ npm i --save @web-native-js/chtml</code></pre>
+<p>The installed package is designed to be <em>initialized</em> with the <em>window</em> object of the current browser or server evironment. To do this, import the <code>ENV</code> object and assign the <em>window</em> object to it, then call the initializer.</p>
+<ul>
+<li><strong>Initialize the Complete Suite</strong> - Initialize the module below for everything about CHTML.</li>
+</ul>
+<pre><code class="js language-js">    import init, { ENV } from '@web-native-js/chtml';
+    ENV.window = window;
+  init();</code></pre>
+<ul>
+<li><p><strong>Initialize Individual Features</strong> - Find a module below for a specific CHTML feature.</p>
+<ul>
+<li><strong>Scoped HTML</strong></li></ul>
+<pre><code class="js language-js">import init, { ENV } from '@web-native-js/chtml/src/scoped-html/index.js';
+ENV.window = window;
+init();</code></pre>
+<ul>
+<li><strong>Scoped CSS</strong></li></ul>
+<pre><code class="js language-js">import init, { ENV } from '@web-native-js/chtml/src/scoped-css/index.js';
+ENV.window = window;
+init();</code></pre>
+<ul>
+<li><strong>Scoped JS</strong></li></ul>
+<pre><code class="js language-js">import init, { ENV } from '@web-native-js/chtml/src/scoped-js/index.js';
+ENV.window = window;
+init();</code></pre>
+<ul>
+<li><strong>HTML Partials</strong></li></ul>
+<pre><code class="js language-js">import init, { ENV } from '@web-native-js/chtml/src/html-partials/index.js';
+ENV.window = window;
+init();</code></pre></li>
+</ul>
+<h2 id="server-side-initialization">Server-Side Initialization</h2>
+<p>Here is how CHTML could be initialized on DOM instances created on the server with a library like <a href="https://github.com/jsdom/jsdom">jsdom</a> (using the <code>window</code> object from the DOM instance.)</p>
+<pre><code class="js language-js">import init, { ENV } from '@web-native-js/chtml';
+import jsdom from 'jsdom';
+import fs from 'fs';
+import path from 'path';
+
+const documentFile = fs.readFileSync(path.resolve('./index.html'));
+const JSDOM = new jsdom.JSDOM(documentFile.toString());
+
+ENV.window = JSDOM.window;
+init();</code></pre>
+<h2 id="next-steps">Next Steps</h2>
+<p>Let's now learn the core concepts of CHTML.</p>
+<ul>
+<li><a href="/chtml/">Chtml</a></li>
+</ul>
+
+		</div>
+	</template>
+
+	<img partials-slot="logo" src="/logo.png" />
+
+	<div partials-slot="readme">
+
+		<h1 id="chtml">CHTML</h1>
+<!-- BADGES/ -->
+<p><span class="badge-npmversion"><a href="https://npmjs.org/package/@web-native-js/chtml" title="View this project on NPM"><img src="https://img.shields.io/npm/v/@web-native-js/chtml.svg" alt="NPM version" /></a></span><br />
+<span class="badge-npmdownloads"><a href="https://npmjs.org/package/@web-native-js/chtml" title="View this project on NPM"><img src="https://img.shields.io/npm/dm/@web-native-js/chtml.svg" alt="NPM downloads" /></a></span></p>
+<!-- /BADGES -->
+<p>CHTML is a suite of new DOM features that brings native support for modern UI development paradigms: a component-based architecture, data binding, and reactivity. This lets us build elegant user interfaces using the web platform itself.</p>
+<blockquote>
+  <p>CHTML is being proposed as a <a href="https://discourse.wicg.io/t/proposal-chtml/4716">W3C standard at the Web Platform Incubator Community Group</a> based on <a href="https://github.com/web-native/chtml/blob/master/explainer.md">this explainer</a>.</p>
+</blockquote>
+<p><a href="https://github.com/web-native/chtml">Check this project out on GitHub</a>.</p>
+<h2 id="documentation">Documentation</h2>
+<ul>
+<li><a href="https://docs.web-native.dev/chtml/scoped-html">Scoped HTML</a> - Structure your document as a hierarchy of <em>scopes</em> and <em>subscopes</em>.</li>
+<li><a href="https://docs.web-native.dev/chtml/scoped-css">Scoped CSS</a> - Define styling as part of any element using scoped stylesheets.</li>
+<li><a href="https://docs.web-native.dev/chtml/scoped-js">Scoped JS</a> - Define behaviour as part of any element using scoped scripts.</li>
+<li><a href="https://docs.web-native.dev/chtml/html-partials">HTML Partials</a> - Define, import/export, and compose with reusable HTML snippets.</li>
+</ul>
+<h2 id="getting-started">Getting Started</h2>
+<ul>
+<li><a href="https://docs.web-native.dev/chtml/installation">Installation</a> - Follow the installation guide to add the CHTML polyfill to your page.</li>
+<li><a href="https://docs.web-native.dev/chtml/examples">Examples</a> - Get a head start with these few examples.</li>
+</ul>
+<h2 id="issues">Issues</h2>
+<p>To report bugs or request features, please submit an <a href="https://github.com/web-native/chtml/issues">issue</a>.</p>
+<h2 id="license">License</h2>
+<p>MIT.</p>
+
+	</div>

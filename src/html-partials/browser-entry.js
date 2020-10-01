@@ -2,6 +2,6 @@
 /**
  * @imports
  */
-import { init } from './index.js';
+import HTMLPartials from './index.js';
 
-init({}, window);
+new HTMLPartials(window);

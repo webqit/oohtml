@@ -2,43 +2,41 @@
 /**
  * @imports
  */
-import Jsen from '@web-native-js/jsen';
-import ENV from '@onephrase/util/dom/ENV.js';
 import polyfills from '@onephrase/util/dom/polyfills.js';
+import Jsen from '@web-native-js/jsen';
 import Observer from '@web-native-js/observer';
-import _merge from '@onephrase/util/obj/merge.js';
-import { init as initHTMLPartials } from './html-partials/index.js';
-import { init as initScopedHTML } from './scoped-html/index.js';
-import { init as initScopedJS } from './scoped-js/index.js';
+import HTMLPartials from './html-partials/index.js';
+import ScopedHTML from './scoped-html/index.js';
+import ScopedJS from './scoped-js/index.js';
+import meta from './meta.js';
 
 /**
  * @init
  */
-var _window;
-export function init(params = {}, window = null, trap = null) {
-    if (params) {
-        _merge(ENV.params, params);
-    }
-    if (window && window === _window) {
-        // We could be called
-        // just for "params"
-        return;
-    }
-    if (_window) {
-        throw new Error('"init()" already called with a window!');
-    }
-    ENV.window = window;
-    _window = window;
-    if (trap) {
-        ENV.trap = trap;
+export default class Chtml {
+
+    /**
+     * @pconstructor
+     */
+    constructor(window, trap = Observer, params = {}) {
+        if (window.Chtml) {
+            throw new Error('Window already initialized!');
+        }
+        window.Chtml = this;
+        polyfills(window);
+        this.window = window;
+        this.HTMLPartials = new HTMLPartials(...arguments);
+        this.ScopedHTML = new ScopedHTML(...arguments);
+        this.ScopedJS = new ScopedJS(...arguments);
     }
 
-    // INIT components
+    /**
+     * @meta
+     */
+    meta(...args) {
+        return meta(this.window, ...args);
+    }
 
-    polyfills();
-    initHTMLPartials({}, window, trap);
-    initScopedHTML({}, window, trap);
-    initScopedJS({}, window, trap);
 };
 
 /**
@@ -46,6 +44,6 @@ export function init(params = {}, window = null, trap = null) {
  */
 export {
 	Observer,
-	Jsen,
-	ENV,
+    Jsen,
+    meta,
 };

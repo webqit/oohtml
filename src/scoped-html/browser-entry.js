@@ -2,6 +2,6 @@
 /**
  * @imports
  */
-import { init } from './index.js';
+import ScopedHTML from './index.js';
 
-init({}, window);
+new ScopedHTML(window);

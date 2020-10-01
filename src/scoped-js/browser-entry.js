@@ -2,6 +2,6 @@
 /**
  * @imports
  */
-import { init } from './index.js';
+import ScopedJS from './index.js';
 
-init({}, window);
+new ScopedJS(window);

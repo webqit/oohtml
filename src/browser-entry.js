@@ -2,6 +2,16 @@
 /**
  * @imports
  */
-import { init } from './index.js';
+import Chtml from './index.js';
 
-init({}, window);
+// As globals
+if (!window.WN) {
+	window.WN = {};
+}
+window.WN.Chtml = Chtml;
+if (!window.WebNative) {
+	window.WebNative = {};
+}
+window.WebNative.Chtml = Chtml;
+
+new Chtml(window);
