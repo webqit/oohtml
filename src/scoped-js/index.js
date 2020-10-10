@@ -133,7 +133,9 @@ export default class ScopedJS {
             }
         };
 
-        const globalScopeInstance = new Scope(setVal({}, 'main', {}), {
+        const globalScopeInstance = new Scope(setVal({
+            super: new Scope({main: _this.window})
+        }, 'main', {}), {
             errorLevel:_this.params.errorLevel,
         });
 
