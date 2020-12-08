@@ -2,6 +2,10 @@
 /**
  * @imports
  */
+import DOMInit from '@webqit/browser-pie/src/dom/index.js';
 import ScopedHTML from './index.js';
 
-new ScopedHTML(window);
+/**
+ * @init
+ */
+ScopedHTML(DOMInit(window));

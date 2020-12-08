@@ -2,7 +2,7 @@
 /**
  * @imports
  */
-import { Scope } from '@web-native-js/jsen';
+import { Scope } from '@webqit/subscript';
 
 /**
  * ---------------------------

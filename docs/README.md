@@ -14,6 +14,11 @@ CHTML is a suite of new DOM features that brings native support for modern UI de
 
 [Check this project out on GitHub](https://github.com/web-native/chtml).
 
+## Goals
+
++ Favor flexible, low-level APIs
++ Avoid opinionated, high-level features
+
 ## Documentation
 
 + [Scoped HTML](https://docs.web-native.dev/chtml/scoped-html) - Structure your document as a hierarchy of *scopes* and *subscopes*.

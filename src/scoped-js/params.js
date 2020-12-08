@@ -3,8 +3,8 @@
  * @ENV
  */
 export default {
-    scriptElement: 'script[type="scoped"]',
-    globalBindingMethod: 'bind',
-    localBindingMethod: 'bind',
-    inertContexts: [],
+    SCRIPT_ELEMENT: 'script[type="scoped"]',
+    GLOBAL_BINDING_METHOD: 'bind',
+    LOCAL_BINDING_METHOD: 'bind',
+    SCRIPT_INERT_CONTEXTS: [],
 };

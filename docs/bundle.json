@@ -1,12 +1,15 @@
 {
-    "scoped-html": {},
-    "scoped-css": {},
-    "scoped-js": {},
-    "html-partials": {},
-    "examples": {
-        "jquery": {},
-        "spa": {},
-        "todo": {}
+    "outline": {
+        "1-scoped-html": {},
+        "2-scoped-css": {},
+        "3-scoped-js": {},
+        "4-html-partials": {},
+        "5-examples": {
+            "jquery": {},
+            "spa": {},
+            "todo": {}
+        },
+        "installation": {}
     },
-    "installation": {}
+    "title": "CHTML"
 }

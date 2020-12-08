@@ -3,9 +3,8 @@
  * @ENV
  */
 export default {
-    rootAttribute: 'namespace',
-    scopedIdAttribute: 'scoped:id',
-    namespacePropertyName: 'namespace',
-    inertContexts: [],
-    inertSubjects: [],
+    NAMESPACE_ATTR: 'namespace',
+    SCOPED_ID_ATTR: 'scoped:id',
+    NAMESPACE_PROP: 'namespace',
+    SCOPED_ID_INERT_CONTEXTS: [],
 };
