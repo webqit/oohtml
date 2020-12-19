@@ -3,15 +3,17 @@
   "title": "CHTML",
   "description": "A suite of new DOM features that brings language support for modern UI development paradigms: a component-based architecture, data binding, and reactivity.",
   "keywords": [
-    "scoped-HTML",
+    "namespaced-HTML",
+    "named-templates",
+    "ui-state",
+    "HTML-partials",
     "scoped-JS",
     "subscript",
-    "HTML-partials",
     "UI",
     "wicg-proposal"
   ],
-  "homepage": "https://webqit.dev/tooling/oohtml",
-  "version": "1.3.2",
+  "homepage": "https://webqit.io/tooling/oohtml",
+  "version": "1.3.5",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -29,12 +31,13 @@
     "test": "node ./tests/index.js",
     "build-dev": "npx projectz compile && webpack --config ./webpack.config.dev.cjs",
     "build": "webpack --config ./webpack.config.cjs",
-    "docs": "cd docs && oohtml bundle loaders=default:md-loader md-loader:flavor=github show_outline_numbering=FALSE ..."
+    "docs": "cd docs && oohtml bundle loaders=default:md-loader md-loader:flavor=github show_outline_numbering=FALSE ...",
+    "prepublish": "npm run build"
   },
   "dependencies": {
-    "@webqit/observer": "^1.2.0",
-    "@webqit/subscript": "^1.0.1",
-    "@webqit/browser-pie": "^0.0.3",
+    "@webqit/browser-pie": "0.0.4",
+    "@webqit/observer": "^1.2.7",
+    "@webqit/subscript": "^1.0.5",
     "@webqit/util": "^0.7.0"
   },
   "devDependencies": {
