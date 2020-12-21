@@ -3,7 +3,9 @@
  * @imports
  */
 import _isNumeric from '@webqit/util/js/isNumeric.js';
+import _isObject from '@webqit/util/js/isObject.js';
 import _merge from '@webqit/util/obj/merge.js';
+import _inherit from '@webqit/util/obj/inherit.js';
 import _set from '@webqit/util/obj/set.js';
 
 /**
@@ -13,9 +15,10 @@ import _set from '@webqit/util/obj/set.js';
  * 
  * @return Object
  */
-export function createParams(defaults) {
-    let _meta = meta.call(this);
-    return _merge(3, {}, defaults, _meta);
+export async function createParams(defaults, config = null) {
+    let _meta = await meta.call(this);
+    this.window.WQ.OOHTML.META = _merge(3, defaults, config || {}, this.window.WQ.OOHTML.META);
+    return this.window.WQ.OOHTML.META;
 };
 
 /**
@@ -81,13 +84,16 @@ export function objectUtil() {
  *  
  * @param string prop
  * @param any	 set
+ * @param bool	 toTag
  * 
  * @return string|number|bool
  */
-export function meta(prop, set = null) {
-    if (!this.window.OOHTML_META) {
-        if (this.window.OOHTML_METATag = this.window.document.querySelector('meta[name="oohtml"]')) {
-            this.window.OOHTML_META = (this.window.OOHTML_METATag.getAttribute('content') || '').split(';').filter(v => v).reduce((META, directive) => {
+export async function meta(prop, set = null, toTag = true) {
+    const Ctxt = this;
+    if (!Ctxt.window.WQ.OOHTML.META) {
+        await Ctxt.ready;
+        if (Ctxt.window.WQ.OOHTML.METATag = Ctxt.window.document.querySelector('meta[name="oohtml"]')) {
+            Ctxt.window.WQ.OOHTML.META = (Ctxt.window.WQ.OOHTML.METATag.getAttribute('content') || '').split(';').filter(v => v).reduce((META, directive) => {
                 var directiveSplit = directive.split('=').map(d => d.trim());
                 _set(META, directiveSplit[0].split('.'), directiveSplit[1] === 'true' 
                     ? true : (directiveSplit[1] === 'false' 
@@ -98,18 +104,46 @@ export function meta(prop, set = null) {
             }, {});
         }
     }
-    if (arguments.length === 2) {
-        if (set === false) {
-            delete this.window.OOHTML_META[prop];
+    if (_isObject(prop) || arguments.length > 1) {
+        if (_isObject(prop)) {
+            toTag = set;
         } else {
-            this.window.OOHTML_META[prop] = set === true ? 'true' : set;
+            prop = {[prop]: set === true ? 'true' : set};
         }
-        var content = Object.keys(this.window.OOHTML_META).reduce((content, prop) => content + prop + '=' + this.window.OOHTML_META[prop] + ';', '');
-        this.window.OOHTML_METATag.setAttribute('content', content);
+        if (!Ctxt.window.WQ.OOHTML.META) {
+            Ctxt.window.WQ.OOHTML.META = {};
+        }
+        Object.keys(prop).forEach(name => {
+            if (prop[name] === false) {
+                delete Ctxt.window.WQ.OOHTML.META[name];
+            } else if (_isObject(prop[name])) {
+                _merge(3, Ctxt.window.WQ.OOHTML.META, prop[name]);
+            } else {
+                Ctxt.window.WQ.OOHTML.META[name] = prop[name];
+            }
+        });
+        if (toTag) {
+            const flatten = (base, obj) => Object.keys(obj).reduce((arr, name) => {
+                var path = (base ? base + '.' : '') + name;
+                if (_isObject(obj[name])) {
+                    arr.push(...flatten(path, obj[name]));
+                } else {
+                    arr.push(path + '=' + obj[name]);
+                }
+                return arr;
+            }, []);
+            await Ctxt.ready;
+            if (!(Ctxt.window.WQ.OOHTML.METATag = Ctxt.window.document.querySelector('meta[name="oohtml"]'))) {
+                Ctxt.window.WQ.OOHTML.METATag = Ctxt.window.document.createElement('meta');
+                Ctxt.window.WQ.OOHTML.METATag.setAttribute('name', 'oohtml');
+                Ctxt.window.document.head.append(Ctxt.window.WQ.OOHTML.METATag);
+            }
+            Ctxt.window.WQ.OOHTML.METATag.setAttribute('content', flatten('', Ctxt.window.WQ.OOHTML.META).join(';'));
+        }
         return true;
     }
     if (arguments.length) {
-        return this.window.OOHTML_META ? this.window.OOHTML_META[prop] : undefined;
+        return Ctxt.window.WQ.OOHTML.META ? Ctxt.window.WQ.OOHTML.META[prop] : undefined;
     }
-    return this.window.OOHTML_META;
+    return Ctxt.window.WQ.OOHTML.META;
 };

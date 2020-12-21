@@ -22,18 +22,17 @@ import Scope from './Scope.js';
  * 
  * @param window window
  */
-export default async function init(window) {
+export default async function init(window, config = null) {
 
     const Ctxt = DOMInit(window);
-    await Ctxt.ready;
     const _objectUtil = objectUtil.call(Ctxt);
     const globalRuntimeInitializationWaitlist = [];
     const globalRuntimeInitialized = false;
-    const _meta = createParams.call(Ctxt, {
+    const _meta = await createParams.call(Ctxt, {
         selectors: {script: 'script[type="scoped"]',},
         api: {bind: 'bind', unbind: 'unbind',},
         script: {},
-    });
+    }, config);
 
     // ----------------------
     // Helpers
@@ -62,6 +61,13 @@ export default async function init(window) {
                     applyBinding(target, e);
                 }
             }, {diff: true});
+            oohtmlBase.scopedJS.console = {
+                errors: [],
+                infos: [],
+                warnings: [],
+                logs: [],
+                exceptions: [],
+            };
         }
         return oohtmlBase.scopedJS;
     };
@@ -74,8 +80,10 @@ export default async function init(window) {
             catch: e => {
                 if (targetScriptBase.errorLevel === 2) {
                     console.error(target, e);
+                    targetScriptBase.console.errors.push(e);
                 } else if (targetScriptBase.errorLevel !== 0) {
                     console.warn(target, e.message);
+                    targetScriptBase.console.warns.push(e.message);
                 }
             },
             trap: Ctxt.Observer,
@@ -105,6 +113,7 @@ export default async function init(window) {
             return;
         }
         if (scriptBase.scriptElement) {
+            scriptBase.console.errors.push('An element must only have one scopedJS instance!');
             throw new Error('An element must only have one scopedJS instance!');
         }
         scriptBase.scriptElement = scriptElement;
@@ -120,6 +129,7 @@ export default async function init(window) {
             explain: shouldExplain ? explain : null,
         });
         if (shouldExplain) {
+            scriptBase.console.logs.push(explain);
             console.log(parentNode, explain);
         }
         // ------

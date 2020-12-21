@@ -17,21 +17,20 @@ import { getOohtmlBase, objectUtil, createParams } from '../util.js';
  * 
  * @param window window
  */
-export default async function init(window) {
+export default async function init(window, config = null) {
 
 	const Ctxt = DOMInit(window);
-	await Ctxt.ready;
 	const scopedIdInertContexts = [];
     const _objectUtil = objectUtil.call(Ctxt);
-    const _meta = createParams.call(Ctxt, {
+    const _meta = await createParams.call(Ctxt, {
 		attr: {
             namespace: 'namespace',
-            id: 'id',
+            id: 'data-id',
         },
         api: {
             namespace: 'namespace',
         },
-    });
+    }, config);
 	
     const getNamespaceObject = function(subject) {
         if (!getOohtmlBase(subject).namespace) {

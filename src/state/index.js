@@ -16,14 +16,13 @@ import { getOohtmlBase, objectUtil, createParams } from '../util.js';
  * 
  * @param window window
  */
-export default async function init(window) {
+export default async function init(window, config = null) {
 
     const Ctxt = DOMInit(window);
-    await Ctxt.ready;
     const _objectUtil = objectUtil.call(Ctxt);
-    const _meta = createParams.call(Ctxt, {
+    const _meta = await createParams.call(Ctxt, {
         api: {state: 'state', setState: 'setState', clearState: 'clearState',},
-    });
+    }, config);
 
     const getOrCreateState = function(subject, newStateObject = null) {
         if (!getOohtmlBase(subject).state || newStateObject) {

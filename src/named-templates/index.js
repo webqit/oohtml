@@ -3,6 +3,7 @@
  * @imports
  */
 import DOMInit from '@webqit/browser-pie/src/dom/index.js';
+import _isEmpty from '@webqit/util/js/isEmpty.js';
 import _arrFrom from '@webqit/util/arr/from.js';
 import _remove from '@webqit/util/arr/remove.js';
 import { getOohtmlBase, createParams } from '../util.js';
@@ -18,12 +19,11 @@ import { getOohtmlBase, createParams } from '../util.js';
  * 
  * @param window window
  */
-export default async function init(window) {
+export default async function init(window, config = null) {
 
     const Ctxt = DOMInit(window);
     const document = Ctxt.window.document;
-	await Ctxt.ready;
-    const _meta = createParams.call(Ctxt, {
+    const _meta = await createParams.call(Ctxt, {
 		attr: {
             templatename: 'name',
             export: 'export',
@@ -34,13 +34,13 @@ export default async function init(window) {
             exports: 'exports',
             templatedep: 'template',
         },
-    });
+    }, config);
 
     // ----------------------
     // Capture template elements
     // ----------------------
 
-    const fireDocumentTemplateEvent = (template, type, path) => {
+    const fireDocumentTemplateEvent = (type, template, path) => {
         document.dispatchEvent(new window.CustomEvent(type, {detail: {template, path}}));
     };
 
@@ -58,14 +58,14 @@ export default async function init(window) {
                 }).then(content => {
                     template.innerHTML = content;
                     fireTemplateEvent(template, 'load', path);
-                    fireDocumentTemplateEvent(template, 'templatecontentloaded', path);
+                    fireDocumentTemplateEvent('templatecontentloaded', template, path);
                     resolve(template);
                 }).catch(error => {
                     console.error('Error fetching the bundle at ' + src + '. (' + error + ')');
                     // Dispatch the event.
                     template.innerHTML = '';
                     fireTemplateEvent(template, 'loaderror', path);
-                    fireDocumentTemplateEvent(template, 'templatecontentloaderror', path);
+                    fireDocumentTemplateEvent('templatecontentloaderror', template, path);
                     resolve(template);
                 });
             } else {
@@ -76,7 +76,7 @@ export default async function init(window) {
     };
 
     const discoverContents = (contents, node, path, onNamespaceAdded = false) => {
-        if (!getOohtmlBase(node).exports) {
+        if (_isEmpty(getOohtmlBase(node).exports)) {
 
             // -----------------------
             // Templates and exports
@@ -96,7 +96,7 @@ export default async function init(window) {
                             delete getOohtmlBase(node).parentTemplate;
                         }
                         if (onMutation) {
-                            fireDocumentTemplateEvent(el, 'templateremoved', _path);
+                            fireDocumentTemplateEvent('templateremoved', el, _path);
                         }
                     } else {
                         getOohtmlBase(node).templates[templateName] = el;
@@ -104,7 +104,7 @@ export default async function init(window) {
                         // Recurse
                         discoverContents(el.content, el, _path, onMutation);
                         if (onMutation) {
-                            fireDocumentTemplateEvent(el, 'templateadded', _path);
+                            fireDocumentTemplateEvent('templateadded', el, _path);
                         }
                     }
                 } else {
@@ -115,12 +115,18 @@ export default async function init(window) {
                             if (!getOohtmlBase(node).exports[exportsName].length) {
                                 delete getOohtmlBase(node).exports[exportsName];
                             }
+                            if (onMutation) {
+                                fireDocumentTemplateEvent('exportremoved', el, path + ':' + exportsName);
+                            }
                         }
                     } else {
                         if (!getOohtmlBase(node).exports[exportsName]) {
                             getOohtmlBase(node).exports[exportsName] = [];
                         }
                         getOohtmlBase(node).exports[exportsName].push(el);
+                        if (onMutation) {
+                            fireDocumentTemplateEvent('exportadded', el, path + ':' + exportsName);
+                        }
                     }
                 }
             };
@@ -144,7 +150,7 @@ export default async function init(window) {
                 mutations.forEach(mutation => {
                     mutation.addedNodes.forEach(el => manageComponent(el, true/* onMutation */));
                     mutation.removedNodes.forEach(el => manageComponent(el, true/* onMutation */, true/* remove */));
-                })
+                });
             });
             mo.observe(contents, {childList:true});
 
@@ -194,13 +200,13 @@ export default async function init(window) {
         getOohtmlBase(document).templates[name] = el;
         // --------------------------
         discoverContents(el.content, el, name, true);
-        fireDocumentTemplateEvent(el, 'templateadded', name);
+        fireDocumentTemplateEvent('templateadded', el, name);
         // --------------------------
         Ctxt.Mutation.onRemoved(el, removed => {
             if (getOohtmlBase(document).templates[name] === el) {
                 delete getOohtmlBase(document).templates[name];
             }
-            fireDocumentTemplateEvent(el, 'templateremoved', name);
+            fireDocumentTemplateEvent('templateremoved', el, name);
         }, {once:true});
         // --------------------------
     });

@@ -21,22 +21,19 @@ import { getOohtmlBase, createParams } from '../util.js';
  * 
  * @param window window
  */
-export default async function init(window) {
+export default async function init(window, config = null) {
 
     const Ctxt = DOMInit(window);
     const document = Ctxt.window.document;
-	await Ctxt.ready;
 	const importInertContexts = [];
-    const _meta = createParams.call(Ctxt, {
+    const _meta = await createParams.call(Ctxt, {
 		attr: {
-            export: 'export',
-            templatedep: 'template',
             importid: 'name',
         },
         tag: {
             import: 'oo-import',
         },
-    });
+    }, config);
     if (!_meta.tag.import.includes('-')) {
         throw new Error('The OOHTML import element must be specified as a custom element.');
     }
@@ -50,12 +47,16 @@ export default async function init(window) {
         if (_any(importInertContexts, inertContext => el.closest(inertContext))) {
             return;
         }
-        var resolveSlots = () => {
+        var resolveSlots = exportName => {
             if (el.matches(_meta.tag.import)) {
-                el.resolve();
+                if (!exportName || el.name === exportName) {
+                    el.resolve();
+                }
             } else {
                 _each(getOohtmlBase(el).slots, (name, slot) => {
-                    slot.resolve();
+                    if (!exportName || name === exportName) {
+                        slot.resolve();
+                    }
                 });
             }
         };
@@ -65,14 +66,16 @@ export default async function init(window) {
         
         // Resolve slots when the referenced template changes
         var respondeToTemplateEvent = e => {
+            let [ eventPath, exportName, ] = e.detail.path.split(':');
             var reference = el.getAttribute(_meta.attr.templatedep).split('/').map(s => s.trim()).filter(s => s).join('/');
-            if (reference === e.detail.path) {
-                resolveSlots();
+            if (reference === eventPath) {
+                resolveSlots(exportName);
             }
         };
         document.addEventListener('templateadded', respondeToTemplateEvent);
         document.addEventListener('templateremoved', respondeToTemplateEvent);
-        document.addEventListener('templatecontentloaded', respondeToTemplateEvent);
+        document.addEventListener('exportadded', respondeToTemplateEvent);
+        document.addEventListener('exportremoved', respondeToTemplateEvent);
     });
 
     // ----------------------
@@ -200,6 +203,7 @@ export default async function init(window) {
                     exports = getPartials(template);
                 }
             }
+            if (template)
             if (template && exports) {
                 this.fill(exports);
             } else {
