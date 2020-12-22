@@ -3,7 +3,9 @@
  * @imports
  */
 import DOMInit from '@webqit/browser-pie/src/dom/index.js';
+import ENV from '@webqit/browser-pie/src/env.js';
 import Observer from '@webqit/observer';
+import Subscript from '@webqit/subscript';
 import State from './state/index.js';
 import NamespacedHTML from './namespaced-html/index.js';
 import NamedTemplates from './named-templates/index.js';
@@ -20,17 +22,26 @@ export default function init(window, config = null) {
     if (window.WQ.OOHTML) {
         return;
     }
-    Ctxt.Observer = Observer;
-    window.WQ.OOHTML = {};
-    window.WQ.OOHTML.ready = Promise.all([
+    window.WQ.Observer = Observer;
+    // --------------
+    const OOHTML = ENV.create(window, 'OOHTML');
+    OOHTML.ready = Promise.all([
         State(window, config),
         NamespacedHTML(window, config),
         NamedTemplates(window, config),
         ScopedJS(window, config),
         HTMLPartials(window, config),
     ]);
-    window.WQ.OOHTML.meta = (...args) => {
+    OOHTML.meta = (...args) => {
         return meta.call(Ctxt, ...args);
     };
 
 };
+
+/**
+ * @exports
+ */
+export {
+    Observer,
+    Subscript,
+}

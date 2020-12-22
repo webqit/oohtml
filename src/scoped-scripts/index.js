@@ -83,7 +83,7 @@ export default async function init(window, config = null) {
                     targetScriptBase.console.errors.push(e);
                 } else if (targetScriptBase.errorLevel !== 0) {
                     console.warn(target, e.message);
-                    targetScriptBase.console.warns.push(e.message);
+                    targetScriptBase.console.warnings.push(e.message);
                 }
             },
             trap: Ctxt.Observer,
