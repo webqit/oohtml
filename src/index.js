@@ -3,7 +3,7 @@
  * @imports
  */
 import DOMInit from '@webqit/browser-pie/src/dom/index.js';
-import ENV from '@webqit/browser-pie/src/env.js';
+import ENV from '@webqit/browser-pie/src/ENV.js';
 import Observer from '@webqit/observer';
 import Subscript from '@webqit/subscript';
 import State from './state/index.js';

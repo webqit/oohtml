@@ -7,28 +7,28 @@
 
 <!-- /BADGES -->
 
-[Object-Oriented HTML (OOHTML)](https://webqit.io/tooling/oohtml) is a suite of new DOM features that specifically facilitates writing modular HTML, CSS, and JavaScript *natively* and *more conveniently*. It addresses a number of limitions inherent with existing conventions and welcomes much of the paradigms associated with modern UI development.
+[Object-Oriented HTML (OOHTML)](https://webqit.io/tooling/oohtml) is a suite of new DOM features that particularly facilitates writing modular HTML, CSS, and JavaScript *natively* and *more conveniently*. It addresses a number of limitions inherent to existing conventions, and welcomes much of the paradigms associated with modern UI development.
 
 > OOHTML is being proposed as a [W3C standard at the Web Platform Incubator Community Group](https://discourse.wicg.io/t/proposal-chtml/4716). Consider bringing your ideas to the discussion.
 
 > [Visit project homepage](https://webqit.io/tooling/oohtml).
 
-## New Foundational Features
+## Low-Level Features
 OOHTML brings certain new features to native web languages to make common UI design terminologies possible natively.
 
-+ **Modular Naming and APIs** - *Naming and finding things is hard; modular design makes it easier!* But while the modular design thinking requires that we keep design decisions to small-sized scopes, HTML's naming system has only the idea of one global scope. We practically have to work agaisnt the globally-scoped nature of CSS selectors and IDs to try to have a modular markup and we end up in terrible *hacks* and much naming wars, or at best, clunky naming conventions like [BEM](https://getbem.com). OOHTML addresses this design and architectural difficulty using the [Namespaced HTML Specification](https://webqit.io/tooling/oohtml/namespaced-html) and the [Named Templates Specification](https://webqit.io/tooling/oohtml/named-templates).
-+ **State and Observability** - The concept of building stateful applications and keeping track of all the moving parts have not particularly found a place among native web languages. Much engineering still goes into using JavaScript's change-detection mechanisms for "reactive" UI development, and everything quickly becomes too complex to reason about. OOHTML meets this challenge, first at the language level, with the simple [Observer API](https://webqit.io/tooling/oohtml/the-observer-api) that lets us observe JavaScript objects and arrays with total transparency; then, at the DOM level, with [The State API](https://webqit.io/tooling/oohtml/the-state-api) that implements the Observer API.
++ **Modular Naming and APIs** - *Naming and finding things* is hard; modular design makes it easier! But coming to HTML, we find a naming system that makes it difficult to keep things to small-sized scopes. There is only one global scope for IDs and CSS selectors and this kills any effort towards having a modular markup; we end up in terrible *hacks* and much naming wars, or at best, clunky naming conventions like [BEM](https://getbem.com). OOHTML addresses this design and architectural difficulty with two specifications that particularly facilitate modular design thinking: [Namespaced HTML](https://webqit.io/tooling/oohtml/namespaced-html) and [Named Templates](https://webqit.io/tooling/oohtml/named-templates).
++ **State and Observability** - The concept of building stateful applications and keeping track of all the moving parts have not particularly found a place among native web languages. Much engineering still goes into using JavaScript's change-detection mechanisms for "reactive" UI development, and everything quickly becomes very complex to reason about. OOHTML addresses this challenge, first at the language level, with the [Observer API](https://webqit.io/tooling/oohtml/the-observer-api); then, at the DOM level, with [The State API](https://webqit.io/tooling/oohtml/the-state-api) that implements the Observer API.
 
-## New Syntactic Sugar
-OOHTML provides features that offer *syntactic sugar* over its foundational features and existing DOM APIs.
+## Higher-Level Features
+OOHTML provides features that offer *syntactic sugar* over its low-level features and existing DOM APIs.
 
-+ **Scoped Scripts** - Scoped Scripts is a new feature that lets us write `<script>` elements that are scoped to their immediate host elements instead of the global browser scope. Scoped Scripts makes it easier to apply behaviour to modular markup as they execute in the context of their host elements. But they are especially powerful in being able to automatically keep the UI in sync with tha state of an application as they internally implement the [Observer API](https://webqit.io/tooling/oohtml/the-observer-api). [Check out the details](https://webqit.io/tooling/oohtml/scoped-scripts) to learn more.
-+ **HTML Partials** - HTML Partials is a new templating feature that abstracts over the [Named Templates Specification](https://webqit.io/tooling/oohtml/named-templates) to provide incredibly powerful composability in the simple language of tags and attributes. [Check out the details](https://webqit.io/tooling/oohtml/html-partials) to learn more.
++ **Scoped Scripts** - Scoped Scripts is a new feature that lets us write `<script>` elements that are scoped to their immediate host elements instead of the global browser scope. Scoped Scripts makes it easier to apply behaviour to modular markup as they execute in the context of their host elements. They are especially powerful in being able to automatically keep the UI in sync with tha state of an application as they internally implement the [Observer API](https://webqit.io/tooling/oohtml/the-observer-api). [Visit the details](https://webqit.io/tooling/oohtml/scoped-scripts) to learn more.
++ **HTML Partials** - HTML Partials is a new templating feature that abstracts over the [Named Templates Specification](https://webqit.io/tooling/oohtml/named-templates) to provide incredibly powerful composability in the simple language of tags and attributes. [Visit the details](https://webqit.io/tooling/oohtml/html-partials) to learn more.
 
 ## Getting Started
 To add the current OOHTML polyfill to your page, follow [the installation guide](https://webqit.io/tooling/oohtml/installation).
 
-And what does OOHTML code look like? The following examples give us a glimpse of what's possible. Links from these examples contain much further details.
+The following examples give us a glimpse of what's possible with OOHTML. Links from these examples contain much further details.
 
 ### Namespaced HTML
 The following modular markup implements its IDs in namespaces:
@@ -80,25 +80,29 @@ We get a document structure that's easier to reason about and to work with.
 The [Observer API](https://webqit.io/tooling/oohtml/the-observer-api) lets us observe objects in real time:
 
 ```js
-Observer.observe(continents.namespace, events => {
-    console.log(events.map(event => event.type + ': ' + event.name));
+Observer.observe(continents.namespace, mutations => {
+    mutations.forEach(mutation => {
+        console.log(mutation.type, mutation.name, mutation.path, mutation.value, mutation.oldValue);
+    });
 });
 ```
 
 With the code above, adding a new ID - `africa` - to the `continents` namespace would be reported in the console.
 
 ```js
-continents.append('<section id="africa"></section>');
+let section = document.createElement('section');
+section.setAttribute('id', 'africa');
+continents.append(section);
 ```
 
 The document object and every DOM element also feature [The State API](https://webqit.io/tooling/oohtml/the-state-api) that lets us maintian application state at the document and element levels:
 
 ```js
-Observer.observe(continents.state, events => {
+Observer.observe(continents.state, mutations => {
     // Set application data to element attributes
     // and keep them in sync
-    events.forEach(event => {
-        continents.setAttribute(event.name, event.value);
+    mutations.forEach(mutation => {
+        continents.setAttribute(mutation.name, mutation.value);
     });
 });
 ```
@@ -108,7 +112,7 @@ With the code above, setting properties on `continents.state` would update the e
 ```js
 continents.state.title = 'List of continents';
 // Or
-continents.bind({
+continents.setState({
     title: 'List of continents',
 });
 ```
@@ -117,11 +121,11 @@ We could easily update continents in the `#continents` tree this way:
 
 ```js
 // Bind application data to section elements
-Observer.observe(continents.state, events => {
-    events.forEach(event => {
-        let sectionElement = continents.namespace[event.name];
-        sectionElement.namespace.about.innerHTML = event.value.about;
-        sectionElement.namespace.countries.innerHTML = event.value.countries;
+Observer.observe(continents.state, mutations => {
+    mutations.forEach(mutation => {
+        let sectionElement = continents.namespace[mutation.name];
+        sectionElement.namespace.about.innerHTML = mutation.value.about;
+        sectionElement.namespace.countries.innerHTML = mutation.value.countries;
     });
 });
 // Update the "Asia" section
@@ -135,12 +139,12 @@ And we could easily add new continents to the `#continents` tree this way:
 
 ```js
 // Bind application data to section elements
-Observer.observe(continents.state, events => {
-    events.forEach(event => {
-        let sectionElement = continents.namespace[event.name];
+Observer.observe(continents.state, mutations => {
+    mutations.forEach(mutation => {
+        let sectionElement = continents.namespace[mutation.name];
         if (!sectionElement) {
             let sectionElement = document.createElement('section');
-            sectionElement.setAttribute('id', event.name);
+            sectionElement.setAttribute('id', mutation.name);
             // ------------
             let aboutElement = document.createElement('div');
             aboutElement.setAttribute('id', 'about');
@@ -150,8 +154,8 @@ Observer.observe(continents.state, events => {
             sectionElement.append(aboutElement, countriesElement);
             continents.append(sectionElement);
         }
-        sectionElement.namespace.about.innerHTML = event.value.about;
-        sectionElement.namespace.countries.innerHTML = event.value.countries;
+        sectionElement.namespace.about.innerHTML = mutation.value.about;
+        sectionElement.namespace.countries.innerHTML = mutation.value.countries;
     });
 });
 // Add an "Africa" section
@@ -161,7 +165,7 @@ continents.state.africa = {
 };
 ```
 
-But just so we keep markup out of application code, we could employ a *named* `<template>` element in our code above:
+But just so we keep markup out of JavaScript code, we could employ a [*named* `<template>` element](https://webqit.io/tooling/oohtml/named-templates) to hold the markup separately:
 
 ```html
 <head>
@@ -178,24 +182,24 @@ But just so we keep markup out of application code, we could employ a *named* `<
 
 ```js
 // Bind application data to section elements
-Observer.observe(continents.state, events => {
-    events.forEach(event => {
-        let sectionElement = continents.namespace[event.name];
+Observer.observe(continents.state, mutations => {
+    mutations.forEach(mutation => {
+        let sectionElement = continents.namespace[mutation.name];
         if (!sectionElement) {
             let template1 = document.templates.template1;
             sectionElement = template1.exports.continent[0].cloneNode(true);
-            sectionElement.setAttribute('id', event.name);
+            sectionElement.setAttribute('id', mutation.name);
             continents.append(sectionElement);
         }
-        sectionElement.namespace.about.innerHTML = event.value.about;
-        sectionElement.namespace.countries.innerHTML = event.value.countries;
+        sectionElement.namespace.about.innerHTML = mutation.value.about;
+        sectionElement.namespace.countries.innerHTML = mutation.value.countries;
     });
 });
 ```
 
 Now, we could build web components more efficiently this way.
 
-*Details are in the [Named Templates](https://webqit.io/tooling/oohtml/named-templates) section.*
+*Details are in the [State API](https://webqit.io/tooling/oohtml/the-state-api) and [Named Templates](https://webqit.io/tooling/oohtml/named-templates) sections.*
 
 ### Scoped Scripts
 The following `<script>` element is scoped to the `#alert` element - its host element:
@@ -215,7 +219,30 @@ The following `<script>` element is scoped to the `#alert` element - its host el
 </div>
 ```
 
-Properties in an element's *state* object can be automatically bound to its scoped script. We would just qualify the scoped script with `binding` keyword:
+And we can render values from the global scope or from the element itself.
+
+```html
+<body>
+
+    <div id="alert">
+
+        <div class="message"></div>
+        <div class="exit" title="Close this message.">X</div>
+
+        <script scoped>
+            // Render the "message" property from the element's state object
+            this.querySelector('.message').innerHTML = this.state.message;
+            this.querySelector('.exit').addEventListener('click', () => {
+                this.remove();
+            });
+        </script>
+
+    </div>
+
+<body>
+```
+
+If we qualify the scoped script with the `binding` keyword, changes that happen to live objects, like the element's *state* object, will automatically re-run specific statements in the script.
 
 ```html
 <body>
@@ -226,9 +253,9 @@ Properties in an element's *state* object can be automatically bound to its scop
         <div class="exit" title="Close this message.">X</div>
 
         <script scoped binding>
-            // where to place the message within the alert block...
+            // Render the "message" property from the element's state object
+            // This statement will re-run each time "this.state.message" gets updated
             this.querySelector('.message').innerHTML = this.state.message;
-            // details of how the alert block should behave...
             this.querySelector('.exit').addEventListener('click', () => {
                 this.remove();
             });
@@ -247,7 +274,7 @@ Properties in an element's *state* object can be automatically bound to its scop
 </body>
 ```
 
-Now, we could easily create more complex stuff this way. [Think a clock, a dynamic list](https://webqit.io/tooling/oohtml/examples).
+This makes it possible to build more complex stuff without breaking a sweat. [Think a clock, a dynamic list](https://webqit.io/tooling/oohtml/examples), etc.
 
 *Details are in the [Scoped Scripts](https://webqit.io/tooling/oohtml/scoped-scripts) section.*
 
@@ -269,7 +296,7 @@ The following `<template>` elements contain reusable snippets called exports:
 </head>
 ```
 
-An element in the `<body>` area can point to the `<template>` element and implement its exports:
+An element in the `<body>` area can point to the `<template>` element and *implement* its exports:
 
 ```html
 <body>
@@ -289,7 +316,7 @@ An element in the `<body>` area can point to the `<template>` element and implem
 </body>
 ```
 
-And `<import>` elements themselves can also point to a `<template>` element directly:
+*Import* elements themselves can also point to a `<template>` directly:
 
 ```html
 <body>
@@ -309,21 +336,21 @@ And `<import>` elements themselves can also point to a `<template>` element dire
 </body>
 ```
 
-An element can be dynamically pointed to another `<template>`, and its *imports* will be automatically resolved from the new `<template>`:
+An element can be dynamically pointed at another `<template>`, and its *imports* will be automatically resolved from the new `<template>`:
 
 ```js
 document.querySelector('div[template="template1"]').setAttribute('template', 'template2');
 ```
 
-Now, we could create more dynamic stuff this way. [Think a Single Page Application](https://webqit.io/tooling/oohtml/examples) (SPA).
+This opens up new simple ways to create very dynamic applications. [Think a Single Page Application](https://webqit.io/tooling/oohtml/examples) (SPA).
 
 *Details are in the [HTML Partials](https://webqit.io/tooling/oohtml/html-partials) section.*
 
 ## FAQs
-We are working on publishing some questions we've been asked, but you can always file an [issue](https://github.com/webqit/oohtml/issues) to ask a question or raise a suggestion.
+We are working on publishing some questions we've been asked, but you can always file an [issue](https://github.com/webqit/oohtml/issues) to ask a new question or raise a suggestion.
 
 ## Relationship With Other Technologies
-You may also visit the [comparison section](https://webqit.io/tooling/oohtml/comparison) for a view of how OOHTML compares with existing technologies and standardization effort.
+There is a [related technologies](https://webqit.io/tooling/oohtml/related-technologies) section that gives a view of how OOHTML compares with existing technologies and related standardization efforts.
 
 ## Issues
 To report bugs or request features, please submit an [issue](https://github.com/webqit/oohtml/issues).
