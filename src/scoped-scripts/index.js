@@ -27,9 +27,9 @@ export default async function init(window, config = null) {
     const Ctxt = DOMInit(window);
     const _objectUtil = objectUtil.call(Ctxt);
     const globalRuntimeInitializationWaitlist = [];
-    const globalRuntimeInitialized = false;
+    var globalRuntimeInitialized = false;
     const _meta = await createParams.call(Ctxt, {
-        selectors: {script: 'script[type="scoped"]',},
+        selectors: {script: 'script[type="subscript"]',},
         api: {bind: 'bind', unbind: 'unbind',},
         script: {},
     }, config);
@@ -38,10 +38,10 @@ export default async function init(window, config = null) {
     // Helpers
     // ----------------------
 
-    const globalScopeInstance = new Scope(_objectUtil.setVal({
-        super: new Scope({main: Ctxt.window})
-    }, 'main', _objectUtil.setVal({}, 'document', Ctxt.window.document)), {
-        errorLevel: _meta.script.errlevel,
+    const scopeParams = {  errorLevel: _meta.script.errlevel, };
+    const docCntxt = _objectUtil.setVal({}, 'document', Ctxt.window.document);
+    const globalScopeInstance = Scope.createStack([docCntxt, Scope.create(Ctxt.window)], scopeParams, {
+        set: _objectUtil.setVal,
     });
 
     const getScriptBase = function(target) {
@@ -49,18 +49,16 @@ export default async function init(window, config = null) {
         if (!oohtmlBase.scopedJS) {
             // Create scope
             oohtmlBase.scopedJS = {
-                scope: new Scope(_objectUtil.setVal({
-                    super: new Scope(_objectUtil.setVal({
-                        super: globalScopeInstance,
-                    }, 'main', {})),
-                }, 'main', _objectUtil.setVal({}, 'this', target))),
+                scope: Scope.createStack([{}/** bindings scope */, {this: undefined}/** the "this" scope */, globalScopeInstance/** global scope */], scopeParams, {
+                    set: _objectUtil.setVal,
+                }),
             };
             // Binding mode?
             oohtmlBase.scopedJS.scope.observe(Ctxt.Observer, e => {
-                if (oohtmlBase.scopedJS.isBinding && target.isConnected && !oohtmlBase.scopedJS.inWaitlist) {
+                if (target.isConnected && !oohtmlBase.scopedJS.inWaitlist) {
                     applyBinding(target, e);
                 }
-            }, {diff: true});
+            });
             oohtmlBase.scopedJS.console = {
                 errors: [],
                 infos: [],
@@ -117,7 +115,6 @@ export default async function init(window, config = null) {
             throw new Error('An element must only have one scopedJS instance!');
         }
         scriptBase.scriptElement = scriptElement;
-        scriptBase.isBinding = scriptElement.hasAttribute('binding');
         if (!(srcCode = (scriptElement.textContent || '').trim())) {
             return;
         }
@@ -128,6 +125,9 @@ export default async function init(window, config = null) {
         scriptBase.AST = parse(srcCode, {
             explain: shouldExplain ? explain : null,
         });
+        if (scriptElement.hasAttribute('scoped')) {
+            _objectUtil.setVal(scriptBase.scope.stack.super.stack.main, 'this', parentNode);
+        }
         if (shouldExplain) {
             scriptBase.console.logs.push(explain);
             console.log(parentNode, explain);

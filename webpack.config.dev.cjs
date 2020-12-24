@@ -12,10 +12,10 @@ module.exports = {
 	entry: {
 		main: './src/browser-entry.js',
 		'namespaced-html': './src/namespaced-html/browser-entry.js',
-		'named-templates': './src/named-templates/browser-entry.js',
+		'html-modules': './src/html-modules/browser-entry.js',
+		'html-imports': './src/html-imports/browser-entry.js',
 		'state': './src/state/browser-entry.js',
 		'scoped-scripts': './src/scoped-scripts/browser-entry.js',
-		'html-partials': './src/html-partials/browser-entry.js',
 	},
 	output: {
 		filename: '[name].js',

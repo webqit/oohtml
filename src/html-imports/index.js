@@ -27,62 +27,42 @@ export default async function init(window, config = null) {
     const document = Ctxt.window.document;
 	const importInertContexts = [];
     const _meta = await createParams.call(Ctxt, {
+        element: {
+            import: 'html-import',
+        },
 		attr: {
             importid: 'name',
         },
-        tag: {
-            import: 'oo-import',
-        },
     }, config);
-    if (!_meta.tag.import.includes('-')) {
+    if (!_meta.element.import.includes('-')) {
         throw new Error('The OOHTML import element must be specified as a custom element.');
     }
     _defaultNoInherits.push(_meta.attr.importid, _meta.attr.templatedep);
-
-    // ----------------------
-    // Capture composable elements
-    // ----------------------
-
-    Ctxt.Mutation.onPresent('[' + window.CSS.escape(_meta.attr.templatedep) + ']', el => {
-        if (_any(importInertContexts, inertContext => el.closest(inertContext))) {
-            return;
-        }
-        var resolveSlots = exportName => {
-            if (el.matches(_meta.tag.import)) {
-                if (!exportName || el.name === exportName) {
-                    el.resolve();
-                }
-            } else {
-                _each(getOohtmlBase(el).slots, (name, slot) => {
-                    if (!exportName || name === exportName) {
-                        slot.resolve();
-                    }
-                });
-            }
-        };
-
-        // Resolve slots when reference to template changes
-        Ctxt.Mutation.onAttrChange(el, resolveSlots, [_meta.attr.templatedep]);
-        
-        // Resolve slots when the referenced template changes
-        var respondeToTemplateEvent = e => {
-            let [ eventPath, exportName, ] = e.detail.path.split(':');
-            var reference = el.getAttribute(_meta.attr.templatedep).split('/').map(s => s.trim()).filter(s => s).join('/');
-            if (reference === eventPath) {
-                resolveSlots(exportName);
-            }
-        };
-        document.addEventListener('templateadded', respondeToTemplateEvent);
-        document.addEventListener('templateremoved', respondeToTemplateEvent);
-        document.addEventListener('exportadded', respondeToTemplateEvent);
-        document.addEventListener('exportremoved', respondeToTemplateEvent);
-    });
+    const templatedepSelector = '[' + window.CSS.escape(_meta.attr.templatedep) + ']';
+    const exportgroupSelector = '[' + window.CSS.escape(_meta.attr.exportgroup) + ']';
 
     // ----------------------
     // Capture slot elements
     // ----------------------
 
-    window.customElements.define(_meta.tag.import, class extends window.HTMLElement {
+    const Import = class extends window.HTMLElement {
+
+        static create(el) {
+            return el;
+        }
+        constructor(importEl) {
+            super();
+            this.el = this;
+        }
+
+        /*
+        static create(el) {
+            return new Import(el);
+        }
+        constructor(importEl) {
+            this.el = importEl;
+        }
+        */
         
         /**
          * Called by the Slots hydrator.
@@ -94,9 +74,9 @@ export default async function init(window, config = null) {
          * @return void
          */
         hydrate(anchorNode, slottedElements, compositionBlock) {
-            this.anchorNode = anchorNode;
-            getOohtmlBase(this).slottedElements = slottedElements;
-            getOohtmlBase(this).compositionBlock = compositionBlock;
+            this.el.anchorNode = anchorNode;
+            getOohtmlBase(this.el).slottedElements = slottedElements;
+            getOohtmlBase(this.el).compositionBlock = compositionBlock;
             this._bindSlotted(slottedElements);
             this._connectToCompositionBlock();
         }
@@ -107,13 +87,12 @@ export default async function init(window, config = null) {
          * @return void
          */
         connectedCallback() {
-            if (!this.anchorNode) {
-                this.anchorNode = _meta.isomorphic
-                    ? document.createComment(this.outerHTML)
+            if (!this.el.anchorNode) {
+                this.el.anchorNode = _meta.isomorphic
+                    ? document.createComment(this.el.outerHTML)
                     : document.createTextNode('');
-                this.after(this.anchorNode);
-                getOohtmlBase(this).compositionBlock = !this.hasAttribute(_meta.attr.templatedep)
-                    ? this.parentNode.closest('[' + window.CSS.escape(_meta.attr.templatedep) + ']')
+                getOohtmlBase(this.el).compositionBlock = !this.el.hasAttribute(_meta.attr.templatedep)
+                    ? this.el.parentNode.closest(templatedepSelector)
                     : null;
                 this._connectToCompositionBlock();
                 Ctxt.ready.then(window => {
@@ -127,11 +106,11 @@ export default async function init(window, config = null) {
          */
         _connectToCompositionBlock() {
             if (this.compositionBlock) {
-                if (!getOohtmlBase(this.compositionBlock).slots) {
-                    getOohtmlBase(this.compositionBlock).slots = {};
+                if (!getOohtmlBase(this.compositionBlock).imports) {
+                    getOohtmlBase(this.compositionBlock).imports = {};
                 }
                 // Now after the update slot ID
-                getOohtmlBase(this.compositionBlock).slots[this.name] = this;
+                getOohtmlBase(this.compositionBlock).imports[this.name] = this.el;
             }
         }
 
@@ -144,17 +123,17 @@ export default async function init(window, config = null) {
          */
         _bindSlotted(exports) {
             exports.forEach(_export => {
-                _export.slotReference = this;
+                _export.importReference = this.el;
             });
-            getOohtmlBase(this).slottedObserver = Ctxt.Mutation.onRemoved(exports, removed => {
+            getOohtmlBase(this.el).slottedObserver = Ctxt.Mutation.onRemoved(exports, removed => {
                 removed.forEach(remd => {
                     // Let's ensure this wasn't slotted againe
                     if (!remd.parentNode) {
                         _remove(this.slottedElements, remd);
                     }
                     // if the slotted hasnt been slotted somewhere
-                    if (remd.slotReference === this) {
-                        delete remd.slotReference;
+                    if (remd.importReference === this.el) {
+                        delete remd.importReference;
                     }
                 });
                 // If this was the last of the s,ottable in the same family of IDs,
@@ -162,7 +141,9 @@ export default async function init(window, config = null) {
                 if (!this.slottedElements.length) {
                     // Must be assigned bu now
                     // for it to be removed in the first place
-                    this.anchorNode.before(this);
+                    if (this.el.anchorNode.isConnected) {
+                        this.el.anchorNode.replaceWith(this.el);
+                    }
                 }
             }, {onceEach:true});
         }
@@ -171,11 +152,11 @@ export default async function init(window, config = null) {
          * Resolves the slot
          */
         resolve() {
-            if (_any(importInertContexts, inertContext => this.closest(inertContext))) {
+            if (_any(importInertContexts, inertContext => this.el.closest(inertContext))) {
                 return;
             }
             var getPartials = template => {
-                var exports, templateFallback = parseInt(this.getAttribute('template-fallback'));
+                var exports, templateFallback = parseInt(this.el.getAttribute('template-fallback'));
                 do {
                     exports = getOohtmlBase(template).exports[this.name];
                 } while(!exports && (templateFallback --) > 0 && (template = getOohtmlBase(template).parentTemplate));
@@ -184,18 +165,18 @@ export default async function init(window, config = null) {
             // -----------------
             // Global import or scoped slot?
             var template, exports;
-            if (this.hasAttribute(_meta.attr.templatedep)) {
+            if (this.el.hasAttribute(_meta.attr.templatedep)) {
                 // Did we previously had a compositionBlock?
                 // Let's remove ourself
-                if (this.compositionBlock && getOohtmlBase(this.compositionBlock).slots[this.name] === this) {
-                    delete getOohtmlBase(this.compositionBlock).slots[this.name];
+                if (this.compositionBlock && getOohtmlBase(this.compositionBlock).imports[this.name] === this.el) {
+                    delete getOohtmlBase(this.compositionBlock).imports[this.name];
                 }
-                if (template = this.template) {
+                if (template = this.el.template) {
                     exports = getPartials(template);
                 }
             } else {
                 if (!this.compositionBlock) {
-                    console.warn('Scoped slots must be found within template contexts. [' + this.name + ']', this);
+                    console.warn('Scoped slots must be found within template contexts. [' + this.name + ']', this.el);
                     return;
                 }
                 // We dont want this proccessed again on restoration to its position
@@ -203,7 +184,6 @@ export default async function init(window, config = null) {
                     exports = getPartials(template);
                 }
             }
-            if (template)
             if (template && exports) {
                 this.fill(exports);
             } else {
@@ -224,7 +204,9 @@ export default async function init(window, config = null) {
             // Discard previous slotted elements
             // But this intentional removal should not trigger slot restoration
             this.empty(true/* silently */);
-            this.remove();
+            if (this.el.isConnected) {
+                this.el.replaceWith(this.el.anchorNode);
+            }
             // ---------------------
             // Slot-in the corresponding exports from template
             exports.forEach(_export => {
@@ -234,16 +216,16 @@ export default async function init(window, config = null) {
                     if (!getOohtmlBase(_export).templates) {
                         getOohtmlBase(_export).templates = {};
                     }
-                    getOohtmlBase(_export).templates['@slot'] = this;
+                    getOohtmlBase(_export).templates['@slot'] = this.el;
                 }
                 // Inherit attributes from the slot element before replacement
-                mergeAttributes(_export, this);
+                mergeAttributes(_export, this.el);
                 // ---------------------
-                if (!_export.getAttribute(_meta.attr.export)) {
-                    _export.setAttribute(_meta.attr.export, this.name);
+                if (!_export.getAttribute(_meta.attr.exportgroup)) {
+                    _export.setAttribute(_meta.attr.exportgroup, this.name);
                 }
                 // Place slottable
-                this.anchorNode.before(_export);
+                this.el.anchorNode.before(_export);
             });
             this._bindSlotted(exports);
             // ---------------------
@@ -275,7 +257,7 @@ export default async function init(window, config = null) {
          * @return string
          */
         get name() {
-            return this.getAttribute(_meta.attr.importid) || 'default';
+            return this.el.getAttribute(_meta.attr.importid) || 'default';
         }
 
         /**
@@ -284,7 +266,7 @@ export default async function init(window, config = null) {
          * @return array
          */
         get compositionBlock() {
-            return getOohtmlBase(this).compositionBlock;
+            return getOohtmlBase(this.el).compositionBlock;
         }
 
         /**
@@ -293,10 +275,10 @@ export default async function init(window, config = null) {
          * @return array
          */
         get slottedElements() {
-            if (!getOohtmlBase(this).slottedElements) {
-                getOohtmlBase(this).slottedElements = [];
+            if (!getOohtmlBase(this.el).slottedElements) {
+                getOohtmlBase(this.el).slottedElements = [];
             }
-            return getOohtmlBase(this).slottedElements;
+            return getOohtmlBase(this.el).slottedElements;
         }
 
         /**
@@ -305,8 +287,8 @@ export default async function init(window, config = null) {
          * @return array
          */
         get exports() {
-            discoverContents(this, this);
-            return getOohtmlBase(this).exports;
+            discoverContents(this.el, this.el);
+            return getOohtmlBase(this.el).exports;
         }
                 
         /**
@@ -317,6 +299,62 @@ export default async function init(window, config = null) {
         static get observedAttributes() {
             return [_meta.attr.importid];
         }
+    };
+
+    // ----------------------
+    // Capture import elements
+    // ----------------------
+
+    /**
+    Ctxt.Mutation.onPresent(_meta.element.import, el => {
+        var importElInstance = Import.create(el);
+        importElInstance.connectedCallback();
+    });
+     */
+    window.customElements.define(_meta.element.import, Import);
+
+    // ----------------------
+    // Progressive resolution
+    // ----------------------
+    
+    const resolveSlots = (el, exportName) => {
+        if (el.matches(_meta.element.import)) {
+            var importElInstance = Import.create(el);
+            if (!exportName || importElInstance.name === exportName) {
+                importElInstance.resolve();
+            }
+        } else {
+            _each(getOohtmlBase(el).imports, (name, importEl) => {
+                if (!exportName || name === exportName) {
+                    var importElInstance = Import.create(importEl);
+                    importElInstance.resolve();
+                }
+            });
+        }
+    };
+
+    Ctxt.Mutation.onPresent(templatedepSelector, el => {
+        if (_any(importInertContexts, inertContext => el.closest(inertContext))) {
+            return;
+        }
+        // Imports resolve by themselves
+        // But...
+        // We resolve them again when reference to template changes
+        Ctxt.Mutation.onAttrChange(el, mr => {
+            if (mr[0].target.getAttribute(mr[0].attributeName) !== mr[0].oldValue) {
+                resolveSlots(el);
+            }
+        }, [_meta.attr.templatedep]);
+    });
+
+    document.addEventListener('templatemutation', e => {
+        // Resolve slots when the referenced template changes
+        const templatedepSelector = [e.detail.path, e.detail.path + '/'].map(path => '[' + window.CSS.escape(_meta.attr.templatedep) + '="' + path + '"]').join(',');
+        _arrFrom(document.querySelectorAll(templatedepSelector)).forEach(el => {
+            e.detail.value.addedExports.forEach(exportGroup => {
+                resolveSlots(el, exportGroup.name);
+            });
+        });
     });
 
     // ----------------------
@@ -324,33 +362,34 @@ export default async function init(window, config = null) {
     // ----------------------
 
     const hydrateSlots = () => {
-        _arrFrom(document.querySelectorAll('[' + window.CSS.escape(_meta.attr.export) + ']')).forEach(_export => {
+        _arrFrom(document.querySelectorAll(exportgroupSelector)).forEach(_export => {
             // Scan
-            if (!getOohtmlBase(_export.parentNode).slotsCan) {
+            if (!getOohtmlBase(_export.parentNode).importsCan) {
                 var slottedElements = [];
                 _export.parentNode.childNodes.forEach(node => {
                     var nodeValue;
-                    if (node.nodeType === 1/** ELEMENT_NODE */ && node.matches('[' + window.CSS.escape(_meta.attr.export) + ']')) {
+                    if (node.nodeType === 1/** ELEMENT_NODE */ && node.matches(exportgroupSelector)) {
                         slottedElements.push(node);
                     } else if (node.nodeType === 8/** COMMENT_NODE */ && (nodeValue = node.nodeValue.trim())
-                    && nodeValue.startsWith('<' + _meta.tag.import)
-                    && nodeValue.endsWith('</' + _meta.tag.import + '>')) {
-                        var slot, reviver = document.createElement('div');
+                    && nodeValue.startsWith('<' + _meta.element.import)
+                    && nodeValue.endsWith('</' + _meta.element.import + '>')) {
+                        var importEl, reviver = document.createElement('div');
                         reviver.innerHTML = nodeValue;
-                        if ((slot = reviver.firstChild).matches(_meta.tag.import)) {
+                        if ((importEl = reviver.firstChild).matches(_meta.element.import)) {
                             // Belongs to a composition block?
                             var compositionBlock;
-                            if (!slot.hasAttribute(_meta.attr.templatedep)) {
-                                compositionBlock = node.parentNode.closest('[' + window.CSS.escape(_meta.attr.templatedep) + ']');
+                            if (!importEl.hasAttribute(_meta.attr.templatedep)) {
+                                compositionBlock = node.parentNode.closest(templatedepSelector);
                             }
-                            slot.hydrate(node, slottedElements, compositionBlock);
+                            var importElInstance = Import.create(importEl);
+                            importElInstance.hydrate(node, slottedElements, compositionBlock);
                             // Empty basket
                             slottedElements = [];
                         }
                     }
                 });
                 // Scanning is once for every parent
-                getOohtmlBase(_export.parentNode).slotsCan = true;
+                getOohtmlBase(_export.parentNode).importsCan = true;
             }
         });
     };
@@ -364,6 +403,7 @@ export default async function init(window, config = null) {
             hydrateSlots();
         }
     });
+
 };
 
 /**

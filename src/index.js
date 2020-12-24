@@ -8,9 +8,9 @@ import Observer from '@webqit/observer';
 import Subscript from '@webqit/subscript';
 import State from './state/index.js';
 import NamespacedHTML from './namespaced-html/index.js';
-import NamedTemplates from './named-templates/index.js';
-import ScopedJS from './scoped-scripts/index.js';
-import HTMLPartials from './html-partials/index.js';
+import HTMLModules from './html-modules/index.js';
+import ScopedScripts from './scoped-scripts/index.js';
+import HTMLImports from './html-imports/index.js';
 import { meta } from './util.js';
 
 /**
@@ -28,13 +28,15 @@ export default function init(window, config = null) {
     OOHTML.ready = Promise.all([
         State(window, config),
         NamespacedHTML(window, config),
-        NamedTemplates(window, config),
-        ScopedJS(window, config),
-        HTMLPartials(window, config),
+        HTMLModules(window, config),
+        ScopedScripts(window, config),
+        HTMLImports(window, config),
     ]);
     OOHTML.meta = (...args) => {
         return meta.call(Ctxt, ...args);
     };
+    // --------------
+    window.WQ.Subscript = Subscript;
 
 };
 
