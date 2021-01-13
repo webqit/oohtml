@@ -4,16 +4,17 @@
   "description": "A suite of new DOM features that brings language support for modern UI development paradigms: a component-based architecture, data binding, and reactivity.",
   "keywords": [
     "namespaced-HTML",
-    "named-templates",
+    "html-modules",
     "ui-state",
-    "HTML-partials",
-    "scoped-JS",
+    "html-imports",
+    "reflex",
     "subscript",
+    "scoped-js",
     "UI",
     "wicg-proposal"
   ],
   "homepage": "https://webqit.io/tooling/oohtml",
-  "version": "1.4.5",
+  "version": "1.4.6",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -36,8 +37,8 @@
   },
   "dependencies": {
     "@webqit/browser-pie": "0.0.5",
-    "@webqit/observer": "^1.2.9",
-    "@webqit/subscript": "^1.0.6",
+    "@webqit/observer": "^1.3.2",
+    "@webqit/subscript": "^1.0.7",
     "@webqit/util": "^0.7.0"
   },
   "devDependencies": {

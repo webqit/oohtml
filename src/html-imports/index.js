@@ -7,6 +7,7 @@ import _any from '@webqit/util/arr/any.js';
 import _arrFrom from '@webqit/util/arr/from.js';
 import _remove from '@webqit/util/arr/remove.js';
 import _unique from '@webqit/util/arr/unique.js';
+import _difference from '@webqit/util/arr/difference.js';
 import _each from '@webqit/util/obj/each.js';
 import { getOohtmlBase, createParams } from '../util.js';
 
@@ -28,15 +29,12 @@ export default async function init(window, config = null) {
 	const importInertContexts = [];
     const _meta = await createParams.call(Ctxt, {
         element: {
-            import: 'html-import',
+            import: 'import',
         },
 		attr: {
             importid: 'name',
         },
     }, config);
-    if (!_meta.element.import.includes('-')) {
-        throw new Error('The OOHTML import element must be specified as a custom element.');
-    }
     _defaultNoInherits.push(_meta.attr.importid, _meta.attr.templatedep);
     const templatedepSelector = '[' + window.CSS.escape(_meta.attr.templatedep) + ']';
     const exportgroupSelector = '[' + window.CSS.escape(_meta.attr.exportgroup) + ']';
@@ -45,8 +43,9 @@ export default async function init(window, config = null) {
     // Capture slot elements
     // ----------------------
 
-    const Import = class extends window.HTMLElement {
+    const Import = class/* extends window.HTMLElement*/ {
 
+        /*
         static create(el) {
             return el;
         }
@@ -54,15 +53,14 @@ export default async function init(window, config = null) {
             super();
             this.el = this;
         }
+        */
 
-        /*
         static create(el) {
             return new Import(el);
         }
         constructor(importEl) {
             this.el = importEl;
         }
-        */
         
         /**
          * Called by the Slots hydrator.
@@ -74,7 +72,7 @@ export default async function init(window, config = null) {
          * @return void
          */
         hydrate(anchorNode, slottedElements, compositionBlock) {
-            this.el.anchorNode = anchorNode;
+            getOohtmlBase(this.el).anchorNode = anchorNode;
             getOohtmlBase(this.el).slottedElements = slottedElements;
             getOohtmlBase(this.el).compositionBlock = compositionBlock;
             this._bindSlotted(slottedElements);
@@ -87,18 +85,18 @@ export default async function init(window, config = null) {
          * @return void
          */
         connectedCallback() {
-            if (!this.el.anchorNode) {
-                this.el.anchorNode = _meta.isomorphic
+            if (!getOohtmlBase(this.el).anchorNode) {
+                getOohtmlBase(this.el).anchorNode = _meta.isomorphic
                     ? document.createComment(this.el.outerHTML)
                     : document.createTextNode('');
                 getOohtmlBase(this.el).compositionBlock = !this.el.hasAttribute(_meta.attr.templatedep)
                     ? this.el.parentNode.closest(templatedepSelector)
                     : null;
                 this._connectToCompositionBlock();
-                Ctxt.ready.then(window => {
-                    this.resolve();
-                });
             }
+            Ctxt.ready.then(window => {
+                this.resolve();
+            });
         }
     
         /**
@@ -141,8 +139,8 @@ export default async function init(window, config = null) {
                 if (!this.slottedElements.length) {
                     // Must be assigned bu now
                     // for it to be removed in the first place
-                    if (this.el.anchorNode.isConnected) {
-                        this.el.anchorNode.replaceWith(this.el);
+                    if (this.anchorNode.isConnected) {
+                        this.anchorNode.replaceWith(this.el);
                     }
                 }
             }, {onceEach:true});
@@ -155,38 +153,42 @@ export default async function init(window, config = null) {
             if (_any(importInertContexts, inertContext => this.el.closest(inertContext))) {
                 return;
             }
-            var getPartials = template => {
-                var exports, templateFallback = parseInt(this.el.getAttribute('template-fallback'));
-                do {
-                    exports = getOohtmlBase(template).exports[this.name];
-                } while(!exports && (templateFallback --) > 0 && (template = getOohtmlBase(template).parentTemplate));
+            var getPartials = templateSource => {
+                var template, exports, [ tempSpecA, tempSpecB ] = (this.el.getAttribute('template-fallback') || '').split('-').map(a => parseInt(a)).concat([0, 0]);
+                var path = templateSource.getAttribute(_meta.attr.templatedep).split('/').map(n => n.trim()).filter(n => n);
+                var get = path => path.reduce((context, item, i) => {
+                    return context ? getOohtmlBase(context).templates[item] || getOohtmlBase(context).templates['*'] : null;
+                }, document);
+
+                while((!(template = get(path)) || template === document || !(exports = getOohtmlBase(template).exports[this.name])) && path.length > tempSpecA && tempSpecB) {
+                    path.pop(); tempSpecB --;
+                }
                 return exports;
             };
             // -----------------
             // Global import or scoped slot?
-            var template, exports;
+            var templateSource, exports;
             if (this.el.hasAttribute(_meta.attr.templatedep)) {
                 // Did we previously had a compositionBlock?
                 // Let's remove ourself
                 if (this.compositionBlock && getOohtmlBase(this.compositionBlock).imports[this.name] === this.el) {
                     delete getOohtmlBase(this.compositionBlock).imports[this.name];
                 }
-                if (template = this.el.template) {
-                    exports = getPartials(template);
-                }
+                templateSource = this.el;
             } else {
                 if (!this.compositionBlock) {
                     console.warn('Scoped slots must be found within template contexts. [' + this.name + ']', this.el);
                     return;
                 }
-                // We dont want this proccessed again on restoration to its position
-                if (template = this.compositionBlock.template) {
-                    exports = getPartials(template);
-                }
+                templateSource = this.compositionBlock;
             }
-            if (template && exports) {
-                this.fill(exports);
+            if (templateSource && (exports = getPartials(templateSource))) {
+                if (_difference(exports, getOohtmlBase(this.el).originalSlottedElements || []).length) {
+                    getOohtmlBase(this.el).originalSlottedElements = exports;
+                    this.fill(exports);
+                }
             } else {
+                getOohtmlBase(this.el).originalSlottedElements = null;
                 this.empty();
             }
         }
@@ -205,7 +207,7 @@ export default async function init(window, config = null) {
             // But this intentional removal should not trigger slot restoration
             this.empty(true/* silently */);
             if (this.el.isConnected) {
-                this.el.replaceWith(this.el.anchorNode);
+                this.el.replaceWith(this.anchorNode);
             }
             // ---------------------
             // Slot-in the corresponding exports from template
@@ -225,7 +227,7 @@ export default async function init(window, config = null) {
                     _export.setAttribute(_meta.attr.exportgroup, this.name);
                 }
                 // Place slottable
-                this.el.anchorNode.before(_export);
+                this.anchorNode.before(_export);
             });
             this._bindSlotted(exports);
             // ---------------------
@@ -258,6 +260,15 @@ export default async function init(window, config = null) {
          */
         get name() {
             return this.el.getAttribute(_meta.attr.importid) || 'default';
+        }
+
+        /**
+         * Returns the slot's anchorNode.
+         *
+         * @return array
+         */
+        get anchorNode() {
+            return getOohtmlBase(this.el).anchorNode;
         }
 
         /**
@@ -305,27 +316,28 @@ export default async function init(window, config = null) {
     // Capture import elements
     // ----------------------
 
-    /**
     Ctxt.Mutation.onPresent(_meta.element.import, el => {
         var importElInstance = Import.create(el);
         importElInstance.connectedCallback();
     });
-     */
+    /**
     window.customElements.define(_meta.element.import, Import);
+     */
 
     // ----------------------
     // Progressive resolution
     // ----------------------
     
     const resolveSlots = (el, exportName) => {
+        const shouldResolve = (importEl, importName) => !exportName || importName === exportName || (exportName === true && importEl.getAttribute('template-fallback'));
         if (el.matches(_meta.element.import)) {
             var importElInstance = Import.create(el);
-            if (!exportName || importElInstance.name === exportName) {
+            if (shouldResolve(el, importElInstance.name)) {
                 importElInstance.resolve();
             }
         } else {
             _each(getOohtmlBase(el).imports, (name, importEl) => {
-                if (!exportName || name === exportName) {
+                if (shouldResolve(importEl, name)) {
                     var importElInstance = Import.create(importEl);
                     importElInstance.resolve();
                 }
@@ -351,7 +363,8 @@ export default async function init(window, config = null) {
         // Resolve slots when the referenced template changes
         const templatedepSelector = [e.detail.path, e.detail.path + '/'].map(path => '[' + window.CSS.escape(_meta.attr.templatedep) + '="' + path + '"]').join(',');
         _arrFrom(document.querySelectorAll(templatedepSelector)).forEach(el => {
-            e.detail.value.addedExports.forEach(exportGroup => {
+            resolveSlots(el, true);
+            e.detail.value.addedExports.concat(e.detail.value.removedExports).forEach(exportGroup => {
                 resolveSlots(el, exportGroup.name);
             });
         });

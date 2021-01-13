@@ -15,7 +15,7 @@ module.exports = {
 		'html-modules': './src/html-modules/browser-entry.js',
 		'html-imports': './src/html-imports/browser-entry.js',
 		'state': './src/state/browser-entry.js',
-		'scoped-scripts': './src/scoped-scripts/browser-entry.js',
+		'reflex': './src/reflex/browser-entry.js',
 	},
 	output: {
 		filename: '[name].js',

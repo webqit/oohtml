@@ -9,7 +9,7 @@ import Subscript from '@webqit/subscript';
 import State from './state/index.js';
 import NamespacedHTML from './namespaced-html/index.js';
 import HTMLModules from './html-modules/index.js';
-import ScopedScripts from './scoped-scripts/index.js';
+import Reflex from './reflex/index.js';
 import HTMLImports from './html-imports/index.js';
 import { meta } from './util.js';
 
@@ -29,7 +29,7 @@ export default function init(window, config = null) {
         State(window, config),
         NamespacedHTML(window, config),
         HTMLModules(window, config),
-        ScopedScripts(window, config),
+        Reflex(window, config),
         HTMLImports(window, config),
     ]);
     OOHTML.meta = (...args) => {

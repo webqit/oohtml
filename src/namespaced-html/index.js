@@ -25,7 +25,7 @@ export default async function init(window, config = null) {
     const _meta = await createParams.call(Ctxt, {
 		attr: {
             namespace: 'namespace',
-            id: 'data-id',
+            id: 'id',
         },
         api: {
             namespace: 'namespace',

@@ -36,12 +36,20 @@ export default async function init(window, config = null) {
             exportgroup: 'exportgroup',
         },
         api: {
+            template: '',
             templates: 'templates',
             exports: 'exports',
             templatedep: 'template',
         },
     }, config);
     const templateSelector = 'template' + (_meta.element.template ? '[is="' + _meta.element.template + '"]' : '') + '[' + window.CSS.escape(_meta.attr.templatename) + ']';
+    var TemplateElementClass = window.HTMLTemplateElement;
+    if (_meta.api.template) {
+        if (!window[_meta.api.template]) {
+            throw new Error('The custom element class "' + _meta.api.template + '" is not defined!');
+        }
+        TemplateElementClass = window[_meta.api.template];
+    }
 
     // ----------------------
     // Capture template elements
@@ -100,9 +108,7 @@ export default async function init(window, config = null) {
                 return;
             }
             var templateName, exportId;
-            if ((el instanceof window.HTMLTemplateElement) 
-            && (!_meta.element.template || el.matches('[is="' + _meta.element.template + '"]')) 
-            && (templateName = el.getAttribute(_meta.attr.templatename))) {
+            if (el.matches(templateSelector) && (templateName = el.getAttribute(_meta.attr.templatename))) {
                 var _path = (path ? path + '/' : '') + templateName;
                 if (mutationType === 'removed') {
                     delete getOohtmlBase(node).templates[templateName];
@@ -213,27 +219,23 @@ export default async function init(window, config = null) {
     Object.defineProperty(document, _meta.api.templates, {
         value: getOohtmlBase(document).templates,
     });
-    Object.defineProperty(document, 'templatesReadyState', {
-        value: 'loading',
-        writable: true,
-    });
 
     // ----------------------
     // Define the "templates" and "exports" properties on HTMLTemplateElement.prototype
     // ----------------------
 
-    if (_meta.api.templates in window.HTMLTemplateElement.prototype) {
+    if (_meta.api.templates in TemplateElementClass.prototype) {
         throw new Error('The "HTMLTemplateElement" class already has a "' + _meta.api.templates + '" property!');
     }
-    Object.defineProperty(window.HTMLTemplateElement.prototype, _meta.api.templates, {
+    Object.defineProperty(TemplateElementClass.prototype, _meta.api.templates, {
         get: function() {
             return getOohtmlBase(this).templates || {};
         }
     });
-    if (_meta.api.exports in window.HTMLTemplateElement.prototype) {
+    if (_meta.api.exports in TemplateElementClass.prototype) {
         throw new Error('The "HTMLTemplateElement" class already has a "' + _meta.api.exports + '" property!');
     }
-    Object.defineProperty(window.HTMLTemplateElement.prototype, _meta.api.exports, {
+    Object.defineProperty(TemplateElementClass.prototype, _meta.api.exports, {
         get: function() {
             return getOohtmlBase(this).exports || {};
         }
@@ -250,13 +252,11 @@ export default async function init(window, config = null) {
             if (presence) {
                 getOohtmlBase(document).templates[name] = el;
                 discoverContents(el.content, el, name, 'added');
-                fireDocumentTemplateEvent('addedTemplates', el, name);
             } else {
                 if (getOohtmlBase(document).templates[name] === el) {
                     delete getOohtmlBase(document).templates[name];
                 }
                 discoverContents(el.content, el, name, 'removed');
-                fireDocumentTemplateEvent('removedTemplates', el, name);
             }
         });
     });
@@ -272,16 +272,9 @@ export default async function init(window, config = null) {
         get: function() {
             var templateId = this.getAttribute(_meta.attr.templatedep);
             if (templateId) {
-                if (!getOohtmlBase(this).templates) {
-                    getOohtmlBase(this).templates = {};
-                }
-                if (!getOohtmlBase(this).templates[templateId] || !this.hasAttribute('cache-template')) {
-                    var imported = templateId.split('/').map(n => n.trim()).filter(n => n).reduce((context, item) => {
-                        return context ? getOohtmlBase(context).templates[item] || getOohtmlBase(context).templates['*'] : null;
-                    }, document);
-                    getOohtmlBase(this).templates[templateId] = imported;
-                }
-                return getOohtmlBase(this).templates[templateId];
+                return templateId.split('/').map(n => n.trim()).filter(n => n).reduce((context, item) => {
+                    return context ? getOohtmlBase(context).templates[item] || getOohtmlBase(context).templates['*'] : null;
+                }, document);
             }
         },
     });
@@ -290,15 +283,17 @@ export default async function init(window, config = null) {
     // Hydrate
     // ----------------------
 
-    Object.defineProperty(Ctxt, 'templatesReady', {value: Ctxt.ready.then(() => {
+    var templatesReadyState = loadingTemplates.length ? 'loading' : 'indeterminate';
+    Object.defineProperty(document, 'templatesReadyState', {get: () => templatesReadyState});
+    Ctxt.ready.then(() => {
         loadingTemplates.forEach(promise => {
             promise.catch(error => {
                 console.warn(error);
             });
         });
         return Promise.all(loadingTemplates).then(() => {
-            document.templatesReadyState = 'complete';
+            templatesReadyState = 'complete';
             document.dispatchEvent(new window.Event('templatesreadystatechange'));
         });
-    })});
+    });
 };

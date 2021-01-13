@@ -13,7 +13,7 @@ import Scope from './Scope.js';
 
 /**
  * ---------------------------
- * The ScopedJS class
+ * The Reflex class
  * ---------------------------
  */		
 
@@ -29,7 +29,7 @@ export default async function init(window, config = null) {
     const globalRuntimeInitializationWaitlist = [];
     var globalRuntimeInitialized = false;
     const _meta = await createParams.call(Ctxt, {
-        selectors: {script: 'script[type="subscript"]',},
+        selectors: {script: 'script[type="reflex"]',},
         api: {bind: 'bind', unbind: 'unbind',},
         script: {},
     }, config);
@@ -49,7 +49,7 @@ export default async function init(window, config = null) {
         if (!oohtmlBase.scopedJS) {
             // Create scope
             oohtmlBase.scopedJS = {
-                scope: Scope.createStack([{}/** bindings scope */, {this: undefined}/** the "this" scope */, globalScopeInstance/** global scope */], scopeParams, {
+                scope: Scope.createStack([{}/** bindings scope */, _objectUtil.setVal({}, 'this', target)/** the "this" scope */, globalScopeInstance/** global scope */], scopeParams, {
                     set: _objectUtil.setVal,
                 }),
             };
@@ -126,7 +126,7 @@ export default async function init(window, config = null) {
             explain: shouldExplain ? explain : null,
         });
         if (scriptElement.hasAttribute('scoped')) {
-            _objectUtil.setVal(scriptBase.scope.stack.super.stack.main, 'this', parentNode);
+            //_objectUtil.setVal(scriptBase.scope.stack.super.stack.main, 'this', parentNode);
         }
         if (shouldExplain) {
             scriptBase.console.logs.push(explain);
