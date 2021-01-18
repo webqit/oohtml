@@ -11,11 +11,11 @@ module.exports = {
 	mode: 'production',
 	entry: {
 		main: './src/browser-entry.js',
-		'namespaced-html': './src/namespaced-html/browser-entry.js',
 		'html-modules': './src/html-modules/browser-entry.js',
 		'html-imports': './src/html-imports/browser-entry.js',
-		'state': './src/state/browser-entry.js',
-		'reflex': './src/reflex/browser-entry.js',
+		'state-api': './src/state-api/browser-entry.js',
+		'namespaced-html': './src/namespaced-html/browser-entry.js',
+		'reflex-scripts': './src/reflex-scripts/browser-entry.js',
 	},
 	output: {
 		filename: '[name].js',

@@ -5,12 +5,12 @@
 import DOMInit from '@webqit/browser-pie/src/dom/index.js';
 import ENV from '@webqit/browser-pie/src/ENV.js';
 import Observer from '@webqit/observer';
-import Subscript from '@webqit/subscript';
-import State from './state/index.js';
-import NamespacedHTML from './namespaced-html/index.js';
+import * as Subscript from '@webqit/subscript';
 import HTMLModules from './html-modules/index.js';
-import Reflex from './reflex/index.js';
 import HTMLImports from './html-imports/index.js';
+import State from './state-api/index.js';
+import NamespacedHTML from './namespaced-html/index.js';
+import ReflexScripts from './reflex-scripts/index.js';
 import { meta } from './util.js';
 
 /**
@@ -26,11 +26,11 @@ export default function init(window, config = null) {
     // --------------
     const OOHTML = ENV.create(window, 'OOHTML');
     OOHTML.ready = Promise.all([
+        HTMLModules(window, config),
+        HTMLImports(window, config),
         State(window, config),
         NamespacedHTML(window, config),
-        HTMLModules(window, config),
-        Reflex(window, config),
-        HTMLImports(window, config),
+        ReflexScripts(window, config),
     ]);
     OOHTML.meta = (...args) => {
         return meta.call(Ctxt, ...args);

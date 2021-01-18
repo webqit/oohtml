@@ -3,13 +3,12 @@
  * @imports
  */
 import DOMInit from '@webqit/browser-pie/src/dom/index.js';
-import Subscript from '@webqit/subscript';
+import { Parser, Runtime, Scope } from '@webqit/subscript';
 import { Block } from '@webqit/subscript/src/grammar.js';
 import _merge from '@webqit/util/obj/merge.js';
 import _remove from '@webqit/util/arr/remove.js';
 import _isFunction from '@webqit/util/js/isFunction.js';
 import { getOohtmlBase, objectUtil, createParams } from '../util.js';
-import Scope from './Scope.js';
 
 /**
  * ---------------------------
@@ -87,7 +86,7 @@ export default async function init(window, config = null) {
             trap: Ctxt.Observer,
         };
         if (targetScriptBase.AST) {
-            var returnValue = targetScriptBase.AST.eval(targetScriptBase.scope, params);
+            var returnValue = Runtime.eval(targetScriptBase.AST, targetScriptBase.scope, params);
             if (_isFunction(returnValue)) {
                 returnValue(targetScriptBase.scope.stack.main);
             }
@@ -291,8 +290,8 @@ export default async function init(window, config = null) {
  */
 function parse(script, params = {}) {
     var AST;
-    if (!(AST = Subscript.parse(script, [Block], _merge({assert:false}, params)))) {
-        AST = new Block([Subscript.parse(script, null, params)]);
+    if (!(AST = Parser.parse(script, [Block], _merge({assert:false}, params)))) {
+        AST = new Block([Parser.parse(script, null, params)]);
     }
     return AST;
 }

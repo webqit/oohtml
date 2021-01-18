@@ -30,8 +30,8 @@ export default async function init(window, config = null) {
             export: 'html-export',
         },
 		attr: {
-            templatename: 'name',
-            templatedep: 'template',
+            moduleid: 'name',
+            moduleref: 'template',
             exportid: 'name',
             exportgroup: 'exportgroup',
         },
@@ -39,10 +39,10 @@ export default async function init(window, config = null) {
             template: '',
             templates: 'templates',
             exports: 'exports',
-            templatedep: 'template',
+            moduleref: 'template',
         },
     }, config);
-    const templateSelector = 'template' + (_meta.element.template ? '[is="' + _meta.element.template + '"]' : '') + '[' + window.CSS.escape(_meta.attr.templatename) + ']';
+    const templateSelector = 'template' + (_meta.element.template ? '[is="' + _meta.element.template + '"]' : '') + '[' + window.CSS.escape(_meta.attr.moduleid) + ']';
     var TemplateElementClass = window.HTMLTemplateElement;
     if (_meta.api.template) {
         if (!window[_meta.api.template]) {
@@ -64,7 +64,8 @@ export default async function init(window, config = null) {
                 Object.defineProperty(value, listType, {value: Object.keys(value[listType]).map(name => ({name, item: value[listType][name]}))});
             });
         }
-        document.dispatchEvent(new window.CustomEvent(type, {detail: {value, path}}));
+        Object.defineProperty(value, 'path', {value: path});
+        document.dispatchEvent(new window.CustomEvent(type, {detail: value}));
     };
 
     const fireTemplateEvent = (template, type, path) => {
@@ -81,14 +82,14 @@ export default async function init(window, config = null) {
                 }).then(content => {
                     template.innerHTML = content;
                     fireTemplateEvent(template, 'load', path);
-                    fireDocumentTemplateEvent('templatecontentloaded', template, path);
+                    fireDocumentTemplateEvent('templatecontentloaded', {template}, path);
                     resolve(template);
                 }).catch(error => {
                     console.error('Error fetching the bundle at ' + src + '. (' + error + ')');
                     // Dispatch the event.
                     template.innerHTML = '';
                     fireTemplateEvent(template, 'loaderror', path);
-                    fireDocumentTemplateEvent('templatecontentloaderror', template, path);
+                    fireDocumentTemplateEvent('templatecontentloaderror', {template}, path);
                     resolve(template);
                 });
             } else {
@@ -108,7 +109,7 @@ export default async function init(window, config = null) {
                 return;
             }
             var templateName, exportId;
-            if (el.matches(templateSelector) && (templateName = el.getAttribute(_meta.attr.templatename))) {
+            if (el.matches(templateSelector) && (templateName = el.getAttribute(_meta.attr.moduleid))) {
                 var _path = (path ? path + '/' : '') + templateName;
                 if (mutationType === 'removed') {
                     delete getOohtmlBase(node).templates[templateName];
@@ -242,35 +243,39 @@ export default async function init(window, config = null) {
     });
 
     _arrFrom(document.querySelectorAll(templateSelector)).forEach(async el => {
-        var name = el.getAttribute(_meta.attr.templatename);
+        var name = el.getAttribute(_meta.attr.moduleid);
         getOohtmlBase(document).templates[name] = el;
         discoverContents(el.content, el, name, 'added', false);
     });
     Ctxt.Mutation.onPresenceChange(templateSelector, async (els, presence) => {
+        const eventsObject = { addedTemplates: {}, removedTemplates: {}, addedExports: {}, removedExports: {}, }; 
         els.forEach(el => {
-            var name = el.getAttribute(_meta.attr.templatename);
+            var name = el.getAttribute(_meta.attr.moduleid);
             if (presence) {
                 getOohtmlBase(document).templates[name] = el;
                 discoverContents(el.content, el, name, 'added');
+                eventsObject.addedTemplates[name] = el;
             } else {
                 if (getOohtmlBase(document).templates[name] === el) {
                     delete getOohtmlBase(document).templates[name];
                 }
                 discoverContents(el.content, el, name, 'removed');
+                eventsObject.removedTemplates[name] = el;
             }
         });
+        fireDocumentTemplateEvent('templatemutation', eventsObject, '');
     });
 
     // ----------------------
     // Define the "template" property on Element.prototype
     // ----------------------
 
-    if (_meta.api.templatedep in window.Element.prototype) {
-        throw new Error('The "Element" class already has a "' + _meta.api.templatedep + '" property!');
+    if (_meta.api.moduleref in window.Element.prototype) {
+        throw new Error('The "Element" class already has a "' + _meta.api.moduleref + '" property!');
     }
-    Object.defineProperty(window.Element.prototype, _meta.api.templatedep, {
+    Object.defineProperty(window.Element.prototype, _meta.api.moduleref, {
         get: function() {
-            var templateId = this.getAttribute(_meta.attr.templatedep);
+            var templateId = this.getAttribute(_meta.attr.moduleref);
             if (templateId) {
                 return templateId.split('/').map(n => n.trim()).filter(n => n).reduce((context, item) => {
                     return context ? getOohtmlBase(context).templates[item] || getOohtmlBase(context).templates['*'] : null;

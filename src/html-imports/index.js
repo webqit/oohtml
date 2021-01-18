@@ -33,10 +33,11 @@ export default async function init(window, config = null) {
         },
 		attr: {
             importid: 'name',
+            templatespec: 'template-specificity',
         },
     }, config);
-    _defaultNoInherits.push(_meta.attr.importid, _meta.attr.templatedep);
-    const templatedepSelector = '[' + window.CSS.escape(_meta.attr.templatedep) + ']';
+    _defaultNoInherits.push(_meta.attr.importid, _meta.attr.moduleref);
+    const modulerefSelector = '[' + window.CSS.escape(_meta.attr.moduleref) + ']';
     const exportgroupSelector = '[' + window.CSS.escape(_meta.attr.exportgroup) + ']';
 
     // ----------------------
@@ -89,8 +90,8 @@ export default async function init(window, config = null) {
                 getOohtmlBase(this.el).anchorNode = _meta.isomorphic
                     ? document.createComment(this.el.outerHTML)
                     : document.createTextNode('');
-                getOohtmlBase(this.el).compositionBlock = !this.el.hasAttribute(_meta.attr.templatedep)
-                    ? this.el.parentNode.closest(templatedepSelector)
+                getOohtmlBase(this.el).compositionBlock = !this.el.hasAttribute(_meta.attr.moduleref)
+                    ? this.el.parentNode.closest(modulerefSelector)
                     : null;
                 this._connectToCompositionBlock();
             }
@@ -154,8 +155,8 @@ export default async function init(window, config = null) {
                 return;
             }
             var getPartials = templateSource => {
-                var template, exports, [ tempSpecA, tempSpecB ] = (this.el.getAttribute('template-fallback') || '').split('-').map(a => parseInt(a)).concat([0, 0]);
-                var path = templateSource.getAttribute(_meta.attr.templatedep).split('/').map(n => n.trim()).filter(n => n);
+                var template, exports, [ tempSpecA, tempSpecB ] = (this.el.getAttribute(_meta.attr.templatespec) || '').split('-').map(a => parseInt(a)).concat([0, 0]);
+                var path = templateSource.getAttribute(_meta.attr.moduleref).split('/').map(n => n.trim()).filter(n => n);
                 var get = path => path.reduce((context, item, i) => {
                     return context ? getOohtmlBase(context).templates[item] || getOohtmlBase(context).templates['*'] : null;
                 }, document);
@@ -168,7 +169,7 @@ export default async function init(window, config = null) {
             // -----------------
             // Global import or scoped slot?
             var templateSource, exports;
-            if (this.el.hasAttribute(_meta.attr.templatedep)) {
+            if (this.el.hasAttribute(_meta.attr.moduleref)) {
                 // Did we previously had a compositionBlock?
                 // Let's remove ourself
                 if (this.compositionBlock && getOohtmlBase(this.compositionBlock).imports[this.name] === this.el) {
@@ -214,7 +215,7 @@ export default async function init(window, config = null) {
             exports.forEach(_export => {
                 // ---------------------
                 // Implement the slot?
-                if (_export.getAttribute(_meta.attr.templatedep) === '@slot') {
+                if (_export.getAttribute(_meta.attr.moduleref) === '@slot') {
                     if (!getOohtmlBase(_export).templates) {
                         getOohtmlBase(_export).templates = {};
                     }
@@ -329,7 +330,7 @@ export default async function init(window, config = null) {
     // ----------------------
     
     const resolveSlots = (el, exportName) => {
-        const shouldResolve = (importEl, importName) => !exportName || importName === exportName || (exportName === true && importEl.getAttribute('template-fallback'));
+        const shouldResolve = (importEl, importName) => !exportName || importName === exportName || (exportName === true && importEl.getAttribute(_meta.attr.templatespec));
         if (el.matches(_meta.element.import)) {
             var importElInstance = Import.create(el);
             if (shouldResolve(el, importElInstance.name)) {
@@ -345,7 +346,7 @@ export default async function init(window, config = null) {
         }
     };
 
-    Ctxt.Mutation.onPresent(templatedepSelector, el => {
+    Ctxt.Mutation.onPresent(modulerefSelector, el => {
         if (_any(importInertContexts, inertContext => el.closest(inertContext))) {
             return;
         }
@@ -356,15 +357,18 @@ export default async function init(window, config = null) {
             if (mr[0].target.getAttribute(mr[0].attributeName) !== mr[0].oldValue) {
                 resolveSlots(el);
             }
-        }, [_meta.attr.templatedep]);
+        }, [_meta.attr.moduleref]);
     });
 
     document.addEventListener('templatemutation', e => {
         // Resolve slots when the referenced template changes
-        const templatedepSelector = [e.detail.path, e.detail.path + '/'].map(path => '[' + window.CSS.escape(_meta.attr.templatedep) + '="' + path + '"]').join(',');
-        _arrFrom(document.querySelectorAll(templatedepSelector)).forEach(el => {
+        if (!e.detail.path) {
+            return;
+        }
+        const modulerefSelector = [e.detail.path, e.detail.path + '/'].map(path => '[' + window.CSS.escape(_meta.attr.moduleref) + '="' + path + '"]').join(',');
+        _arrFrom(document.querySelectorAll(modulerefSelector)).forEach(el => {
             resolveSlots(el, true);
-            e.detail.value.addedExports.concat(e.detail.value.removedExports).forEach(exportGroup => {
+            e.detail.addedExports.concat(e.detail.removedExports).forEach(exportGroup => {
                 resolveSlots(el, exportGroup.name);
             });
         });
@@ -391,8 +395,8 @@ export default async function init(window, config = null) {
                         if ((importEl = reviver.firstChild).matches(_meta.element.import)) {
                             // Belongs to a composition block?
                             var compositionBlock;
-                            if (!importEl.hasAttribute(_meta.attr.templatedep)) {
-                                compositionBlock = node.parentNode.closest(templatedepSelector);
+                            if (!importEl.hasAttribute(_meta.attr.moduleref)) {
+                                compositionBlock = node.parentNode.closest(modulerefSelector);
                             }
                             var importElInstance = Import.create(importEl);
                             importElInstance.hydrate(node, slottedElements, compositionBlock);
