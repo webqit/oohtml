@@ -17,13 +17,13 @@
 ## Features
 OOHTML proposes five new features to native web languages to make common UI design terminologies possible natively. These features may be used individually or together to improve how we author UI code.
 
-+ [HTML Modules](https://github.com/webqit/docs/tree/master/oohtml#html-modules)
-+ [HTML Imports](https://github.com/webqit/docs/tree/master/oohtml#html-imports)
-+ [The State API](https://github.com/webqit/docs/tree/master/oohtml#the-state-api)
-+ [Reflex Scripts](https://github.com/webqit/docs/tree/master/oohtml#reflex-scripts)
-+ [Namespaced HTML](https://github.com/webqit/docs/tree/master/oohtml#namespaced-html)
++ [HTML Modules](#html-modules)
++ [HTML Imports](#html-imports)
++ [Namespaced HTML](#namespaced-html)
++ [The State API](#the-state-api)
++ [Subscript](#subscript)
 
-Everthing about OOHTML is currently available through a [polyfill](https://github.com/webqit/docs/tree/master/oohtml/polyfill). Be sure to check polyfill support in each feature.
+> OOHTML is currently available through a [polyfill](https://github.com/webqit/docs/tree/master/oohtml/polyfill). Be sure to check polyfill support in each feature.
 
 ### HTML Modules
 HTML Modules is a new DOM feature that lets us work with `<template>` elements and their contents using the *modules*, *imports* and *exports* paradigm. It introduces a clear naming convention for easy access to these elements and for organizing them *meaningfully* in a document.
@@ -104,7 +104,7 @@ Taking things further, template elements may reference remote content using the 
 
 The contents of the remote file automatically becomes the template's content on load.
 
-*Details are in the [HTML Modules](https://github.com/webqit/docs/tree/master/oohtml/html-modules) section. Learn more about the convention, API, events, and the polyfill support.*
+*Details are in the [HTML Modules](https://github.com/webqit/docs/tree/master/oohtml/html-modules) documentation. Learn more about the convention, API, events, and the polyfill support.*
 
 ### HTML Imports
 HTML Imports are a declarative way to place reusable snippets from HTML Modules just where they are needed across the DOM.
@@ -161,165 +161,7 @@ document.querySelector('div[template="module1"]').setAttribute('template', 'modu
 
 This opens up new simple ways to create very dynamic applications. [Think a Single Page Application](https://github.com/webqit/docs/tree/master/oohtml/examples/spa) (SPA).
 
-*Details are in the [HTML Imports](https://github.com/webqit/docs/tree/master/oohtml/html-imports) section. Learn more about the convention, dynamicity, Slot Inheritance, isomorphic rendering, and the polyfill support.*
-
-### The State API
-The State API is a DOM feature that lets us maintain application state at both the document level and the individual element levels. It makes it easy to think about application state at different levels in the DOM tree and to keep track of changes at each level.
-
-This API exposes a `.state` property on the document object and on elements. Arbitrary values can be set and read here the same way we work with regular objects.
-
-```js
-// At the document level
-document.state.pageTitle = 'Hello World!';
-console.log(document.state.pageTitle); // Hello World!
-
-// At the element level
-element.state.collapsed = true;
-console.log(element.state.collapsed); // true
-```
-
-*State Objects* are *live objects* that can be observed for changes using the [Observer API](https://github.com/webqit/docs/tree/master/oohtml/the-observer-api).
-
-```js
-Observer.observe(document.state, 'pageTitle', e => {
-    console.log('New Page Title: ' + e.value);
-    // Or we could reflect this state on the document title element
-    document.querySelector('title').innerHTML = e.value;
-});
-```
-
-This lets us build very reactive applications natively.
-
-Using an element's state API, we could make a practical *collapsible* component.
-
-```js
-customElements.define('my-collapsible', class extends HTMLElement {
-
-    /**
-     * Creates the Shadow DOM
-     */
-    constructor() {
-        super();
-        // Observe state and get the UI synced
-        let contentElement = this.querySelector('.content');
-        Observer.observe(this.state, 'collapsed', e => {
-            contentElement.style.height = e.value ? '0px' : 'auto';
-            this.setAttribute('data-collapsed', e.value ? 'true' : 'false');
-        });
-
-        // Implement the logic for toggling collapsion
-        let controlElement = this.querySelector('.control');
-        controlElement.addEventListener('click', function() {
-            this.state.collapsed = !this.state.collapsed;
-        });
-    }
-
-});
-```
-
-```html
-<my-collapsible>
-    <div class="control">Toggle Me</div>
-    <div class="content" style="height: 0px">
-        Some content
-    </div>
-</my-collapsible>
-```
-
-And other parts of the application can be in sync with its state.
-
-```js
-let collapsible = document.querySelector('my-collapsible');
-Observer.observe(collapsible.state, 'collapsed', e => {
-    console.log(e.value ? 'element collapsed' : 'element expanded');
-});
-```
-
-*Details are in the [State API](https://github.com/webqit/docs/tree/master/oohtml/the-state-api) section. Learn more about the API, deep observability, and the polyfill support.*
-
-### Reflex Scripts
-Reflex scripts are a new type of `<script>` elements that works as a *data binding* language for the UI. They are *scoped* to their immediate host elements instead of the global browser scope. These important features make Reflex scripts an exciting way to apply behaviour to modular markup, giving us the ability to have some logic without some JavaScript file.
-
-The following `<script>` element is scoped to the `#alert` element - its host element:
-
-```html
-<div id="alert">
-
-    <div class="message"></div>
-    <div class="exit" title="Close this message.">X</div>
-
-    <script type="reflex">
-        this.querySelector('.exit').addEventListener('click', () => {
-            this.remove();
-        });
-    </script>
-
-</div>
-```
-
-And we can render values from the global scope or from the element itself.
-
-```html
-<body>
-
-    <div id="alert">
-
-        <div class="message"></div>
-        <div class="exit" title="Close this message.">X</div>
-
-        <script type="reflex">
-            // Render the "message" property from the element's state object
-            this.querySelector('.message').innerHTML = this.state.message;
-            this.querySelector('.exit').addEventListener('click', () => {
-                this.remove();
-            });
-        </script>
-
-    </div>
-
-<body>
-```
-
-Then the reactive part! Reflex scripts are always in sync with any observable properties that may be referenced in their statements. Statements are re-executed whenever the observable properties they depend on change. Thus, in the code above, changes to the observable property `.state.message` will trigger that specific statement to run again.
-
-```js
-let alertElement = document.querySelector('#alert');
-alertElement.state.message = 'Task started!';
-setTimeout(() => {
-    alertElement.state.message = 'Task complete!';
-}, 1000);
-```
-
-The `<my-collapsible>` component we created in the section above could as well be implemented with Reflex this way.
-
-```html
-<div id="collapsible">
-    
-    <div class="control">Toggle Me</div>
-    <div class="content" style="height: 0px">
-        Some content
-    </div>
-
-    <script type="reflex">
-        // Observe state and get the UI synced
-        let contentElement = this.querySelector('.content');
-        // Without requiring Observer.observe() here...
-        contentElement.style.height = this.state.collapsed ? '0px' : 'auto';
-        this.setAttribute('data-collapsed', this.state.collapsed ? 'true' : 'false');
-
-        // Implement the logic for toggling collapsion
-        let controlElement = this.querySelector('.control');
-        controlElement.addEventListener('click', function() {
-            this.state.collapsed = !this.state.collapsed;
-        });
-    </script>
-
-</div>
-```
-
-> Sometimes, we do not even need as much as a custom element to bring life to some spot in the UI.
-
-*Details are in the [Reflex Scripts](https://github.com/webqit/docs/tree/master/oohtml/reflex-scripts) section. Learn more about Reflex Actions, deep observability, bindings, the API, error handling, and the polyfill support.*
+*Details are in the [HTML Imports](https://github.com/webqit/docs/tree/master/oohtml/html-imports) documentation. Learn more about the convention, dynamicity, Slot Inheritance, isomorphic rendering, and the polyfill support.*
 
 ### Namespaced HTML
 Namespacing is a DOM feature that let's an element establish its own naming context for descendant elements. It makes it possible to keep IDs scoped to a context other than the document's global scope.
@@ -367,7 +209,7 @@ let aboutAsia = continents.namespace.asia.namespace.about;
 
 We get a document structure that's easier to reason about and to work with.
 
-One advantage of the Namespace API is that it minimizes selector-based queries. Much of our code in the examples above could go without the `.querySelector()` function. For example, below is a *namespaced* version of the *my-collapsible* element we created in the section for [The State API](https://github.com/webqit/docs/tree/master/oohtml/the-state-api) above.
+One advantage of the Namespace API is that it minimizes selector-based queries. Much of our code in the examples above could go without the `.querySelector()` function. For example, below is a *namespaced* version of the *my-collapsible* element we created in the section for *The State API* [above](#the-state-api).
 
 ```html
 <my-collapsible namespace>
@@ -403,20 +245,160 @@ customElements.define('my-collapsible', class extends HTMLElement {
 });
 ```
 
-And below is a *namespaced* version of the Reflex-based *collapsible* element we created in the section for [Reflex Scripts](https://github.com/webqit/docs/tree/master/oohtml/reflex-scripts) above.
+*Details are in the [Namespaced HTML](https://github.com/webqit/docs/tree/master/oohtml/namespaced-html) documentation. Learn more about the convention, Namespaced Selectors, API, observability, and the polyfill support.*
+
+### The State API
+The State API is a DOM feature that lets us maintain application state at both the document level and the individual element level. It makes it easy to think about application state at different levels in the DOM tree and to keep track of changes at each level.
+
+This API exposes a `.state` property on the document object and on elements. Arbitrary values can be set and read here the same way we work with regular objects.
+
+```js
+// At the document level
+document.state.pageTitle = 'Hello World!';
+console.log(document.state.pageTitle); // Hello World!
+
+// At the element level
+element.state.collapsed = true;
+console.log(element.state.collapsed); // true
+```
+
+*State Objects* are *live objects* that can be observed for changes using the [Observer API](https://github.com/webqit/docs/tree/master/oohtml/the-observer-api).
+
+```js
+Observer.observe(document.state, 'pageTitle', e => {
+    console.log('New Page Title: ' + e.value);
+    // Or we could reflect this state on the document title element
+    document.querySelector('title').innerHTML = e.value;
+});
+```
+
+This lets us build very reactive applications natively.
+
+Using an element's state API, we could make a practical *collapsible* component.
 
 ```html
-<div id="collapsible" namespace>
-    
+<my-collapsible namespace>
     <div id="control">Toggle Me</div>
     <div id="content" style="height: 0px">
         Some content
     </div>
+</my-collapsible>
+```
 
-    <script type="reflex">
-        this.namespace.content.style.height = this.state.collapsed ? '0px' : 'auto';
-        this.setAttribute('data-collapsed', this.state.collapsed ? 'true' : 'false');
+```js
+customElements.define('my-collapsible', class extends HTMLElement {
+
+    /**
+     * Creates the Shadow DOM
+     */
+    constructor() {
+        super();
+        // Observe state and get the UI synced
+        Observer.observe(this.state, 'collapsed', e => {
+            this.namespace.content.style.height = e.value ? '0px' : 'auto';
+            this.setAttribute('data-collapsed', e.value ? 'true' : 'false');
+        });
+
+        // Implement the logic for toggling collapsion
         this.namespace.control.addEventListener('click', function() {
+            this.state.collapsed = !this.state.collapsed;
+        });
+    }
+
+});
+```
+
+And other parts of the application can be in sync with its state.
+
+```js
+let collapsible = document.querySelector('my-collapsible');
+Observer.observe(collapsible.state, 'collapsed', e => {
+    console.log(e.value ? 'element collapsed' : 'element expanded');
+});
+```
+
+*Details are in the [State API](https://github.com/webqit/docs/tree/master/oohtml/the-state-api) documentation. Learn more about the API, deep observability, and the polyfill support.*
+
+### Subscript
+Subscript is a type of JavaScript runtime that lets us create scoped, *reactive* `<script>` elements across the UI. That gives us a UI binding language and the ability to have UI logic without involving an actual JavaScript file.
+
+The following `<script>` element is scoped to the `#alert` element - its host element - instead of the global browser scope:
+
+```html
+<div id="alert">
+    <script type="subscript">
+    </script>
+</div>
+```
+
+The `this` variable is a reference to the script's host element; variables declared within the script are available only within the script, and global variables are always available.
+
+```html
+<div id="alert" namespace>
+
+    <div id="message"></div>
+    <div id="exit" title="Close this message.">X</div>
+
+    <script type="subscript">
+        this.namespace.exit.addEventListener('click', () => {
+            this.remove();
+        });
+    </script>
+
+</div>
+```
+
+And we can render values from the global scope or from the element itself.
+
+```html
+<body>
+
+    <div id="alert" namespace>
+
+        <div id="message"></div>
+        <div id="exit" title="Close this message.">X</div>
+
+        <script type="subscript">
+            // Render the "message" property from the element's state object
+
+            this.namespace.message.innerHTML = this.state.message;
+            this.namespace.exit.addEventListener('click', () => {
+                this.remove();
+            });
+        </script>
+
+    </div>
+
+<body>
+```
+
+Then reactivity! Subscript code is reactive in behaviour and runs in sync with any observable properties that may be referenced in their statements. Statements are re-executed whenever the observable properties they depend on change. Thus, in the code above, changes to the observable property `.state.message` will trigger that specific statement to run again.
+
+```js
+let alertElement = document.querySelector('#alert');
+alertElement.state.message = 'Task started!';
+setTimeout(() => {
+    alertElement.state.message = 'Task complete!';
+}, 1000);
+```
+
+The `<my-collapsible>` component we created in the section above could as well be implemented with Subscript this way.
+
+```html
+<div id="collapsible">
+    
+    <div class="control">Toggle Me</div>
+    <div class="content" style="height: 0px">
+        Some content
+    </div>
+
+    <script type="subscript">
+        // Observe state and get the UI synced, without requiring Observer.observe() here...
+
+        this.setAttribute('data-collapsed', this.state.collapsed ? 'true' : 'false');
+        this.namespace.content.style.height = this.state.collapsed ? '0px' : 'auto';
+        this.namespace.control.addEventListener('click', function() {
+            // Toggle collapsion state
             this.state.collapsed = !this.state.collapsed;
         });
     </script>
@@ -424,7 +406,9 @@ And below is a *namespaced* version of the Reflex-based *collapsible* element we
 </div>
 ```
 
-*Details are in the [Namespaced HTML](https://github.com/webqit/docs/tree/master/oohtml/namespaced-html) section. Learn more about the convention, Namespaced Selectors, API, observability, and the polyfill support.*
+> Sometimes, we do not even need as much as a custom element to bring life to some spot in the UI.
+
+*Details are in the [Subscript](https://github.com/webqit/docs/tree/master/oohtml/subscript) documentation. Learn more about the event-based runtime, deep observability, bindings, the API, error handling, and the polyfill support.*
 
 ## Design Goals
 See the [features explainer](https://github.com/webqit/docs/tree/master/oohtml/explainer).
@@ -436,10 +420,10 @@ See the [features explainer](https://github.com/webqit/docs/tree/master/oohtml/e
 
     If you indeed have a usecase for all, or aspects, of OOHTML, or have some opinions, you should please join the discussion at the [WICG](https://discourse.wicg.io/t/proposal-chtml/4716).
     
-    If you are building something early with it (just as we are building [webqit.io](https://webqit.io) with it), we'd like to hear from you via any means - [WICG](https://discourse.wicg.io/t/proposal-chtml/4716), [email](oxharris.dev@gmail.com), [issue](https://github.com/webqit/oohtml/issues). And Pull Requests are very welcomed!
+    If you are building something early with it (just as we are building [webqit.io](//webqit.io) with it), we'd like to hear from you via any means - [WICG](https://discourse.wicg.io/t/proposal-chtml/4716), [email - oxharris.dev@gmail.com], [issue](https://github.com/webqit/oohtml/issues). And Pull Requests are very welcomed!
 + They have to go through a million iterations! And much in dollars go into that!
 
-    If you could help in some way, we'd be more than glad! If you'd like to find out how to, or whether as much as $1 counts, or if there are perks for supporting, you should indeed reach out [here](oxharris.dev@gmail.com).
+    If you could help in some way, we'd be more than glad! If you'd like to find out how to, or whether as much as $1 counts, or if there are perks for supporting, you should indeed reach out - oxharris.dev@gmail.com.
 
 ## FAQs
 We are working on publishing some questions we've been asked, but you can always file an [issue](https://github.com/webqit/oohtml/issues) to ask a new question or raise a suggestion.

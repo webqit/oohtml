@@ -8,9 +8,9 @@ import Observer from '@webqit/observer';
 import * as Subscript from '@webqit/subscript';
 import HTMLModules from './html-modules/index.js';
 import HTMLImports from './html-imports/index.js';
-import State from './state-api/index.js';
 import NamespacedHTML from './namespaced-html/index.js';
-import ReflexScripts from './reflex-scripts/index.js';
+import StateAPI from './state-api/index.js';
+import HTMLSubscript from './subscript/index.js';
 import { meta } from './util.js';
 
 /**
@@ -28,9 +28,9 @@ export default function init(window, config = null) {
     OOHTML.ready = Promise.all([
         HTMLModules(window, config),
         HTMLImports(window, config),
-        State(window, config),
         NamespacedHTML(window, config),
-        ReflexScripts(window, config),
+        StateAPI(window, config),
+        HTMLSubscript(window, config),
     ]);
     OOHTML.meta = (...args) => {
         return meta.call(Ctxt, ...args);

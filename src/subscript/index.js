@@ -28,7 +28,7 @@ export default async function init(window, config = null) {
     const globalRuntimeInitializationWaitlist = [];
     var globalRuntimeInitialized = false;
     const _meta = await createParams.call(Ctxt, {
-        selectors: {script: 'script[type="reflex"]',},
+        selectors: {script: 'script[type="subscript"]',},
         api: {bind: 'bind', unbind: 'unbind',},
         script: {},
     }, config);

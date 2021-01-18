@@ -15,7 +15,7 @@ module.exports = {
 		'html-imports': './src/html-imports/browser-entry.js',
 		'state-api': './src/state-api/browser-entry.js',
 		'namespaced-html': './src/namespaced-html/browser-entry.js',
-		'reflex-scripts': './src/reflex-scripts/browser-entry.js',
+		'subscript': './src/subscript/browser-entry.js',
 	},
 	output: {
 		filename: '[name].js',
