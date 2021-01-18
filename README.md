@@ -12,6 +12,7 @@
 > OOHTML is being proposed as a [W3C standard at the Web Platform Incubator Community Group](https://discourse.wicg.io/t/proposal-chtml/4716) based on [this explainer](https://github.com/webqit/docs/tree/master/oohtml/explainer). Consider bringing your ideas to the discussion.
 
 > [Visit project docs](https://github.com/webqit/docs/tree/master/oohtml).
+> [Visit project homepage](https://webqit.io/tooling/oohtml).
 
 ## Features
 OOHTML proposes five new features to native web languages to make common UI design terminologies possible natively. These features may be used individually or together to improve how we author UI code.
