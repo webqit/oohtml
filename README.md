@@ -7,22 +7,22 @@
 
 <!-- /BADGES -->
 
-[Object-Oriented HTML (OOHTML)](https://webqit.io/tooling/oohtml) is a suite of new DOM features that particularly facilitates writing modular HTML, CSS, and JavaScript *natively* and *more conveniently*. It addresses a number of limitions inherent to existing conventions, and welcomes much of the paradigms associated with modern UI development.
+[Object-Oriented HTML (OOHTML)](https://github.com/webqit/oohtml) is a suite of new DOM features that particularly facilitates writing modular HTML, CSS, and JavaScript *natively* and *more conveniently*. It addresses a number of limitions inherent to existing conventions, and welcomes much of the paradigms associated with modern UI development.
 
-> OOHTML is being proposed as a [W3C standard at the Web Platform Incubator Community Group](https://discourse.wicg.io/t/proposal-chtml/4716) based on [this explainer](https://webqit.io/tooling/oohtml/explainer). Consider bringing your ideas to the discussion.
+> OOHTML is being proposed as a [W3C standard at the Web Platform Incubator Community Group](https://discourse.wicg.io/t/proposal-chtml/4716) based on [this explainer](https://github.com/webqit/docs/tree/master/oohtml/explainer). Consider bringing your ideas to the discussion.
 
-> [Visit project docs](https://webqit.io/tooling/oohtml).
+> [Visit project docs](https://github.com/webqit/docs/tree/master/oohtml).
 
 ## Features
 OOHTML proposes five new features to native web languages to make common UI design terminologies possible natively. These features may be used individually or together to improve how we author UI code.
 
-+ [HTML Modules](https://webqit.io/tooling/oohtml#html-modules)
-+ [HTML Imports](https://webqit.io/tooling/oohtml#html-imports)
-+ [The State API](https://webqit.io/tooling/oohtml#the-state-api)
-+ [Reflex Scripts](https://webqit.io/tooling/oohtml#reflex-scripts)
-+ [Namespaced HTML](https://webqit.io/tooling/oohtml#namespaced-html)
++ [HTML Modules](https://github.com/webqit/docs/tree/master/oohtml#html-modules)
++ [HTML Imports](https://github.com/webqit/docs/tree/master/oohtml#html-imports)
++ [The State API](https://github.com/webqit/docs/tree/master/oohtml#the-state-api)
++ [Reflex Scripts](https://github.com/webqit/docs/tree/master/oohtml#reflex-scripts)
++ [Namespaced HTML](https://github.com/webqit/docs/tree/master/oohtml#namespaced-html)
 
-Everthing about OOHTML is currently available through a [polyfill](https://webqit.io/tooling/oohtml/polyfill). Be sure to check polyfill support in each feature.
+Everthing about OOHTML is currently available through a [polyfill](https://github.com/webqit/docs/tree/master/oohtml/polyfill). Be sure to check polyfill support in each feature.
 
 ### HTML Modules
 HTML Modules is a new DOM feature that lets us work with `<template>` elements and their contents using the *modules*, *imports* and *exports* paradigm. It introduces a clear naming convention for easy access to these elements and for organizing them *meaningfully* in a document.
@@ -103,7 +103,7 @@ Taking things further, template elements may reference remote content using the 
 
 The contents of the remote file automatically becomes the template's content on load.
 
-*Details are in the [HTML Modules](https://webqit.io/tooling/oohtml/html-modules) section. Learn more about the convention, API, events, and the polyfill support.*
+*Details are in the [HTML Modules](https://github.com/webqit/docs/tree/master/oohtml/html-modules) section. Learn more about the convention, API, events, and the polyfill support.*
 
 ### HTML Imports
 HTML Imports are a declarative way to place reusable snippets from HTML Modules just where they are needed across the DOM.
@@ -158,9 +158,9 @@ One or more `<import>` elements could use a *module ID* defined at a higher scop
 document.querySelector('div[template="module1"]').setAttribute('template', 'module2');
 ```
 
-This opens up new simple ways to create very dynamic applications. [Think a Single Page Application](https://webqit.io/tooling/oohtml/examples/spa) (SPA).
+This opens up new simple ways to create very dynamic applications. [Think a Single Page Application](https://github.com/webqit/docs/tree/master/oohtml/examples/spa) (SPA).
 
-*Details are in the [HTML Imports](https://webqit.io/tooling/oohtml/html-imports) section. Learn more about the convention, dynamicity, Slot Inheritance, isomorphic rendering, and the polyfill support.*
+*Details are in the [HTML Imports](https://github.com/webqit/docs/tree/master/oohtml/html-imports) section. Learn more about the convention, dynamicity, Slot Inheritance, isomorphic rendering, and the polyfill support.*
 
 ### The State API
 The State API is a DOM feature that lets us maintain application state at both the document level and the individual element levels. It makes it easy to think about application state at different levels in the DOM tree and to keep track of changes at each level.
@@ -177,7 +177,7 @@ element.state.collapsed = true;
 console.log(element.state.collapsed); // true
 ```
 
-*State Objects* are *live objects* that can be observed for changes using the [Observer API](https://webqit.io/tooling/oohtml/the-observer-api).
+*State Objects* are *live objects* that can be observed for changes using the [Observer API](https://github.com/webqit/docs/tree/master/oohtml/the-observer-api).
 
 ```js
 Observer.observe(document.state, 'pageTitle', e => {
@@ -234,7 +234,7 @@ Observer.observe(collapsible.state, 'collapsed', e => {
 });
 ```
 
-*Details are in the [State API](https://webqit.io/tooling/oohtml/the-state-api) section. Learn more about the API, deep observability, and the polyfill support.*
+*Details are in the [State API](https://github.com/webqit/docs/tree/master/oohtml/the-state-api) section. Learn more about the API, deep observability, and the polyfill support.*
 
 ### Reflex Scripts
 Reflex scripts are a new type of `<script>` elements that works as a *data binding* language for the UI. They are *scoped* to their immediate host elements instead of the global browser scope. These important features make Reflex scripts an exciting way to apply behaviour to modular markup, giving us the ability to have some logic without some JavaScript file.
@@ -318,7 +318,7 @@ The `<my-collapsible>` component we created in the section above could as well b
 
 > Sometimes, we do not even need as much as a custom element to bring life to some spot in the UI.
 
-*Details are in the [Reflex Scripts](https://webqit.io/tooling/oohtml/reflex-scripts) section. Learn more about Reflex Actions, deep observability, bindings, the API, error handling, and the polyfill support.*
+*Details are in the [Reflex Scripts](https://github.com/webqit/docs/tree/master/oohtml/reflex-scripts) section. Learn more about Reflex Actions, deep observability, bindings, the API, error handling, and the polyfill support.*
 
 ### Namespaced HTML
 Namespacing is a DOM feature that let's an element establish its own naming context for descendant elements. It makes it possible to keep IDs scoped to a context other than the document's global scope.
@@ -366,7 +366,7 @@ let aboutAsia = continents.namespace.asia.namespace.about;
 
 We get a document structure that's easier to reason about and to work with.
 
-One advantage of the Namespace API is that it minimizes selector-based queries. Much of our code in the examples above could go without the `.querySelector()` function. For example, below is a *namespaced* version of the *my-collapsible* element we created in the section for [The State API](https://webqit.io/tooling/oohtml/the-state-api) above.
+One advantage of the Namespace API is that it minimizes selector-based queries. Much of our code in the examples above could go without the `.querySelector()` function. For example, below is a *namespaced* version of the *my-collapsible* element we created in the section for [The State API](https://github.com/webqit/docs/tree/master/oohtml/the-state-api) above.
 
 ```html
 <my-collapsible namespace>
@@ -402,7 +402,7 @@ customElements.define('my-collapsible', class extends HTMLElement {
 });
 ```
 
-And below is a *namespaced* version of the Reflex-based *collapsible* element we created in the section for [Reflex Scripts](https://webqit.io/tooling/oohtml/reflex-scripts) above.
+And below is a *namespaced* version of the Reflex-based *collapsible* element we created in the section for [Reflex Scripts](https://github.com/webqit/docs/tree/master/oohtml/reflex-scripts) above.
 
 ```html
 <div id="collapsible" namespace>
@@ -423,10 +423,10 @@ And below is a *namespaced* version of the Reflex-based *collapsible* element we
 </div>
 ```
 
-*Details are in the [Namespaced HTML](https://webqit.io/tooling/oohtml/namespaced-html) section. Learn more about the convention, Namespaced Selectors, API, observability, and the polyfill support.*
+*Details are in the [Namespaced HTML](https://github.com/webqit/docs/tree/master/oohtml/namespaced-html) section. Learn more about the convention, Namespaced Selectors, API, observability, and the polyfill support.*
 
 ## Design Goals
-See the [features explainer](https://webqit.io/tooling/oohtml/explainer).
+See the [features explainer](https://github.com/webqit/docs/tree/master/oohtml/explainer).
 
 ## Supporting OOHTML
 *Platform feature* proposals aren't the easiest thing in the world!
