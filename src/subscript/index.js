@@ -138,7 +138,9 @@ export default async function init(window, config = null) {
             ? parseInt(scriptElement.getAttribute('errors'))
             : _meta.script.errors;
         if (globalRuntimeInitialized || scriptBase.hasBindings || _meta.script.autorun !== false || scriptElement.hasAttribute('autorun')) {
-            applyBinding(parentNode);
+            setTimeout(() => {
+                applyBinding(parentNode);
+            }, 0);
         } else {
             scriptBase.inWaitlist = true;
             globalRuntimeInitializationWaitlist.push(parentNode);
