@@ -94,7 +94,7 @@ Subscript is a type of JavaScript runtime that lets us create scoped, *reactive*
     If you are building something early with it (just as we are building [webqit.io](//webqit.io) with it), we'd like to hear from you via any means - [WICG](https://discourse.wicg.io/t/proposal-chtml/4716), [email - oxharris.dev@gmail.com], [issue](https://github.com/webqit/oohtml/issues). And Pull Requests are very welcomed!
 + They have to go through a million iterations! And much in dollars go into that!
 
-    If you could help in some way, we'd be more than glad! If you'd like to find out what your $1 could for us, and the perks for supporting, simply drop us a little mail at oxharris.dev@gmail.com.
+    If you could help in some way, we'd be more than glad! If you'd like to find out what your $1 could do for us, and the perks for supporting, simply drop us a little mail at oxharris.dev@gmail.com.
 
 ## FAQs
 We are working on publishing some questions we've been asked, but you can always file an [issue](https://github.com/webqit/oohtml/issues) to ask a new question or raise a suggestion.
