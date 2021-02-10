@@ -32,6 +32,7 @@ export default async function init(window, config = null) {
         api: {bind: 'bind', unbind: 'unbind',},
         script: {},
     }, config);
+    const parseCache = {};
 
     // ----------------------
     // Helpers
@@ -121,9 +122,12 @@ export default async function init(window, config = null) {
         // Parse
         // ------
         var explain = [], shouldExplain = scriptElement.hasAttribute('explain') || _meta.script.explain;
-        scriptBase.AST = parse(srcCode, {
-            explain: shouldExplain ? explain : null,
-        });
+        if (!parseCache[srcCode]) {
+            parseCache[srcCode] = parse(srcCode, {
+                explain: shouldExplain ? explain : null,
+            });
+        }
+        scriptBase.AST = parseCache[srcCode];
         if (scriptElement.hasAttribute('scoped')) {
             //_objectUtil.setVal(scriptBase.scope.stack.super.stack.main, 'this', parentNode);
         }
@@ -138,9 +142,7 @@ export default async function init(window, config = null) {
             ? parseInt(scriptElement.getAttribute('errors'))
             : _meta.script.errors;
         if (globalRuntimeInitialized || scriptBase.hasBindings || _meta.script.autorun !== false || scriptElement.hasAttribute('autorun')) {
-            setTimeout(() => {
-                applyBinding(parentNode);
-            }, 0);
+            applyBinding(parentNode);
         } else {
             scriptBase.inWaitlist = true;
             globalRuntimeInitializationWaitlist.push(parentNode);
