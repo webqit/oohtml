@@ -46,26 +46,35 @@ export default async function init(window, config = null) {
 
     const getScriptBase = function(target) {
         var oohtmlBase = getOohtmlBase(target);
-        if (!oohtmlBase.scopedJS) {
-            // Create scope
-            oohtmlBase.scopedJS = {
-                scope: Scope.createStack([{}/** bindings scope */, _objectUtil.setVal({}, 'this', target)/** the "this" scope */, globalScopeInstance/** global scope */], scopeParams, {
-                    set: _objectUtil.setVal,
-                }),
-            };
+        if (!oohtmlBase.scopedJS || oohtmlBase.disconnected) {
+            if (!oohtmlBase.scopedJS) {
+                // Create scope
+                oohtmlBase.scopedJS = {
+                    scope: Scope.createStack([{}/** bindings scope */, _objectUtil.setVal({}, 'this', target)/** the "this" scope */, globalScopeInstance/** global scope */], scopeParams, {
+                        set: _objectUtil.setVal,
+                    }),
+                };
+                oohtmlBase.scopedJS.console = {
+                    errors: [],
+                    infos: [],
+                    warnings: [],
+                    logs: [],
+                    exceptions: [],
+                };
+            }
             // Binding mode?
-            oohtmlBase.scopedJS.scope.observe(Ctxt.Observer, e => {
-                if (target.isConnected && !oohtmlBase.scopedJS.inWaitlist) {
+            const handler = e => {
+                if (!oohtmlBase.scopedJS.inWaitlist) {
                     applyBinding(target, e);
                 }
-            });
-            oohtmlBase.scopedJS.console = {
-                errors: [],
-                infos: [],
-                warnings: [],
-                logs: [],
-                exceptions: [],
             };
+            oohtmlBase.disconnected = false;
+            oohtmlBase.scopedJS.scope.observe(Ctxt.Observer, handler, {tags: [handler]});
+            Ctxt.Mutation.onRemoved(target, () => {
+                // Unobserve only happens by tags
+                oohtmlBase.scopedJS.scope.unobserve(Ctxt.Observer, {tags: [handler]});
+                oohtmlBase.disconnected = true;
+            }, {once: true});
         }
         return oohtmlBase.scopedJS;
     };
