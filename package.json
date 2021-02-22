@@ -14,7 +14,7 @@
     "wicg-proposal"
   ],
   "homepage": "https://webqit.io/tooling/oohtml",
-  "version": "1.5.6",
+  "version": "1.5.7",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -36,7 +36,7 @@
     "prepublish": "npm run build"
   },
   "dependencies": {
-    "@webqit/browser-pie": "0.0.6",
+    "@webqit/browser-pie": "0.0.7",
     "@webqit/observer": "^1.4.1",
     "@webqit/subscript": "^1.1.0",
     "@webqit/util": "^0.7.0"

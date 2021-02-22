@@ -46,35 +46,42 @@ export default async function init(window, config = null) {
 
     const getScriptBase = function(target) {
         var oohtmlBase = getOohtmlBase(target);
-        if (!oohtmlBase.scopedJS || oohtmlBase.disconnected) {
-            if (!oohtmlBase.scopedJS) {
-                // Create scope
-                oohtmlBase.scopedJS = {
-                    scope: Scope.createStack([{}/** bindings scope */, _objectUtil.setVal({}, 'this', target)/** the "this" scope */, globalScopeInstance/** global scope */], scopeParams, {
-                        set: _objectUtil.setVal,
-                    }),
-                };
-                oohtmlBase.scopedJS.console = {
-                    errors: [],
-                    infos: [],
-                    warnings: [],
-                    logs: [],
-                    exceptions: [],
-                };
-            }
+        if (!oohtmlBase.scopedJS) {
+            // Create scope
+            oohtmlBase.scopedJS = {
+                scope: Scope.createStack([{}/** bindings scope */, _objectUtil.setVal({}, 'this', target)/** the "this" scope */, globalScopeInstance/** global scope */], scopeParams, {
+                    set: _objectUtil.setVal,
+                }),
+            };
+            oohtmlBase.scopedJS.console = {
+                errors: [],
+                infos: [],
+                warnings: [],
+                logs: [],
+                exceptions: [],
+            };
             // Binding mode?
             const handler = e => {
                 if (!oohtmlBase.scopedJS.inWaitlist) {
                     applyBinding(target, e);
                 }
             };
-            oohtmlBase.disconnected = false;
-            oohtmlBase.scopedJS.scope.observe(Ctxt.Observer, handler, {tags: [handler]});
-            Ctxt.Mutation.onRemoved(target, () => {
-                // Unobserve only happens by tags
-                oohtmlBase.scopedJS.scope.unobserve(Ctxt.Observer, {tags: [handler]});
-                oohtmlBase.disconnected = true;
-            }, {once: true});
+            const connected = state => {
+                oohtmlBase.connected = state;
+                if (state) {
+                    oohtmlBase.scopedJS.scope.observe(Ctxt.Observer, handler, {tags: [handler]});
+                } else {
+                    // Unobserve only happens by tags
+                    oohtmlBase.scopedJS.scope.unobserve(Ctxt.Observer, {tags: [handler]});
+                }
+            };
+            // =====================
+            Ctxt.Mutation.onPresenceChange(target, (el, presence) => {
+                connected(presence);
+            });
+            if (target.isConnected) {
+                connected(1);
+            }
         }
         return oohtmlBase.scopedJS;
     };
