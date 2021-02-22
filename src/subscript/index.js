@@ -76,7 +76,7 @@ export default async function init(window, config = null) {
                 }
             };
             // =====================
-            Ctxt.Mutation.onPresenceChange(target, (el, presence) => {
+            Ctxt.Mutation.onPresenceChange(target, (els, presence) => {
                 connected(presence);
             });
             if (target.isConnected) {

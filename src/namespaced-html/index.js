@@ -74,7 +74,8 @@ export default async function init(window, config = null) {
 	// ----------------------
 
 	Ctxt.Mutation.onPresent('[' + Ctxt.window.CSS.escape(_meta.attr.id) + ']', el => {
-		if (_any(scopedIdInertContexts, inertContext => el.closest(inertContext))) {
+		var elOohtmlObj = getOohtmlBase(el);
+		if (elOohtmlObj.idAlreadyBeingWatched || _any(scopedIdInertContexts, inertContext => el.closest(inertContext))) {
 			return;
 		}
 		var scopedId = el.getAttribute(_meta.attr.id),
@@ -86,13 +87,20 @@ export default async function init(window, config = null) {
 		if (namespaceObject[scopedId] !== el) {
 			_objectUtil.setVal(namespaceObject, scopedId, el);
 		}
-		// On remove
-		Ctxt.Mutation.onRemoved(el, () => {
-			// ONLY if I am still the one in place
-			if (namespaceObject[scopedId] === el) {
-				// Properly remove me
-				_objectUtil.delVal(namespaceObject, scopedId);
+		// new permanent watch
+		elOohtmlObj.idAlreadyBeingWatched = true;
+		Ctxt.Mutation.onPresenceChange(el, (els, presence) => {
+			if (presence) {
+				// ONLY if I am not currently the one in place
+				if (namespaceObject[scopedId] !== el) {
+					_objectUtil.setVal(namespaceObject, scopedId, el);
+				}
+			} else {
+				// ONLY if I am still the one in place
+				if (namespaceObject[scopedId] === el) {
+					_objectUtil.delVal(namespaceObject, scopedId);
+				}
 			}
-		}, {once:true});
+		});
 	});
 };
