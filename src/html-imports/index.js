@@ -124,7 +124,10 @@ export default async function init(window, config = null) {
             exports.forEach(_export => {
                 _export.importReference = this.el;
             });
-            getOohtmlBase(this.el).slottedObserver = Ctxt.Mutation.onRemoved(exports, removed => {
+            getOohtmlBase(this.el).slottedObserver = Ctxt.Mutation.onRemoved(exports, (removed, state, isTransient, addedState, removedState) => {
+                if (removedState && removedState.size === exports.length) {
+                    getOohtmlBase(this.el).slottedObserver.disconnect();
+                }
                 removed.forEach(remd => {
                     // Let's ensure this wasn't slotted againe
                     if (!remd.parentNode) {
@@ -144,7 +147,7 @@ export default async function init(window, config = null) {
                         this.anchorNode.replaceWith(this.el);
                     }
                 }
-            }, {onceEach:true});
+            }, {maintainCallState: true, ignoreTransients: true});
         }
 
         /**
@@ -246,8 +249,8 @@ export default async function init(window, config = null) {
         empty(silently = false) {
             if (this.slottedElements) {
                 var slottedElements = this.slottedElements;
-                if (silently && this.slottedObserver) {
-                    this.slottedObserver.disconnect();
+                if (silently && getOohtmlBase(this.el).slottedObserver) {
+                    getOohtmlBase(this.el).slottedObserver.disconnect();
                     slottedElements = this.slottedElements.splice(0);
                 }
                 slottedElements.forEach(slottedElement => slottedElement.remove());

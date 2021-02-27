@@ -14,7 +14,7 @@ import { getOohtmlBase, objectUtil, createParams } from '../util.js';
  * ---------------------------
  * The Reflex class
  * ---------------------------
- */		
+ */
 
 /**
  * @init
@@ -46,44 +46,45 @@ export default async function init(window, config = null) {
 
     const getScriptBase = function(target) {
         var oohtmlBase = getOohtmlBase(target);
-        if (!oohtmlBase.scopedJS) {
-            // Create scope
-            oohtmlBase.scopedJS = {
-                scope: Scope.createStack([{}/** bindings scope */, _objectUtil.setVal({}, 'this', target)/** the "this" scope */, globalScopeInstance/** global scope */], scopeParams, {
-                    set: _objectUtil.setVal,
-                }),
-            };
-            oohtmlBase.scopedJS.console = {
-                errors: [],
-                infos: [],
-                warnings: [],
-                logs: [],
-                exceptions: [],
-            };
-            // Binding mode?
-            const handler = e => {
-                if (!oohtmlBase.scopedJS.inWaitlist) {
-                    applyBinding(target, e);
-                }
-            };
-            const connected = state => {
-                oohtmlBase.connected = state;
-                if (state) {
-                    oohtmlBase.scopedJS.scope.observe(Ctxt.Observer, handler, {tags: [handler]});
-                } else {
-                    // Unobserve only happens by tags
-                    oohtmlBase.scopedJS.scope.unobserve(Ctxt.Observer, {tags: [handler]});
-                }
-            };
-            // =====================
-            Ctxt.Mutation.onPresenceChange(target, (els, presence) => {
-                connected(presence);
-            });
-            if (target.isConnected) {
-                connected(1);
+        if (!oohtmlBase.subscript || !oohtmlBase.subscript.isConnected) {
+            if (!oohtmlBase.subscript) {
+                // Create scope
+                oohtmlBase.subscript = {
+                    scope: Scope.createStack([{}/** bindings scope */, _objectUtil.setVal({}, 'this', target)/** the "this" scope */, globalScopeInstance/** global scope */], scopeParams, {
+                        set: _objectUtil.setVal,
+                    }),
+                };
+                oohtmlBase.subscript.console = {
+                    errors: [],
+                    infos: [],
+                    warnings: [],
+                    logs: [],
+                    exceptions: [],
+                };
+                // Binding mode?
+                oohtmlBase.subscript.handler = e => {
+                    if (!oohtmlBase.subscript.inWaitlist) {
+                        applyBinding(target, e);
+                    }
+                };
+                oohtmlBase.subscript.connected = c => {
+                    oohtmlBase.subscript.isConnected = c;
+                    if (c) {
+                        oohtmlBase.subscript.scope.observe(Ctxt.Observer, oohtmlBase.subscript.handler, {tags: [oohtmlBase.subscript.handler]});
+                    } else {
+                        // Unobserve only happens by tags
+                        oohtmlBase.subscript.scope.unobserve(Ctxt.Observer, {tags: [oohtmlBase.subscript.handler]});
+                    }
+                };
             }
+            // =====================
+            var mo = Ctxt.Mutation.onRemoved(target, () => {
+                oohtmlBase.subscript.connected(false);
+                mo.disconnect();
+            }, {ignoreTransients: true});
+            oohtmlBase.subscript.connected(true);
         }
-        return oohtmlBase.scopedJS;
+        return oohtmlBase.subscript;
     };
 
     const applyBinding = function(target, event) {
@@ -91,7 +92,7 @@ export default async function init(window, config = null) {
         targetScriptBase.inWaitlist = false;
         var params = {
             references: (event || {}).references, 
-            catch: e => {
+            catch: targetScriptBase.catch ? targetScriptBase.catch : e => {
                 if (targetScriptBase.errorLevel === 2) {
                     console.error(target, e);
                     targetScriptBase.console.errors.push(e);
@@ -169,140 +170,151 @@ export default async function init(window, config = null) {
     // Define the "local" binding method on Element.prototype
     // ----------------------
 
-    /**
-    if ('bindings' in Ctxt.window.Element.prototype) {
-        throw new Error('The "Element" class already has a "bindings" property!');
+    if ('subscript' in Ctxt.window.Element.prototype) {
+        throw new Error('The "Element" class already has a "subscript" property!');
     }
-    Object.defineProperty(Ctxt.window.Element.prototype, 'bindings', {
+    Object.defineProperty(Ctxt.window.Element.prototype, 'subscript', {
         get: function() {
-            var $this = this,
-                scriptBase = getScriptBase($this);
-            if (!scriptBase.scopeInstanceProxy) {
-                // Same proxy instance, even if scriptBase.scope.stack.main
-                // is later changed
-                scriptBase.scopeInstanceProxy = new Proxy(scriptBase.scope.stack.main, {
-                    set: (target, key, value) => {
-                        // NOTE that this element if in waitlist won't be called by this _objectUtil.setVal()
-                        _objectUtil.setVal(scriptBase.scope.stack.main, key, value);
+            let scriptBase = getScriptBase(this);
+            if (!('bindings' in scriptBase)) {
+                var $this = this;
+
+                // ---------------------
+
+                Object.defineProperty(scriptBase, 'bindings', {
+                    get: function() {
+                        if (!scriptBase.scopeInstanceProxy) {
+                            // Same proxy instance, even if scriptBase.scope.stack.main
+                            // is later changed
+                            scriptBase.scopeInstanceProxy = new Proxy(scriptBase.scope.stack.main, {
+                                set: (target, key, value) => {
+                                    // NOTE that this element if in waitlist won't be called by this _objectUtil.setVal()
+                                    _objectUtil.setVal(scriptBase.scope.stack.main, key, value);
+                                    scriptBase.hasBindings = true;
+                                    // Explicitly remove from waitlist
+                                    if (globalRuntimeInitializationWaitlist.includes($this)) {
+                                        _remove(globalRuntimeInitializationWaitlist, $this);
+                                        applyBinding($this);
+                                    }
+                                    return true;
+                                },
+                                get: (target, key) => {
+                                    return _objectUtil.getVal(scriptBase.scope.stack.main, key);
+                                },
+                                deleteProperty: (target, key) => {
+                                    return _objectUtil.delVal(scriptBase.scope.stack.main, key);
+                                },
+                            });
+                        }
+                        return scriptBase.scopeInstanceProxy;
+                    },
+                });
+
+                // ---------------------
+
+                Object.defineProperty(scriptBase, 'bind', {
+                    value: function(binding, params = {}) {
+                        // NOTE that this element if in waitlist won't be called by this _objectUtil.mergeVal()/_objectUtil.setVal()
+                        if (params.update) {
+                            _objectUtil.mergeVal(scriptBase.scope.stack.main, binding);
+                        } else {
+                            _objectUtil.setVal(scriptBase.scope.stack, 'main', binding);
+                        }
                         scriptBase.hasBindings = true;
                         // Explicitly remove from waitlist
                         if (globalRuntimeInitializationWaitlist.includes($this)) {
                             _remove(globalRuntimeInitializationWaitlist, $this);
                             applyBinding($this);
                         }
-                        return true;
-                    },
-                    get: (target, key) => {
-                        return _objectUtil.getVal(scriptBase.scope.stack.main, key);
-                    },
-                    deleteProperty: (target, key) => {
-                        return _objectUtil.delVal(scriptBase.scope.stack.main, key);
-                    },
+                    }
+                });
+
+                // ---------------------
+                
+                Object.defineProperty(scriptBase, _meta.api.unbind, {
+                    value: function() {
+                        _objectUtil.setVal(scriptBase.scope.stack, 'main', {});
+                    }
                 });
             }
-            return scriptBase.scopeInstanceProxy;
-        },
-    });
-     */
-
-    if (_meta.api.bind in Ctxt.window.Element.prototype) {
-        throw new Error('The "Element" class already has a "' + _meta.api.bind + '" property!');
-    }
-    Object.defineProperty(Ctxt.window.Element.prototype, _meta.api.bind, {
-        value: function(binding, params = {}) {
-            let scriptBase = getScriptBase(this);
-            // NOTE that this element if in waitlist won't be called by this _objectUtil.mergeVal()/_objectUtil.setVal()
-            if (params.update) {
-                _objectUtil.mergeVal(scriptBase.scope.stack.main, binding);
-            } else {
-                _objectUtil.setVal(scriptBase.scope.stack, 'main', binding);
-            }
-            scriptBase.hasBindings = true;
-            // Explicitly remove from waitlist
-            if (globalRuntimeInitializationWaitlist.includes(this)) {
-                _remove(globalRuntimeInitializationWaitlist, this);
-                applyBinding(this);
-            }
+            return scriptBase;
         }
     });
 
-    if (_meta.api.unbind in Ctxt.window.Element.prototype) {
-        throw new Error('The "Element" class already has a "' + _meta.api.unbind + '" property!');
-    }
-    Object.defineProperty(Ctxt.window.Element.prototype, _meta.api.unbind, {
-        value: function() {
-            let scriptBase = getScriptBase(this);
-            _objectUtil.setVal(scriptBase.scope.stack, 'main', {});
-        }
-    });
 
     // ----------------------
     // Define the global "scopedJS" object
     // ----------------------
 
-    /**
-    if ('bindings' in Ctxt.window.document) {
-        throw new Error('document already has a "bindings" property!');
+    if ('subscript' in Ctxt.window.document) {
+        throw new Error('The "document" object already has a "subscript" property!');
     }
-    var globalScopeInstanceProxy;
-    Object.defineProperty(Ctxt.window.document, 'bindings', {
+    var globalScopeInstanceProxy, globalSubscript = {};
+    Object.defineProperty(Ctxt.window.document, 'subscript', {
         get: function() {
-            if (!globalScopeInstanceProxy) {
-                // Same proxy instance, even if globalScopeInstance.stack.main
-                // is later changed
-                globalScopeInstanceProxy = new Proxy(globalScopeInstance.stack.main, {
-                    set: (target, key, value) => {
-                        // NOTE that elements in waitlist won't be called by this _objectUtil.setVal()
-                        _objectUtil.setVal(globalScopeInstance.stack.main, key, value);
+            if (!('bindings' in globalSubscript)) {
+
+                Object.defineProperty(globalSubscript, 'bindings', {
+                    get: function() {
+                        if (!globalScopeInstanceProxy) {
+                            // Same proxy instance, even if globalScopeInstance.stack.main
+                            // is later changed
+                            globalScopeInstanceProxy = new Proxy(globalScopeInstance.stack.main, {
+                                set: (target, key, value) => {
+                                    // NOTE that elements in waitlist won't be called by this _objectUtil.setVal()
+                                    _objectUtil.setVal(globalScopeInstance.stack.main, key, value);
+                                    // Explicitly empty waitlist
+                                    var waitingElement;
+                                    while(waitingElement = globalRuntimeInitializationWaitlist.shift()) {
+                                        applyBinding(waitingElement);
+                                    }
+                                    globalRuntimeInitialized = true;
+                                    return true;
+                                },
+                                get: (target, key) => {
+                                    return _objectUtil.getVal(globalScopeInstance.stack.main, key);
+                                },
+                                deleteProperty: (target, key) => {
+                                    return _objectUtil.delVal(globalScopeInstance.stack.main, key);
+                                },
+                            });
+                        }
+                        return globalScopeInstanceProxy;
+                    },
+                });
+
+                // ---------------------
+
+                Object.defineProperty(globalSubscript, 'bind', {
+                    value: function(binding, params = {}) {
+                        // NOTE that elements in waitlist won't be called by this _objectUtil.mergeVal()/_objectUtil.setVal()
+                        if (params.update) {
+                            _objectUtil.mergeVal(globalScopeInstance.stack.main, binding);
+                        } else {
+                            _objectUtil.setVal(globalScopeInstance.stack, 'main', binding);
+                        }
                         // Explicitly empty waitlist
                         var waitingElement;
                         while(waitingElement = globalRuntimeInitializationWaitlist.shift()) {
                             applyBinding(waitingElement);
                         }
                         globalRuntimeInitialized = true;
-                        return true;
-                    },
-                    get: (target, key) => {
-                        return _objectUtil.getVal(globalScopeInstance.stack.main, key);
-                    },
-                    deleteProperty: (target, key) => {
-                        return _objectUtil.delVal(globalScopeInstance.stack.main, key);
                     },
                 });
-            }
-            return globalScopeInstanceProxy;
-        },
-    });
-     */
 
-    if (_meta.api.bind in Ctxt.window.document) {
-        throw new Error('The "document" object already has a "' + _meta.api.bind + '" property!');
-    }
-    Object.defineProperty(Ctxt.window.document, _meta.api.bind, {
-        value: function(binding, params = {}) {
-            // NOTE that elements in waitlist won't be called by this _objectUtil.mergeVal()/_objectUtil.setVal()
-            if (params.update) {
-                _objectUtil.mergeVal(globalScopeInstance.stack.main, binding);
-            } else {
-                _objectUtil.setVal(globalScopeInstance.stack, 'main', binding);
+                // ---------------------
+            
+                Object.defineProperty(globalSubscript, 'unbind', {
+                    value: function() {
+                        _objectUtil.setVal(globalScopeInstance.stack, 'main', {});
+                    },
+                });
+            
             }
-            // Explicitly empty waitlist
-            var waitingElement;
-            while(waitingElement = globalRuntimeInitializationWaitlist.shift()) {
-                applyBinding(waitingElement);
-            }
-            globalRuntimeInitialized = true;
+            return globalSubscript;
         },
     });
 
-    if (_meta.api.unbind in Ctxt.window.document) {
-        throw new Error('The "document" object already has a "' + _meta.api.unbind + '" property!');
-    }
-    Object.defineProperty(Ctxt.window.document, _meta.api.unbind, {
-        value: function() {
-            _objectUtil.setVal(globalScopeInstance.stack, 'main', {});
-        },
-    });
 };
 
 /**
