@@ -158,16 +158,19 @@ export default async function init(window, config = null) {
                 return;
             }
             var getPartials = templateSource => {
-                var template, exports, [ tempSpecA, tempSpecB ] = (this.el.getAttribute(_meta.attr.templatespec) || '').split('-').map(a => parseInt(a)).concat([0, 0]);
+                var get = path => path.reduce((templateObjects, item, i) => {
+                    return templateObjects.reduce((_templateObjects, templateObject) => _templateObjects.concat(getOohtmlBase(templateObject).templates[item], getOohtmlBase(templateObject).templates['*']), []).filter(t => t);
+                }, [document]);
+                var templatesAggr, exportsAggr = [], [ tempSpecA, tempSpecB ] = (this.el.getAttribute(_meta.attr.templatespec) || '').split('-').map(a => parseInt(a)).concat([0, 0]);
                 var path = templateSource.getAttribute(_meta.attr.moduleref).split('/').map(n => n.trim()).filter(n => n);
-                var get = path => path.reduce((context, item, i) => {
-                    return context ? getOohtmlBase(context).templates[item] || getOohtmlBase(context).templates['*'] : null;
-                }, document);
-
-                while((!(template = get(path)) || template === document || !(exports = getOohtmlBase(template).exports[this.name])) && path.length > tempSpecA && tempSpecB) {
+                while((
+                    !(templatesAggr = get(path)).length 
+                    || templatesAggr[0] === document 
+                    || !(exportsAggr = templatesAggr.reduce((exports, template) => exports.concat(getOohtmlBase(template).exports[this.name] || []), [])).length
+                ) && path.length > tempSpecA && tempSpecB) {
                     path.pop(); tempSpecB --;
                 }
-                return exports;
+                return exportsAggr;
             };
             // -----------------
             // Global import or scoped slot?
@@ -186,7 +189,7 @@ export default async function init(window, config = null) {
                 }
                 templateSource = this.compositionBlock;
             }
-            if (templateSource && (exports = getPartials(templateSource))) {
+            if (templateSource && (exports = getPartials(templateSource)).length) {
                 if (_difference(exports, getOohtmlBase(this.el).originalSlottedElements || []).length) {
                     getOohtmlBase(this.el).originalSlottedElements = exports;
                     this.fill(exports);
