@@ -159,7 +159,7 @@ export default async function init(window, config = null) {
             }
             var getPartials = templateSource => {
                 var get = path => path.reduce((templateObjects, item, i) => {
-                    return templateObjects.reduce((_templateObjects, templateObject) => _templateObjects.concat(getOohtmlBase(templateObject).templates[item], getOohtmlBase(templateObject).templates['*']), []).filter(t => t);
+                    return templateObjects.reduce((_templateObjects, templateObject) => _templateObjects.concat(getOohtmlBase(templateObject).templates[item], item === '*' ? [] : getOohtmlBase(templateObject).templates['*']), []).filter(t => t);
                 }, [document]);
                 var templatesAggr, exportsAggr = [], [ tempSpecA, tempSpecB ] = (this.el.getAttribute(_meta.attr.templatespec) || '').split('-').map(a => parseInt(a)).concat([0, 0]);
                 var path = templateSource.getAttribute(_meta.attr.moduleref).split('/').map(n => n.trim()).filter(n => n);
