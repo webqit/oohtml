@@ -2,9 +2,9 @@
 /**
  * @imports
  */
-import NamedTemplates from './index.js';
+import init from './index.js';
 
 /**
  * @init
  */
-NamedTemplates(window);
+init.call(window);

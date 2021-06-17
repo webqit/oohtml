@@ -2,12 +2,12 @@
 /**
  * @imports
  */
-import DOMInit from '@webqit/browser-pie/src/dom/index.js';
-import _isEmpty from '@webqit/util/js/isEmpty.js';
+ import _isEmpty from '@webqit/util/js/isEmpty.js';
 import _arrFrom from '@webqit/util/arr/from.js';
 import _remove from '@webqit/util/arr/remove.js';
 import _each from '@webqit/util/obj/each.js';
-import { getOohtmlBase, createParams } from '../util.js';
+import domInit from '@webqit/browser-pie/src/dom/index.js';
+import { config, footprint } from '../util.js';
 
 /**
  * ---------------------------
@@ -18,16 +18,26 @@ import { getOohtmlBase, createParams } from '../util.js';
 /**
  * @init
  * 
- * @param window window
+ * @param Object config
  */
-export default async function init(window, config = null) {
+export default function init(_config = null, onDomReady = false) {
 
-    const Ctxt = DOMInit(window);
-    const document = Ctxt.window.document;
-    const _meta = await createParams.call(Ctxt, {
+    const WebQit = domInit.call(this);
+    if (onDomReady) {
+        WebQit.DOM.ready(() => {
+            init.call(this, _config, false);
+        });
+        return;
+    }
+
+    const window = WebQit.window;
+    const document = WebQit.window.document;
+    const mutations = WebQit.DOM.mutations;
+
+    const _meta = config.call(this, {
         element: {
             template: '',
-            export: 'html-export',
+            export: 'export',
         },
 		attr: {
             moduleid: 'name',
@@ -36,19 +46,20 @@ export default async function init(window, config = null) {
             exportgroup: 'exportgroup',
         },
         api: {
-            template: '',
+            templateClass: '',
             templates: 'templates',
             exports: 'exports',
             moduleref: 'template',
         },
-    }, config);
-    const templateSelector = 'template' + (_meta.element.template ? '[is="' + _meta.element.template + '"]' : '') + '[' + window.CSS.escape(_meta.attr.moduleid) + ']';
+    }, _config);
+
+    const templateSelector = 'template' + (_meta.get('element.template') ? '[is="' + _meta.get('element.template') + '"]' : '') + '[' + window.CSS.escape(_meta.get('attr.moduleid')) + ']';
     var TemplateElementClass = window.HTMLTemplateElement;
-    if (_meta.api.template) {
-        if (!window[_meta.api.template]) {
-            throw new Error('The custom element class "' + _meta.api.template + '" is not defined!');
+    if (_meta.get('api.templateClass')) {
+        if (!window[_meta.get('api.templateClass')]) {
+            throw new Error('The custom element class "' + _meta.get('api.templateClass') + '" is not defined!');
         }
-        TemplateElementClass = window[_meta.api.template];
+        TemplateElementClass = window[_meta.get('api.templateClass')];
     }
 
     // ----------------------
@@ -109,19 +120,19 @@ export default async function init(window, config = null) {
                 return;
             }
             var templateName, exportId;
-            if (el.matches(templateSelector) && (templateName = el.getAttribute(_meta.attr.moduleid))) {
+            if (el.matches(templateSelector) && (templateName = el.getAttribute(_meta.get('attr.moduleid')))) {
                 var _path = (path ? path + '/' : '') + templateName;
                 if (mutationType === 'removed') {
-                    delete getOohtmlBase(node).templates[templateName];
-                    if (getOohtmlBase(node).parentTemplate === node) {
-                        delete getOohtmlBase(node).parentTemplate;
+                    delete footprint(node).templates[templateName];
+                    if (footprint(node).parentTemplate === node) {
+                        delete footprint(node).parentTemplate;
                     }
                     if (eventsObject) {
                         eventsObject.removedTemplates[templateName] = el;
                     }
                 } else if (mutationType === 'added') {
-                    getOohtmlBase(node).templates[templateName] = el;
-                    getOohtmlBase(el).parentTemplate = node;
+                    footprint(node).templates[templateName] = el;
+                    footprint(el).parentTemplate = node;
                     if (eventsObject) {
                         eventsObject.addedTemplates[templateName] = el;
                     }
@@ -130,12 +141,12 @@ export default async function init(window, config = null) {
                 discoverContents(el.content, el, _path, mutationType, fireEvents);
             } else {
                 const manageExportItem = exportItem => {
-                    var exportId = exportItem.getAttribute(_meta.attr.exportgroup) || 'default';
+                    var exportId = exportItem.getAttribute(_meta.get('attr.exportgroup')) || 'default';
                     if (mutationType === 'removed') {
-                        if (getOohtmlBase(node).exports[exportId]) {
-                            _remove(getOohtmlBase(node).exports[exportId], exportItem);
-                            if (!getOohtmlBase(node).exports[exportId].length) {
-                                delete getOohtmlBase(node).exports[exportId];
+                        if (footprint(node).exports[exportId]) {
+                            _remove(footprint(node).exports[exportId], exportItem);
+                            if (!footprint(node).exports[exportId].length) {
+                                delete footprint(node).exports[exportId];
                             }
                             if (eventsObject) {
                                 if (!eventsObject.removedExports[exportId]) {
@@ -145,10 +156,10 @@ export default async function init(window, config = null) {
                             }
                         }
                     } else if (mutationType === 'added') {
-                        if (!getOohtmlBase(node).exports[exportId]) {
-                            getOohtmlBase(node).exports[exportId] = [];
+                        if (!footprint(node).exports[exportId]) {
+                            footprint(node).exports[exportId] = [];
                         }
-                        getOohtmlBase(node).exports[exportId].push(exportItem);
+                        footprint(node).exports[exportId].push(exportItem);
                         if (eventsObject) {
                             if (!eventsObject.addedExports[exportId]) {
                                 eventsObject.addedExports[exportId] = [];
@@ -157,10 +168,10 @@ export default async function init(window, config = null) {
                         }
                     }
                 };
-                if (el.matches(_meta.element.export)) {
-                    var exportId = el.getAttribute(_meta.attr.exportid) || 'default';
+                if (el.matches(_meta.get('element.export'))) {
+                    var exportId = el.getAttribute(_meta.get('attr.exportid')) || 'default';
                     _arrFrom(el.children).forEach(exportItem => {
-                        exportItem.setAttribute(_meta.attr.exportgroup, exportId);
+                        exportItem.setAttribute(_meta.get('attr.exportgroup'), exportId);
                         manageExportItem(exportItem);
                     });
                 } else {
@@ -171,9 +182,9 @@ export default async function init(window, config = null) {
 
         // -----------------------
         // Run...
-        getOohtmlBase(node).templates = {};
-        getOohtmlBase(node).exports = {};
-        node.moduleMutationType = mutationType;
+        footprint(node).templates = {};
+        footprint(node).exports = {};
+        node.modulemutationsType = mutationType;
         const eventsObject = { addedTemplates: {}, removedTemplates: {}, addedExports: {}, removedExports: {}, }; 
         _arrFrom(contents.children).forEach(el => manageComponent(el, eventsObject, mutationType, fireEvents));
         if (fireEvents) {
@@ -182,12 +193,12 @@ export default async function init(window, config = null) {
 
         // -----------------------
         // Handle content loading
-        if (mutationType === 'added' && !getOohtmlBase(node).onLiveMode) {
-            getOohtmlBase(node).onLiveMode = true;
+        if (mutationType === 'added' && !footprint(node).onLiveMode) {
+            footprint(node).onLiveMode = true;
             if (node.getAttribute('src') && !node.content.children.length) {
                 loadingTemplates.push(loadTemplateContent(node, path));
             }
-            Ctxt.Mutation.onAttrChange(node, mr => {
+            mutations.onAttrChange(node, mr => {
                 if (mr[0].target.getAttribute(mr[0].attributeName) !== mr[0].oldValue) {
                     loadTemplateContent(node, path);
                 }
@@ -212,52 +223,52 @@ export default async function init(window, config = null) {
     // Define the global "templates" object
     // ----------------------
 
-    if (_meta.api.templates in document) {
-        throw new Error('document already has a "' + _meta.api.templates + '" property!');
+    if (_meta.get('api.templates') in document) {
+        throw new Error('document already has a "' + _meta.get('api.templates') + '" property!');
     }
     const loadingTemplates = [];
-    getOohtmlBase(document).templates = {};
-    Object.defineProperty(document, _meta.api.templates, {
-        value: getOohtmlBase(document).templates,
+    footprint(document).templates = {};
+    Object.defineProperty(document, _meta.get('api.templates'), {
+        value: footprint(document).templates,
     });
 
     // ----------------------
     // Define the "templates" and "exports" properties on HTMLTemplateElement.prototype
     // ----------------------
 
-    if (_meta.api.templates in TemplateElementClass.prototype) {
-        throw new Error('The "HTMLTemplateElement" class already has a "' + _meta.api.templates + '" property!');
+    if (_meta.get('api.templates') in TemplateElementClass.prototype) {
+        throw new Error('The "HTMLTemplateElement" class already has a "' + _meta.get('api.templates') + '" property!');
     }
-    Object.defineProperty(TemplateElementClass.prototype, _meta.api.templates, {
+    Object.defineProperty(TemplateElementClass.prototype, _meta.get('api.templates'), {
         get: function() {
-            return getOohtmlBase(this).templates || {};
+            return footprint(this).templates || {};
         }
     });
-    if (_meta.api.exports in TemplateElementClass.prototype) {
-        throw new Error('The "HTMLTemplateElement" class already has a "' + _meta.api.exports + '" property!');
+    if (_meta.get('api.exports') in TemplateElementClass.prototype) {
+        throw new Error('The "HTMLTemplateElement" class already has a "' + _meta.get('api.exports') + '" property!');
     }
-    Object.defineProperty(TemplateElementClass.prototype, _meta.api.exports, {
+    Object.defineProperty(TemplateElementClass.prototype, _meta.get('api.exports'), {
         get: function() {
-            return getOohtmlBase(this).exports || {};
+            return footprint(this).exports || {};
         }
     });
 
     _arrFrom(document.querySelectorAll(templateSelector)).forEach(async el => {
-        var name = el.getAttribute(_meta.attr.moduleid);
-        getOohtmlBase(document).templates[name] = el;
+        var name = el.getAttribute(_meta.get('attr.moduleid'));
+        footprint(document).templates[name] = el;
         discoverContents(el.content, el, name, 'added', false);
     });
-    Ctxt.Mutation.onPresenceChange(templateSelector, async (els, presence) => {
+    mutations.onPresenceChange(templateSelector, async (els, presence) => {
         const eventsObject = { addedTemplates: {}, removedTemplates: {}, addedExports: {}, removedExports: {}, }; 
         els.forEach(el => {
-            var name = el.getAttribute(_meta.attr.moduleid);
+            var name = el.getAttribute(_meta.get('attr.moduleid'));
             if (presence) {
-                getOohtmlBase(document).templates[name] = el;
+                footprint(document).templates[name] = el;
                 discoverContents(el.content, el, name, 'added');
                 eventsObject.addedTemplates[name] = el;
             } else {
-                if (getOohtmlBase(document).templates[name] === el) {
-                    delete getOohtmlBase(document).templates[name];
+                if (footprint(document).templates[name] === el) {
+                    delete footprint(document).templates[name];
                 }
                 discoverContents(el.content, el, name, 'removed');
                 eventsObject.removedTemplates[name] = el;
@@ -270,15 +281,15 @@ export default async function init(window, config = null) {
     // Define the "template" property on Element.prototype
     // ----------------------
 
-    if (_meta.api.moduleref in window.Element.prototype) {
-        throw new Error('The "Element" class already has a "' + _meta.api.moduleref + '" property!');
+    if (_meta.get('api.moduleref') in window.Element.prototype) {
+        throw new Error('The "Element" class already has a "' + _meta.get('api.moduleref') + '" property!');
     }
-    Object.defineProperty(window.Element.prototype, _meta.api.moduleref, {
+    Object.defineProperty(window.Element.prototype, _meta.get('api.moduleref'), {
         get: function() {
-            var templateId = this.getAttribute(_meta.attr.moduleref);
+            var templateId = this.getAttribute(_meta.get('attr.moduleref'));
             if (templateId) {
                 return templateId.split('/').map(n => n.trim()).filter(n => n).reduce((context, item) => {
-                    return context ? getOohtmlBase(context).templates[item] || getOohtmlBase(context).templates['*'] : null;
+                    return context ? footprint(context).templates[item] || footprint(context).templates['*'] : null;
                 }, document);
             }
         },
@@ -290,7 +301,7 @@ export default async function init(window, config = null) {
 
     var templatesReadyState = loadingTemplates.length ? 'loading' : 'indeterminate';
     Object.defineProperty(document, 'templatesReadyState', {get: () => templatesReadyState});
-    Ctxt.ready.then(() => {
+    WebQit.DOM.ready.call(WebQit, () => {
         loadingTemplates.forEach(promise => {
             promise.catch(error => {
                 console.warn(error);

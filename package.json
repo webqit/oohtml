@@ -24,21 +24,21 @@
     "url": "https://github.com/webqit/oohtml/issues"
   },
   "type": "module",
+  "sideEffects": false,
   "browser": {
     "fs": false
   },
-  "main": "src/index.js",
+  "main": "./src/index.js",
   "scripts": {
-    "test": "node ./tests/index.js",
-    "build-dev": "npx projectz compile && webpack --config ./webpack.config.dev.cjs",
     "build": "webpack --config ./webpack.config.cjs",
-    "docs": "cd docs && oohtml bundle loaders=default:md-loader md-loader:flavor=github show_outline_numbering=FALSE ...",
-    "prepublish": "npm run build"
+    "preversion": "npm run build && git add -A dist",
+    "postversion": "npm publish",
+    "postpublish": "git push && git push --tags"
   },
   "dependencies": {
-    "@webqit/browser-pie": "0.0.8",
-    "@webqit/observer": "^1.4.1",
-    "@webqit/subscript": "^1.1.2",
+    "@webqit/browser-pie": "^0.0.14",
+    "@webqit/observer": "^1.4.3",
+    "@webqit/subscript": "^1.1.4",
     "@webqit/util": "^0.7.0"
   },
   "devDependencies": {

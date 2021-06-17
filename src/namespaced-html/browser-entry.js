@@ -2,9 +2,9 @@
 /**
  * @imports
  */
-import NamespacedHTML from './index.js';
+import init from './index.js';
 
 /**
  * @init
  */
-NamespacedHTML(window);
+init.call(window);

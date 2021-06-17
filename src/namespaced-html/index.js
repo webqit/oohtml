@@ -2,9 +2,10 @@
 /**
  * @imports
  */
-import DOMInit from '@webqit/browser-pie/src/dom/index.js';
+import Observer from '@webqit/observer';
 import _any from '@webqit/util/arr/any.js';
-import { getOohtmlBase, objectUtil, createParams } from '../util.js';
+import domInit from '@webqit/browser-pie/src/dom/index.js';
+import { config, footprint } from '../util.js';
 
 /**
  * ---------------------------
@@ -15,14 +16,24 @@ import { getOohtmlBase, objectUtil, createParams } from '../util.js';
 /**
  * @init
  * 
- * @param window window
+ * @param Object config
  */
-export default async function init(window, config = null) {
+export default function init(_config = null, onDomReady = false) {
 
-	const Ctxt = DOMInit(window);
+    const WebQit = domInit.call(this);
+    if (onDomReady) {
+        WebQit.DOM.ready(() => {
+            init.call(this, _config, false);
+        });
+        return;
+    }
+
+    const window = WebQit.window;
+    const document = WebQit.window.document;
+    const mutations = WebQit.DOM.mutations;
+
 	const scopedIdInertContexts = [];
-    const _objectUtil = objectUtil.call(Ctxt);
-    const _meta = await createParams.call(Ctxt, {
+    const _meta = config.call(this, {
 		attr: {
             namespace: 'namespace',
             id: 'id',
@@ -30,27 +41,27 @@ export default async function init(window, config = null) {
         api: {
             namespace: 'namespace',
         },
-    }, config);
+    }, _config);
 	
     const getNamespaceObject = function(subject) {
-        if (!getOohtmlBase(subject).namespace) {
+        if (!footprint(subject).namespace) {
             const namespaceObject = {};
-            getOohtmlBase(subject).namespace = namespaceObject;
-            if (Ctxt.Observer.link) {
-                Ctxt.Observer.link(subject, _meta.api.namespace, namespaceObject);
+            footprint(subject).namespace = namespaceObject;
+            if (Observer.link) {
+                Observer.link(subject, _meta.get('api.namespace'), namespaceObject);
             }
         }
-        return getOohtmlBase(subject).namespace;
+        return footprint(subject).namespace;
 	};
 
     // ----------------------
     // Define the local "namespace" object
     // ----------------------
 
-	if (_meta.api.namespace in Ctxt.window.Element.prototype) {
-		throw new Error('The "Element" class already has a "' + _meta.api.namespace + '" property!');
+	if (_meta.get('api.namespace') in window.Element.prototype) {
+		throw new Error('The "Element" class already has a "' + _meta.get('api.namespace') + '" property!');
 	}
-	Object.defineProperty(Ctxt.window.Element.prototype, _meta.api.namespace, {
+	Object.defineProperty(window.Element.prototype, _meta.get('api.namespace'), {
 		get: function() {
 			return getNamespaceObject(this);
 		}
@@ -60,12 +71,12 @@ export default async function init(window, config = null) {
     // Define the global "namespace" object
     // ----------------------
 
-    if (_meta.api.namespace in Ctxt.window.document) {
-        throw new Error('The "document" object already has a "' + _meta.api.namespace + '" property!');
+    if (_meta.get('api.namespace') in document) {
+        throw new Error('The "document" object already has a "' + _meta.get('api.namespace') + '" property!');
     }
-	Object.defineProperty(Ctxt.window.document, _meta.api.namespace, {
+	Object.defineProperty(document, _meta.get('api.namespace'), {
 		get: function() {
-            return getNamespaceObject(Ctxt.window.document);
+            return getNamespaceObject(document);
 		}
 	});
 
@@ -73,32 +84,32 @@ export default async function init(window, config = null) {
 	// Capture scoped elements
 	// ----------------------
 
-	Ctxt.Mutation.onPresent('[' + Ctxt.window.CSS.escape(_meta.attr.id) + ']', el => {
-		var elOohtmlObj = getOohtmlBase(el);
+	mutations.onPresent('[' + window.CSS.escape(_meta.get('attr.id')) + ']', el => {
+		var elOohtmlObj = footprint(el);
 		if (elOohtmlObj.idAlreadyBeingWatched || _any(scopedIdInertContexts, inertContext => el.closest(inertContext))) {
 			return;
 		}
-		var scopedId = el.getAttribute(_meta.attr.id),
-			ownerRoot = el.parentNode.closest('[' + Ctxt.window.CSS.escape(_meta.attr.namespace) + ']');
+		var scopedId = el.getAttribute(_meta.get('attr.id')),
+			ownerRoot = el.parentNode.closest('[' + window.CSS.escape(_meta.get('attr.namespace')) + ']');
 		if (!ownerRoot) {
-			ownerRoot = Ctxt.window.document;
+			ownerRoot = document;
 		}
 		var namespaceObject = getNamespaceObject(ownerRoot);
 		if (namespaceObject[scopedId] !== el) {
-			_objectUtil.setVal(namespaceObject, scopedId, el);
+			Observer.set(namespaceObject, scopedId, el);
 		}
 		// new permanent watch
 		elOohtmlObj.idAlreadyBeingWatched = true;
-		Ctxt.Mutation.onPresenceChange(el, (els, presence) => {
+		mutations.onPresenceChange(el, (els, presence) => {
 			if (presence) {
 				// ONLY if I am not currently the one in place
 				if (namespaceObject[scopedId] !== el) {
-					_objectUtil.setVal(namespaceObject, scopedId, el);
+					Observer.set(namespaceObject, scopedId, el);
 				}
 			} else {
 				// ONLY if I am still the one in place
 				if (namespaceObject[scopedId] === el) {
-					_objectUtil.delVal(namespaceObject, scopedId);
+					Observer.deleteProperty(namespaceObject, scopedId);
 				}
 			}
 		});

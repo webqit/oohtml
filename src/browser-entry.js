@@ -2,9 +2,9 @@
 /**
  * @imports
  */
-import OOHTML from './index.js';
+import init from './index.js';
 
 /**
  * @init
  */
-OOHTML(window);
+init.call(window);

@@ -2,9 +2,9 @@
 /**
  * @imports
  */
-import State from './index.js';
+import init from './index.js';
 
 /**
  * @init
  */
-State(window);
+init.call(window);

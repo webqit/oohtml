@@ -2,8 +2,9 @@
 /**
  * @imports
  */
-import DOMInit from '@webqit/browser-pie/src/dom/index.js';
-import { getOohtmlBase, objectUtil, createParams } from '../util.js';
+import Observer from '@webqit/observer';
+import domInit from '@webqit/browser-pie/src/dom/index.js';
+import { config, footprint } from '../util.js';
 
 /**
  * ---------------------------
@@ -14,54 +15,63 @@ import { getOohtmlBase, objectUtil, createParams } from '../util.js';
 /**
  * @init
  * 
- * @param window window
+ * @param Object config
  */
-export default async function init(window, config = null) {
+export default function init(_config = null, onDomReady = false) {
 
-    const Ctxt = DOMInit(window);
-    const _objectUtil = objectUtil.call(Ctxt);
-    const _meta = await createParams.call(Ctxt, {
+    const WebQit = domInit.call(this);
+    if (onDomReady) {
+        WebQit.DOM.ready(() => {
+            init.call(this, _config, false);
+        });
+        return;
+    }
+
+    const window = WebQit.window;
+    const document = WebQit.window.document;
+
+    const _meta = config.call(this, {
         api: {state: 'state', setState: 'setState', clearState: 'clearState',},
-    }, config);
+    }, _config);
 
     const getOrCreateState = function(subject, newStateObject = null) {
-        if (!getOohtmlBase(subject).state || newStateObject) {
+        if (!footprint(subject).state || newStateObject) {
             const stateObject = newStateObject || {};
-            const prevStateObject = getOohtmlBase(subject).state;
-            getOohtmlBase(subject).state = stateObject;
-            if (prevStateObject && Ctxt.Observer.unlink) {
-                Ctxt.Observer.unlink(subject, _meta.api.state, prevStateObject);
+            const prevStateObject = footprint(subject).state;
+            footprint(subject).state = stateObject;
+            if (prevStateObject && Observer.unlink) {
+                Observer.unlink(subject, _meta.get('api.state'), prevStateObject);
             }
-            if (Ctxt.Observer.link) {
+            if (Observer.link) {
                 let event = newStateObject ? {isUpdate: prevStateObject ? true : false, oldValue: prevStateObject} : null;
-                Ctxt.Observer.link(subject, _meta.api.state, stateObject, event);
+                Observer.link(subject, _meta.get('api.state'), stateObject, event);
             }
         }
-        return getOohtmlBase(subject).state;
+        return footprint(subject).state;
     };
 
     // ----------------------
     // Define the "local" state property on Element.prototype
     // ----------------------
 
-    if (_meta.api.state in Ctxt.window.Element.prototype) {
-        throw new Error('The "Element" class already has a "' + _meta.api.state + '" property!');
+    if (_meta.get('api.state') in window.Element.prototype) {
+        throw new Error('The "Element" class already has a "' + _meta.get('api.state') + '" property!');
     }
-	Object.defineProperty(Ctxt.window.Element.prototype, _meta.api.state, {
+	Object.defineProperty(window.Element.prototype, _meta.get('api.state'), {
 		get: function() {
-            return Ctxt.Observer.proxy(getOrCreateState(this));
+            return Observer.proxy(getOrCreateState(this));
 		}
 	});
 
     // ----------------------
 
-    if (_meta.api.setState in Ctxt.window.Element.prototype) {
-        throw new Error('The "Element" class already has a "' + _meta.api.setState + '" property!');
+    if (_meta.get('api.setState') in window.Element.prototype) {
+        throw new Error('The "Element" class already has a "' + _meta.get('api.setState') + '" property!');
     }
-    Object.defineProperty(Ctxt.window.Element.prototype, _meta.api.setState, {
+    Object.defineProperty(window.Element.prototype, _meta.get('api.setState'), {
         value: function(stateObject, params = {}) {
             if (params.update) {
-                _objectUtil.mergeVal(getOrCreateState(this), stateObject);
+                Observer.set(getOrCreateState(this), stateObject);
             } else {
                 getOrCreateState(this, stateObject);
             }
@@ -70,10 +80,10 @@ export default async function init(window, config = null) {
 
     // ----------------------
 
-    if (_meta.api.clearState in Ctxt.window.Element.prototype) {
-        throw new Error('The "Element" class already has a "' + _meta.api.clearState + '" property!');
+    if (_meta.get('api.clearState') in window.Element.prototype) {
+        throw new Error('The "Element" class already has a "' + _meta.get('api.clearState') + '" property!');
     }
-    Object.defineProperty(Ctxt.window.Element.prototype, _meta.api.clearState, {
+    Object.defineProperty(window.Element.prototype, _meta.get('api.clearState'), {
         value: function() {
             getOrCreateState(this, {});
         }
@@ -83,38 +93,38 @@ export default async function init(window, config = null) {
     // Define the global "state" object
     // ----------------------
 
-    if (_meta.api.state in Ctxt.window.document) {
-        throw new Error('The "document" object already has a "' + _meta.api.state + '" property!');
+    if (_meta.get('api.state') in document) {
+        throw new Error('The "document" object already has a "' + _meta.get('api.state') + '" property!');
     }
-	Object.defineProperty(Ctxt.window.document, _meta.api.state, {
+	Object.defineProperty(document, _meta.get('api.state'), {
 		get: function() {
-            return Ctxt.Observer.proxy(getOrCreateState(Ctxt.window.document));
+            return Observer.proxy(getOrCreateState(document));
 		}
 	});
 
     // ----------------------
 
-    if (_meta.api.setState in Ctxt.window.document) {
-        throw new Error('The "document" object already has a "' + _meta.api.setState + '" property!');
+    if (_meta.get('api.setState') in document) {
+        throw new Error('The "document" object already has a "' + _meta.get('api.setState') + '" property!');
     }
-    Object.defineProperty(Ctxt.window.document, _meta.api.setState, {
+    Object.defineProperty(document, _meta.get('api.setState'), {
         value: function(stateObject, params = {}) {
             if (params.update) {
-                _objectUtil.mergeVal(getOrCreateState(Ctxt.window.document), stateObject);
+                Observer.set(getOrCreateState(document), stateObject);
             } else {
-                getOrCreateState(Ctxt.window.document, stateObject);
+                getOrCreateState(document, stateObject);
             }
         }
     });
 
     // ----------------------
 
-    if (_meta.api.clearState in Ctxt.window.document) {
-        throw new Error('The "document" object already has a "' + _meta.api.clearState + '" property!');
+    if (_meta.get('api.clearState') in document) {
+        throw new Error('The "document" object already has a "' + _meta.get('api.clearState') + '" property!');
     }
-    Object.defineProperty(Ctxt.window.document, _meta.api.clearState, {
+    Object.defineProperty(document, _meta.get('api.clearState'), {
         value: function() {
-            getOrCreateState(Ctxt.window.document, {});
+            getOrCreateState(document, {});
         }
     });
 };

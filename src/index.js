@@ -2,43 +2,36 @@
 /**
  * @imports
  */
-import DOMInit from '@webqit/browser-pie/src/dom/index.js';
-import ENV from '@webqit/browser-pie/src/ENV.js';
 import Observer from '@webqit/observer';
 import * as Subscript from '@webqit/subscript';
+import domInit from '@webqit/browser-pie/src/dom/index.js';
 import HTMLModules from './html-modules/index.js';
 import HTMLImports from './html-imports/index.js';
 import NamespacedHTML from './namespaced-html/index.js';
 import StateAPI from './state-api/index.js';
 import HTMLSubscript from './subscript/index.js';
-import { meta } from './util.js';
 
 /**
  * @init
  */
-export default function init(window, config = null) {
+export default function init(config = null, onDomReady = false) {
 
-    let Ctxt = DOMInit(window);
-    if (window.WQ.OOHTML) {
+    const WebQit = domInit.call(this);
+    if (WebQit.OOHTML) {
         return;
     }
-    window.WQ.Observer = Observer;
+    WebQit.OOHTML = {};
     // --------------
-    const OOHTML = ENV.create(window, 'OOHTML');
-    OOHTML.ready = Promise.all([
-        HTMLModules(window, config),
-        HTMLImports(window, config),
-        NamespacedHTML(window, config),
-        StateAPI(window, config),
-        HTMLSubscript(window, config),
-    ]);
-    OOHTML.meta = (...args) => {
-        return meta.call(Ctxt, ...args);
-    };
+    HTMLModules.call(this, config, onDomReady);
+    HTMLImports.call(this, config, onDomReady);
+    NamespacedHTML.call(this, config, onDomReady);
+    StateAPI.call(this, config, onDomReady);
+    HTMLSubscript.call(this, config, onDomReady);
     // --------------
-    window.WQ.Subscript = Subscript;
+    WebQit.Observer = Observer;
+    WebQit.Subscript = Subscript;
 
-};
+}
 
 /**
  * @exports

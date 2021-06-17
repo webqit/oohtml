@@ -2,13 +2,14 @@
 /**
  * @imports
  */
-import DOMInit from '@webqit/browser-pie/src/dom/index.js';
-import { Parser, Runtime, Scope } from '@webqit/subscript';
-import { Block } from '@webqit/subscript/src/grammar.js';
+import Observer from '@webqit/observer';
 import _merge from '@webqit/util/obj/merge.js';
 import _remove from '@webqit/util/arr/remove.js';
 import _isFunction from '@webqit/util/js/isFunction.js';
-import { getOohtmlBase, objectUtil, createParams } from '../util.js';
+import domInit from '@webqit/browser-pie/src/dom/index.js';
+import { Parser, Runtime, Scope } from '@webqit/subscript';
+import { Block } from '@webqit/subscript/src/grammar.js';
+import { config, footprint } from '../util.js';
 
 /**
  * ---------------------------
@@ -19,39 +20,52 @@ import { getOohtmlBase, objectUtil, createParams } from '../util.js';
 /**
  * @init
  * 
- * @param window window
+ * @param Object config
  */
-export default async function init(window, config = null) {
+export default function init(_config = null, onDomReady = false) {
 
-    const Ctxt = DOMInit(window);
-    const _objectUtil = objectUtil.call(Ctxt);
+    const WebQit = domInit.call(this);
+    if (onDomReady) {
+        WebQit.DOM.ready(() => {
+            init.call(this, _config, false);
+        });
+        return;
+    }
+
+    const window = WebQit.window;
+    const document = WebQit.window.document;
+    const mutations = WebQit.DOM.mutations;
+
     const globalRuntimeInitializationWaitlist = [];
     var globalRuntimeInitialized = false;
-    const _meta = await createParams.call(Ctxt, {
+    const _meta = config.call(this, {
         selectors: {script: 'script[type="subscript"]',},
         api: {bind: 'bind', unbind: 'unbind',},
         script: {},
-    }, config);
+    }, _config);
     const parseCache = {};
 
     // ----------------------
     // Helpers
     // ----------------------
 
-    const scopeParams = {  errorLevel: _meta.script.errlevel, };
-    const docCntxt = _objectUtil.setVal({}, 'document', Ctxt.window.document);
-    const globalScopeInstance = Scope.createStack([docCntxt, Scope.create(Ctxt.window)], scopeParams, {
-        set: _objectUtil.setVal,
+    const scopeParams = { errorLevel: _meta.get('script.errlevel'), };
+    const docCntxt = {};
+    Observer.set(docCntxt, 'document', document);
+    const globalScopeInstance = Scope.createStack([docCntxt, Scope.create(window)], scopeParams, {
+        set: Observer.set,
     });
 
     const getScriptBase = function(target) {
-        var oohtmlBase = getOohtmlBase(target);
+        var oohtmlBase = footprint(target);
         if (!oohtmlBase.subscript || !oohtmlBase.subscript.isConnected) {
             if (!oohtmlBase.subscript) {
                 // Create scope
+                var thisScope = {};
+                Observer.set(thisScope, 'this', target);
                 oohtmlBase.subscript = {
-                    scope: Scope.createStack([{}/** bindings scope */, _objectUtil.setVal({}, 'this', target)/** the "this" scope */, globalScopeInstance/** global scope */], scopeParams, {
-                        set: _objectUtil.setVal,
+                    scope: Scope.createStack([{}/** bindings scope */, thisScope/** the "this" scope */, globalScopeInstance/** global scope */], scopeParams, {
+                        set: Observer.set,
                     }),
                 };
                 oohtmlBase.subscript.console = {
@@ -70,15 +84,15 @@ export default async function init(window, config = null) {
                 oohtmlBase.subscript.connected = c => {
                     oohtmlBase.subscript.isConnected = c;
                     if (c) {
-                        oohtmlBase.subscript.scope.observe(Ctxt.Observer, oohtmlBase.subscript.handler, {tags: [oohtmlBase.subscript.handler]});
+                        oohtmlBase.subscript.scope.observe(Observer, oohtmlBase.subscript.handler, {tags: [oohtmlBase.subscript.handler]});
                     } else {
                         // Unobserve only happens by tags
-                        oohtmlBase.subscript.scope.unobserve(Ctxt.Observer, {tags: [oohtmlBase.subscript.handler]});
+                        oohtmlBase.subscript.scope.unobserve(Observer, {tags: [oohtmlBase.subscript.handler]});
                     }
                 };
             }
             // =====================
-            var mo = Ctxt.Mutation.onRemoved(target, () => {
+            var mo = mutations.onRemoved(target, () => {
                 oohtmlBase.subscript.connected(false);
                 mo.disconnect();
             }, {ignoreTransients: true});
@@ -101,7 +115,7 @@ export default async function init(window, config = null) {
                     targetScriptBase.console.warnings.push(e.message);
                 }
             },
-            trap: Ctxt.Observer,
+            trap: Observer,
         };
         if (targetScriptBase.AST) {
             var returnValue = Runtime.eval(targetScriptBase.AST, targetScriptBase.scope, params);
@@ -115,13 +129,13 @@ export default async function init(window, config = null) {
     // Capture scripts
     // ----------------------
 
-    Ctxt.Mutation.onPresent(_meta.selectors.script, (scriptElement, p) => {
+    mutations.onPresent(_meta.get('selectors.script'), (scriptElement, p) => {
         if (!scriptElement.parentNode) {
             return;
         }
         // Remove
         var srcCode, parentNode = scriptElement.parentNode, scriptBase = getScriptBase(parentNode);
-        if (!_meta.isomorphic) {
+        if (!_meta.get('isomorphic')) {
             scriptElement.remove();
         }
         if (scriptBase.scriptElement === scriptElement) {
@@ -138,7 +152,7 @@ export default async function init(window, config = null) {
         // ------
         // Parse
         // ------
-        var explain = [], shouldExplain = scriptElement.hasAttribute('explain') || _meta.script.explain;
+        var explain = [], shouldExplain = scriptElement.hasAttribute('explain') || _meta.get('script.explain');
         if (!parseCache[srcCode]) {
             parseCache[srcCode] = parse(srcCode, {
                 explain: shouldExplain ? explain : null,
@@ -146,7 +160,7 @@ export default async function init(window, config = null) {
         }
         scriptBase.AST = parseCache[srcCode];
         if (scriptElement.hasAttribute('scoped')) {
-            //_objectUtil.setVal(scriptBase.scope.stack.super.stack.main, 'this', parentNode);
+            //Observer.set(scriptBase.scope.stack.super.stack.main, 'this', parentNode);
         }
         if (shouldExplain) {
             scriptBase.console.logs.push(explain);
@@ -157,8 +171,8 @@ export default async function init(window, config = null) {
         // ------
         scriptBase.errorLevel = scriptElement.getAttribute('errors') 
             ? parseInt(scriptElement.getAttribute('errors'))
-            : _meta.script.errors;
-        if (globalRuntimeInitialized || scriptBase.hasBindings || _meta.script.autorun !== false || scriptElement.hasAttribute('autorun')) {
+            : _meta.get('script.errors');
+        if (globalRuntimeInitialized || scriptBase.hasBindings || _meta.get('script.autorun') !== false || scriptElement.hasAttribute('autorun')) {
             applyBinding(parentNode);
         } else {
             scriptBase.inWaitlist = true;
@@ -170,10 +184,10 @@ export default async function init(window, config = null) {
     // Define the "local" binding method on Element.prototype
     // ----------------------
 
-    if ('subscript' in Ctxt.window.Element.prototype) {
+    if ('subscript' in window.Element.prototype) {
         throw new Error('The "Element" class already has a "subscript" property!');
     }
-    Object.defineProperty(Ctxt.window.Element.prototype, 'subscript', {
+    Object.defineProperty(window.Element.prototype, 'subscript', {
         get: function() {
             let scriptBase = getScriptBase(this);
             if (!('bindings' in scriptBase)) {
@@ -188,8 +202,8 @@ export default async function init(window, config = null) {
                             // is later changed
                             scriptBase.scopeInstanceProxy = new Proxy(scriptBase.scope.stack.main, {
                                 set: (target, key, value) => {
-                                    // NOTE that this element if in waitlist won't be called by this _objectUtil.setVal()
-                                    _objectUtil.setVal(scriptBase.scope.stack.main, key, value);
+                                    // NOTE that this element if in waitlist won't be called by this Observer.set()
+                                    Observer.set(scriptBase.scope.stack.main, key, value);
                                     scriptBase.hasBindings = true;
                                     // Explicitly remove from waitlist
                                     if (globalRuntimeInitializationWaitlist.includes($this)) {
@@ -199,10 +213,10 @@ export default async function init(window, config = null) {
                                     return true;
                                 },
                                 get: (target, key) => {
-                                    return _objectUtil.getVal(scriptBase.scope.stack.main, key);
+                                    return Observer.get(scriptBase.scope.stack.main, key);
                                 },
                                 deleteProperty: (target, key) => {
-                                    return _objectUtil.delVal(scriptBase.scope.stack.main, key);
+                                    return Observer.deleteProperty(scriptBase.scope.stack.main, key);
                                 },
                             });
                         }
@@ -214,11 +228,11 @@ export default async function init(window, config = null) {
 
                 Object.defineProperty(scriptBase, 'bind', {
                     value: function(binding, params = {}) {
-                        // NOTE that this element if in waitlist won't be called by this _objectUtil.mergeVal()/_objectUtil.setVal()
+                        // NOTE that this element if in waitlist won't be called by this Observer.set()/Observer.set()
                         if (params.update) {
-                            _objectUtil.mergeVal(scriptBase.scope.stack.main, binding);
+                            Observer.set(scriptBase.scope.stack.main, binding);
                         } else {
-                            _objectUtil.setVal(scriptBase.scope.stack, 'main', binding);
+                            Observer.set(scriptBase.scope.stack, 'main', binding);
                         }
                         scriptBase.hasBindings = true;
                         // Explicitly remove from waitlist
@@ -231,9 +245,9 @@ export default async function init(window, config = null) {
 
                 // ---------------------
                 
-                Object.defineProperty(scriptBase, _meta.api.unbind, {
+                Object.defineProperty(scriptBase, _meta.get('api.unbind'), {
                     value: function() {
-                        _objectUtil.setVal(scriptBase.scope.stack, 'main', {});
+                        Observer.set(scriptBase.scope.stack, 'main', {});
                     }
                 });
             }
@@ -241,16 +255,15 @@ export default async function init(window, config = null) {
         }
     });
 
-
     // ----------------------
     // Define the global "scopedJS" object
     // ----------------------
 
-    if ('subscript' in Ctxt.window.document) {
+    if ('subscript' in document) {
         throw new Error('The "document" object already has a "subscript" property!');
     }
     var globalScopeInstanceProxy, globalSubscript = {};
-    Object.defineProperty(Ctxt.window.document, 'subscript', {
+    Object.defineProperty(document, 'subscript', {
         get: function() {
             if (!('bindings' in globalSubscript)) {
 
@@ -261,8 +274,8 @@ export default async function init(window, config = null) {
                             // is later changed
                             globalScopeInstanceProxy = new Proxy(globalScopeInstance.stack.main, {
                                 set: (target, key, value) => {
-                                    // NOTE that elements in waitlist won't be called by this _objectUtil.setVal()
-                                    _objectUtil.setVal(globalScopeInstance.stack.main, key, value);
+                                    // NOTE that elements in waitlist won't be called by this Observer.set()
+                                    Observer.set(globalScopeInstance.stack.main, key, value);
                                     // Explicitly empty waitlist
                                     var waitingElement;
                                     while(waitingElement = globalRuntimeInitializationWaitlist.shift()) {
@@ -272,10 +285,10 @@ export default async function init(window, config = null) {
                                     return true;
                                 },
                                 get: (target, key) => {
-                                    return _objectUtil.getVal(globalScopeInstance.stack.main, key);
+                                    return Observer.get(globalScopeInstance.stack.main, key);
                                 },
                                 deleteProperty: (target, key) => {
-                                    return _objectUtil.delVal(globalScopeInstance.stack.main, key);
+                                    return Observer.deleteProperty(globalScopeInstance.stack.main, key);
                                 },
                             });
                         }
@@ -287,11 +300,11 @@ export default async function init(window, config = null) {
 
                 Object.defineProperty(globalSubscript, 'bind', {
                     value: function(binding, params = {}) {
-                        // NOTE that elements in waitlist won't be called by this _objectUtil.mergeVal()/_objectUtil.setVal()
+                        // NOTE that elements in waitlist won't be called by this Observer.set()/Observer.set()
                         if (params.update) {
-                            _objectUtil.mergeVal(globalScopeInstance.stack.main, binding);
+                            Observer.set(globalScopeInstance.stack.main, binding);
                         } else {
-                            _objectUtil.setVal(globalScopeInstance.stack, 'main', binding);
+                            Observer.set(globalScopeInstance.stack, 'main', binding);
                         }
                         // Explicitly empty waitlist
                         var waitingElement;
@@ -306,7 +319,7 @@ export default async function init(window, config = null) {
             
                 Object.defineProperty(globalSubscript, 'unbind', {
                     value: function() {
-                        _objectUtil.setVal(globalScopeInstance.stack, 'main', {});
+                        Observer.set(globalScopeInstance.stack, 'main', {});
                     },
                 });
             

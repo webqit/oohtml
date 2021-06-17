@@ -2,9 +2,9 @@
 /**
  * @imports
  */
-import HTMLPartials from './index.js';
+import init from './index.js';
 
 /**
  * @init
  */
-HTMLPartials(window);
+init.call(window);

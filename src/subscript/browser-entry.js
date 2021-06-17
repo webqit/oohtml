@@ -2,9 +2,9 @@
 /**
  * @imports
  */
-import ScopedJS from './index.js';
+import init from './index.js';
 
 /**
  * @init
  */
-ScopedJS(window);
+init.call(window);

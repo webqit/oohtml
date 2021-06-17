@@ -8,7 +8,7 @@ const path = require('path');
  * @exports
  */
 module.exports = {
-	mode: 'production',
+	mode: process.argv.includes('--dev') ? 'development' : 'production',
 	entry: {
 		main: './src/browser-entry.js',
 		'html-modules': './src/html-modules/browser-entry.js',

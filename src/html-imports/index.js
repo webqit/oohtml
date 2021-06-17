@@ -2,14 +2,14 @@
 /**
  * @imports
  */
-import DOMInit from '@webqit/browser-pie/src/dom/index.js';
 import _any from '@webqit/util/arr/any.js';
 import _arrFrom from '@webqit/util/arr/from.js';
 import _remove from '@webqit/util/arr/remove.js';
 import _unique from '@webqit/util/arr/unique.js';
 import _difference from '@webqit/util/arr/difference.js';
 import _each from '@webqit/util/obj/each.js';
-import { getOohtmlBase, createParams } from '../util.js';
+import domInit from '@webqit/browser-pie/src/dom/index.js';
+import { config, footprint } from '../util.js';
 
 /**
  * ---------------------------
@@ -20,25 +20,36 @@ import { getOohtmlBase, createParams } from '../util.js';
 /**
  * @init
  * 
- * @param window window
+ * @param Object config
  */
-export default async function init(window, config = null) {
+export default function init(_config = null, onDomReady = false) {
 
-    const Ctxt = DOMInit(window);
-    const document = Ctxt.window.document;
-	const importInertContexts = [];
-    const _meta = await createParams.call(Ctxt, {
+    const WebQit = domInit.call(this);
+    if (onDomReady) {
+        WebQit.DOM.ready(() => {
+            init.call(this, _config, false);
+        });
+        return;
+    }
+
+    const window = WebQit.window;
+    const document = WebQit.window.document;
+    const mutations = WebQit.DOM.mutations;
+
+    const importInertContexts = [];
+    const _meta = config.call(this, {
         element: {
             import: 'import',
         },
-		attr: {
+        attr: {
             importid: 'name',
             templatespec: 'template-specificity',
         },
-    }, config);
-    _defaultNoInherits.push(_meta.attr.importid, _meta.attr.moduleref);
-    const modulerefSelector = '[' + window.CSS.escape(_meta.attr.moduleref) + ']';
-    const exportgroupSelector = '[' + window.CSS.escape(_meta.attr.exportgroup) + ']';
+    }, _config);
+
+    _defaultNoInherits.push(_meta.get('attr.importid'), _meta.get('attr.moduleref'));
+    const modulerefSelector = '[' + window.CSS.escape(_meta.get('attr.moduleref')) + ']';
+    const exportgroupSelector = '[' + window.CSS.escape(_meta.get('attr.exportgroup')) + ']';
 
     // ----------------------
     // Capture slot elements
@@ -73,9 +84,9 @@ export default async function init(window, config = null) {
          * @return void
          */
         hydrate(anchorNode, slottedElements, compositionBlock) {
-            getOohtmlBase(this.el).anchorNode = anchorNode;
-            getOohtmlBase(this.el).slottedElements = slottedElements;
-            getOohtmlBase(this.el).compositionBlock = compositionBlock;
+            footprint(this.el).anchorNode = anchorNode;
+            footprint(this.el).slottedElements = slottedElements;
+            footprint(this.el).compositionBlock = compositionBlock;
             this._bindSlotted(slottedElements);
             this._connectToCompositionBlock();
         }
@@ -86,16 +97,16 @@ export default async function init(window, config = null) {
          * @return void
          */
         connectedCallback() {
-            if (!getOohtmlBase(this.el).anchorNode) {
-                getOohtmlBase(this.el).anchorNode = _meta.isomorphic
+            if (!footprint(this.el).anchorNode) {
+                footprint(this.el).anchorNode = _meta.get('isomorphic')
                     ? document.createComment(this.el.outerHTML)
                     : document.createTextNode('');
-                getOohtmlBase(this.el).compositionBlock = !this.el.hasAttribute(_meta.attr.moduleref)
+                footprint(this.el).compositionBlock = !this.el.hasAttribute(_meta.get('attr.moduleref'))
                     ? this.el.parentNode.closest(modulerefSelector)
                     : null;
                 this._connectToCompositionBlock();
             }
-            Ctxt.ready.then(window => {
+            WebQit.DOM.ready.call(WebQit, () => {
                 this.resolve();
             });
         }
@@ -105,11 +116,11 @@ export default async function init(window, config = null) {
          */
         _connectToCompositionBlock() {
             if (this.compositionBlock) {
-                if (!getOohtmlBase(this.compositionBlock).imports) {
-                    getOohtmlBase(this.compositionBlock).imports = {};
+                if (!footprint(this.compositionBlock).imports) {
+                    footprint(this.compositionBlock).imports = {};
                 }
                 // Now after the update slot ID
-                getOohtmlBase(this.compositionBlock).imports[this.name] = this.el;
+                footprint(this.compositionBlock).imports[this.name] = this.el;
             }
         }
 
@@ -124,9 +135,9 @@ export default async function init(window, config = null) {
             exports.forEach(_export => {
                 _export.importReference = this.el;
             });
-            getOohtmlBase(this.el).slottedObserver = Ctxt.Mutation.onRemoved(exports, (removed, state, isTransient, addedState, removedState) => {
+            footprint(this.el).slottedObserver = mutations.onRemoved(exports, (removed, state, isTransient, addedState, removedState) => {
                 if (removedState && removedState.size === exports.length) {
-                    getOohtmlBase(this.el).slottedObserver.disconnect();
+                    footprint(this.el).slottedObserver.disconnect();
                 }
                 removed.forEach(remd => {
                     // Let's ensure this wasn't slotted againe
@@ -159,27 +170,30 @@ export default async function init(window, config = null) {
             }
             var getPartials = templateSource => {
                 var get = path => path.reduce((templateObjects, item, i) => {
-                    return templateObjects.reduce((_templateObjects, templateObject) => _templateObjects.concat(getOohtmlBase(templateObject).templates[item], item === '*' ? [] : getOohtmlBase(templateObject).templates['*']), []).filter(t => t);
+                    return templateObjects.reduce((_templateObjects, templateObject) => _templateObjects.concat(footprint(templateObject).templates[item], item === '*' ? [] : footprint(templateObject).templates['*']), []).filter(t => t);
                 }, [document]);
-                var templatesAggr, exportsAggr = [], [ tempSpecA, tempSpecB ] = (this.el.getAttribute(_meta.attr.templatespec) || '').split('-').map(a => parseInt(a)).concat([0, 0]);
-                var path = templateSource.getAttribute(_meta.attr.moduleref).split('/').map(n => n.trim()).filter(n => n);
+
+                var templatesAggr, exportsAggr = [], [ tempSpecA, tempSpecB ] = (this.el.getAttribute(_meta.get('attr.templatespec')) || '').split('-').map(a => parseInt(a)).concat([0, 0]);
+                var path = templateSource.getAttribute(_meta.get('attr.moduleref')).split('/').map(n => n.trim()).filter(n => n);
+                
                 while((
                     !(templatesAggr = get(path)).length 
                     || templatesAggr[0] === document 
-                    || !(exportsAggr = templatesAggr.reduce((exports, template) => exports.concat(getOohtmlBase(template).exports[this.name] || []), [])).length
+                    || !(exportsAggr = templatesAggr.reduce((exports, template) => exports.concat(footprint(template).exports[this.name] || []), [])).length
                 ) && path.length > tempSpecA && tempSpecB) {
                     path.pop(); tempSpecB --;
                 }
+
                 return exportsAggr;
             };
             // -----------------
             // Global import or scoped slot?
             var templateSource, exports;
-            if (this.el.hasAttribute(_meta.attr.moduleref)) {
+            if (this.el.hasAttribute(_meta.get('attr.moduleref'))) {
                 // Did we previously had a compositionBlock?
                 // Let's remove ourself
-                if (this.compositionBlock && getOohtmlBase(this.compositionBlock).imports[this.name] === this.el) {
-                    delete getOohtmlBase(this.compositionBlock).imports[this.name];
+                if (this.compositionBlock && footprint(this.compositionBlock).imports[this.name] === this.el) {
+                    delete footprint(this.compositionBlock).imports[this.name];
                 }
                 templateSource = this.el;
             } else {
@@ -190,12 +204,12 @@ export default async function init(window, config = null) {
                 templateSource = this.compositionBlock;
             }
             if (templateSource && (exports = getPartials(templateSource)).length) {
-                if (_difference(exports, getOohtmlBase(this.el).originalSlottedElements || []).length) {
-                    getOohtmlBase(this.el).originalSlottedElements = exports;
+                if (_difference(exports, footprint(this.el).originalSlottedElements || []).length) {
+                    footprint(this.el).originalSlottedElements = exports;
                     this.fill(exports);
                 }
             } else {
-                getOohtmlBase(this.el).originalSlottedElements = null;
+                footprint(this.el).originalSlottedElements = null;
                 this.empty();
             }
         }
@@ -221,17 +235,17 @@ export default async function init(window, config = null) {
             exports.forEach(_export => {
                 // ---------------------
                 // Implement the slot?
-                if (_export.getAttribute(_meta.attr.moduleref) === '@slot') {
-                    if (!getOohtmlBase(_export).templates) {
-                        getOohtmlBase(_export).templates = {};
+                if (_export.getAttribute(_meta.get('attr.moduleref')) === '@slot') {
+                    if (!footprint(_export).templates) {
+                        footprint(_export).templates = {};
                     }
-                    getOohtmlBase(_export).templates['@slot'] = this.el;
+                    footprint(_export).templates['@slot'] = this.el;
                 }
                 // Inherit attributes from the slot element before replacement
                 mergeAttributes(_export, this.el);
                 // ---------------------
-                if (!_export.getAttribute(_meta.attr.exportgroup)) {
-                    _export.setAttribute(_meta.attr.exportgroup, this.name);
+                if (!_export.getAttribute(_meta.get('attr.exportgroup'))) {
+                    _export.setAttribute(_meta.get('attr.exportgroup'), this.name);
                 }
                 // Place slottable
                 this.anchorNode.before(_export);
@@ -252,8 +266,8 @@ export default async function init(window, config = null) {
         empty(silently = false) {
             if (this.slottedElements) {
                 var slottedElements = this.slottedElements;
-                if (silently && getOohtmlBase(this.el).slottedObserver) {
-                    getOohtmlBase(this.el).slottedObserver.disconnect();
+                if (silently && footprint(this.el).slottedObserver) {
+                    footprint(this.el).slottedObserver.disconnect();
                     slottedElements = this.slottedElements.splice(0);
                 }
                 slottedElements.forEach(slottedElement => slottedElement.remove());
@@ -266,7 +280,7 @@ export default async function init(window, config = null) {
          * @return string
          */
         get name() {
-            return this.el.getAttribute(_meta.attr.importid) || 'default';
+            return this.el.getAttribute(_meta.get('attr.importid')) || 'default';
         }
 
         /**
@@ -275,7 +289,7 @@ export default async function init(window, config = null) {
          * @return array
          */
         get anchorNode() {
-            return getOohtmlBase(this.el).anchorNode;
+            return footprint(this.el).anchorNode;
         }
 
         /**
@@ -284,7 +298,7 @@ export default async function init(window, config = null) {
          * @return array
          */
         get compositionBlock() {
-            return getOohtmlBase(this.el).compositionBlock;
+            return footprint(this.el).compositionBlock;
         }
 
         /**
@@ -293,10 +307,10 @@ export default async function init(window, config = null) {
          * @return array
          */
         get slottedElements() {
-            if (!getOohtmlBase(this.el).slottedElements) {
-                getOohtmlBase(this.el).slottedElements = [];
+            if (!footprint(this.el).slottedElements) {
+                footprint(this.el).slottedElements = [];
             }
-            return getOohtmlBase(this.el).slottedElements;
+            return footprint(this.el).slottedElements;
         }
 
         /**
@@ -306,7 +320,7 @@ export default async function init(window, config = null) {
          */
         get exports() {
             discoverContents(this.el, this.el);
-            return getOohtmlBase(this.el).exports;
+            return footprint(this.el).exports;
         }
                 
         /**
@@ -315,7 +329,7 @@ export default async function init(window, config = null) {
          * @return array
          */
         static get observedAttributes() {
-            return [_meta.attr.importid];
+            return [_meta.get('attr.importid')];
         }
     };
 
@@ -323,27 +337,27 @@ export default async function init(window, config = null) {
     // Capture import elements
     // ----------------------
 
-    Ctxt.Mutation.onPresent(_meta.element.import, el => {
+    mutations.onPresent(_meta.get('element.import'), el => {
         var importElInstance = Import.create(el);
         importElInstance.connectedCallback();
     });
     /**
-    window.customElements.define(_meta.element.import, Import);
-     */
+    window.customElements.define(_meta.get('element.import'), Import);
+    */
 
     // ----------------------
     // Progressive resolution
     // ----------------------
     
     const resolveSlots = (el, exportName) => {
-        const shouldResolve = (importEl, importName) => !exportName || importName === exportName || (exportName === true && importEl.getAttribute(_meta.attr.templatespec));
-        if (el.matches(_meta.element.import)) {
+        const shouldResolve = (importEl, importName) => !exportName || importName === exportName || (exportName === true && importEl.getAttribute(_meta.get('attr.templatespec')));
+        if (el.matches(_meta.get('element.import'))) {
             var importElInstance = Import.create(el);
             if (shouldResolve(el, importElInstance.name)) {
                 importElInstance.resolve();
             }
         } else {
-            _each(getOohtmlBase(el).imports, (name, importEl) => {
+            _each(footprint(el).imports, (name, importEl) => {
                 if (shouldResolve(importEl, name)) {
                     var importElInstance = Import.create(importEl);
                     importElInstance.resolve();
@@ -351,19 +365,19 @@ export default async function init(window, config = null) {
             });
         }
     };
-
-    Ctxt.Mutation.onPresent(modulerefSelector, el => {
+    
+    mutations.onPresent(modulerefSelector, el => {
         if (_any(importInertContexts, inertContext => el.closest(inertContext))) {
             return;
         }
         // Imports resolve by themselves
         // But...
         // We resolve them again when reference to template changes
-        Ctxt.Mutation.onAttrChange(el, mr => {
+        mutations.onAttrChange(el, mr => {
             if (mr[0].target.getAttribute(mr[0].attributeName) !== mr[0].oldValue) {
                 resolveSlots(el);
             }
-        }, [_meta.attr.moduleref]);
+        }, [_meta.get('attr.moduleref'), _meta.get('attr.importid')]);
     });
 
     document.addEventListener('templatemutation', e => {
@@ -371,7 +385,7 @@ export default async function init(window, config = null) {
         if (!e.detail.path) {
             return;
         }
-        const modulerefSelector = [e.detail.path, e.detail.path + '/'].map(path => '[' + window.CSS.escape(_meta.attr.moduleref) + '="' + path + '"]').join(',');
+        const modulerefSelector = [e.detail.path, e.detail.path + '/'].map(path => '[' + window.CSS.escape(_meta.get('attr.moduleref')) + '="' + path + '"]').join(',');
         _arrFrom(document.querySelectorAll(modulerefSelector)).forEach(el => {
             resolveSlots(el, true);
             e.detail.addedExports.concat(e.detail.removedExports).forEach(exportGroup => {
@@ -387,21 +401,21 @@ export default async function init(window, config = null) {
     const hydrateSlots = () => {
         _arrFrom(document.querySelectorAll(exportgroupSelector)).forEach(_export => {
             // Scan
-            if (!getOohtmlBase(_export.parentNode).importsCan) {
+            if (!footprint(_export.parentNode).importsCan) {
                 var slottedElements = [];
                 _export.parentNode.childNodes.forEach(node => {
                     var nodeValue;
                     if (node.nodeType === 1/** ELEMENT_NODE */ && node.matches(exportgroupSelector)) {
                         slottedElements.push(node);
                     } else if (node.nodeType === 8/** COMMENT_NODE */ && (nodeValue = node.nodeValue.trim())
-                    && nodeValue.startsWith('<' + _meta.element.import)
-                    && nodeValue.endsWith('</' + _meta.element.import + '>')) {
+                    && nodeValue.startsWith('<' + _meta.get('element.import'))
+                    && nodeValue.endsWith('</' + _meta.get('element.import') + '>')) {
                         var importEl, reviver = document.createElement('div');
                         reviver.innerHTML = nodeValue;
-                        if ((importEl = reviver.firstChild).matches(_meta.element.import)) {
+                        if ((importEl = reviver.firstChild).matches(_meta.get('element.import'))) {
                             // Belongs to a composition block?
                             var compositionBlock;
-                            if (!importEl.hasAttribute(_meta.attr.moduleref)) {
+                            if (!importEl.hasAttribute(_meta.get('attr.moduleref'))) {
                                 compositionBlock = node.parentNode.closest(modulerefSelector);
                             }
                             var importElInstance = Import.create(importEl);
@@ -412,7 +426,7 @@ export default async function init(window, config = null) {
                     }
                 });
                 // Scanning is once for every parent
-                getOohtmlBase(_export.parentNode).importsCan = true;
+                footprint(_export.parentNode).importsCan = true;
             }
         });
     };
@@ -421,8 +435,8 @@ export default async function init(window, config = null) {
     // Hydrate
     // ----------------------
 
-    Ctxt.ready.then(() => {
-        if (_meta.isomorphic) {
+    WebQit.DOM.ready.call(WebQit, () => {
+        if (_meta.get('isomorphic')) {
             hydrateSlots();
         }
     });
