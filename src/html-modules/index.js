@@ -308,7 +308,7 @@ export default function init(_config = null, onDomReady = false) {
         get: function() {
             var templateId = this.getAttribute(_meta.get('attr.moduleref'));
             if (templateId) {
-                return templateId.split('/').map(n => n.trim()).filter(n => n).reduce((context, item) => {
+                return templateId.split('#')[0].split('/').map(n => n.trim()).filter(n => n).reduce((context, item) => {
                     return context ? footprint(context).templates[item] || footprint(context).templates['*'] : null;
                 }, document);
             }
