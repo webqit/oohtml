@@ -36,7 +36,7 @@
     "postpublish": "git push && git push --tags"
   },
   "dependencies": {
-    "@webqit/browser-pie": "^0.0.14",
+    "@webqit/browser-pie": "^0.0.16",
     "@webqit/observer": "^1.4.4",
     "@webqit/subscript": "^1.1.4",
     "@webqit/util": "^0.7.0"
