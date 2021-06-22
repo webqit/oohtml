@@ -102,8 +102,9 @@ export default function init(_config = null, onDomReady = false) {
                     ? document.createComment(this.el.outerHTML)
                     : document.createTextNode('');
                 footprint(this.el).compositionBlock = !this.el.hasAttribute(_meta.get('attr.moduleref'))
-                    ? this.el.parentNode.closest(modulerefSelector)
-                    : null;
+                    ? this.el.parentNode.closest(modulerefSelector) : (
+                        this.el.getAttribute(_meta.get('attr.moduleref')).split('/')[0] === '~' ? this.el.parentNode.closest(exportgroupSelector) : null
+                    );
                 this._connectToCompositionBlock();
             }
             WebQit.DOM.ready.call(WebQit, () => {
@@ -168,17 +169,15 @@ export default function init(_config = null, onDomReady = false) {
             if (_any(importInertContexts, inertContext => this.el.closest(inertContext))) {
                 return;
             }
-            var getPartials = templateSource => {
+            var getPartials = (path, _document) => {
                 var get = path => path.reduce((templateObjects, item, i) => {
                     return templateObjects.reduce((_templateObjects, templateObject) => _templateObjects.concat(footprint(templateObject).templates[item], item === '*' ? [] : footprint(templateObject).templates['*']), []).filter(t => t);
-                }, [document]);
+                }, [_document]);
 
-                var templatesAggr, exportsAggr = [], [ tempSpecA, tempSpecB ] = (this.el.getAttribute(_meta.get('attr.templatespec')) || '').split('-').map(a => parseInt(a)).concat([0, 0]);
-                var path = templateSource.getAttribute(_meta.get('attr.moduleref')).split('/').map(n => n.trim()).filter(n => n);
-                
+                var templatesAggr, exportsAggr = [], [ tempSpecA, tempSpecB ] = (this.el.getAttribute(_meta.get('attr.templatespec')) || '').split('-').map(a => parseInt(a)).concat([0, 0]);                
                 while((
                     !(templatesAggr = get(path)).length 
-                    || templatesAggr[0] === document 
+                    || templatesAggr[0] === _document 
                     || !(exportsAggr = templatesAggr.reduce((exports, template) => exports.concat(footprint(template).exports[this.name] || []), [])).length
                 ) && path.length > tempSpecA && tempSpecB) {
                     path.pop(); tempSpecB --;
@@ -203,7 +202,8 @@ export default function init(_config = null, onDomReady = false) {
                 }
                 templateSource = this.compositionBlock;
             }
-            if (templateSource && (exports = getPartials(templateSource)).length) {
+            var path = templateSource.getAttribute(_meta.get('attr.moduleref')).split('#')[0].split('/').map(n => n.trim()).filter(n => n);
+            if (templateSource && (exports = getPartials(path, path[0] === '~' ? this.compositionBlock : document)).length) {
                 if (_difference(exports, footprint(this.el).originalSlottedElements || []).length) {
                     footprint(this.el).originalSlottedElements = exports;
                     this.fill(exports);
@@ -235,12 +235,10 @@ export default function init(_config = null, onDomReady = false) {
             exports.forEach(_export => {
                 // ---------------------
                 // Implement the slot?
-                if (_export.getAttribute(_meta.get('attr.moduleref')) === '@slot') {
-                    if (!footprint(_export).templates) {
-                        footprint(_export).templates = {};
-                    }
-                    footprint(_export).templates['@slot'] = this.el;
+                if (!footprint(_export).templates) {
+                    footprint(_export).templates = {};
                 }
+                footprint(_export).templates['~'] = this.el;
                 // Inherit attributes from the slot element before replacement
                 mergeAttributes(_export, this.el);
                 // ---------------------
@@ -319,7 +317,6 @@ export default function init(_config = null, onDomReady = false) {
          * @return array
          */
         get exports() {
-            discoverContents(this.el, this.el);
             return footprint(this.el).exports;
         }
                 
@@ -414,10 +411,10 @@ export default function init(_config = null, onDomReady = false) {
                         reviver.innerHTML = nodeValue;
                         if ((importEl = reviver.firstChild).matches(_meta.get('element.import'))) {
                             // Belongs to a composition block?
-                            var compositionBlock;
-                            if (!importEl.hasAttribute(_meta.get('attr.moduleref'))) {
-                                compositionBlock = node.parentNode.closest(modulerefSelector);
-                            }
+                            var compositionBlock = !importEl.hasAttribute(_meta.get('attr.moduleref'))
+                                ? node.parentNode.closest(modulerefSelector) : (
+                                    importEl.getAttribute(_meta.get('attr.moduleref')).split('/')[0] === '~' ? node.parentNode.closest(exportgroupSelector) : null
+                                )
                             var importElInstance = Import.create(importEl);
                             importElInstance.hydrate(node, slottedElements, compositionBlock);
                             // Empty basket

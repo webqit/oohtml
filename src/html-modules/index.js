@@ -38,6 +38,7 @@ export default function init(_config = null, onDomReady = false) {
         element: {
             template: '',
             export: 'export',
+            import: 'import',
         },
 		attr: {
             moduleid: 'name',
@@ -79,11 +80,10 @@ export default function init(_config = null, onDomReady = false) {
         document.dispatchEvent(new window.CustomEvent(type, {detail: value}));
     };
 
-    const fireTemplateEvent = (template, type, path) => {
-        template.dispatchEvent(new window.CustomEvent(type, {detail: {path}}));
-    };
-
     const loadTemplateContent = (template, path) => {
+        const fireTemplateEvent = type => {
+            template.dispatchEvent(new window.CustomEvent(type, {detail: {path}}));
+        };
         var src = template.getAttribute('src');
         return new Promise((resolve, reject) => {
             // Missing in jsdom
@@ -92,14 +92,14 @@ export default function init(_config = null, onDomReady = false) {
                     return response.ok ? response.text() : Promise.reject(response.statusText);
                 }).then(content => {
                     template.innerHTML = content;
-                    fireTemplateEvent(template, 'load', path);
+                    fireTemplateEvent('load');
                     fireDocumentTemplateEvent('templatecontentloaded', {template}, path);
                     resolve(template);
                 }).catch(error => {
                     console.error('Error fetching the bundle at ' + src + '. (' + error + ')');
                     // Dispatch the event.
                     template.innerHTML = '';
-                    fireTemplateEvent(template, 'loaderror', path);
+                    fireTemplateEvent('loaderror');
                     fireDocumentTemplateEvent('templatecontentloaderror', {template}, path);
                     resolve(template);
                 });
@@ -120,7 +120,7 @@ export default function init(_config = null, onDomReady = false) {
                 return;
             }
             var templateName, exportId;
-            if (el.matches(templateSelector) && (templateName = el.getAttribute(_meta.get('attr.moduleid')))) {
+            if (el.matches(templateSelector) && (templateName = el.getAttribute(_meta.get('attr.moduleid'))) && validateModuleName(templateName)) {
                 var _path = (path ? path + '/' : '') + templateName;
                 if (mutationType === 'removed') {
                     delete footprint(node).templates[templateName];
@@ -253,28 +253,48 @@ export default function init(_config = null, onDomReady = false) {
         }
     });
 
+    const validateModuleName = name => {
+        if (name.match(/[~#\/\.]/)) {
+            console.error(`Invalid module name: ${name}.`);
+            return false;
+        }
+        return true;
+    };
+
     _arrFrom(document.querySelectorAll(templateSelector)).forEach(async el => {
         var name = el.getAttribute(_meta.get('attr.moduleid'));
-        footprint(document).templates[name] = el;
-        discoverContents(el.content, el, name, 'added', false);
+        if (!el.closest(_meta.get('element.import')) && validateModuleName(name)) {
+            footprint(document).templates[name] = el;
+            discoverContents(el.content, el, name, 'added', false);
+        }
     });
     mutations.onPresenceChange(templateSelector, async (els, presence) => {
         const eventsObject = { addedTemplates: {}, removedTemplates: {}, addedExports: {}, removedExports: {}, }; 
         els.forEach(el => {
             var name = el.getAttribute(_meta.get('attr.moduleid'));
-            if (presence) {
-                footprint(document).templates[name] = el;
-                discoverContents(el.content, el, name, 'added');
-                eventsObject.addedTemplates[name] = el;
-            } else {
-                if (footprint(document).templates[name] === el) {
-                    delete footprint(document).templates[name];
+            if (!el.closest(_meta.get('element.import')) && validateModuleName(name)) {
+                if (presence) {
+                    footprint(document).templates[name] = el;
+                    discoverContents(el.content, el, name, 'added');
+                    eventsObject.addedTemplates[name] = el;
+                } else {
+                    if (footprint(document).templates[name] === el) {
+                        delete footprint(document).templates[name];
+                    }
+                    discoverContents(el.content, el, name, 'removed');
+                    eventsObject.removedTemplates[name] = el;
                 }
-                discoverContents(el.content, el, name, 'removed');
-                eventsObject.removedTemplates[name] = el;
             }
         });
         fireDocumentTemplateEvent('templatemutation', eventsObject, '');
+    });
+
+    // ----------------------
+    // Capture import elements
+    // ----------------------
+
+    mutations.onPresent(_meta.get('element.import'), el => {
+        discoverContents(el, el, '', 'added', false);
     });
 
     // ----------------------
@@ -312,4 +332,4 @@ export default function init(_config = null, onDomReady = false) {
             document.dispatchEvent(new window.Event('templatesreadystatechange'));
         });
     });
-};
+}
