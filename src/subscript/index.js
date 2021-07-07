@@ -37,13 +37,13 @@ export default function init(_config = null, onDomReady = false) {
     const mutations = WebQit.DOM.mutations;
 
     const globalRuntimeInitializationWaitlist = [];
-    var globalRuntimeInitialized = _meta.get('script.autorun') !== false;
     const _meta = config.call(this, {
         selectors: {script: 'script[type="subscript"]',},
         api: {bind: 'bind', unbind: 'unbind',},
         script: {},
     }, _config);
     const parseCache = {};
+    var globalRuntimeInitialized = _meta.get('script.autorun') !== false;
 
     // ----------------------
     // Helpers
