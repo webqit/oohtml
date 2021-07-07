@@ -71,11 +71,11 @@ export default function init(_config = null, onDomReady = false) {
     }
     Object.defineProperty(window.Element.prototype, _meta.get('api.setState'), {
         value: function(stateObject, params = {}) {
-            if (params.create) {
+            if (!params.update) {
                 getOrCreateState(this, stateObject);
             } else {
                 var currentStateObject = getOrCreateState(this);
-                if (!params.update) {
+                if (params.update !== 'merge') {
                     var outgoingKeys = _difference(Object.keys(currentStateObject), Object.keys(stateObject));
                     Observer.deleteProperty(currentStateObject, outgoingKeys);
                 }
@@ -115,11 +115,11 @@ export default function init(_config = null, onDomReady = false) {
     }
     Object.defineProperty(document, _meta.get('api.setState'), {
         value: function(stateObject, params = {}) {
-            if (params.create) {
+            if (!params.update) {
                 getOrCreateState(document, stateObject);
             } else {
                 var currentStateObject = getOrCreateState(document);
-                if (!params.update) {
+                if (params.update !== 'merge') {
                     var outgoingKeys = _difference(Object.keys(currentStateObject), Object.keys(stateObject));
                     Observer.deleteProperty(currentStateObject, outgoingKeys);
                 }
