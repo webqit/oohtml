@@ -2,12 +2,12 @@
 /**
  * @imports
  */
- import _isEmpty from '@webqit/util/js/isEmpty.js';
+import _isEmpty from '@webqit/util/js/isEmpty.js';
 import _arrFrom from '@webqit/util/arr/from.js';
 import _remove from '@webqit/util/arr/remove.js';
 import _each from '@webqit/util/obj/each.js';
 import domInit from '@webqit/browser-pie/src/dom/index.js';
-import { config, footprint } from '../util.js';
+import { config, footprint, scopeQuery } from '../util.js';
 
 /**
  * ---------------------------
@@ -254,8 +254,10 @@ export default function init(_config = null, onDomReady = false) {
     });
 
     const validateModuleName = name => {
-        if (name.match(/[~#\/\.]/)) {
-            console.error(`Invalid module name: ${name}.`);
+        var invalidCharacterMatch;
+        if (invalidCharacterMatch = name.match(/([^a-zA-Z0-9\_\-\@])/)) {
+            console.log(invalidCharacterMatch);
+            console.error(`Invalid character "${invalidCharacterMatch}" in the module name: ${name}.`);
             return false;
         }
         return true;
@@ -308,9 +310,23 @@ export default function init(_config = null, onDomReady = false) {
         get: function() {
             var templateId = this.getAttribute(_meta.get('attr.moduleref'));
             if (templateId) {
-                return templateId.split('#')[0].split('/').map(n => n.trim()).filter(n => n).reduce((context, item) => {
-                    return context ? footprint(context).templates[item] || footprint(context).templates['*'] : null;
-                }, document);
+                var template = document.createElement('template');
+                footprint(template).exports = {};
+                // -----------------
+                scopeQuery([document], templateId, function(host, prop) {
+                    var collection = footprint(host).templates || {};
+                    if (arguments.length === 1) return collection;
+                    if (prop.startsWith(':')) return (footprint(host).exports || {})[prop.substr(1)];
+                    return collection[prop];
+                }).forEach(module => {
+                    _each(footprint(module).exports || {}, (exportId, exports) => {
+                        if (!footprint(template).exports[exportId]) {
+                            footprint(template).exports[exportId] = [];
+                        }
+                        footprint(template).exports[exportId].push(...exports);
+                    })
+                });
+                return template;
             }
         },
     });

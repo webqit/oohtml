@@ -9,7 +9,7 @@ import _unique from '@webqit/util/arr/unique.js';
 import _difference from '@webqit/util/arr/difference.js';
 import _each from '@webqit/util/obj/each.js';
 import domInit from '@webqit/browser-pie/src/dom/index.js';
-import { config, footprint } from '../util.js';
+import { config, footprint, scopeQuery, parseScopeExpr } from '../util.js';
 
 /**
  * ---------------------------
@@ -72,6 +72,9 @@ export default function init(_config = null, onDomReady = false) {
         }
         constructor(importEl) {
             this.el = importEl;
+            const [ importID, modifiers ] = parseScopeExpr(importEl.getAttribute(_meta.get('attr.importid')) || 'default');
+            footprint(this.el).importID = importID;
+            footprint(this.el).importModifiers = modifiers;
         }
         
         /**
@@ -103,7 +106,7 @@ export default function init(_config = null, onDomReady = false) {
                     : document.createTextNode('');
                 footprint(this.el).compositionBlock = !this.el.hasAttribute(_meta.get('attr.moduleref'))
                     ? this.el.parentNode.closest(modulerefSelector) : (
-                        this.el.getAttribute(_meta.get('attr.moduleref')).split('/')[0] === '~' ? this.el.parentNode.closest(exportgroupSelector) : null
+                        this.el.getAttribute(_meta.get('attr.moduleref')).trim().startsWith('~') ? this.el.parentNode.closest(exportgroupSelector) : null
                     );
                 this._connectToCompositionBlock();
             }
@@ -121,7 +124,7 @@ export default function init(_config = null, onDomReady = false) {
                     footprint(this.compositionBlock).imports = {};
                 }
                 // Now after the update slot ID
-                footprint(this.compositionBlock).imports[this.name] = this.el;
+                footprint(this.compositionBlock).imports[this.importID] = this.el;
             }
         }
 
@@ -169,21 +172,24 @@ export default function init(_config = null, onDomReady = false) {
             if (_any(importInertContexts, inertContext => this.el.closest(inertContext))) {
                 return;
             }
-            var getPartials = (path, _document) => {
-                var get = path => path.reduce((templateObjects, item, i) => {
-                    return templateObjects.reduce((_templateObjects, templateObject) => _templateObjects.concat(footprint(templateObject).templates[item], item === '*' ? [] : footprint(templateObject).templates['*']), []).filter(t => t);
-                }, [_document]);
-
-                var templatesAggr, exportsAggr = [], [ tempSpecA, tempSpecB ] = (this.el.getAttribute(_meta.get('attr.templatespec')) || '').split('-').map(a => parseInt(a)).concat([0, 0]);                
-                while((
-                    !(templatesAggr = get(path)).length 
-                    || templatesAggr[0] === _document 
-                    || !(exportsAggr = templatesAggr.reduce((exports, template) => exports.concat(footprint(template).exports[this.name] || []), [])).length
-                ) && path.length > tempSpecA && tempSpecB) {
-                    path.pop(); tempSpecB --;
-                }
-
-                return exportsAggr;
+            var getExports = (contexts, moduleref) => {
+                var importId = this.importID,
+                    modifiers = this.importModifiers,
+                    [ superA, superB ] = 'super' in modifiers ? modifiers.super.split('-').filter(a => a).map(a => parseInt(a || 0)).concat([0, 1000]) : [0, 0];
+                    const aggrExports = modules => modules.reduce((_exports, _module) => _exports.concat(footprint(_module).exports[importId] || []), []);
+                return scopeQuery(contexts, moduleref, function(host, prop) {
+                    var collection = footprint(host).templates || {};
+                    if (arguments.length === 1) return collection;
+                    if (prop.startsWith(':')) return (footprint(host).exports || {})[prop.substr(1)];
+                    return collection[prop];
+                }, function(_modules, level, isRewinding) {
+                    var exportsAggr = aggrExports(_modules);
+                    if (!exportsAggr.length && level > superA && superB) {
+                        superB --;
+                        return -1;
+                    }
+                    return exportsAggr;
+                });
             };
             // -----------------
             // Global import or scoped slot?
@@ -191,19 +197,19 @@ export default function init(_config = null, onDomReady = false) {
             if (this.el.hasAttribute(_meta.get('attr.moduleref'))) {
                 // Did we previously had a compositionBlock?
                 // Let's remove ourself
-                if (this.compositionBlock && footprint(this.compositionBlock).imports[this.name] === this.el) {
-                    delete footprint(this.compositionBlock).imports[this.name];
+                if (this.compositionBlock && footprint(this.compositionBlock).imports[this.importID] === this.el) {
+                    delete footprint(this.compositionBlock).imports[this.importID];
                 }
                 templateSource = this.el;
             } else {
                 if (!this.compositionBlock) {
-                    console.warn('Scoped slots must be found within template contexts. [' + this.name + ']', this.el);
+                    console.warn('Scoped slots must be found within template contexts. [' + this.importID + ']', this.el);
                     return;
                 }
                 templateSource = this.compositionBlock;
             }
-            var path = templateSource.getAttribute(_meta.get('attr.moduleref')).split('#')[0].split('/').map(n => n.trim()).filter(n => n);
-            if (templateSource && (exports = getPartials(path, path[0] === '~' ? this.compositionBlock : document)).length) {
+            var moduleref = templateSource.getAttribute(_meta.get('attr.moduleref')).trim();
+            if (templateSource && (exports = getExports([moduleref.startsWith('~') ? this.compositionBlock : document], moduleref)).length) {
                 if (_difference(exports, footprint(this.el).originalSlottedElements || []).length) {
                     footprint(this.el).originalSlottedElements = exports;
                     this.fill(exports);
@@ -243,7 +249,7 @@ export default function init(_config = null, onDomReady = false) {
                 mergeAttributes(_export, this.el);
                 // ---------------------
                 if (!_export.getAttribute(_meta.get('attr.exportgroup'))) {
-                    _export.setAttribute(_meta.get('attr.exportgroup'), this.name);
+                    _export.setAttribute(_meta.get('attr.exportgroup'), this.importID);
                 }
                 // Place slottable
                 this.anchorNode.before(_export);
@@ -277,8 +283,17 @@ export default function init(_config = null, onDomReady = false) {
          *
          * @return string
          */
-        get name() {
-            return this.el.getAttribute(_meta.get('attr.importid')) || 'default';
+        get importID() {
+            return footprint(this.el).importID;
+        }
+
+        /**
+         * Returns the slot's import Modifiers.
+         *
+         * @return string
+         */
+         get importModifiers() {
+            return footprint(this.el).importModifiers;
         }
 
         /**
@@ -350,11 +365,13 @@ export default function init(_config = null, onDomReady = false) {
         const shouldResolve = (importEl, importName) => !exportName || importName === exportName || (exportName === true && importEl.getAttribute(_meta.get('attr.templatespec')));
         if (el.matches(_meta.get('element.import'))) {
             var importElInstance = Import.create(el);
-            if (shouldResolve(el, importElInstance.name)) {
+            importElInstance.connectedCallback();
+            if (shouldResolve(el, importElInstance.importID)) {
                 importElInstance.resolve();
             }
         } else {
             _each(footprint(el).imports, (name, importEl) => {
+                console.log('========', name);
                 if (shouldResolve(importEl, name)) {
                     var importElInstance = Import.create(importEl);
                     importElInstance.resolve();
@@ -413,7 +430,7 @@ export default function init(_config = null, onDomReady = false) {
                             // Belongs to a composition block?
                             var compositionBlock = !importEl.hasAttribute(_meta.get('attr.moduleref'))
                                 ? node.parentNode.closest(modulerefSelector) : (
-                                    importEl.getAttribute(_meta.get('attr.moduleref')).split('/')[0] === '~' ? node.parentNode.closest(exportgroupSelector) : null
+                                    importEl.getAttribute(_meta.get('attr.moduleref')).trim().startsWith('~') ? node.parentNode.closest(exportgroupSelector) : null
                                 )
                             var importElInstance = Import.create(importEl);
                             importElInstance.hydrate(node, slottedElements, compositionBlock);
