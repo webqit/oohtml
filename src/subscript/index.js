@@ -37,7 +37,7 @@ export default function init(_config = null, onDomReady = false) {
     const mutations = WebQit.DOM.mutations;
 
     const globalRuntimeInitializationWaitlist = [];
-    var globalRuntimeInitialized = false;
+    var globalRuntimeInitialized = _meta.get('script.autorun') !== false;
     const _meta = config.call(this, {
         selectors: {script: 'script[type="subscript"]',},
         api: {bind: 'bind', unbind: 'unbind',},
@@ -172,7 +172,7 @@ export default function init(_config = null, onDomReady = false) {
         scriptBase.errorLevel = scriptElement.getAttribute('errors') 
             ? parseInt(scriptElement.getAttribute('errors'))
             : _meta.get('script.errors');
-        if (globalRuntimeInitialized || scriptBase.hasBindings || _meta.get('script.autorun') !== false || scriptElement.hasAttribute('autorun')) {
+        if (globalRuntimeInitialized || scriptBase.hasBindings || scriptElement.hasAttribute('autorun')) {
             applyBinding(parentNode);
         } else {
             scriptBase.inWaitlist = true;

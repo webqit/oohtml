@@ -3,6 +3,7 @@
  * @imports
  */
 import Observer from '@webqit/observer';
+import _difference from '@webqit/util/arr/difference.js';
 import domInit from '@webqit/browser-pie/src/dom/index.js';
 import { config, footprint } from '../util.js';
 
@@ -70,10 +71,15 @@ export default function init(_config = null, onDomReady = false) {
     }
     Object.defineProperty(window.Element.prototype, _meta.get('api.setState'), {
         value: function(stateObject, params = {}) {
-            if (params.update) {
-                Observer.set(getOrCreateState(this), stateObject);
-            } else {
+            if (params.create) {
                 getOrCreateState(this, stateObject);
+            } else {
+                var currentStateObject = getOrCreateState(this);
+                if (!params.update) {
+                    var outgoingKeys = _difference(Object.keys(currentStateObject), Object.keys(stateObject));
+                    Observer.deleteProperty(currentStateObject, outgoingKeys);
+                }
+                Observer.set(currentStateObject, stateObject);
             }
         }
     });
@@ -109,10 +115,15 @@ export default function init(_config = null, onDomReady = false) {
     }
     Object.defineProperty(document, _meta.get('api.setState'), {
         value: function(stateObject, params = {}) {
-            if (params.update) {
-                Observer.set(getOrCreateState(document), stateObject);
-            } else {
+            if (params.create) {
                 getOrCreateState(document, stateObject);
+            } else {
+                var currentStateObject = getOrCreateState(document);
+                if (!params.update) {
+                    var outgoingKeys = _difference(Object.keys(currentStateObject), Object.keys(stateObject));
+                    Observer.deleteProperty(currentStateObject, outgoingKeys);
+                }
+                Observer.set(currentStateObject, stateObject);
             }
         }
     });
