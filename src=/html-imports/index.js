@@ -9,9 +9,7 @@ import _unique from '@webqit/util/arr/unique.js';
 import _difference from '@webqit/util/arr/difference.js';
 import _each from '@webqit/util/obj/each.js';
 import domInit from '@webqit/browser-pie/src/dom/index.js';
-import { config, footprint, scopeQuery,
-    parseScopeReferenceExpr, queryMatchPath
-} from '../util.js';
+import { config, footprint, scopeQuery, parseScopeExpr } from '../util.js';
 
 /**
  * ---------------------------
@@ -74,7 +72,7 @@ export default function init(_config = null, onDomReady = false) {
         }
         constructor(importEl) {
             this.el = importEl;
-            const [ importID, modifiers ] = parseScopeReferenceExpr(importEl.getAttribute(_meta.get('attr.importid')) || 'default');
+            const [ importID, modifiers ] = parseScopeExpr(importEl.getAttribute(_meta.get('attr.importid')) || 'default');
             footprint(this.el).importID = importID;
             footprint(this.el).importModifiers = modifiers;
         }
@@ -400,13 +398,12 @@ export default function init(_config = null, onDomReady = false) {
         if (!e.detail.path) {
             return;
         }
-        _arrFrom(document.querySelectorAll('[' + window.CSS.escape(_meta.get('attr.moduleref')) + ']')).forEach(el => {
-            if (queryMatchPath(el.getAttribute(_meta.get('attr.moduleref')), e.detail.path)) {
-                resolveSlots(el, true);
-                e.detail.addedExports.concat(e.detail.removedExports).forEach(exportGroup => {
-                    resolveSlots(el, exportGroup.name);
-                });
-            }
+        const modulerefSelector = [e.detail.path, e.detail.path + '/'].map(path => '[' + window.CSS.escape(_meta.get('attr.moduleref')) + '="' + path + '"]').join(',');
+        _arrFrom(document.querySelectorAll(modulerefSelector)).forEach(el => {
+            resolveSlots(el, true);
+            e.detail.addedExports.concat(e.detail.removedExports).forEach(exportGroup => {
+                resolveSlots(el, exportGroup.name);
+            });
         });
     });
 

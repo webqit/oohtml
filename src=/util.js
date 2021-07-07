@@ -58,92 +58,61 @@ export function footprint(host) {
  * @return Array
  */
 export function scopeQuery(contexts, query, collectionCallback, advancementCallback = null) {
-    var queryPath = query.split('#')[0].split('/').map(n => n.trim()).filter(n => n);
-    return execScopeQuery(contexts, queryPath, collectionCallback, advancementCallback);
+    var path = query.split('#')[0].split('/').map(n => n.trim()).filter(n => n);
+    return execScopeQuery(contexts, path, collectionCallback, advancementCallback);
 }
 
 /**
- * Parses a "scope-query" reference expression to seperate the "reference" and its "modifiers".
+ * Parses a "scope-query" expression into an "identifier" plus "modifiers".
  *
  * @param String	expr
  *
  * @return Array
  */
-export function parseScopeReferenceExpr(reference) {
-    var split = Lexer.split(reference.trim(), [':']);
-    reference = split.shift();
+export function parseScopeExpr(expr) {
+    var split = Lexer.split(expr.trim(), [':']);
+    expr = split.shift();
     var modifiers = split.reduce((_modifiers, _modifier) => {
         var [ name, parentheses ] = Lexer.split(_modifier.trim(), []);
         _modifiers[name] = _unwrap(parentheses, '(', ')');
         return _modifiers;
     }, {});
-    return [ reference, modifiers ];
+    return [ expr, modifiers ];
 }
 
-/**
- * Determines if a given path matches a "scope-query".
- *
- * @param String	query
- * @param String	path
- *
- * @return Bool
- */
-export function queryMatchPath(query, path) {
-    path = path.split('#')[0].split('/').map(n => n.trim()).filter(n => n);
-    query = query.split('#')[0].split('/').map(n => n.trim()).filter(n => n);
-    return !query.length ? false : query.reduce((prev, segment, i) => {
-        if (!prev) return false;
-        return Lexer.split(segment.trim(), ['|', '+']).reduce((_prev, _reference) => {
-            var [ _reference, modifiers ] = parseScopeReferenceExpr(_reference);
-            _reference = _reference.trim();
-            var sementIsMatch = _reference === path[i];
-            if (!sementIsMatch && (('deep' in modifiers) || ('deepest' in modifiers))) {
-                var _sementIsMatch = path.slice(i + 1).reduce((prev, s, i) => {
-                    return prev > -1 && ('deep' in modifiers) ? prev : (s === _reference ? i : prev);
-                }, -1);
-                if (_sementIsMatch > -1) {
-                    var e = path.splice(i, _sementIsMatch + 1);
-                    sementIsMatch = true;
-                }
-            }
-            return _prev || sementIsMatch;
-        }, false);
-    }, true);
-}
-
-const evalAssertExpr = (segment, callback) => {
-    return Lexer.split(segment.trim(), ['|', '+'], { preserveDelims: true }).reduce((_result, _reference) => {
+const evalAssertExpr = (expr, callback) => {
+    return Lexer.split(expr.trim(), ['|', '+'], { preserveDelims: true }).reduce((_result, _expr) => {
         var operator;
-        if (_reference.startsWith('|') || _reference.startsWith('+')) {
-            operator = _reference.substr(0, 1);
-            _reference = _reference.substr(1).trim();
+        if (_expr.startsWith('|') || _expr.startsWith('+')) {
+            operator = _expr.substr(0, 1);
+            _expr = _expr.substr(1).trim();
         }
         if (_result.theEnd || (operator === '|' && _result.length)) {
             _result.theEnd = true;
             return _result;
         }
-        return _result.concat(callback(_reference.trim()));
+        return _result.concat(callback(_expr.trim()));
     }, []).filter(t => t);
 };
 
-const evalModuleExpr = (contexts, segment, collectionCallback) => {
+const evalModuleExpr = (contexts, expr, collectionCallback) => {
     const lookAhead = contexts => contexts.reduce((_list, _module) => _list.concat(Object.values(collectionCallback(_module))), []);
-    return evalAssertExpr(segment, _reference => {
-        var [ _reference, modifiers ] = parseScopeReferenceExpr(_reference);
+    return evalAssertExpr(expr, _expr => {
+        var [ _expr, modifiers ] = parseScopeExpr(_expr);
          // ------------
         return contexts.reduce((list, context) => {
             var collection = collectionCallback(context);
-            if (_reference === '*') {
-                    _reference = '(' + Object.keys(collection).join('+') + ')';
+            if (_expr === '*') {
+                    _expr = '(' + Object.keys(collection).join('+') + ')';
             }
-            var itemArray = _wrapped(_reference, '(', ')') ? evalModuleExpr([context], _unwrap(_reference, '(', ')'), collectionCallback) : _arrFrom(collection[_reference], false);
+            var itemArray = _wrapped(_expr, '(', ')') ? evalModuleExpr([context], _unwrap(_expr, '(', ')'), collectionCallback) : _arrFrom(collection[_expr], false);
             // ------------
             var appliedModifiers = [], reapplyAppliedModifiers = expr => `${expr}${appliedModifiers.map(m => `:${m}(${modifiers[m]})`).join('')}`;
             Object.keys(modifiers).forEach(modifier => {
                 if (modifier === 'deep' || modifier === 'deepest') {
                     var nextLevel = [context];
                     while ((modifier === 'deepest' || !itemArray.length) && (nextLevel = lookAhead(nextLevel)).length) {
-                        var _itemArray = evalModuleExpr(nextLevel, reapplyAppliedModifiers(_reference), collectionCallback);
+                        var _itemArray = evalModuleExpr(nextLevel, reapplyAppliedModifiers(_expr), collectionCallback);
                         if (_itemArray.length) {
                             itemArray = _itemArray;
                         }
