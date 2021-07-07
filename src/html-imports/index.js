@@ -371,7 +371,6 @@ export default function init(_config = null, onDomReady = false) {
             }
         } else {
             _each(footprint(el).imports, (name, importEl) => {
-                console.log('========', name);
                 if (shouldResolve(importEl, name)) {
                     var importElInstance = Import.create(importEl);
                     importElInstance.resolve();
