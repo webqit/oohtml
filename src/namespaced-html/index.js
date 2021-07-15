@@ -4,6 +4,7 @@
  */
 import Observer from '@webqit/observer';
 import _any from '@webqit/util/arr/any.js';
+import _internals from '@webqit/util/js/internals.js';
 import domInit from '@webqit/browser-pie/src/dom/index.js';
 import { config, footprint } from '../util.js';
 
@@ -44,14 +45,14 @@ export default function init(_config = null, onDomReady = false) {
     }, _config);
 	
     const getNamespaceObject = function(subject) {
-        if (!footprint(subject).namespace) {
-            const namespaceObject = {};
-            footprint(subject).namespace = namespaceObject;
+        if (!_internals(subject, 'oohtml').has('namespace')) {
+            const namespaceObject = Object.create(null);
+            _internals(subject, 'oohtml').set('namespace', namespaceObject);
             if (Observer.link) {
                 Observer.link(subject, _meta.get('api.namespace'), namespaceObject);
             }
         }
-        return footprint(subject).namespace;
+        return _internals(subject, 'oohtml').get('namespace');
 	};
 
     // ----------------------
@@ -85,8 +86,8 @@ export default function init(_config = null, onDomReady = false) {
 	// ----------------------
 
 	mutations.onPresent('[' + window.CSS.escape(_meta.get('attr.id')) + ']', el => {
-		var elOohtmlObj = footprint(el);
-		if (elOohtmlObj.idAlreadyBeingWatched || _any(scopedIdInertContexts, inertContext => el.closest(inertContext))) {
+		var elOohtmlObj = _internals(el, 'oohtml');
+		if (elOohtmlObj.get('idAlreadyBeingWatched') || _any(scopedIdInertContexts, inertContext => el.closest(inertContext))) {
 			return;
 		}
 		var scopedId = el.getAttribute(_meta.get('attr.id')),
@@ -99,7 +100,7 @@ export default function init(_config = null, onDomReady = false) {
 			Observer.set(namespaceObject, scopedId, el);
 		}
 		// new permanent watch
-		elOohtmlObj.idAlreadyBeingWatched = true;
+		elOohtmlObj.set('idAlreadyBeingWatched', true);
 		mutations.onPresenceChange(el, (els, presence) => {
 			if (presence) {
 				// ONLY if I am not currently the one in place

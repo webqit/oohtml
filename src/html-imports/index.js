@@ -9,7 +9,8 @@ import _unique from '@webqit/util/arr/unique.js';
 import _difference from '@webqit/util/arr/difference.js';
 import _each from '@webqit/util/obj/each.js';
 import domInit from '@webqit/browser-pie/src/dom/index.js';
-import { config, footprint, scopeQuery,
+import _internals from '@webqit/util/js/internals.js';
+import { config, scopeQuery,
     parseScopeReferenceExpr, queryMatchPath
 } from '../util.js';
 
@@ -75,8 +76,8 @@ export default function init(_config = null, onDomReady = false) {
         constructor(importEl) {
             this.el = importEl;
             const [ importID, modifiers ] = parseScopeReferenceExpr(importEl.getAttribute(_meta.get('attr.importid')) || 'default');
-            footprint(this.el).importID = importID;
-            footprint(this.el).importModifiers = modifiers;
+            _internals(this.el, 'oohtml').set('importID', importID);
+            _internals(this.el, 'oohtml').set('importModifiers', modifiers);
         }
         
         /**
@@ -89,9 +90,9 @@ export default function init(_config = null, onDomReady = false) {
          * @return void
          */
         hydrate(anchorNode, slottedElements, compositionBlock) {
-            footprint(this.el).anchorNode = anchorNode;
-            footprint(this.el).slottedElements = slottedElements;
-            footprint(this.el).compositionBlock = compositionBlock;
+            _internals(this.el, 'oohtml').set('anchorNode', anchorNode);
+            _internals(this.el, 'oohtml').set('slottedElements', slottedElements);
+            _internals(this.el, 'oohtml').set('compositionBlock', compositionBlock);
             this._bindSlotted(slottedElements);
             this._connectToCompositionBlock();
         }
@@ -102,14 +103,14 @@ export default function init(_config = null, onDomReady = false) {
          * @return void
          */
         connectedCallback() {
-            if (!footprint(this.el).anchorNode) {
-                footprint(this.el).anchorNode = _meta.get('isomorphic')
+            if (!_internals(this.el, 'oohtml').has('anchorNode')) {
+                _internals(this.el, 'oohtml').set('anchorNode', _meta.get('isomorphic')
                     ? document.createComment(this.el.outerHTML)
-                    : document.createTextNode('');
-                footprint(this.el).compositionBlock = !this.el.hasAttribute(_meta.get('attr.moduleref'))
+                    : document.createTextNode(''));
+                _internals(this.el, 'oohtml').set('compositionBlock', !this.el.hasAttribute(_meta.get('attr.moduleref'))
                     ? this.el.parentNode.closest(modulerefSelector) : (
                         this.el.getAttribute(_meta.get('attr.moduleref')).trim().startsWith('~') ? this.el.parentNode.closest(exportgroupSelector) : null
-                    );
+                    ));
                 this._connectToCompositionBlock();
             }
             WebQit.DOM.ready.call(WebQit, () => {
@@ -122,11 +123,8 @@ export default function init(_config = null, onDomReady = false) {
          */
         _connectToCompositionBlock() {
             if (this.compositionBlock) {
-                if (!footprint(this.compositionBlock).imports) {
-                    footprint(this.compositionBlock).imports = {};
-                }
                 // Now after the update slot ID
-                footprint(this.compositionBlock).imports[this.importID] = this.el;
+                _internals(this.compositionBlock, 'oohtml', 'imports').set(this.importID, this.el);
             }
         }
 
@@ -141,9 +139,9 @@ export default function init(_config = null, onDomReady = false) {
             exports.forEach(_export => {
                 _export.importReference = this.el;
             });
-            footprint(this.el).slottedObserver = mutations.onRemoved(exports, (removed, state, isTransient, addedState, removedState) => {
+            _internals(this.el, 'oohtml').set('slottedObserver', mutations.onRemoved(exports, (removed, state, isTransient, addedState, removedState) => {
                 if (removedState && removedState.size === exports.length) {
-                    footprint(this.el).slottedObserver.disconnect();
+                    _internals(this.el, 'oohtml').get('slottedObserver').disconnect();
                 }
                 removed.forEach(remd => {
                     // Let's ensure this wasn't slotted againe
@@ -164,7 +162,7 @@ export default function init(_config = null, onDomReady = false) {
                         this.anchorNode.replaceWith(this.el);
                     }
                 }
-            }, {maintainCallState: true, ignoreTransients: true});
+            }, {maintainCallState: true, ignoreTransients: true}));
         }
 
         /**
@@ -178,12 +176,12 @@ export default function init(_config = null, onDomReady = false) {
                 var importId = this.importID,
                     modifiers = this.importModifiers,
                     [ superA, superB ] = 'super' in modifiers ? modifiers.super.split('-').filter(a => a).map(a => parseInt(a || 0)).concat([0, 1000]) : [0, 0];
-                    const aggrExports = modules => modules.reduce((_exports, _module) => _exports.concat(footprint(_module).exports[importId] || []), []);
+                    const aggrExports = modules => modules.reduce((_exports, _module) => _exports.concat(_internals(_module, 'oohtml', 'exports').get(importId) || []), []);
                 return scopeQuery(contexts, moduleref, function(host, prop) {
-                    var collection = footprint(host).templates || {};
+                    var collection = _internals(host, 'oohtml', 'templates');
                     if (arguments.length === 1) return collection;
-                    if (prop.startsWith(':')) return (footprint(host).exports || {})[prop.substr(1)];
-                    return collection[prop];
+                    if (prop.startsWith(':')) return _internals(host, 'oohtml', 'exports').get(prop.substr(1));
+                    return collection.get(prop);
                 }, function(_modules, level, isRewinding) {
                     var exportsAggr = aggrExports(_modules);
                     if (!exportsAggr.length && level > superA && superB) {
@@ -199,8 +197,8 @@ export default function init(_config = null, onDomReady = false) {
             if (this.el.hasAttribute(_meta.get('attr.moduleref'))) {
                 // Did we previously had a compositionBlock?
                 // Let's remove ourself
-                if (this.compositionBlock && footprint(this.compositionBlock).imports[this.importID] === this.el) {
-                    delete footprint(this.compositionBlock).imports[this.importID];
+                if (this.compositionBlock && _internals(this.compositionBlock, 'oohtml', 'imports').get(this.importID) === this.el) {
+                    _internals(this.compositionBlock, 'oohtml', 'imports').delete(this.importID);
                 }
                 templateSource = this.el;
             } else {
@@ -212,12 +210,12 @@ export default function init(_config = null, onDomReady = false) {
             }
             var moduleref = templateSource.getAttribute(_meta.get('attr.moduleref')).trim();
             if (templateSource && (exports = getExports([moduleref.startsWith('~') ? this.compositionBlock : document], moduleref)).length) {
-                if (_difference(exports, footprint(this.el).originalSlottedElements || []).length) {
-                    footprint(this.el).originalSlottedElements = exports;
+                if (_difference(exports, _internals(this.el, 'oohtml').get('originalSlottedElements') || []).length) {
+                    _internals(this.el, 'oohtml').set('originalSlottedElements', exports);
                     this.fill(exports);
                 }
             } else {
-                footprint(this.el).originalSlottedElements = null;
+                _internals(this.el, 'oohtml').set('originalSlottedElements', null);
                 this.empty();
             }
         }
@@ -243,10 +241,7 @@ export default function init(_config = null, onDomReady = false) {
             exports.forEach(_export => {
                 // ---------------------
                 // Implement the slot?
-                if (!footprint(_export).templates) {
-                    footprint(_export).templates = {};
-                }
-                footprint(_export).templates['~'] = this.el;
+                _internals(_export, 'oohtml', 'templates').set('~', this.el);
                 // Inherit attributes from the slot element before replacement
                 mergeAttributes(_export, this.el);
                 // ---------------------
@@ -272,8 +267,8 @@ export default function init(_config = null, onDomReady = false) {
         empty(silently = false) {
             if (this.slottedElements) {
                 var slottedElements = this.slottedElements;
-                if (silently && footprint(this.el).slottedObserver) {
-                    footprint(this.el).slottedObserver.disconnect();
+                if (silently && _internals(this.el, 'oohtml').has('slottedObserver')) {
+                    _internals(this.el, 'oohtml').get('slottedObserver').disconnect();
                     slottedElements = this.slottedElements.splice(0);
                 }
                 slottedElements.forEach(slottedElement => slottedElement.remove());
@@ -286,7 +281,7 @@ export default function init(_config = null, onDomReady = false) {
          * @return string
          */
         get importID() {
-            return footprint(this.el).importID;
+            return _internals(this.el, 'oohtml').get('importID');
         }
 
         /**
@@ -295,7 +290,7 @@ export default function init(_config = null, onDomReady = false) {
          * @return string
          */
          get importModifiers() {
-            return footprint(this.el).importModifiers;
+            return _internals(this.el, 'oohtml').get('importModifiers');
         }
 
         /**
@@ -304,7 +299,7 @@ export default function init(_config = null, onDomReady = false) {
          * @return array
          */
         get anchorNode() {
-            return footprint(this.el).anchorNode;
+            return _internals(this.el, 'oohtml').get('anchorNode');
         }
 
         /**
@@ -313,7 +308,7 @@ export default function init(_config = null, onDomReady = false) {
          * @return array
          */
         get compositionBlock() {
-            return footprint(this.el).compositionBlock;
+            return _internals(this.el, 'oohtml').get('compositionBlock');
         }
 
         /**
@@ -322,10 +317,10 @@ export default function init(_config = null, onDomReady = false) {
          * @return array
          */
         get slottedElements() {
-            if (!footprint(this.el).slottedElements) {
-                footprint(this.el).slottedElements = [];
+            if (!_internals(this.el, 'oohtml').has('slottedElements')) {
+                _internals(this.el, 'oohtml').set('slottedElements', []);
             }
-            return footprint(this.el).slottedElements;
+            return _internals(this.el, 'oohtml').get('slottedElements');
         }
 
         /**
@@ -334,7 +329,7 @@ export default function init(_config = null, onDomReady = false) {
          * @return array
          */
         get exports() {
-            return footprint(this.el).exports;
+            return _internals(this.el, 'oohtml').get('exports');
         }
                 
         /**
@@ -372,7 +367,7 @@ export default function init(_config = null, onDomReady = false) {
                 importElInstance.resolve();
             }
         } else {
-            _each(footprint(el).imports, (name, importEl) => {
+            _internals(el, 'oohtml', 'imports').forEach((importEl, name) => {
                 if (shouldResolve(importEl, name)) {
                     var importElInstance = Import.create(importEl);
                     importElInstance.resolve();
@@ -417,7 +412,7 @@ export default function init(_config = null, onDomReady = false) {
     const hydrateSlots = () => {
         _arrFrom(document.querySelectorAll(exportgroupSelector)).forEach(_export => {
             // Scan
-            if (!footprint(_export.parentNode).importsCan) {
+            if (!_internals(_export.parentNode, 'oohtml').get('importsCan')) {
                 var slottedElements = [];
                 _export.parentNode.childNodes.forEach(node => {
                     var nodeValue;
@@ -442,7 +437,7 @@ export default function init(_config = null, onDomReady = false) {
                     }
                 });
                 // Scanning is once for every parent
-                footprint(_export.parentNode).importsCan = true;
+                _internals(_export.parentNode, 'oohtml').set('importsCan', true);
             }
         });
     };

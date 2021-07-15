@@ -6,6 +6,7 @@ import Observer from '@webqit/observer';
 import _merge from '@webqit/util/obj/merge.js';
 import _remove from '@webqit/util/arr/remove.js';
 import _isFunction from '@webqit/util/js/isFunction.js';
+import _internals from '@webqit/util/js/internals.js';
 import domInit from '@webqit/browser-pie/src/dom/index.js';
 import { Parser, Runtime, Scope } from '@webqit/subscript';
 import { Block } from '@webqit/subscript/src/grammar.js';
@@ -57,18 +58,18 @@ export default function init(_config = null, onDomReady = false) {
     });
 
     const getScriptBase = function(target) {
-        var oohtmlBase = footprint(target);
-        if (!oohtmlBase.subscript || !oohtmlBase.subscript.isConnected) {
-            if (!oohtmlBase.subscript) {
+        var oohtmlBase = _internals(target, 'oohtml');
+        if (!oohtmlBase.has('subscript') || !oohtmlBase.get('subscript').isConnected) {
+            if (!oohtmlBase.has('subscript')) {
                 // Create scope
                 var thisScope = {};
                 Observer.set(thisScope, 'this', target);
-                oohtmlBase.subscript = {
+                oohtmlBase.set('subscript', {
                     scope: Scope.createStack([{}/** bindings scope */, thisScope/** the "this" scope */, globalScopeInstance/** global scope */], scopeParams, {
                         set: Observer.set,
                     }),
-                };
-                oohtmlBase.subscript.console = {
+                });
+                oohtmlBase.get('subscript').console = {
                     errors: [],
                     infos: [],
                     warnings: [],
@@ -76,29 +77,29 @@ export default function init(_config = null, onDomReady = false) {
                     exceptions: [],
                 };
                 // Binding mode?
-                oohtmlBase.subscript.handler = e => {
-                    if (!oohtmlBase.subscript.inWaitlist) {
+                oohtmlBase.get('subscript').handler = e => {
+                    if (!oohtmlBase.get('subscript').inWaitlist) {
                         applyBinding(target, e);
                     }
                 };
-                oohtmlBase.subscript.connected = c => {
-                    oohtmlBase.subscript.isConnected = c;
+                oohtmlBase.get('subscript').connected = c => {
+                    oohtmlBase.get('subscript').isConnected = c;
                     if (c) {
-                        oohtmlBase.subscript.scope.observe(Observer, oohtmlBase.subscript.handler, {tags: [oohtmlBase.subscript.handler]});
+                        oohtmlBase.get('subscript').scope.observe(Observer, oohtmlBase.get('subscript').handler, {tags: [oohtmlBase.get('subscript').handler]});
                     } else {
                         // Unobserve only happens by tags
-                        oohtmlBase.subscript.scope.unobserve(Observer, {tags: [oohtmlBase.subscript.handler]});
+                        oohtmlBase.get('subscript').scope.unobserve(Observer, {tags: [oohtmlBase.get('subscript').handler]});
                     }
                 };
             }
             // =====================
             var mo = mutations.onRemoved(target, () => {
-                oohtmlBase.subscript.connected(false);
+                oohtmlBase.get('subscript').connected(false);
                 mo.disconnect();
             }, {ignoreTransients: true});
-            oohtmlBase.subscript.connected(true);
+            oohtmlBase.get('subscript').connected(true);
         }
-        return oohtmlBase.subscript;
+        return oohtmlBase.get('subscript');
     };
 
     const applyBinding = function(target, event) {

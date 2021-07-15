@@ -4,6 +4,7 @@
  */
 import Observer from '@webqit/observer';
 import _difference from '@webqit/util/arr/difference.js';
+import _internals from '@webqit/util/js/internals.js';
 import domInit from '@webqit/browser-pie/src/dom/index.js';
 import { config, footprint } from '../util.js';
 
@@ -36,10 +37,10 @@ export default function init(_config = null, onDomReady = false) {
     }, _config);
 
     const getOrCreateState = function(subject, newStateObject = null) {
-        if (!footprint(subject).state || newStateObject) {
-            const stateObject = newStateObject || {};
-            const prevStateObject = footprint(subject).state;
-            footprint(subject).state = stateObject;
+        if (!_internals(subject, 'oohtml').has('state') || newStateObject) {
+            const stateObject = newStateObject || Object.create(null);
+            const prevStateObject = _internals(subject, 'oohtml').get('state');
+            _internals(subject, 'oohtml').set('state', stateObject);
             if (prevStateObject && Observer.unlink) {
                 Observer.unlink(subject, _meta.get('api.state'), prevStateObject);
             }
@@ -48,7 +49,7 @@ export default function init(_config = null, onDomReady = false) {
                 Observer.link(subject, _meta.get('api.state'), stateObject, event);
             }
         }
-        return footprint(subject).state;
+        return _internals(subject, 'oohtml').get('state');
     };
 
     // ----------------------

@@ -10,6 +10,7 @@ import _unwrap from '@webqit/util/str/unwrap.js';
 import _before from '@webqit/util/str/before.js';
 import _after from '@webqit/util/str/after.js';
 import _arrFrom from '@webqit/util/arr/from.js';
+import _internals from '@webqit/util/js/internals.js';
 
 /**
  * A OOHTML's meta tag props reader.
@@ -127,16 +128,16 @@ const evalAssertExpr = (segment, callback) => {
 };
 
 const evalModuleExpr = (contexts, segment, collectionCallback) => {
-    const lookAhead = contexts => contexts.reduce((_list, _module) => _list.concat(Object.values(collectionCallback(_module))), []);
+    const lookAhead = contexts => contexts.reduce((_list, _module) => _list.concat(collectionCallback(_module).values()), []);
     return evalAssertExpr(segment, _reference => {
         var [ _reference, modifiers ] = parseScopeReferenceExpr(_reference);
          // ------------
         return contexts.reduce((list, context) => {
             var collection = collectionCallback(context);
             if (_reference === '*') {
-                    _reference = '(' + Object.keys(collection).join('+') + ')';
+                    _reference = '(' + collection.keys().join('+') + ')';
             }
-            var itemArray = _wrapped(_reference, '(', ')') ? evalModuleExpr([context], _unwrap(_reference, '(', ')'), collectionCallback) : _arrFrom(collection[_reference], false);
+            var itemArray = _wrapped(_reference, '(', ')') ? evalModuleExpr([context], _unwrap(_reference, '(', ')'), collectionCallback) : _arrFrom(collection.get(_reference), false);
             // ------------
             var appliedModifiers = [], reapplyAppliedModifiers = expr => `${expr}${appliedModifiers.map(m => `:${m}(${modifiers[m]})`).join('')}`;
             Object.keys(modifiers).forEach(modifier => {

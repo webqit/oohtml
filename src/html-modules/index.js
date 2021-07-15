@@ -6,8 +6,9 @@ import _isEmpty from '@webqit/util/js/isEmpty.js';
 import _arrFrom from '@webqit/util/arr/from.js';
 import _remove from '@webqit/util/arr/remove.js';
 import _each from '@webqit/util/obj/each.js';
+import _internals from '@webqit/util/js/internals.js';
 import domInit from '@webqit/browser-pie/src/dom/index.js';
-import { config, footprint, scopeQuery } from '../util.js';
+import { config, scopeQuery } from '../util.js';
 
 /**
  * ---------------------------
@@ -123,16 +124,16 @@ export default function init(_config = null, onDomReady = false) {
             if (el.matches(templateSelector) && (templateName = el.getAttribute(_meta.get('attr.moduleid'))) && validateModuleName(templateName)) {
                 var _path = (path ? path + '/' : '') + templateName;
                 if (mutationType === 'removed') {
-                    delete footprint(node).templates[templateName];
-                    if (footprint(node).parentTemplate === node) {
-                        delete footprint(node).parentTemplate;
+                    _internals(node, 'oohtml', 'templates').delete(templateName)
+                    if (_internals(node, 'oohtml').get('parentTemplate') === node) {
+                        _internals(node, 'oohtml').delete('parentTemplate');
                     }
                     if (eventsObject) {
                         eventsObject.removedTemplates[templateName] = el;
                     }
                 } else if (mutationType === 'added') {
-                    footprint(node).templates[templateName] = el;
-                    footprint(el).parentTemplate = node;
+                    _internals(node, 'oohtml', 'templates').set(templateName, el);
+                    _internals(el, 'oohtml').set('parentTemplate', node);
                     if (eventsObject) {
                         eventsObject.addedTemplates[templateName] = el;
                     }
@@ -143,10 +144,10 @@ export default function init(_config = null, onDomReady = false) {
                 const manageExportItem = exportItem => {
                     var exportId = exportItem.getAttribute(_meta.get('attr.exportgroup')) || 'default';
                     if (mutationType === 'removed') {
-                        if (footprint(node).exports[exportId]) {
-                            _remove(footprint(node).exports[exportId], exportItem);
-                            if (!footprint(node).exports[exportId].length) {
-                                delete footprint(node).exports[exportId];
+                        if (_internals(node, 'oohtml', 'exports').has(exportId)) {
+                            _remove(_internals(node, 'oohtml', 'exports').get(exportId), exportItem);
+                            if (!_internals(node, 'oohtml', 'exports').has(exportId).length) {
+                                _internals(node, 'oohtml', 'exports').delete(exportId);
                             }
                             if (eventsObject) {
                                 if (!eventsObject.removedExports[exportId]) {
@@ -156,10 +157,10 @@ export default function init(_config = null, onDomReady = false) {
                             }
                         }
                     } else if (mutationType === 'added') {
-                        if (!footprint(node).exports[exportId]) {
-                            footprint(node).exports[exportId] = [];
+                        if (!_internals(node, 'oohtml', 'exports').has(exportId)) {
+                            _internals(node, 'oohtml', 'exports').set(exportId, []);
                         }
-                        footprint(node).exports[exportId].push(exportItem);
+                        _internals(node, 'oohtml', 'exports').get(exportId).push(exportItem);
                         if (eventsObject) {
                             if (!eventsObject.addedExports[exportId]) {
                                 eventsObject.addedExports[exportId] = [];
@@ -182,10 +183,8 @@ export default function init(_config = null, onDomReady = false) {
 
         // -----------------------
         // Run...
-        footprint(node).templates = {};
-        footprint(node).exports = {};
         node.modulemutationsType = mutationType;
-        const eventsObject = { addedTemplates: {}, removedTemplates: {}, addedExports: {}, removedExports: {}, }; 
+        const eventsObject = { addedTemplates: Object.create(null), removedTemplates: Object.create(null), addedExports: Object.create(null), removedExports: Object.create(null), }; 
         _arrFrom(contents.children).forEach(el => manageComponent(el, eventsObject, mutationType, fireEvents));
         if (fireEvents) {
             fireDocumentTemplateEvent('templatemutation', eventsObject, path);
@@ -193,8 +192,8 @@ export default function init(_config = null, onDomReady = false) {
 
         // -----------------------
         // Handle content loading
-        if (mutationType === 'added' && !footprint(node).onLiveMode) {
-            footprint(node).onLiveMode = true;
+        if (mutationType === 'added' && !_internals(node, 'oohtml').get('onLiveMode')) {
+            _internals(node, 'oohtml').set('onLiveMode', true);
             if (node.getAttribute('src') && !node.content.children.length) {
                 loadingTemplates.push(loadTemplateContent(node, path));
             }
@@ -207,7 +206,7 @@ export default function init(_config = null, onDomReady = false) {
             // -----------------------
             // Watch mutations
             var mo = new window.MutationObserver(mutations => {
-                const eventsObject = { addedTemplates: {}, removedTemplates: {}, addedExports: {}, removedExports: {}, };    
+                const eventsObject = { addedTemplates: Object.create(null), removedTemplates: Object.create(null), addedExports: Object.create(null), removedExports: Object.create(null), };    
                 mutations.forEach(mutation => {
                     mutation.addedNodes.forEach(el => manageComponent(el, eventsObject, 'added', true));
                     mutation.removedNodes.forEach(el => manageComponent(el, eventsObject, 'removed', true));
@@ -227,9 +226,8 @@ export default function init(_config = null, onDomReady = false) {
         throw new Error('document already has a "' + _meta.get('api.templates') + '" property!');
     }
     const loadingTemplates = [];
-    footprint(document).templates = {};
     Object.defineProperty(document, _meta.get('api.templates'), {
-        value: footprint(document).templates,
+        value: _internals(document, 'oohtml', 'templates'),
     });
 
     // ----------------------
@@ -241,7 +239,7 @@ export default function init(_config = null, onDomReady = false) {
     }
     Object.defineProperty(TemplateElementClass.prototype, _meta.get('api.templates'), {
         get: function() {
-            return footprint(this).templates || {};
+            return _internals(this, 'oohtml', 'templates');
         }
     });
     if (_meta.get('api.exports') in TemplateElementClass.prototype) {
@@ -249,7 +247,7 @@ export default function init(_config = null, onDomReady = false) {
     }
     Object.defineProperty(TemplateElementClass.prototype, _meta.get('api.exports'), {
         get: function() {
-            return footprint(this).exports || {};
+            return _internals(this, 'oohtml', 'exports');
         }
     });
 
@@ -265,22 +263,22 @@ export default function init(_config = null, onDomReady = false) {
     _arrFrom(document.querySelectorAll(templateSelector)).forEach(async el => {
         var name = el.getAttribute(_meta.get('attr.moduleid'));
         if (!el.closest(_meta.get('element.import')) && validateModuleName(name)) {
-            footprint(document).templates[name] = el;
+            _internals(document, 'oohtml', 'templates').set(name, el);
             discoverContents(el.content, el, name, 'added', false);
         }
     });
     mutations.onPresenceChange(templateSelector, async (els, presence) => {
-        const eventsObject = { addedTemplates: {}, removedTemplates: {}, addedExports: {}, removedExports: {}, }; 
+        const eventsObject = { addedTemplates: Object.create(null), removedTemplates: Object.create(null), addedExports: Object.create(null), removedExports: Object.create(null), }; 
         els.forEach(el => {
             var name = el.getAttribute(_meta.get('attr.moduleid'));
             if (!el.closest(_meta.get('element.import')) && validateModuleName(name)) {
                 if (presence) {
-                    footprint(document).templates[name] = el;
+                    _internals(document, 'oohtml', 'templates').set(name, el);
                     discoverContents(el.content, el, name, 'added');
                     eventsObject.addedTemplates[name] = el;
                 } else {
-                    if (footprint(document).templates[name] === el) {
-                        delete footprint(document).templates[name];
+                    if (_internals(document, 'oohtml', 'templates').get(name) === el) {
+                        _internals(document, 'oohtml', 'templates').delete(name);
                     }
                     discoverContents(el.content, el, name, 'removed');
                     eventsObject.removedTemplates[name] = el;
@@ -310,19 +308,18 @@ export default function init(_config = null, onDomReady = false) {
             var templateId = this.getAttribute(_meta.get('attr.moduleref'));
             if (templateId) {
                 var template = document.createElement('template');
-                footprint(template).exports = {};
                 // -----------------
                 scopeQuery([document], templateId, function(host, prop) {
-                    var collection = footprint(host).templates || {};
+                    var collection = _internals(host, 'oohtml', 'templates');
                     if (arguments.length === 1) return collection;
-                    if (prop.startsWith(':')) return (footprint(host).exports || {})[prop.substr(1)];
-                    return collection[prop];
+                    if (prop.startsWith(':')) return _internals(host, 'oohtml', 'exports').get(prop.substr(1));
+                    return collection.get(prop);
                 }).forEach(module => {
-                    _each(footprint(module).exports || {}, (exportId, exports) => {
-                        if (!footprint(template).exports[exportId]) {
-                            footprint(template).exports[exportId] = [];
+                    _internals(module, 'oohtml', 'exports').forEach((exports, exportId) => {
+                        if (!_internals(template, 'oohtml', 'exports').has(exportId)) {
+                            _internals(template, 'oohtml', 'exports').set(exportId, []);
                         }
-                        footprint(template).exports[exportId].push(...exports);
+                        _internals(template, 'oohtml', 'exports').get(exportId).push(...exports);
                     })
                 });
                 return template;
