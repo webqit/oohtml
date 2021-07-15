@@ -30,7 +30,7 @@
   },
   "main": "./src/index.js",
   "scripts": {
-    "test": "mocha --file --extension .test.js --exit",
+    "test": "mocha --extension .test.js --exit",
     "test:coverage": "c8 --reporter=text-lcov npm run test | coveralls",
     "build": "webpack --config ./webpack.config.cjs",
     "preversion": "npm run test && npm run build && git add -A dist",
