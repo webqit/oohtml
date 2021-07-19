@@ -41,7 +41,7 @@ export default function init(_config = null, onDomReady = false) {
             export: 'export',
             import: 'import',
         },
-		attr: {
+        attr: {
             moduleid: 'name',
             moduleref: 'template',
             exportid: 'name',
@@ -227,7 +227,9 @@ export default function init(_config = null, onDomReady = false) {
     }
     const loadingTemplates = [];
     Object.defineProperty(document, _meta.get('api.templates'), {
-        value: _internals(document, 'oohtml', 'templates'),
+        get: function() {
+            return mapToObject(_internals(document, 'oohtml', 'templates'));
+        }
     });
 
     // ----------------------
@@ -239,7 +241,7 @@ export default function init(_config = null, onDomReady = false) {
     }
     Object.defineProperty(TemplateElementClass.prototype, _meta.get('api.templates'), {
         get: function() {
-            return _internals(this, 'oohtml', 'templates');
+            return mapToObject(_internals(this, 'oohtml', 'templates'));
         }
     });
     if (_meta.get('api.exports') in TemplateElementClass.prototype) {
@@ -247,9 +249,16 @@ export default function init(_config = null, onDomReady = false) {
     }
     Object.defineProperty(TemplateElementClass.prototype, _meta.get('api.exports'), {
         get: function() {
-            return _internals(this, 'oohtml', 'exports');
+            return mapToObject(_internals(this, 'oohtml', 'exports'));
         }
     });
+
+    const mapToObject = map => {
+        return Object.defineProperties({}, Array.from(map.keys()).reduce((desc, name) => {
+            desc[name] = {get: () => map.get(name)};
+            return desc;
+        }, {}));
+    };
 
     const validateModuleName = name => {
         var invalidCharacterMatch;
@@ -305,25 +314,27 @@ export default function init(_config = null, onDomReady = false) {
     }
     Object.defineProperty(window.Element.prototype, _meta.get('api.moduleref'), {
         get: function() {
-            var templateId = this.getAttribute(_meta.get('attr.moduleref'));
-            if (templateId) {
-                var template = document.createElement('template');
+            var templateId;
+            if (!_internals(this, 'oohtml').has('module') 
+            && (templateId = this.getAttribute(_meta.get('attr.moduleref')))) {
+                var _module = document.createElement('template');
                 // -----------------
                 scopeQuery([document], templateId, function(host, prop) {
                     var collection = _internals(host, 'oohtml', 'templates');
                     if (arguments.length === 1) return collection;
                     if (prop.startsWith(':')) return _internals(host, 'oohtml', 'exports').get(prop.substr(1));
                     return collection.get(prop);
-                }).forEach(module => {
-                    _internals(module, 'oohtml', 'exports').forEach((exports, exportId) => {
-                        if (!_internals(template, 'oohtml', 'exports').has(exportId)) {
-                            _internals(template, 'oohtml', 'exports').set(exportId, []);
+                }).forEach(__module => {
+                    _internals(__module, 'oohtml', 'exports').forEach((exports, exportId) => {
+                        if (!_internals(_module, 'oohtml', 'exports').has(exportId)) {
+                            _internals(_module, 'oohtml', 'exports').set(exportId, []);
                         }
-                        _internals(template, 'oohtml', 'exports').get(exportId).push(...exports);
-                    })
+                        _internals(_module, 'oohtml', 'exports').get(exportId).push(...exports);
+                    });
                 });
-                return template;
+                _internals(this, 'oohtml').set('module', _module)
             }
+            return _internals(this, 'oohtml').get('module');
         },
     });
 
@@ -332,7 +343,7 @@ export default function init(_config = null, onDomReady = false) {
     // ----------------------
 
     var templatesReadyState = loadingTemplates.length ? 'loading' : 'indeterminate';
-    Object.defineProperty(document, 'templatesReadyState', {get: () => templatesReadyState});
+    Object.defineProperty(document, 'templatesReadyState', { get: () => templatesReadyState });
     WebQit.DOM.ready.call(WebQit, () => {
         loadingTemplates.forEach(promise => {
             promise.catch(error => {
