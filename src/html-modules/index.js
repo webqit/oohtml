@@ -269,6 +269,25 @@ export default function init(_config = null, onDomReady = false) {
         return true;
     };
 
+    const templatesQuery = q => {
+        var _module = document.createElement('template');
+        // -----------------
+        scopeQuery([document], q, function(host, prop) {
+            var collection = _internals(host, 'oohtml', 'templates');
+            if (arguments.length === 1) return collection;
+            if (prop.startsWith(':')) return _internals(host, 'oohtml', 'exports').get(prop.substr(1));
+            return collection.get(prop);
+        }).forEach(__module => {
+            _internals(__module, 'oohtml', 'exports').forEach((exports, exportId) => {
+                if (!_internals(_module, 'oohtml', 'exports').has(exportId)) {
+                    _internals(_module, 'oohtml', 'exports').set(exportId, []);
+                }
+                _internals(_module, 'oohtml', 'exports').get(exportId).push(...exports);
+            });
+        });
+        return _module;
+    }
+
     _arrFrom(document.querySelectorAll(templateSelector)).forEach(async el => {
         var name = el.getAttribute(_meta.get('attr.moduleid'));
         if (!el.closest(_meta.get('element.import')) && validateModuleName(name)) {
@@ -317,21 +336,7 @@ export default function init(_config = null, onDomReady = false) {
             var templateId;
             if (!_internals(this, 'oohtml').has('module') 
             && (templateId = this.getAttribute(_meta.get('attr.moduleref')))) {
-                var _module = document.createElement('template');
-                // -----------------
-                scopeQuery([document], templateId, function(host, prop) {
-                    var collection = _internals(host, 'oohtml', 'templates');
-                    if (arguments.length === 1) return collection;
-                    if (prop.startsWith(':')) return _internals(host, 'oohtml', 'exports').get(prop.substr(1));
-                    return collection.get(prop);
-                }).forEach(__module => {
-                    _internals(__module, 'oohtml', 'exports').forEach((exports, exportId) => {
-                        if (!_internals(_module, 'oohtml', 'exports').has(exportId)) {
-                            _internals(_module, 'oohtml', 'exports').set(exportId, []);
-                        }
-                        _internals(_module, 'oohtml', 'exports').get(exportId).push(...exports);
-                    });
-                });
+                var _module = templatesQuery(templateId);
                 _internals(this, 'oohtml').set('module', _module)
             }
             return _internals(this, 'oohtml').get('module');
@@ -343,6 +348,7 @@ export default function init(_config = null, onDomReady = false) {
     // ----------------------
 
     var templatesReadyState = loadingTemplates.length ? 'loading' : 'indeterminate';
+    Object.defineProperty(document, 'templatesQuery', { value: templatesQuery });
     Object.defineProperty(document, 'templatesReadyState', { get: () => templatesReadyState });
     WebQit.DOM.ready.call(WebQit, () => {
         loadingTemplates.forEach(promise => {
