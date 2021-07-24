@@ -39,8 +39,8 @@
   },
   "dependencies": {
     "@webqit/browser-pie": "^0.0.16",
-    "@webqit/observer": "^1.5.7",
-    "@webqit/subscript": "^1.1.5",
+    "@webqit/observer": "^1.5.8",
+    "@webqit/subscript": "^1.1.6",
     "@webqit/util": "^0.8.7"
   },
   "devDependencies": {
