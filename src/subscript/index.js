@@ -10,7 +10,7 @@ import _internals from '@webqit/util/js/internals.js';
 import domInit from '@webqit/browser-pie/src/dom/index.js';
 import { Parser, Runtime, Scope } from '@webqit/subscript';
 import { Block } from '@webqit/subscript/src/grammar.js';
-import { config, footprint } from '../util.js';
+import { config } from '../util.js';
 
 /**
  * ---------------------------

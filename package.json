@@ -41,7 +41,7 @@
     "@webqit/browser-pie": "^0.0.16",
     "@webqit/observer": "^1.5.7",
     "@webqit/subscript": "^1.1.5",
-    "@webqit/util": "^0.8.6"
+    "@webqit/util": "^0.8.7"
   },
   "devDependencies": {
     "chai": "^4.3.4",

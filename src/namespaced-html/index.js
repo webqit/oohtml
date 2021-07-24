@@ -6,7 +6,7 @@ import Observer from '@webqit/observer';
 import _any from '@webqit/util/arr/any.js';
 import _internals from '@webqit/util/js/internals.js';
 import domInit from '@webqit/browser-pie/src/dom/index.js';
-import { config, footprint } from '../util.js';
+import { config } from '../util.js';
 
 /**
  * ---------------------------

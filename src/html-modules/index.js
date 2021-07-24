@@ -269,16 +269,19 @@ export default function init(_config = null, onDomReady = false) {
         return true;
     };
 
-    const templatesQuery = q => {
+    const templatesQuery = query => {
         var _module = document.createElement('template');
         // -----------------
-        scopeQuery([document], q, function(host, prop) {
+        scopeQuery([document], query, function(host, prop) {
             var collection = _internals(host, 'oohtml', 'templates');
             if (arguments.length === 1) return collection;
             if (prop.startsWith(':')) return _internals(host, 'oohtml', 'exports').get(prop.substr(1));
             return collection.get(prop);
-        }).forEach(__module => {
-            _internals(__module, 'oohtml', 'exports').forEach((exports, exportId) => {
+        }).forEach($module => {
+            _internals($module, 'oohtml', 'templates').forEach((template, moduleId) => {
+                _internals(_module, 'oohtml', 'templates').set(moduleId, template);
+            });
+            _internals($module, 'oohtml', 'exports').forEach((exports, exportId) => {
                 if (!_internals(_module, 'oohtml', 'exports').has(exportId)) {
                     _internals(_module, 'oohtml', 'exports').set(exportId, []);
                 }
@@ -286,7 +289,7 @@ export default function init(_config = null, onDomReady = false) {
             });
         });
         return _module;
-    }
+    };
 
     _arrFrom(document.querySelectorAll(templateSelector)).forEach(async el => {
         var name = el.getAttribute(_meta.get('attr.moduleid'));
@@ -347,8 +350,8 @@ export default function init(_config = null, onDomReady = false) {
     // Hydrate
     // ----------------------
 
+    //Object.defineProperty(document, 'templatesQuery', { value: templatesQuery });
     var templatesReadyState = loadingTemplates.length ? 'loading' : 'indeterminate';
-    Object.defineProperty(document, 'templatesQuery', { value: templatesQuery });
     Object.defineProperty(document, 'templatesReadyState', { get: () => templatesReadyState });
     WebQit.DOM.ready.call(WebQit, () => {
         loadingTemplates.forEach(promise => {

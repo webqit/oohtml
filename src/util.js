@@ -21,31 +21,15 @@ import _internals from '@webqit/util/js/internals.js';
  */
 export function config(defaults, overrides = {}) {
     const WebQit = domInit.call(this);
+    if (!WebQit.OOHTML) {
+        // For feature modules that will call outside of ./index.js module
+        WebQit.OOHTML = {};
+    }
     if (!WebQit.OOHTML.meta) {
         WebQit.OOHTML.meta = WebQit.DOM.meta('oohtml', true/* readWrite */);
     }
     WebQit.OOHTML.meta.defaults(_merge(3, defaults, overrides));
     return WebQit.OOHTML.meta;
-}
-
-/**
- * Returns an OOHTML footprint object embedded on a host.
- *
- * @param Object	host
- *
- * @return Object
- */
-export function footprint(host) {
-    var _footprint, webqitFootprint, webqitFootprintSymbol = Symbol.for('.webqit');
-    if (!(webqitFootprint = host[webqitFootprintSymbol])) {
-        webqitFootprint = {};
-        Object.defineProperty(host, webqitFootprintSymbol, {value: webqitFootprint, enumerable: false});
-    }
-    if (!(_footprint = webqitFootprint.oohtml)) {
-        _footprint = {};
-        webqitFootprint.oohtml = _footprint;
-    }
-    return _footprint;
 }
 
 /**
@@ -128,7 +112,7 @@ const evalAssertExpr = (segment, callback) => {
 };
 
 const evalModuleExpr = (contexts, segment, collectionCallback) => {
-    const lookAhead = contexts => contexts.reduce((_list, _module) => _list.concat(collectionCallback(_module).values()), []);
+    const lookAhead = contexts => contexts.reduce((_list, _module) => _list.concat(...collectionCallback(_module).values()), []);
     return evalAssertExpr(segment, _reference => {
         var [ _reference, modifiers ] = parseScopeReferenceExpr(_reference);
          // ------------

@@ -46,7 +46,7 @@ export default function init(_config = null, onDomReady = false) {
         },
         attr: {
             importid: 'name',
-            templatespec: 'template-specificity',
+            exportsearch: 'exportsearch',
         },
     }, _config);
 
@@ -172,10 +172,10 @@ export default function init(_config = null, onDomReady = false) {
             if (_any(importInertContexts, inertContext => this.el.closest(inertContext))) {
                 return;
             }
-            var getExports = (contexts, moduleref) => {
+            var getExports = (contexts, moduleref, exportsearch) => {
                 var importId = this.importID,
                     modifiers = this.importModifiers,
-                    [ superA, superB ] = 'super' in modifiers ? modifiers.super.split('-').filter(a => a).map(a => parseInt(a || 0)).concat([0, 1000]) : [0, 0];
+                    [ searchA, searchB ] = (('search' in modifiers) || exportsearch !== null) ? ('search' in modifiers ? modifiers.search : exportsearch).split('-').filter(a => a).map(a => parseInt(a || 0)).concat([0, 1000]) : [0, 0];
                     const aggrExports = modules => modules.reduce((_exports, _module) => _exports.concat(_internals(_module, 'oohtml', 'exports').get(importId) || []), []);
                 return scopeQuery(contexts, moduleref, function(host, prop) {
                     var collection = _internals(host, 'oohtml', 'templates');
@@ -184,8 +184,8 @@ export default function init(_config = null, onDomReady = false) {
                     return collection.get(prop);
                 }, function(_modules, level, isRewinding) {
                     var exportsAggr = aggrExports(_modules);
-                    if (!exportsAggr.length && level > superA && superB) {
-                        superB --;
+                    if (!exportsAggr.length && level > searchA && searchB) {
+                        searchB --;
                         return -1;
                     }
                     return exportsAggr;
@@ -209,7 +209,8 @@ export default function init(_config = null, onDomReady = false) {
                 templateSource = this.compositionBlock;
             }
             var moduleref = templateSource.getAttribute(_meta.get('attr.moduleref')).trim();
-            if (templateSource && (exports = getExports([moduleref.startsWith('~') ? this.compositionBlock : document], moduleref)).length) {
+            var exportsearch = this.el.getAttribute(_meta.get('attr.exportsearch'));
+            if (templateSource && (exports = getExports([moduleref.startsWith('~') ? this.compositionBlock : document], moduleref, exportsearch)).length) {
                 if (_difference(exports, _internals(this.el, 'oohtml').get('originalSlottedElements') || []).length) {
                     _internals(this.el, 'oohtml').set('originalSlottedElements', exports);
                     this.fill(exports);
@@ -359,7 +360,11 @@ export default function init(_config = null, onDomReady = false) {
     // ----------------------
     
     const resolveSlots = (el, exportName) => {
-        const shouldResolve = (importEl, importName) => !exportName || importName === exportName || (exportName === true && importEl.getAttribute(_meta.get('attr.templatespec')));
+        const shouldResolve = (importEl, importName) => {
+            return !exportName || importName === exportName || (
+                exportName === true && ((this.importModifiers && ('search' in this.importModifiers)) || importEl.getAttribute(_meta.get('attr.exportsearch')))
+            );
+        };
         if (el.matches(_meta.get('element.import'))) {
             var importElInstance = Import.create(el);
             importElInstance.connectedCallback();
@@ -469,7 +474,7 @@ export function mergePartials(exportEl, superExportEl, noinherit = []) {
     }
     _each(superExportEl.exportsSlottables, (slotId, slottable) => {
         if (exportEl.exportsSlottables && exportEl.exportsSlottables[slotId]) {
-            // Simply inherit attributes from the super slottable
+            // Simply inherit attributes from the search slottable
             // The export may however define a no-inherit directive for all its slottables
             var _noinherit = noinherit.concat((exportEl.getAttribute('noinherit') || '').split(' ').map(val => val.trim()));
             this.mergeAttributes(exportEl.exportsSlottables[slotId], slottable, _noinherit, false/*prioritize*/);
