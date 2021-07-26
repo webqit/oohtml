@@ -64,9 +64,6 @@ export default function init(_config = null, onDomReady = false) {
 						}
 					}
 					return namespaceObject[name];
-				},
-				deleteProperty(target, name) {
-					return false;
 				}
 			}));
             if (Observer.link) {
