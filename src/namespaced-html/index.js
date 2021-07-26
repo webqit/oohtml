@@ -3,8 +3,8 @@
  * @imports
  */
 import Observer from '@webqit/observer';
-import _any from '@webqit/util/arr/any.js';
-import _internals from '@webqit/util/js/internals.js';
+import { _any, _from as _arrFrom } from '@webqit/util/arr/index.js';
+import { _isString, _internals } from '@webqit/util/js/index.js';
 import domInit from '@webqit/browser-pie/src/dom/index.js';
 import { config } from '../util.js';
 
@@ -42,12 +42,33 @@ export default function init(_config = null, onDomReady = false) {
         api: {
             namespace: 'namespace',
         },
+		eagermode: true,
     }, _config);
 	
     const getNamespaceObject = function(subject) {
         if (!_internals(subject, 'oohtml').has('namespace')) {
             const namespaceObject = Object.create(null);
-            _internals(subject, 'oohtml').set('namespace', namespaceObject);
+            _internals(subject, 'oohtml').set('namespace', !_meta.get('eagermode') ? namespaceObject : new Proxy(namespaceObject, {
+				get(target, name) {
+					if (_isString(name) && !namespaceObject[name]) {
+						var node = _arrFrom(subject.querySelectorAll('[' + window.CSS.escape(_meta.get('attr.id')) + '="' + name + '"]')).filter(node => {
+							var ownerRoot = node.parentNode.closest('[' + window.CSS.escape(_meta.get('attr.namespace')) + ']');
+							if (subject === document) {
+								// Only IDs without a scope actually belong to the document scope
+								return !ownerRoot;
+							}
+							return ownerRoot === subject;
+						})[0];
+						if (node) {
+							Observer.set(namespaceObject, name, node);
+						}
+					}
+					return namespaceObject[name];
+				},
+				deleteProperty(target, name) {
+					return false;
+				}
+			}));
             if (Observer.link) {
                 Observer.link(subject, _meta.get('api.namespace'), namespaceObject);
             }

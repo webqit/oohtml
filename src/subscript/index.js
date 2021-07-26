@@ -3,10 +3,9 @@
  * @imports
  */
 import Observer from '@webqit/observer';
-import _merge from '@webqit/util/obj/merge.js';
-import _remove from '@webqit/util/arr/remove.js';
-import _isFunction from '@webqit/util/js/isFunction.js';
-import _internals from '@webqit/util/js/internals.js';
+import { _merge } from '@webqit/util/obj/index.js';
+import { _remove } from '@webqit/util/arr/index.js';
+import { _isFunction, _internals } from '@webqit/util/js/index.js';
 import domInit from '@webqit/browser-pie/src/dom/index.js';
 import { Parser, Runtime, Scope } from '@webqit/subscript';
 import { Block } from '@webqit/subscript/src/grammar.js';

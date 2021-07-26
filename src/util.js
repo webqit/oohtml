@@ -3,14 +3,11 @@
  * @imports
  */
 import domInit from '@webqit/browser-pie/src/dom/index.js';
-import _merge from '@webqit/util/obj/merge.js';
+import { _wrapped, _unwrap, _before, _after } from '@webqit/util/str/index.js';
+import { _from as _arrFrom } from '@webqit/util/arr/index.js';
+import { _internals }from '@webqit/util/js/index.js';
+import { _merge } from '@webqit/util/obj/index.js';
 import Lexer from '@webqit/util/str/Lexer.js';
-import _wrapped from '@webqit/util/str/wrapped.js';
-import _unwrap from '@webqit/util/str/unwrap.js';
-import _before from '@webqit/util/str/before.js';
-import _after from '@webqit/util/str/after.js';
-import _arrFrom from '@webqit/util/arr/from.js';
-import _internals from '@webqit/util/js/internals.js';
 
 /**
  * A OOHTML's meta tag props reader.

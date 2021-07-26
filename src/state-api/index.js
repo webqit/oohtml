@@ -3,8 +3,8 @@
  * @imports
  */
 import Observer from '@webqit/observer';
-import _difference from '@webqit/util/arr/difference.js';
-import _internals from '@webqit/util/js/internals.js';
+import { _difference } from '@webqit/util/arr/index.js';
+import { _internals } from '@webqit/util/js/index.js';
 import domInit from '@webqit/browser-pie/src/dom/index.js';
 import { config } from '../util.js';
 

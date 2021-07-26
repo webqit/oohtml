@@ -2,11 +2,9 @@
 /**
  * @imports
  */
-import _isEmpty from '@webqit/util/js/isEmpty.js';
-import _arrFrom from '@webqit/util/arr/from.js';
-import _remove from '@webqit/util/arr/remove.js';
-import _each from '@webqit/util/obj/each.js';
-import _internals from '@webqit/util/js/internals.js';
+import { _isEmpty, _internals } from '@webqit/util/js/index.js';
+import { _remove, _from as _arrFrom } from '@webqit/util/arr/index.js';
+import { _each } from '@webqit/util/obj/index.js';
 import domInit from '@webqit/browser-pie/src/dom/index.js';
 import { config, scopeQuery } from '../util.js';
 

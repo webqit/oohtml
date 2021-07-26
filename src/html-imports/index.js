@@ -2,14 +2,10 @@
 /**
  * @imports
  */
-import _any from '@webqit/util/arr/any.js';
-import _arrFrom from '@webqit/util/arr/from.js';
-import _remove from '@webqit/util/arr/remove.js';
-import _unique from '@webqit/util/arr/unique.js';
-import _difference from '@webqit/util/arr/difference.js';
-import _each from '@webqit/util/obj/each.js';
+import { _any, _remove, _unique, _difference, _from as _arrFrom } from '@webqit/util/arr/index.js';
+import { _internals } from '@webqit/util/js/index.js';
+import { _each } from '@webqit/util/obj/index.js';
 import domInit from '@webqit/browser-pie/src/dom/index.js';
-import _internals from '@webqit/util/js/internals.js';
 import { config, scopeQuery,
     parseScopeReferenceExpr, queryMatchPath
 } from '../util.js';
