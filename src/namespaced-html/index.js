@@ -48,7 +48,18 @@ export default function init(_config = null, onDomReady = false) {
     const getNamespaceObject = function(subject) {
         if (!_internals(subject, 'oohtml').has('namespace')) {
             const namespaceObject = Object.create(null);
-            _internals(subject, 'oohtml').set('namespace', !_meta.get('eagermode') ? namespaceObject : new Proxy(namespaceObject, {
+            _internals(subject, 'oohtml').set('namespace', namespaceObject);
+            if (Observer.link) {
+                Observer.link(subject, _meta.get('api.namespace'), namespaceObject);
+            }
+        }
+        return _internals(subject, 'oohtml').get('namespace');
+	};
+	
+    const getPublicNamespaceObject = function(subject) {
+        if (!_internals(subject, 'oohtml').has('publicNamespace')) {
+            const namespaceObject = getNamespaceObject(subject);
+            _internals(subject, 'oohtml').set('publicNamespace', !_meta.get('eagermode') ? namespaceObject : new Proxy(namespaceObject, {
 				get(target, name) {
 					if (_isString(name) && !namespaceObject[name]) {
 						var node = _arrFrom(subject.querySelectorAll('[' + window.CSS.escape(_meta.get('attr.id')) + '="' + name + '"]')).filter(node => {
@@ -66,11 +77,8 @@ export default function init(_config = null, onDomReady = false) {
 					return namespaceObject[name];
 				}
 			}));
-            if (Observer.link) {
-                Observer.link(subject, _meta.get('api.namespace'), namespaceObject);
-            }
         }
-        return _internals(subject, 'oohtml').get('namespace');
+        return _internals(subject, 'oohtml').get('publicNamespace');
 	};
 
     // ----------------------
@@ -82,7 +90,7 @@ export default function init(_config = null, onDomReady = false) {
 	}
 	Object.defineProperty(window.Element.prototype, _meta.get('api.namespace'), {
 		get: function() {
-			return getNamespaceObject(this);
+			return getPublicNamespaceObject(this);
 		}
 	});
 
@@ -95,7 +103,7 @@ export default function init(_config = null, onDomReady = false) {
     }
 	Object.defineProperty(document, _meta.get('api.namespace'), {
 		get: function() {
-            return getNamespaceObject(document);
+            return getPublicNamespaceObject(document);
 		}
 	});
 
