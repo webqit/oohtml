@@ -147,7 +147,7 @@ Also, multiple `<import>` elements within a block can be scoped to just one *mod
 </body>
 ```
 
-Now, on resolution, an `<import>` elements will stand by somewhere with a view to returning to its slot on any event that gets the slot empty. In fact, `<import>` elements maintain a *live* relationship with the modules they point to and with the contents that go into their slot.
+On resolution, an `<import>` element will stand by somewhere with a view to returning to its slot on any event that gets the slot empty. In fact, `<import>` elements maintain a *live* relationship with the modules they point to and with the contents that go into their slot.
 
 So, if we dynamically changed the module ID declaration above to point to another module, *imports* will be resolved again, this time, from the new module.
 
@@ -273,7 +273,7 @@ customElements.define('my-collapsible', class extends HTMLElement {
 });
 ```
 
-Now, other parts of the application are able to work in sync with the state of this element.
+Other parts of the application are also able to access the state of this element.
 
 ```js
 let collapsible = document.querySelector('my-collapsible');
@@ -353,7 +353,7 @@ setTimeout(() => {
 }, 1000);
 ```
 
-Leveraging this reactivity, we could implement the `<my-collapsible>` component we created in the *State API* section above - this time, without a JavaScript class.
+Leveraging this reactivity, we could reimplement the `<my-collapsible>` component we created in the *State API* section above - this time, without a JavaScript class.
 
 ```html
 <div id="collapsible" namespace>
@@ -379,13 +379,13 @@ Leveraging this reactivity, we could implement the `<my-collapsible>` component 
 
 **Details are in the [Subscript](https://webqit.io/tooling/observer/docs/spec/subscript) specification. Learn more about the event-based runtime, deep observability, bindings, the API, error handling, and the polyfill support.**
 
-## Going Further
+## Getting Started
 
 [Go to project homepage](https://webqit.io/tooling/oohtml).
 
 You definitely want to visit the documentation for each of OOHTML's features and try everything out by pasting the code examples and running them right in your browser. Simply include the [OOHTML polyfill](https://webqit.io/tooling/observer/docs/getting-started/polyfill) on your page and get away with writing modular, reusable, reactive HTML without a tool! 
 
-> We're putting together a collection of examples in the [examples](https://webqit.io/tooling/observer/docs/learn/examples) section.
+We're putting together a collection of examples in the [examples](https://webqit.io/tooling/observer/docs/learn/examples) section.
 
 ## Issues
 
