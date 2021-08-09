@@ -39,7 +39,7 @@
   },
   "dependencies": {
     "@webqit/browser-pie": "^0.0.17",
-    "@webqit/observer": "^1.5.12",
+    "@webqit/observer": "^1.5.13",
     "@webqit/subscript": "^1.1.6",
     "@webqit/util": "^0.8.7"
   },
