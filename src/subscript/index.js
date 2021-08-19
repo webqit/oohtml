@@ -455,7 +455,7 @@ export default function init(_config = null, onDomReady = false) {
                             return argsByRef[ref];
                         });
                         this[methodName](...args);
-                    }, { tags: [ this, 'reactiveMethods' ] });
+                    }, { diff: true, suptree: true, tags: [ this, 'reactiveMethods' ] });
                 });
                 // Autorun?
                 try {
