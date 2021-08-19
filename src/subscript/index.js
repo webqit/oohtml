@@ -3,9 +3,10 @@
  * @imports
  */
 import Observer from '@webqit/observer';
-import { _merge } from '@webqit/util/obj/index.js';
+import { _after,_before, _beforeLast } from '@webqit/util/str/index.js';
+import { _each, _merge, _get } from '@webqit/util/obj/index.js';
 import { _remove } from '@webqit/util/arr/index.js';
-import { _isFunction, _internals } from '@webqit/util/js/index.js';
+import { _isFunction, _isTypeObject, _internals } from '@webqit/util/js/index.js';
 import domInit from '@webqit/browser-pie/src/dom/index.js';
 import { Parser, Runtime, Scope } from '@webqit/subscript';
 import { Block } from '@webqit/subscript/src/grammar.js';
@@ -42,7 +43,6 @@ export default function init(_config = null, onDomReady = false) {
         api: {bind: 'bind', unbind: 'unbind',},
         script: {},
     }, _config);
-    const parseCache = {};
     var globalRuntimeInitialized = _meta.get('script.autorun') !== false;
 
     // ----------------------
@@ -56,53 +56,61 @@ export default function init(_config = null, onDomReady = false) {
         set: Observer.set,
     });
 
-    const getScriptBase = function(target) {
+    const _getScriptBase = function(target) {
         var oohtmlBase = _internals(target, 'oohtml');
-        if (!oohtmlBase.has('subscript') || !oohtmlBase.get('subscript').isConnected) {
-            if (!oohtmlBase.has('subscript')) {
-                // Create scope
-                var thisScope = {};
-                Observer.set(thisScope, 'this', target);
-                oohtmlBase.set('subscript', {
-                    scope: Scope.createStack([{}/** bindings scope */, thisScope/** the "this" scope */, globalScopeInstance/** global scope */], scopeParams, {
-                        set: Observer.set,
-                    }),
-                });
-                oohtmlBase.get('subscript').console = {
-                    errors: [],
-                    infos: [],
-                    warnings: [],
-                    logs: [],
-                    exceptions: [],
-                };
-                // Binding mode?
-                oohtmlBase.get('subscript').handler = e => {
-                    if (!oohtmlBase.get('subscript').inWaitlist) {
-                        applyBinding(target, e);
-                    }
-                };
-                oohtmlBase.get('subscript').connected = c => {
-                    oohtmlBase.get('subscript').isConnected = c;
-                    if (c) {
-                        oohtmlBase.get('subscript').scope.observe(Observer, oohtmlBase.get('subscript').handler, {tags: [oohtmlBase.get('subscript').handler]});
-                    } else {
-                        // Unobserve only happens by tags
-                        oohtmlBase.get('subscript').scope.unobserve(Observer, {tags: [oohtmlBase.get('subscript').handler]});
-                    }
-                };
-            }
-            // =====================
-            var mo = mutations.onRemoved(target, () => {
-                oohtmlBase.get('subscript').connected(false);
-                mo.disconnect();
-            }, {ignoreTransients: true});
-            oohtmlBase.get('subscript').connected(true);
+        if (!oohtmlBase.has('subscript')) {
+            // Create scope
+            const thisScope = {};
+            const scriptBase = {
+                scope: Scope.createStack([{}/** bindings scope */, thisScope/** the "this" scope */, globalScopeInstance/** global scope */], scopeParams, {
+                    set: Observer.set,
+                }),
+            };
+            Observer.set(thisScope, 'this', target);
+            oohtmlBase.set('subscript', scriptBase);
+            scriptBase.console = {
+                errors: [],
+                infos: [],
+                warnings: [],
+                logs: [],
+                exceptions: [],
+            };
         }
         return oohtmlBase.get('subscript');
     };
 
-    const applyBinding = function(target, event) {
-        var targetScriptBase = getScriptBase(target);
+    const getScriptBase = function(target) {
+        var scriptBase = _getScriptBase(target);
+        if (!scriptBase.handler) {
+            // Binding mode?
+            scriptBase.handler = e => {
+                if (!scriptBase.inWaitlist) {
+                    applyBinding(scriptBase.srcCodes1, target, e);
+                }
+            };
+            scriptBase.connected = c => {
+                scriptBase.isConnected = c;
+                if (c) {
+                    scriptBase.scope.observe(Observer, scriptBase.handler, { tags: [ scriptBase.handler ] });
+                } else {
+                    // Unobserve only happens by tags
+                    scriptBase.scope.unobserve(Observer, { tags: [ scriptBase.handler ] });
+                }
+            };
+        }
+        if (!scriptBase.isConnected) {
+            // =====================
+            var mo = mutations.onRemoved(target, () => {
+                scriptBase.connected(false);
+                mo.disconnect();
+            }, { ignoreTransients: true });
+            scriptBase.connected(true);
+        }
+        return scriptBase;
+    };
+
+    const applyBinding = function(srcCodes, target, event) {
+        var targetScriptBase = _getScriptBase(target);
         targetScriptBase.inWaitlist = false;
         var params = {
             references: (event || {}).references, 
@@ -117,12 +125,9 @@ export default function init(_config = null, onDomReady = false) {
             },
             trap: Observer,
         };
-        if (targetScriptBase.AST) {
-            var returnValue = Runtime.eval(targetScriptBase.AST, targetScriptBase.scope, params);
-            if (_isFunction(returnValue)) {
-                returnValue(targetScriptBase.scope.stack.main);
-            }
-        }
+        srcCodes.forEach(srcCode => {
+            Runtime.eval(srcCode, targetScriptBase.scope, params);
+        });
     };
 
     // ----------------------
@@ -134,31 +139,30 @@ export default function init(_config = null, onDomReady = false) {
             return;
         }
         // Remove
-        var srcCode, parentNode = scriptElement.parentNode, scriptBase = getScriptBase(parentNode);
+        var parentNode = scriptElement.parentNode,
+            scriptBase = getScriptBase(parentNode);
         if (!_meta.get('isomorphic')) {
             scriptElement.remove();
         }
-        if (scriptBase.scriptElement === scriptElement) {
+        scriptBase.scriptElements = scriptBase.scriptElements || [],
+        scriptBase.srcCodes1 = scriptBase.srcCodes1 || [];
+        if (scriptBase.scriptElements.includes(scriptElement)) {
             return;
         }
-        if (scriptBase.scriptElement) {
-            scriptBase.console.errors.push('An element must only have one scopedJS instance!');
-            throw new Error('An element must only have one scopedJS instance!');
-        }
-        scriptBase.scriptElement = scriptElement;
-        if (!(srcCode = (scriptElement.textContent || '').trim())) {
+        scriptBase.scriptElements.push(scriptElement);
+        var srcCode = (scriptElement.textContent || '').trim();
+        if (!srcCode) {
             return;
         }
         // ------
         // Parse
         // ------
-        var explain = [], shouldExplain = scriptElement.hasAttribute('explain') || _meta.get('script.explain');
-        if (!parseCache[srcCode]) {
-            parseCache[srcCode] = parse(srcCode, {
+        var explain = [],
+            shouldExplain = scriptElement.hasAttribute('explain') || _meta.get('script.explain'),
+            srcCodeAST = parse(srcCode, {
                 explain: shouldExplain ? explain : null,
             });
-        }
-        scriptBase.AST = parseCache[srcCode];
+        scriptBase.srcCodes1.push(srcCodeAST);
         if (scriptElement.hasAttribute('scoped')) {
             //Observer.set(scriptBase.scope.stack.super.stack.main, 'this', parentNode);
         }
@@ -173,7 +177,7 @@ export default function init(_config = null, onDomReady = false) {
             ? parseInt(scriptElement.getAttribute('errors'))
             : _meta.get('script.errors');
         if (globalRuntimeInitialized || scriptBase.hasBindings || scriptElement.hasAttribute('autorun')) {
-            applyBinding(parentNode);
+            applyBinding([ srcCodeAST ], parentNode);
         } else {
             scriptBase.inWaitlist = true;
             globalRuntimeInitializationWaitlist.push(parentNode);
@@ -208,7 +212,7 @@ export default function init(_config = null, onDomReady = false) {
                                     // Explicitly remove from waitlist
                                     if (globalRuntimeInitializationWaitlist.includes($this)) {
                                         _remove(globalRuntimeInitializationWaitlist, $this);
-                                        applyBinding($this);
+                                        applyBinding((scriptBase.srcCodes1 || []).concat(scriptBase.srcCodes2 || []), $this);
                                     }
                                     return true;
                                 },
@@ -238,7 +242,7 @@ export default function init(_config = null, onDomReady = false) {
                         // Explicitly remove from waitlist
                         if (globalRuntimeInitializationWaitlist.includes($this)) {
                             _remove(globalRuntimeInitializationWaitlist, $this);
-                            applyBinding($this);
+                            applyBinding((scriptBase.srcCodes1 || []).concat(scriptBase.srcCodes2 || []), $this);
                         }
                     }
                 });
@@ -279,7 +283,8 @@ export default function init(_config = null, onDomReady = false) {
                                     // Explicitly empty waitlist
                                     var waitingElement;
                                     while(waitingElement = globalRuntimeInitializationWaitlist.shift()) {
-                                        applyBinding(waitingElement);
+                                        var scriptBase = getScriptBase(waitingElement);
+                                        applyBinding((scriptBase.srcCodes1 || []).concat(scriptBase.srcCodes2 || []), waitingElement);
                                     }
                                     globalRuntimeInitialized = true;
                                     return true;
@@ -309,7 +314,8 @@ export default function init(_config = null, onDomReady = false) {
                         // Explicitly empty waitlist
                         var waitingElement;
                         while(waitingElement = globalRuntimeInitializationWaitlist.shift()) {
-                            applyBinding(waitingElement);
+                            var scriptBase = getScriptBase(waitingElement);
+                            applyBinding((scriptBase.srcCodes1 || []).concat(scriptBase.srcCodes2 || []), waitingElement);
                         }
                         globalRuntimeInitialized = true;
                     },
@@ -328,15 +334,201 @@ export default function init(_config = null, onDomReady = false) {
         },
     });
 
+    // ----------------------
+    // Define the global "SubscriptElement()" mixin
+    // ----------------------
+
+    WebQit.SubscriptElement = BaseElement => class extends BaseElement {
+
+        /**
+         * @constructor()
+         */
+        constructor() {
+            super();
+
+            // -----------------------
+            // Parse methods that are reactive by their default parameters
+            // -----------------------
+
+            this._parametersContextGroups = {}
+            this._parametersDefaultValsRefs = {}
+            this.constructor.reactiveMethods.forEach(methodName => {
+                if (methodName.replaceAll(' ', '').endsWith('()')) {
+                    methodName = methodName.replaceAll('(', '').replaceAll('}', '');
+                }
+                if (methodName === 'constructor') {
+                    throw new Error(`Constructors cannot be reactive methods.`);
+                }
+                if (!_isFunction(this[methodName])) {
+                    throw new Error(`The implied reactive method "${methodName}" is not a function.`);
+                }
+                var srcCode = this[methodName].toString().trim();
+                var parameters = _before(_after(srcCode, '('), ')').split(',').map(param => param.trim()).filter(param => param);
+                if (!parameters.length) {
+                    throw new Error(`[${methodName}()]: Reactive methods must have parameters.`);
+                }
+                this._parametersContextGroups[methodName] = {};
+                this._parametersDefaultValsRefs[methodName] = parameters.map(param => {
+                    if (!param.includes('=')) {
+                        throw new Error(`[${methodName}(${param})]: All parameters must have a default value.`);
+                    }
+                    var _param = param.split('=').map(p => p.trim());
+                    if (!_param[1].includes('.')) {
+                        throw new Error(`[${methodName}(${param})]: Parameter's default value must be a path reference.`);
+                    }
+                    var refArr = _param[1].split('.');
+                    var contextName = refArr.shift();
+                    var context = contextName === 'this' ? this : (
+                        contextName === 'document' ? document : (
+                            contextName === 'window' ? window : globalThis[contextName]
+                        )
+                    );
+                    if (!_isTypeObject(context)) {
+                        throw new Error(`[${methodName}(${param})]: Parameter's default value does not reference an object in scope.`);
+                    }
+                    if (!this._parametersContextGroups[methodName][contextName]) {
+                        this._parametersContextGroups[methodName][contextName] = { context, refs: [] };
+                    }
+                    this._parametersContextGroups[methodName][contextName].refs.push(refArr);
+                    return _param[1];
+                });
+            });
+
+            // -----------------------
+            // Parse whole reactive blocks
+            // -----------------------
+
+            var explain = [],
+                shouldExplain = _meta.get('script.explain'),
+                scriptBase = _getScriptBase(this);
+            scriptBase.srcCodes2 = this.constructor.reactiveBlocks.map(blockName => {
+                if (blockName === 'constructor') {
+                    throw new Error(`Constructors cannot be reactive blocks.`);
+                }
+                if (!_isFunction(this[blockName])) {
+                    throw new Error(`The implied reactive block "${blockName}" is not a function.`);
+                }
+                var srcCode = this[blockName].toString().trim();
+                if (!srcCode.replaceAll(' ', '').startsWith(`${blockName}(){`)) {
+                    throw new Error(`[${blockName}()]: Reactive blocks cannot have parameters.`);
+                }
+                return _beforeLast(_after(srcCode, '{'), '}');
+            }).filter(srcCode => srcCode);
+            scriptBase.srcCodes2 = scriptBase.srcCodes2.map(srcCode => parse(srcCode, {
+                explain: shouldExplain ? explain : null,
+            }));
+            if (shouldExplain) {
+                scriptBase.console.logs.push(explain);
+                console.log(this, explain);
+            }
+            scriptBase.handler2 = e => {
+                if (!scriptBase.inWaitlist) {
+                    applyBinding(scriptBase.srcCodes2, this, e);
+                }
+            };
+
+        }
+
+        /**
+         * @connectedCallback()
+         */
+        connectedCallback() {
+            
+            // -----------------------
+            // Bind methods that are reactive by their default parameters
+            // -----------------------
+
+            _each(this._parametersContextGroups, (methodName, parametersContextGroups) => {
+                const parametersDefaultValsRefs = this._parametersDefaultValsRefs[methodName];
+                _each(parametersContextGroups, (contextName, dfn) => {
+                    Observer.observe(dfn.context, dfn.refs, mutations => {
+                        var argsByRef = {};
+                        mutations.forEach(mutation => {
+                            argsByRef[`${contextName}.${mutation.path.join('.')}`] = mutation.value;
+                        });
+                        var args = parametersDefaultValsRefs.map(ref => {
+                            if (!argsByRef[ref]) {
+                                var refArr = ref.split('.');
+                                var contextName = refArr.shift();
+                                argsByRef[ref] = _get(parametersContextGroups[contextName].context, refArr, Observer);
+                            }
+                            return argsByRef[ref];
+                        });
+                        this[methodName](...args);
+                    }, { tags: [ this, 'reactiveMethods' ] });
+                });
+                // Autorun?
+                try {
+                    this[methodName]();
+                } catch(e) {}
+            });
+            
+            // -----------------------
+            // Bind whole reactive blocks
+            // -----------------------
+
+            const scriptBase = _getScriptBase(this);
+            // Autorun?
+            if (globalRuntimeInitialized || scriptBase.hasBindings) {
+                applyBinding(scriptBase.srcCodes2, this);
+            } else {
+                scriptBase.inWaitlist = true;
+                globalRuntimeInitializationWaitlist.push(this);
+            }
+            scriptBase.scope.observe(Observer, scriptBase.handler2, { tags: [ scriptBase.handler2 ] });
+
+        }
+
+        /**
+         * @disconnectedCallback()
+         */
+        disconnectedCallback() {
+            
+            // -----------------------
+            // Unbind methods that are reactive by their default parameters
+            // -----------------------
+
+            _each(this._parametersContextGroups, (methodName, parametersContextGroups) => {
+                _each(parametersContextGroups, (contextName, dfn) => {
+                    Observer.unobserve(dfn.context, null, null, { tags: [ this, 'reactiveMethods' ] });
+                });
+            });
+
+            // -----------------------
+            // Unbind whole reactive blocks
+            // -----------------------
+
+            const scriptBase = _getScriptBase(this);
+            scriptBase.scope.unobserve(Observer, { tags: [ scriptBase.handler2 ] });
+
+        }
+
+        /**
+         * @get reactiveMethods()
+         */
+        static get reactiveMethods() {
+            return [];
+        }
+
+        /**
+         * @get reactiveBlocks()
+         */
+        static get reactiveBlocks() {
+            return [];
+        }
+    };
+
 };
 
 /**
  * @parse
  */
-function parse(script, params = {}) {
-    var AST;
-    if (!(AST = Parser.parse(script, [Block], _merge({assert:false}, params)))) {
-        AST = new Block([Parser.parse(script, null, params)]);
+const parseCache = {};
+function parse(srcCode, params = {}) {
+    if (!parseCache[srcCode]) {
+        if (!(parseCache[srcCode] = Parser.parse(srcCode, [Block], _merge({assert:false}, params)))) {
+            parseCache[srcCode] = new Block([Parser.parse(srcCode, null, params)]);
+        }
     }
-    return AST;
+    return parseCache[srcCode];
 }
