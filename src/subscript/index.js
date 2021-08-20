@@ -352,7 +352,7 @@ export default function init(_config = null, onDomReady = false) {
 
             this._parametersContextGroups = {}
             this._parametersDefaultValsRefs = {}
-            this.constructor.reactiveMethods.forEach(methodName => {
+            this.constructor.subscriptParameterBlocks.forEach(methodName => {
                 if (methodName.replaceAll(' ', '').endsWith('()')) {
                     methodName = methodName.replaceAll('(', '').replaceAll('}', '');
                 }
@@ -401,7 +401,7 @@ export default function init(_config = null, onDomReady = false) {
             var explain = [],
                 shouldExplain = _meta.get('script.explain'),
                 scriptBase = _getScriptBase(this);
-            scriptBase.srcCodes2 = this.constructor.reactiveBlocks.map(blockName => {
+            scriptBase.srcCodes2 = this.constructor.subscriptBlocks.map(blockName => {
                 if (blockName === 'constructor') {
                     throw new Error(`Constructors cannot be reactive blocks.`);
                 }
@@ -455,7 +455,7 @@ export default function init(_config = null, onDomReady = false) {
                             return argsByRef[ref];
                         });
                         this[methodName](...args);
-                    }, { diff: true, suptree: true, tags: [ this, 'reactiveMethods' ] });
+                    }, { diff: true, suptree: true, tags: [ this, 'subscriptParameterBlocks' ] });
                 });
                 // Autorun?
                 try {
@@ -490,7 +490,7 @@ export default function init(_config = null, onDomReady = false) {
 
             _each(this._parametersContextGroups, (methodName, parametersContextGroups) => {
                 _each(parametersContextGroups, (contextName, dfn) => {
-                    Observer.unobserve(dfn.context, null, null, { tags: [ this, 'reactiveMethods' ] });
+                    Observer.unobserve(dfn.context, null, null, { tags: [ this, 'subscriptParameterBlocks' ] });
                 });
             });
 
@@ -504,16 +504,16 @@ export default function init(_config = null, onDomReady = false) {
         }
 
         /**
-         * @get reactiveMethods()
+         * @get subscriptParameterBlocks()
          */
-        static get reactiveMethods() {
+        static get subscriptParameterBlocks() {
             return [];
         }
 
         /**
-         * @get reactiveBlocks()
+         * @get subscriptBlocks()
          */
-        static get reactiveBlocks() {
+        static get subscriptBlocks() {
             return [];
         }
     };
