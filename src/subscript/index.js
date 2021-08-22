@@ -350,9 +350,9 @@ export default function init(_config = null, onDomReady = false) {
             // Parse methods that are reactive by their default parameters
             // -----------------------
 
-            this._parametersContextGroups = {}
-            this._parametersDefaultValsRefs = {}
-            this.constructor.subscriptParameterBlocks.forEach(methodName => {
+            this._parametersContextGroups = {};
+            this._parametersDefaultValsRefs = {};
+            (this.constructor.subscriptParameterBlocks || []).forEach(methodName => {
                 if (methodName.replaceAll(' ', '').endsWith('()')) {
                     methodName = methodName.replaceAll('(', '').replaceAll('}', '');
                 }
@@ -401,7 +401,7 @@ export default function init(_config = null, onDomReady = false) {
             var explain = [],
                 shouldExplain = _meta.get('script.explain'),
                 scriptBase = _getScriptBase(this);
-            scriptBase.srcCodes2 = this.constructor.subscriptBlocks.map(blockName => {
+            scriptBase.srcCodes2 = (this.constructor.subscriptBlocks || []).map(blockName => {
                 if (blockName === 'constructor') {
                     throw new Error(`Constructors cannot be reactive blocks.`);
                 }
