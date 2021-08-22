@@ -502,20 +502,6 @@ export default function init(_config = null, onDomReady = false) {
             scriptBase.scope.unobserve(Observer, { tags: [ scriptBase.handler2 ] });
 
         }
-
-        /**
-         * @get subscriptParameterBlocks()
-         */
-        static get subscriptParameterBlocks() {
-            return [];
-        }
-
-        /**
-         * @get subscriptBlocks()
-         */
-        static get subscriptBlocks() {
-            return [];
-        }
     };
 
 };
