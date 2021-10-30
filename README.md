@@ -383,7 +383,7 @@ Leveraging this reactivity, we could reimplement the `<my-collapsible>` componen
 
 [Go to project homepage](https://webqit.io/tooling/oohtml).
 
-You definitely want to visit the documentation for each of OOHTML's features and try everything out by pasting the code examples and running them right in your browser. Simply include the [OOHTML polyfill](https://webqit.io/tooling/observer/docs/getting-started/polyfill) on your page and get away with writing modular, reusable, reactive HTML without a tool! 
+You definitely want to visit the documentation for each of OOHTML's features and try everything out by pasting the code examples and running them right in your browser. Simply include the [OOHTML polyfill](https://webqit.io/tooling/oohtml/docs/getting-started/polyfill) on your page and get away with writing modular, reusable, reactive HTML without a tool! 
 
 We're putting together a collection of examples in the [examples](https://webqit.io/tooling/oohtml/docs/learn/examples) section.
 
