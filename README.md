@@ -95,7 +95,7 @@ Taking things further, template elements may reference remote content using the 
 
 The contents of the remote file automatically become the template's content on load.
 
-**Details are in the [HTML Modules](https://webqit.io/tooling/observer/docs/spec/html-modules) specification. Learn more about the convention, API, events, and the polyfill support.**
+**Details are in the [HTML Modules](https://webqit.io/tooling/oohtml/docs/spec/html-modules) specification. Learn more about the convention, API, events, and the polyfill support.**
 
 ## HTML Imports
 
@@ -158,7 +158,7 @@ document.querySelector('div[template="module1"]').setAttribute('template', 'modu
 
 This opens up new simple ways to create very dynamic applications.
 
-**Details are in the [HTML Imports](https://webqit.io/tooling/observer/docs/spec/html-imports) specification. Learn more about the convention, dynamicity, Slot Inheritance, isomorphic rendering, and the polyfill support.**
+**Details are in the [HTML Imports](https://webqit.io/tooling/oohtml/docs/spec/html-imports) specification. Learn more about the convention, dynamicity, Slot Inheritance, isomorphic rendering, and the polyfill support.**
 
 ## Namespaced HTML
 
@@ -209,7 +209,7 @@ We get a document structure that translates to a bankable API for building great
 
 > Much of our code in the examples below will now use the `namespace` attribute in markup and the `.namespace` property in JavaScript.
 
-**Details are in the [Namespaced HTML](https://webqit.io/tooling/observer/docs/spec/namespaced-html) specification. Learn more about the convention, Namespaced Selectors, API, observability, and the polyfill support.**
+**Details are in the [Namespaced HTML](https://webqit.io/tooling/oohtml/docs/spec/namespaced-html) specification. Learn more about the convention, Namespaced Selectors, API, observability, and the polyfill support.**
 
 ## The State API
 
@@ -282,7 +282,7 @@ Observer.observe(collapsible.state, 'collapsed', e => {
 });
 ```
 
-**Details are in the [State API](https://webqit.io/tooling/observer/docs/spec/the-state-api) specification. Learn more about the API, deep observability, and the polyfill support.**
+**Details are in the [State API](https://webqit.io/tooling/oohtml/docs/spec/the-state-api) specification. Learn more about the API, deep observability, and the polyfill support.**
 
 ## Subscript
 
@@ -377,7 +377,7 @@ Leveraging this reactivity, we could reimplement the `<my-collapsible>` componen
 </div>
 ```
 
-**Details are in the [Subscript](https://webqit.io/tooling/observer/docs/spec/subscript) specification. Learn more about the event-based runtime, deep observability, bindings, the API, error handling, and the polyfill support.**
+**Details are in the [Subscript](https://webqit.io/tooling/oohtml/docs/spec/subscript) specification. Learn more about the event-based runtime, deep observability, bindings, the API, error handling, and the polyfill support.**
 
 ## Getting Started
 
@@ -385,7 +385,7 @@ Leveraging this reactivity, we could reimplement the `<my-collapsible>` componen
 
 You definitely want to visit the documentation for each of OOHTML's features and try everything out by pasting the code examples and running them right in your browser. Simply include the [OOHTML polyfill](https://webqit.io/tooling/observer/docs/getting-started/polyfill) on your page and get away with writing modular, reusable, reactive HTML without a tool! 
 
-We're putting together a collection of examples in the [examples](https://webqit.io/tooling/observer/docs/learn/examples) section.
+We're putting together a collection of examples in the [examples](https://webqit.io/tooling/oohtml/docs/learn/examples) section.
 
 ## Issues
 
