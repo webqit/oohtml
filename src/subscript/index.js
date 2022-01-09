@@ -376,7 +376,7 @@ export default function init(_config = null, onDomReady = false) {
                     if (!_param[1].includes('.')) {
                         throw new Error(`[${methodName}(${param})]: Parameter's default value must be a path reference.`);
                     }
-                    var refArr = _param[1].split('.');
+                    var refArr = _param[1].replaceAll('?.', '.').split('.');
                     var contextName = refArr.shift();
                     var context = contextName === 'this' ? this : (
                         contextName === 'document' ? document : (
@@ -454,7 +454,11 @@ export default function init(_config = null, onDomReady = false) {
                             }
                             return argsByRef[ref];
                         });
-                        this[methodName](...args);
+                        try {
+                            this[methodName](...args);
+                        } catch(e) {
+                            console.error(e);
+                        }
                     }, { diff: true, suptree: true, tags: [ this, 'subscriptParameterBlocks' ] });
                 });
                 // Autorun?
