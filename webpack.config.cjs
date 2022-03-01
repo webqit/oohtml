@@ -3,11 +3,10 @@
  * @imports
  */
 const path = require('path');
+const CompressionPlugin = require("compression-webpack-plugin");
 
-/**
- * @exports
- */
 module.exports = {
+	plugins: [ new CompressionPlugin() ],
 	mode: process.argv.includes('--dev') ? 'development' : 'production',
 	entry: {
 		main: './src/browser-entry.js',
