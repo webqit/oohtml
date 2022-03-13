@@ -71,7 +71,7 @@ export const Element  = BaseElement => class extends BaseElement {
         if ( ( typeof WebQit === 'undefined' ) || !WebQit.Observer ) return;
         const signals = ( mutations, evt, namespace = [] ) => {
             let subscriptConsole = _internals( this, 'oohtml', 'subscript', 'console' );
-            subscriptConsole.forEach( api => api.thread( ...mutations.map( mu => ( { ...mu, path: namespace.concat( mu.path ) } ) ) ) );
+            subscriptConsole.forEach( api => api.thread( ...mutations.map( mu => namespace.concat( mu.path ) ) ) );
         };
         WebQit.Observer.observe( globalThis, signals, {
             subtree: true, tags: [ this, 'subscript-element', 'globals' ], unique: true
