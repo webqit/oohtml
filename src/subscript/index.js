@@ -30,7 +30,6 @@ export default function init( _config = null, onDomReady = false ) {
     }, _config );
 
     const subscriptElement = Element( class {} );
-    const $subscriptElement = new subscriptElement;
     mutations.onPresent( _meta.get('selectors.script'), scriptElement => {
 
         let ownerNode = scriptElement.parentNode;
@@ -43,11 +42,11 @@ export default function init( _config = null, onDomReady = false ) {
         if ( embeds.has( scriptElement ) ) return;
 
         subscriptElement.implementScript( ownerNode, scriptElement )();
-        $subscriptElement.connectedCallback.call( ownerNode );
+        subscriptElement.doConnectedCallback( ownerNode );
         embeds.add( scriptElement );
 
         let mo = mutations.onRemoved( ownerNode, () => {
-            $subscriptElement.disconnectedCallback.call( ownerNode );
+            subscriptElement.doDisconnectedCallback( ownerNode );
             embeds.delete( scriptElement );
             mo.disconnect();
         }, { ignoreTransients: true });

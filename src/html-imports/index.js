@@ -18,7 +18,7 @@ import { config, scopeQuery,
 
 /**
  * @init
- * 
+ *  
  * @param Object config
  */
 export default function init(_config = null, onDomReady = false) {
@@ -54,6 +54,7 @@ export default function init(_config = null, onDomReady = false) {
     // Capture slot elements
     // ----------------------
 
+    let prev;
     const Import = class/* extends window.HTMLElement*/ {
 
         /*
@@ -67,10 +68,11 @@ export default function init(_config = null, onDomReady = false) {
         */
 
         static create(el) {
-            return new Import(el);
+            return _internals(this.el, 'oohtml').get('instance') || new Import(el);
         }
         constructor(importEl) {
             this.el = importEl;
+            _internals(this.el, 'oohtml').set('instance', this);
             const [ importID, modifiers ] = parseScopeReferenceExpr(importEl.getAttribute(_meta.get('attr.importid')) || 'default');
             _internals(this.el, 'oohtml').set('importID', importID);
             _internals(this.el, 'oohtml').set('importModifiers', modifiers);
@@ -413,33 +415,35 @@ export default function init(_config = null, onDomReady = false) {
     const hydrateSlots = () => {
         _arrFrom(document.querySelectorAll(exportgroupSelector)).forEach(_export => {
             // Scan
-            if (!_internals(_export.parentNode, 'oohtml').get('importsCan')) {
-                var slottedElements = [];
-                _export.parentNode.childNodes.forEach(node => {
-                    var nodeValue;
-                    if (node.nodeType === 1/** ELEMENT_NODE */ && node.matches(exportgroupSelector)) {
-                        slottedElements.push(node);
-                    } else if (node.nodeType === 8/** COMMENT_NODE */ && (nodeValue = node.nodeValue.trim())
-                    && nodeValue.startsWith('<' + _meta.get('element.import'))
-                    && nodeValue.endsWith('</' + _meta.get('element.import') + '>')) {
-                        var importEl, reviver = document.createElement('div');
-                        reviver.innerHTML = nodeValue;
-                        if ((importEl = reviver.firstChild).matches(_meta.get('element.import'))) {
-                            // Belongs to a composition block?
-                            var compositionBlock = !importEl.hasAttribute(_meta.get('attr.moduleref'))
-                                ? node.parentNode.closest(modulerefSelector) : (
-                                    importEl.getAttribute(_meta.get('attr.moduleref')).trim().startsWith('~') ? node.parentNode.closest(exportgroupSelector) : null
-                                )
-                            var importElInstance = Import.create(importEl);
-                            importElInstance.hydrate(node, slottedElements, compositionBlock);
-                            // Empty basket
-                            slottedElements = [];
-                        }
+            if (_internals(_export.parentNode, 'oohtml').get('importsCan')) return;
+            // hydrateSlots() might be running AFTER certain <slots> have resolved
+            // and _export might be a just-resolved node
+            if (_export.importReference) return;
+            var slottedElements = [];
+            _export.parentNode.childNodes.forEach(node => {
+                var nodeValue;
+                if (node.nodeType === 1/** ELEMENT_NODE */ && node.matches(exportgroupSelector)) {
+                    slottedElements.push(node);
+                } else if (node.nodeType === 8/** COMMENT_NODE */ && (nodeValue = node.nodeValue.trim())
+                && nodeValue.startsWith('<' + _meta.get('element.import'))
+                && nodeValue.endsWith('</' + _meta.get('element.import') + '>')) {
+                    var importEl, reviver = document.createElement('div');
+                    reviver.innerHTML = nodeValue;
+                    if ((importEl = reviver.firstChild).matches(_meta.get('element.import'))) {
+                        // Belongs to a composition block?
+                        var compositionBlock = !importEl.hasAttribute(_meta.get('attr.moduleref'))
+                            ? node.parentNode.closest(modulerefSelector) : (
+                                importEl.getAttribute(_meta.get('attr.moduleref')).trim().startsWith('~') ? node.parentNode.closest(exportgroupSelector) : null
+                            )
+                        var importElInstance = Import.create(importEl);
+                        importElInstance.hydrate(node, slottedElements, compositionBlock);
+                        // Empty basket
+                        slottedElements = [];
                     }
-                });
-                // Scanning is once for every parent
-                _internals(_export.parentNode, 'oohtml').set('importsCan', true);
-            }
+                }
+            });
+            // Scanning is once for every parent
+            _internals(_export.parentNode, 'oohtml').set('importsCan', true);
         });
     };
 

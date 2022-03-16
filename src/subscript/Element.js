@@ -17,21 +17,21 @@ export const Element  = BaseElement => class extends BaseElement {
      * @subscript Element
      */
 
-    static get subscriptMethods() {
-        return [ 'render' ];
-    }
-
     static get subscriptParams() {
         return { globalsAutoObserve: [ 'document' ] };
     }
 
+    static get subscriptMethods() {
+        return [ 'render' ];
+    }
+
     static implement( element, subscriptFunction ) {
-        let subscriptConsole = _internals( element, 'oohtml', 'subscript', 'console' );
+        let subscripts = _internals( element, 'oohtml', 'subscripts' );
         let id = subscriptFunction.name;
         if ( !id ) {
-            id = [ ...subscriptConsole.keys() ].filter( k => _isNumeric( k ) ).length;
+            id = [ ...subscripts.keys() ].filter( k => _isNumeric( k ) ).length;
         }
-        subscriptConsole.set( id, subscriptFunction );
+        subscripts.set( id, subscriptFunction );
         return subscriptFunction;
     }
     
@@ -48,6 +48,40 @@ export const Element  = BaseElement => class extends BaseElement {
     }
 
     /**
+     * @disconnectedCallback()
+     */
+    static doConnectedCallback( instance ) {
+        if ( ( typeof WebQit === 'undefined' ) || !WebQit.Observer ) return;
+        const subscripts = _internals( instance, 'oohtml', 'subscripts' );
+        const signals = ( mutations, evt, namespace = [] ) => {
+            subscripts.forEach( api => api.thread( ...mutations.map( mu => namespace.concat( mu.path ) ) ) );
+        };
+        ( this.subscriptParams.globalsAutoObserve || [] ).forEach( identifier => {
+            WebQit.Observer.observe( globalThis[ identifier ], mutations => signals( mutations, null, [ identifier ] ), { 
+                subtree: true, diff: true, tags: [ instance, 'subscript-element', identifier ], unique: true
+            } );
+        } );
+        WebQit.Observer.observe( instance, mutations => signals( mutations, null, [ 'this' ] ), { 
+            subtree: true, diff: true, tags: [ instance, 'subscript-element', 'this' ], unique: true
+        } );
+    }
+
+    /**
+     * @disconnectedCallback()
+     */
+    static doDisconnectedCallback( instance ) {
+        if ( ( typeof WebQit === 'undefined' ) || !WebQit.Observer ) return;
+        ( this.subscriptParams.globalsAutoObserve || [] ).forEach( identifier => {
+            WebQit.Observer.unobserve( globalThis[ identifier ], null, null, { 
+                subtree: true, tags: [ instance, 'subscript-element', identifier ]
+            } );
+        } );
+        WebQit.Observer.unobserve( instance, null, null, { 
+            subtree: true, tags: [ instance, 'subscript-element', 'this' ]
+        } );
+    }
+
+    /**
      * @constructor()
      */
     constructor() {
@@ -58,27 +92,13 @@ export const Element  = BaseElement => class extends BaseElement {
             let proxy = subscriptConstructor.implementMethod( this, this[ methodName ] );
             this[ methodName ] = proxy;
         } );
-        if ( ( typeof WebQit === 'undefined' ) || !WebQit.Observer ) return;
-        ( subscriptConstructor.subscriptParams.globalsAutoObserve || [] ).forEach( identifier => {
-            WebQit.Observer.link( globalThis, identifier, globalThis[ identifier ] );
-        } );
     }
 
     /**
      * @connectedCallback()
      */
     connectedCallback() {
-        if ( ( typeof WebQit === 'undefined' ) || !WebQit.Observer ) return;
-        const signals = ( mutations, evt, namespace = [] ) => {
-            let subscriptConsole = _internals( this, 'oohtml', 'subscript', 'console' );
-            subscriptConsole.forEach( api => api.thread( ...mutations.map( mu => namespace.concat( mu.path ) ) ) );
-        };
-        WebQit.Observer.observe( globalThis, signals, {
-            subtree: true, tags: [ this, 'subscript-element', 'globals' ], unique: true
-        } );
-        WebQit.Observer.observe( this, mutations => signals( mutations, null, [ 'this' ] ), { 
-            subtree: true, tags: [ this, 'subscript-element', 'this' ], unique: true
-        } );
+        this.constructor.doConnectedCallback( this );
         if ( super.connectedCallback ) {
             super.connectedCallback();
         }
@@ -88,22 +108,14 @@ export const Element  = BaseElement => class extends BaseElement {
      * @disconnectedCallback()
      */
     disconnectedCallback() {
-         let subscriptConsole = _internals( this, 'oohtml', 'subscript', 'console' );
-         subscriptConsole.forEach( api => api.dispose() );
-        if ( ( typeof WebQit === 'undefined' ) || !WebQit.Observer ) return;
-        WebQit.Observer.unobserve( globalThis, null, null, { 
-            subtree: true, tags: [ this, 'subscript-element', 'globals' ]
-        } );
-        WebQit.Observer.unobserve( this, null, null, { 
-            subtree: true, tags: [ this, 'subscript-element', 'this' ]
-        } );
+        this.constructor.doDisconnectedCallback( this );
         if ( super.disconnectedCallback ) {
             super.disconnectedCallback();
         }
     }
 
-    get subscriptConsole() {
-        return _internals( this, 'oohtml', 'subscript', 'console' );
+    get subscripts() {
+        return _internals( this, 'oohtml', 'subscripts' );
     }
 
     /**
