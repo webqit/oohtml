@@ -2,8 +2,8 @@
 /**
  * @imports
  */
+import { SubscriptFunction, SubscriptClass } from '@webqit/subscript';
 import { _internals, _isNumeric, _isFunction } from '@webqit/util/js/index.js';
-import Subscript from '@webqit/subscript';
 
 /**
  * ---------------------------
@@ -11,7 +11,7 @@ import Subscript from '@webqit/subscript';
  * ---------------------------
  */
 
-export const Element  = BaseElement => class extends BaseElement {
+export const Element  = BaseElement => class extends SubscriptClass( BaseElement ) {
 
     /**
      * @subscript Element
@@ -22,10 +22,10 @@ export const Element  = BaseElement => class extends BaseElement {
     }
 
     static get subscriptMethods() {
-        return [ 'render' ];
+        return [];
     }
 
-    static implement( element, subscriptFunction ) {
+    static expose( element, subscriptFunction ) {
         let subscripts = _internals( element, 'oohtml', 'subscripts' );
         let id = subscriptFunction.name;
         if ( !id ) {
@@ -35,16 +35,15 @@ export const Element  = BaseElement => class extends BaseElement {
         return subscriptFunction;
     }
     
-    static implementScript( element, script ) {
-        let source = ( script.textContent || '' ).trim();
-        return this.implement( element, Subscript.call( element, source ) );
+
+    static implementMethod( method, element ) {
+        let subscriptFunction = super.implementMethod( method, element );
+        return this.expose( thisBinding, subscriptFunction );
     }
-    
-    static implementMethod( element, method ) {
-        if ( method.name === 'constructor' ) {
-            throw new Error(`Constructors cannot be subscript methods.`);
-        }
-       return this.implement( element, Subscript.clone( method, element ) );
+
+    static implementScript( script, element ) {
+        let source = ( script.textContent || '' ).trim();
+        return this.expose( element, SubscriptFunction.call( element, source ) );
     }
 
     /**
@@ -82,19 +81,6 @@ export const Element  = BaseElement => class extends BaseElement {
     }
 
     /**
-     * @constructor()
-     */
-    constructor() {
-        super();
-        const subscriptConstructor = this.constructor;
-        subscriptConstructor.subscriptMethods.forEach( methodName => {
-            if ( !this[ methodName ] ) return;
-            let proxy = subscriptConstructor.implementMethod( this, this[ methodName ] );
-            this[ methodName ] = proxy;
-        } );
-    }
-
-    /**
      * @connectedCallback()
      */
     connectedCallback() {
@@ -117,11 +103,5 @@ export const Element  = BaseElement => class extends BaseElement {
     get subscripts() {
         return _internals( this, 'oohtml', 'subscripts' );
     }
-
-    /**
-     * @render()
-     */
-
-    render() {}
 
 }

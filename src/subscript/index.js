@@ -53,6 +53,9 @@ export default function init( _config = null, onDomReady = false ) {
 
     } );
 
-    WebQit.SubscriptElement = Element;
+    if (!WebQit.OOHTML) {
+        WebQit.OOHTML = {};
+    }
+    WebQit.OOHTML.SubscriptElement = Element;
 
 }
