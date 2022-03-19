@@ -38,7 +38,7 @@ export const Element  = BaseElement => class extends SubscriptClass( BaseElement
 
     static implementMethod( method, element ) {
         let subscriptFunction = super.implementMethod( method, element );
-        return this.expose( thisBinding, subscriptFunction );
+        return this.expose( element, subscriptFunction );
     }
 
     static implementScript( script, element ) {
