@@ -41,7 +41,7 @@ export default function init( _config = null, onDomReady = false ) {
         }
         if ( embeds.has( scriptElement ) ) return;
 
-        subscriptElement.implementScript( ownerNode, scriptElement )();
+        subscriptElement.implementScript( scriptElement, ownerNode )();
         subscriptElement.doConnectedCallback( ownerNode );
         embeds.add( scriptElement );
 
