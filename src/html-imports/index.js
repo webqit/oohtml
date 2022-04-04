@@ -112,7 +112,7 @@ export default function init(_config = null, onDomReady = false) {
                 this._connectToCompositionBlock();
             }
             WebQit.DOM.ready.call(WebQit, () => {
-                this.resolve();
+                this.resolve('connected');
             });
         }
     
@@ -166,7 +166,7 @@ export default function init(_config = null, onDomReady = false) {
         /**
          * Resolves the slot
          */
-        resolve() {
+        resolve(reason = null) {
             if (_any(importInertContexts, inertContext => this.el.closest(inertContext))) {
                 return;
             }
@@ -357,23 +357,22 @@ export default function init(_config = null, onDomReady = false) {
     // Progressive resolution
     // ----------------------
     
-    const resolveSlots = (el, exportName) => {
-        const shouldResolve = (importEl, importName) => {
+    const resolveSlots = (el, exportName, reason = null) => {
+        const shouldResolve = (importElInstance, importName) => {
             return !exportName || importName === exportName || (
-                exportName === true && ((this.importModifiers && ('search' in this.importModifiers)) || importEl.getAttribute(_meta.get('attr.exportsearch')))
+                exportName === true && ((importElInstance.importModifiers && ('search' in importElInstance.importModifiers)) || importElInstance.el.getAttribute(_meta.get('attr.exportsearch')))
             );
         };
         if (el.matches(_meta.get('element.import'))) {
             var importElInstance = Import.create(el);
-            importElInstance.connectedCallback();
-            if (shouldResolve(el, importElInstance.importID)) {
-                importElInstance.resolve();
+            if (shouldResolve(importElInstance, importElInstance.importID)) {
+                importElInstance.resolve(reason);
             }
         } else {
             _internals(el, 'oohtml', 'imports').forEach((importEl, name) => {
-                if (shouldResolve(importEl, name)) {
-                    var importElInstance = Import.create(importEl);
-                    importElInstance.resolve();
+                var importElInstance = Import.create(importEl);
+                if (shouldResolve(importElInstance, name)) {
+                    importElInstance.resolve(`Resolution scope: ${reason}`);
                 }
             });
         }
@@ -388,7 +387,7 @@ export default function init(_config = null, onDomReady = false) {
         // We resolve them again when reference to template changes
         mutations.onAttrChange(el, mr => {
             if (mr[0].target.getAttribute(mr[0].attributeName) !== mr[0].oldValue) {
-                resolveSlots(el);
+                resolveSlots(el, null, `Attr-Change: ${mr[0].attributeName}`);
             }
         }, [_meta.get('attr.moduleref'), _meta.get('attr.importid')]);
     });
@@ -400,9 +399,9 @@ export default function init(_config = null, onDomReady = false) {
         }
         _arrFrom(document.querySelectorAll('[' + window.CSS.escape(_meta.get('attr.moduleref')) + ']')).forEach(el => {
             if (queryMatchPath(el.getAttribute(_meta.get('attr.moduleref')), e.detail.path)) {
-                resolveSlots(el, true);
+                resolveSlots(el, true/* resolve imports with search() */, `'templatemutation' event: ${e.detail.path}, search()`);
                 e.detail.addedExports.concat(e.detail.removedExports).forEach(exportGroup => {
-                    resolveSlots(el, exportGroup.name);
+                    resolveSlots(el, exportGroup.name, `'templatemutation' event: ${e.detail.path}, ${exportGroup.name}`);
                 });
             }
         });
