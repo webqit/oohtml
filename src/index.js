@@ -21,13 +21,13 @@ export default function init(configs = {}) {
     }
     WebQit.OOHTML = {};
     // --------------
+    WebQit.Observer = Observer;
+    // --------------
     HTMLModules.call(this, (configs.HTMLModules || {}));
     HTMLImports.call(this, (configs.HTMLImports || {}));
     NamespacedHTML.call(this, (configs.NamespacedHTML || {}));
     StateAPI.call(this, (configs.StateAPI || {}));
     Subscript.call(this, (configs.Subscript || {}));
-    // --------------
-    WebQit.Observer = Observer;
 
 }
 
