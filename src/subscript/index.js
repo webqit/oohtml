@@ -12,12 +12,12 @@ import { config } from '../util.js';
  * 
  * @param Object config
  */
-export default function init( _config = null, onDomReady = false ) {
+export default function init( _config = {} ) {
 
     const WebQit = domInit.call( this );
-    if ( onDomReady ) {
+    if ( _config.onDomReady ) {
         WebQit.DOM.ready( () => {
-            init.call( this, _config, false );
+            init.call( this, { ..._config, onDomReady: false } );
         } );
         return;
     }
@@ -27,27 +27,36 @@ export default function init( _config = null, onDomReady = false ) {
         selectors: { script: 'script[type="subscript"]', },
         api: { bind: 'bind', unbind: 'unbind', },
         script: {},
-    }, _config );
+    }, _config.params );
 
-    const subscriptElement = Element( class {} );
+    const ContextifiableElement = BaseElement => class extends Element( BaseElement ) {
+        static get compilerParams() {
+            return _config.compilerParams || {};
+        }
+        static get runtimeParams() {
+            return _config.runtimeParams || {};
+        }
+    };
+    
+    const SubscriptElement = ContextifiableElement();
     mutations.onPresent( _meta.get('selectors.script'), scriptElement => {
 
         let ownerNode = scriptElement.parentNode;
         if ( !ownerNode ) return;
-        let embeds = _internals( ownerNode, 'oohtml', 'subscript' ).get( 'embeds' );
-        if ( !embeds ) {
-            embeds = new WeakSet;
-            _internals( ownerNode, 'oohtml', 'subscript' ).set( 'embeds', embeds );
+        let scriptTags = _internals( ownerNode, 'oohtml', 'subscript' ).get( 'script-tags' );
+        if ( !scriptTags ) {
+            scriptTags = new WeakSet;
+            _internals( ownerNode, 'oohtml', 'subscript' ).set( 'script-tags', scriptTags );
         }
-        if ( embeds.has( scriptElement ) ) return;
+        if ( scriptTags.has( scriptElement ) ) return;
 
-        subscriptElement.implementScript( scriptElement, ownerNode )();
-        subscriptElement.doConnectedCallback( ownerNode );
-        embeds.add( scriptElement );
+        SubscriptElement.implementScript( scriptElement, ownerNode )();
+        SubscriptElement.doConnectedCallback( ownerNode );
+        scriptTags.add( scriptElement );
 
         let mo = mutations.onRemoved( ownerNode, () => {
-            subscriptElement.doDisconnectedCallback( ownerNode );
-            embeds.delete( scriptElement );
+            SubscriptElement.doDisconnectedCallback( ownerNode );
+            scriptTags.delete( scriptElement );
             mo.disconnect();
         }, { ignoreTransients: true });
 
@@ -56,6 +65,6 @@ export default function init( _config = null, onDomReady = false ) {
     if (!WebQit.OOHTML) {
         WebQit.OOHTML = {};
     }
-    WebQit.OOHTML.SubscriptElement = Element;
+    WebQit.OOHTML.SubscriptElement = ContextifiableElement;
 
 }

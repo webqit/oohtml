@@ -40,7 +40,7 @@
   "dependencies": {
     "@webqit/browser-pie": "^0.0.17",
     "@webqit/observer": "^1.7.5",
-    "@webqit/subscript": "^2.0.26",
+    "@webqit/subscript": "^2.1.2",
     "@webqit/util": "^0.8.7",
     "acorn": "^8.7.0"
   },

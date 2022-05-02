@@ -21,13 +21,13 @@ import { config, scopeQuery,
  *  
  * @param Object config
  */
-export default function init(_config = null, onDomReady = false) {
+export default function init( _config = {} ) {
 
-    const WebQit = domInit.call(this);
-    if (onDomReady) {
-        WebQit.DOM.ready(() => {
-            init.call(this, _config, false);
-        });
+    const WebQit = domInit.call( this );
+    if ( _config.onDomReady ) {
+        WebQit.DOM.ready( () => {
+            init.call( this, { ..._config, onDomReady: false } );
+        } );
         return;
     }
 
@@ -44,7 +44,7 @@ export default function init(_config = null, onDomReady = false) {
             importid: 'name',
             exportsearch: 'exportsearch',
         },
-    }, _config);
+    }, _config.params );
 
     _defaultNoInherits.push(_meta.get('attr.importid'), _meta.get('attr.moduleref'));
     const modulerefSelector = '[' + window.CSS.escape(_meta.get('attr.moduleref')) + ']';

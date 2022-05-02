@@ -13,7 +13,7 @@ import Subscript from './subscript/index.js';
 /**
  * @init
  */
-export default function init(config = null, onDomReady = false) {
+export default function init(configs = {}) {
 
     const WebQit = domInit.call(this);
     if (WebQit.OOHTML) {
@@ -21,11 +21,11 @@ export default function init(config = null, onDomReady = false) {
     }
     WebQit.OOHTML = {};
     // --------------
-    HTMLModules.call(this, config, onDomReady);
-    HTMLImports.call(this, config, onDomReady);
-    NamespacedHTML.call(this, config, onDomReady);
-    StateAPI.call(this, config, onDomReady);
-    Subscript.call(this, config, onDomReady);
+    HTMLModules.call(this, (configs.HTMLModules || {}));
+    HTMLImports.call(this, (configs.HTMLImports || {}));
+    NamespacedHTML.call(this, (configs.NamespacedHTML || {}));
+    StateAPI.call(this, (configs.StateAPI || {}));
+    Subscript.call(this, (configs.Subscript || {}));
     // --------------
     WebQit.Observer = Observer;
 

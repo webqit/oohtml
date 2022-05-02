@@ -19,13 +19,13 @@ import { config } from '../util.js';
  * 
  * @param Object config
  */
-export default function init(_config = null, onDomReady = false) {
+export default function init( _config = {} ) {
 
-    const WebQit = domInit.call(this);
-    if (onDomReady) {
-        WebQit.DOM.ready(() => {
-            init.call(this, _config, false);
-        });
+    const WebQit = domInit.call( this );
+    if ( _config.onDomReady ) {
+        WebQit.DOM.ready( () => {
+            init.call( this, { ..._config, onDomReady: false } );
+        } );
         return;
     }
 
@@ -34,7 +34,7 @@ export default function init(_config = null, onDomReady = false) {
 
     const _meta = config.call(this, {
         api: {state: 'state', setState: 'setState', clearState: 'clearState',},
-    }, _config);
+    }, _config.params );
 
     const getOrCreateState = function(subject, newStateObject = null) {
         if (!_internals(subject, 'oohtml').has('state') || newStateObject) {

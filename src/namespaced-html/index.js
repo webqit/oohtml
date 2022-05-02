@@ -19,13 +19,13 @@ import { config } from '../util.js';
  * 
  * @param Object config
  */
-export default function init(_config = null, onDomReady = false) {
+export default function init( _config = {} ) {
 
-    const WebQit = domInit.call(this);
-    if (onDomReady) {
-        WebQit.DOM.ready(() => {
-            init.call(this, _config, false);
-        });
+    const WebQit = domInit.call( this );
+    if ( _config.onDomReady ) {
+        WebQit.DOM.ready( () => {
+            init.call( this, { ..._config, onDomReady: false } );
+        } );
         return;
     }
 
@@ -43,7 +43,7 @@ export default function init(_config = null, onDomReady = false) {
             namespace: 'namespace',
         },
 		eagermode: true,
-    }, _config);
+    }, _config.params );
 	
     const getNamespaceObject = function(subject) {
         if (!_internals(subject, 'oohtml').has('namespace')) {

@@ -21,17 +21,13 @@ export const Element  = BaseElement => class extends SubscriptClass( BaseElement
         return { globalsAutoObserve: [ 'document' ] };
     }
 
-    static get subscriptMethods() {
-        return [];
-    }
-
     static expose( element, subscriptFunction ) {
-        let subscripts = _internals( element, 'oohtml', 'subscripts' );
+        let subscriptInstances = _internals( element, 'oohtml', 'subscript', 'instances' );
         let id = subscriptFunction.name;
         if ( !id ) {
-            id = [ ...subscripts.keys() ].filter( k => _isNumeric( k ) ).length;
+            id = [ ...subscriptInstances.keys() ].filter( k => _isNumeric( k ) ).length;
         }
-        subscripts.set( id, subscriptFunction );
+        subscriptInstances.set( id, subscriptFunction );
         return subscriptFunction;
     }
     
@@ -43,7 +39,7 @@ export const Element  = BaseElement => class extends SubscriptClass( BaseElement
 
     static implementScript( script, element ) {
         let source = ( script.textContent || '' ).trim();
-        return this.expose( element, SubscriptFunction.call( element, source ) );
+        return this.expose( element, SubscriptFunction.call( element, source, { compilerParams: this.compilerParams, runtimeParams: this.runtimeParams } ) );
     }
 
     /**
@@ -51,9 +47,9 @@ export const Element  = BaseElement => class extends SubscriptClass( BaseElement
      */
     static doConnectedCallback( instance ) {
         if ( ( typeof WebQit === 'undefined' ) || !WebQit.Observer ) return;
-        const subscripts = _internals( instance, 'oohtml', 'subscripts' );
+        const subscriptInstances = _internals( instance, 'oohtml', 'subscript', 'instances' );
         const signals = ( mutations, evt, namespace = [] ) => {
-            subscripts.forEach( api => api.thread( ...mutations.map( mu => namespace.concat( mu.path ) ) ) );
+            subscriptInstances.forEach( api => api.thread( ...mutations.map( mu => namespace.concat( mu.path ) ) ) );
         };
         ( this.subscriptParams.globalsAutoObserve || [] ).forEach( identifier => {
             WebQit.Observer.observe( globalThis[ identifier ], mutations => signals( mutations, null, [ identifier ] ), { 
@@ -100,8 +96,8 @@ export const Element  = BaseElement => class extends SubscriptClass( BaseElement
         }
     }
 
-    get subscripts() {
-        return _internals( this, 'oohtml', 'subscripts' );
+    get subscript() {
+        return _internals( this, 'oohtml', 'subscript', 'instances' );
     }
 
 }

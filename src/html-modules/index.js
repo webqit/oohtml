@@ -19,13 +19,13 @@ import { config, scopeQuery } from '../util.js';
  * 
  * @param Object config
  */
-export default function init(_config = null, onDomReady = false) {
+export default function init( _config = {} ) {
 
-    const WebQit = domInit.call(this);
-    if (onDomReady) {
-        WebQit.DOM.ready(() => {
-            init.call(this, _config, false);
-        });
+    const WebQit = domInit.call( this );
+    if ( _config.onDomReady ) {
+        WebQit.DOM.ready( () => {
+            init.call( this, { ..._config, onDomReady: false } );
+        } );
         return;
     }
 
@@ -51,7 +51,7 @@ export default function init(_config = null, onDomReady = false) {
             exports: 'exports',
             moduleref: 'template',
         },
-    }, _config);
+    }, _config.params );
 
     const templateSelector = 'template' + (_meta.get('element.template') ? '[is="' + _meta.get('element.template') + '"]' : '') + '[' + window.CSS.escape(_meta.get('attr.moduleid')) + ']';
     var TemplateElementClass = window.HTMLTemplateElement;

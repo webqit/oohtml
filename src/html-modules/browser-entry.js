@@ -7,4 +7,4 @@ import init from './index.js';
 /**
  * @init
  */
-init.call(window);
+init.call( window );
