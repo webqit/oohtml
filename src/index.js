@@ -19,8 +19,8 @@ export default function init(configs = {}) {
     if (WebQit.OOHTML) {
         return;
     }
-    WebQit.OOHTML = {};
     // --------------
+    WebQit.OOHTML = {};
     WebQit.Observer = Observer;
     // --------------
     HTMLModules.call(this, (configs.HTMLModules || {}));
