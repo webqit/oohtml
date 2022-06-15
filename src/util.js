@@ -114,9 +114,6 @@ const evalModuleExpr = (contexts, segment, collectionCallback) => {
         var [ _reference, modifiers ] = parseScopeReferenceExpr(_reference);
          // ------------
         return contexts.reduce((list, context) => {
-            if (_internals(context, 'oohtml').has('queryCallback')) {
-                _internals(context, 'oohtml').get('queryCallback')();
-            }
             var collection = collectionCallback(context);
             if (_reference === '*') {
                 _reference = '(' + collection.keys().join('+') + ')';
@@ -154,20 +151,25 @@ const execScopeQuery = function(contexts, path, collectionCallback, advancementC
         return [];
     }
 
-    var segment = path.shift(), isStopSegmentIfCount;
+    let segment = path.shift(), isStopSegmentIfCount;
     if (segment.endsWith('.')) {
         isStopSegmentIfCount = true;
         segment = segment.substr(0, segment.length - 1).trim();
     }
     // -----------
-    var modules = evalModuleExpr(contexts, segment, collectionCallback);
+    let modules = evalModuleExpr(contexts, segment, collectionCallback);
+    modules.forEach(context => {
+        if (_internals(context, 'oohtml').has('queryCallback')) {
+            _internals(context, 'oohtml').get('queryCallback')();
+        }
+    });
     // -----------
     if (modules.length && isStopSegmentIfCount) {
         return modules;
     }
     // -----------
     if (path.length) {
-        var submodules = execScopeQuery(modules, path.slice(), collectionCallback, advancementCallback, level + 1);
+        let submodules = execScopeQuery(modules, path.slice(), collectionCallback, advancementCallback, level + 1);
         if (submodules === -1) {
             return advancementCallback(modules, level, true);
         }
