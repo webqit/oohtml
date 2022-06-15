@@ -109,7 +109,7 @@ export default function init( _config = {} ) {
         });
     };
 
-    const discoverContents = (contents, node, path, mutationType = null, fireEvents = true) => {
+    const discoverContents = (node, contentNode, path, mutationType = null, fireEvents = true) => {
 
         // -----------------------
         // Templates and exports
@@ -123,8 +123,8 @@ export default function init( _config = {} ) {
                 var _path = (path ? path + '/' : '') + templateName;
                 if (mutationType === 'removed') {
                     _internals(node, 'oohtml', 'templates').delete(templateName)
-                    if (_internals(node, 'oohtml').get('parentTemplate') === node) {
-                        _internals(node, 'oohtml').delete('parentTemplate');
+                    if (_internals(el, 'oohtml').get('parentTemplate') === node) {
+                        _internals(el, 'oohtml').delete('parentTemplate');
                     }
                     if (eventsObject) {
                         eventsObject.removedTemplates[templateName] = el;
@@ -137,7 +137,7 @@ export default function init( _config = {} ) {
                     }
                 }
                 // Recurse
-                discoverContents(el.content, el, _path, mutationType, fireEvents);
+                discoverContents(el, el.content, _path, mutationType, fireEvents);
             } else {
                 const manageExportItem = exportItem => {
                     var exportId = exportItem.getAttribute(_meta.get('attr.exportgroup')) || 'default';
@@ -183,7 +183,7 @@ export default function init( _config = {} ) {
         // Run...
         node.modulemutationsType = mutationType;
         const eventsObject = { addedTemplates: Object.create(null), removedTemplates: Object.create(null), addedExports: Object.create(null), removedExports: Object.create(null), }; 
-        _arrFrom(contents.children).forEach(el => manageComponent(el, eventsObject, mutationType, fireEvents));
+        _arrFrom(contentNode.children).forEach(el => manageComponent(el, eventsObject, mutationType, fireEvents));
         if (fireEvents) {
             fireDocumentTemplateEvent('templatemutation', eventsObject, path);
         }
@@ -192,14 +192,28 @@ export default function init( _config = {} ) {
         // Handle content loading
         if (mutationType === 'added' && !_internals(node, 'oohtml').get('onLiveMode')) {
             _internals(node, 'oohtml').set('onLiveMode', true);
-            if (node.getAttribute('src') && !node.content.children.length) {
-                loadingTemplates.push(loadTemplateContent(node, path));
+            const honourSrc = () => {
+                if (node.content.children.length) return;
+                _internals(node, 'oohtml').delete('onAccess');
+                return loadTemplateContent(node, path);
+            };
+            if (node.getAttribute('src')) {
+                if (node.getAttribute('loading') === 'lazy') {
+                    _internals(node, 'oohtml').set('onAccess', honourSrc);
+                } else {
+                    loadingTemplates.push(honourSrc());
+                }
             }
             mutations.onAttrChange(node, mr => {
-                if (mr[0].target.getAttribute(mr[0].attributeName) !== mr[0].oldValue) {
-                    loadTemplateContent(node, path);
+                if (mr[0].target.getAttribute(mr[0].attributeName) === mr[0].oldValue) return;
+                if (node.getAttribute('loading') === 'lazy') {
+                    _internals(node, 'oohtml').set('onAccess', honourSrc);
+                } else if (mr[0].attributeName === 'loading') {
+                    _internals(node, 'oohtml').delete('onAccess');
+                } else {
+                    honourSrc();
                 }
-            }, ['src']);
+            }, ['src', 'loading']);
                 
             // -----------------------
             // Watch mutations
@@ -211,7 +225,7 @@ export default function init( _config = {} ) {
                 });
                 fireDocumentTemplateEvent('templatemutation', eventsObject, path);
             });
-            mo.observe(contents, {childList: true});
+            mo.observe(contentNode, {childList: true});
         }
 
     };
@@ -239,6 +253,9 @@ export default function init( _config = {} ) {
     }
     Object.defineProperty(TemplateElementClass.prototype, _meta.get('api.templates'), {
         get: function() {
+            if (_internals(this, 'oohtml').has('onAccess')) {
+                _internals(this, 'oohtml').get('onAccess')();
+            }
             return mapToObject(_internals(this, 'oohtml', 'templates'));
         }
     });
@@ -247,6 +264,9 @@ export default function init( _config = {} ) {
     }
     Object.defineProperty(TemplateElementClass.prototype, _meta.get('api.exports'), {
         get: function() {
+            if (_internals(this, 'oohtml').has('onAccess')) {
+                _internals(this, 'oohtml').get('onAccess')();
+            }
             return mapToObject(_internals(this, 'oohtml', 'exports'));
         }
     });
@@ -293,25 +313,24 @@ export default function init( _config = {} ) {
         var name = el.getAttribute(_meta.get('attr.moduleid'));
         if (!el.closest(_meta.get('element.import')) && validateModuleName(name)) {
             _internals(document, 'oohtml', 'templates').set(name, el);
-            discoverContents(el.content, el, name, 'added', false);
+            discoverContents(el, el.content, name, 'added', false);
         }
     });
     mutations.onPresenceChange(templateSelector, async (els, presence) => {
         const eventsObject = { addedTemplates: Object.create(null), removedTemplates: Object.create(null), addedExports: Object.create(null), removedExports: Object.create(null), }; 
         els.forEach(el => {
             var name = el.getAttribute(_meta.get('attr.moduleid'));
-            if (!el.closest(_meta.get('element.import')) && validateModuleName(name)) {
-                if (presence) {
-                    _internals(document, 'oohtml', 'templates').set(name, el);
-                    discoverContents(el.content, el, name, 'added');
-                    eventsObject.addedTemplates[name] = el;
-                } else {
-                    if (_internals(document, 'oohtml', 'templates').get(name) === el) {
-                        _internals(document, 'oohtml', 'templates').delete(name);
-                    }
-                    discoverContents(el.content, el, name, 'removed');
-                    eventsObject.removedTemplates[name] = el;
+            if (el.closest(_meta.get('element.import')) || !validateModuleName(name)) return;
+            if (presence) {
+                _internals(document, 'oohtml', 'templates').set(name, el);
+                discoverContents(el, el.content, name, 'added');
+                eventsObject.addedTemplates[name] = el;
+            } else {
+                if (_internals(document, 'oohtml', 'templates').get(name) === el) {
+                    _internals(document, 'oohtml', 'templates').delete(name);
                 }
+                discoverContents(el, el.content, name, 'removed');
+                eventsObject.removedTemplates[name] = el;
             }
         });
         fireDocumentTemplateEvent('templatemutation', eventsObject, '');
