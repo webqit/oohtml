@@ -372,7 +372,7 @@ export default function init( _config = {} ) {
     Object.defineProperty(document, 'templatesReadyState', { get: () => templatesReadyState });
     WebQit.DOM.ready.call(WebQit, () => {
         loadingTemplates.forEach(promise => {
-            promise.catch(error => {
+            promise && promise.catch(error => {
                 console.warn(error);
             });
         });
