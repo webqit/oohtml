@@ -114,9 +114,12 @@ const evalModuleExpr = (contexts, segment, collectionCallback) => {
         var [ _reference, modifiers ] = parseScopeReferenceExpr(_reference);
          // ------------
         return contexts.reduce((list, context) => {
+            if (_internals(context, 'oohtml').has('queryCallback')) {
+                _internals(context, 'oohtml').get('queryCallback')();
+            }
             var collection = collectionCallback(context);
             if (_reference === '*') {
-                    _reference = '(' + collection.keys().join('+') + ')';
+                _reference = '(' + collection.keys().join('+') + ')';
             }
             var itemArray = _wrapped(_reference, '(', ')') ? evalModuleExpr([context], _unwrap(_reference, '(', ')'), collectionCallback) : _arrFrom(collection.get(_reference), false);
             // ------------

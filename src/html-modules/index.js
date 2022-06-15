@@ -194,12 +194,12 @@ export default function init( _config = {} ) {
             _internals(node, 'oohtml').set('onLiveMode', true);
             const honourSrc = () => {
                 if (node.content.children.length) return;
-                _internals(node, 'oohtml').delete('onAccess');
+                _internals(node, 'oohtml').delete('queryCallback');
                 return loadTemplateContent(node, path);
             };
             if (node.getAttribute('src')) {
                 if (node.getAttribute('loading') === 'lazy') {
-                    _internals(node, 'oohtml').set('onAccess', honourSrc);
+                    _internals(node, 'oohtml').set('queryCallback', honourSrc);
                 } else {
                     loadingTemplates.push(honourSrc());
                 }
@@ -207,9 +207,9 @@ export default function init( _config = {} ) {
             mutations.onAttrChange(node, mr => {
                 if (mr[0].target.getAttribute(mr[0].attributeName) === mr[0].oldValue) return;
                 if (node.getAttribute('loading') === 'lazy') {
-                    _internals(node, 'oohtml').set('onAccess', honourSrc);
+                    _internals(node, 'oohtml').set('queryCallback', honourSrc);
                 } else if (mr[0].attributeName === 'loading') {
-                    _internals(node, 'oohtml').delete('onAccess');
+                    _internals(node, 'oohtml').delete('queryCallback');
                 } else {
                     honourSrc();
                 }
@@ -253,8 +253,8 @@ export default function init( _config = {} ) {
     }
     Object.defineProperty(TemplateElementClass.prototype, _meta.get('api.templates'), {
         get: function() {
-            if (_internals(this, 'oohtml').has('onAccess')) {
-                _internals(this, 'oohtml').get('onAccess')();
+            if (_internals(this, 'oohtml').has('queryCallback')) {
+                _internals(this, 'oohtml').get('queryCallback')();
             }
             return mapToObject(_internals(this, 'oohtml', 'templates'));
         }
@@ -264,8 +264,8 @@ export default function init( _config = {} ) {
     }
     Object.defineProperty(TemplateElementClass.prototype, _meta.get('api.exports'), {
         get: function() {
-            if (_internals(this, 'oohtml').has('onAccess')) {
-                _internals(this, 'oohtml').get('onAccess')();
+            if (_internals(this, 'oohtml').has('queryCallback')) {
+                _internals(this, 'oohtml').get('queryCallback')();
             }
             return mapToObject(_internals(this, 'oohtml', 'exports'));
         }
