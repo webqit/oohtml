@@ -50,7 +50,7 @@ export default function init( _config = {} ) {
             const namespaceObject = Object.create(null);
             _internals(subject, 'oohtml').set('namespace', namespaceObject);
             if (Observer.link) {
-                Observer.link(subject, params.api.namespace, namespaceObject);
+                Observer.link(subject, _meta.get('api.namespace'), namespaceObject);
             }
         }
         return _internals(subject, 'oohtml').get('namespace');
@@ -59,11 +59,11 @@ export default function init( _config = {} ) {
     const getPublicNamespaceObject = function(subject) {
         if (!_internals(subject, 'oohtml').has('publicNamespace')) {
             const namespaceObject = getNamespaceObject(subject);
-            _internals(subject, 'oohtml').set('publicNamespace', !params.eagermode ? namespaceObject : new Proxy(namespaceObject, {
+            _internals(subject, 'oohtml').set('publicNamespace', !_meta.get('eagermode') ? namespaceObject : new Proxy(namespaceObject, {
 				get(target, name) {
 					if (_isString(name) && !namespaceObject[name]) {
-						var node = _arrFrom(subject.querySelectorAll('[' + window.CSS.escape(params.attr.id) + '="' + name + '"]')).filter(node => {
-							var ownerRoot = node.parentNode.closest('[' + window.CSS.escape(params.attr.namespace) + ']');
+						var node = _arrFrom(subject.querySelectorAll('[' + window.CSS.escape(_meta.get('attr.id')) + '="' + name + '"]')).filter(node => {
+							var ownerRoot = node.parentNode.closest('[' + window.CSS.escape(_meta.get('attr.namespace')) + ']');
 							if (subject === document) {
 								// Only IDs without a scope actually belong to the document scope
 								return !ownerRoot;
@@ -85,10 +85,10 @@ export default function init( _config = {} ) {
     // Define the local "namespace" object
     // ----------------------
 
-	if (params.api.namespace in window.Element.prototype) {
-		throw new Error('The "Element" class already has a "' + params.api.namespace + '" property!');
+	if (_meta.get('api.namespace') in window.Element.prototype) {
+		throw new Error('The "Element" class already has a "' + _meta.get('api.namespace') + '" property!');
 	}
-	Object.defineProperty(window.Element.prototype, params.api.namespace, {
+	Object.defineProperty(window.Element.prototype, _meta.get('api.namespace'), {
 		get: function() {
 			return getPublicNamespaceObject(this);
 		}
@@ -98,10 +98,10 @@ export default function init( _config = {} ) {
     // Define the global "namespace" object
     // ----------------------
 
-    if (params.api.namespace in document) {
-        throw new Error('The "document" object already has a "' + params.api.namespace + '" property!');
+    if (_meta.get('api.namespace') in document) {
+        throw new Error('The "document" object already has a "' + _meta.get('api.namespace') + '" property!');
     }
-	Object.defineProperty(document, params.api.namespace, {
+	Object.defineProperty(document, _meta.get('api.namespace'), {
 		get: function() {
             return getPublicNamespaceObject(document);
 		}
@@ -111,13 +111,13 @@ export default function init( _config = {} ) {
 	// Capture scoped elements
 	// ----------------------
 
-	mutations.onPresent('[' + window.CSS.escape(params.attr.id) + ']', el => {
+	mutations.onPresent('[' + window.CSS.escape(_meta.get('attr.id')) + ']', el => {
 		var elOohtmlObj = _internals(el, 'oohtml');
 		if (elOohtmlObj.get('idAlreadyBeingWatched') || _any(scopedIdInertContexts, inertContext => el.closest(inertContext))) {
 			return;
 		}
-		var scopedId = el.getAttribute(params.attr.id),
-			ownerRoot = el.parentNode.closest('[' + window.CSS.escape(params.attr.namespace) + ']');
+		var scopedId = el.getAttribute(_meta.get('attr.id')),
+			ownerRoot = el.parentNode.closest('[' + window.CSS.escape(_meta.get('attr.namespace')) + ']');
 		if (!ownerRoot) {
 			ownerRoot = document;
 		}

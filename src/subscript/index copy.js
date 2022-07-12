@@ -39,7 +39,7 @@ export default function init( _config = {} ) {
     };
     
     const SubscriptElement = ContextifiableElement();
-    mutations.onPresent( params.selectors.script, scriptElement => {
+    mutations.onPresent( _meta.get('selectors.script'), scriptElement => {
 
         let ownerNode = scriptElement.parentNode;
         if ( !ownerNode ) return;

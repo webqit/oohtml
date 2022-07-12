@@ -42,11 +42,11 @@ export default function init( _config = {} ) {
             const prevStateObject = _internals(subject, 'oohtml').get('state');
             _internals(subject, 'oohtml').set('state', stateObject);
             if (prevStateObject && Observer.unlink) {
-                Observer.unlink(subject, params.api.state, prevStateObject);
+                Observer.unlink(subject, _meta.get('api.state'), prevStateObject);
             }
             if (Observer.link) {
                 let event = newStateObject ? {isUpdate: prevStateObject ? true : false, oldValue: prevStateObject} : null;
-                Observer.link(subject, params.api.state, stateObject, event);
+                Observer.link(subject, _meta.get('api.state'), stateObject, event);
             }
         }
         return _internals(subject, 'oohtml').get('state');
@@ -56,10 +56,10 @@ export default function init( _config = {} ) {
     // Define the "local" state property on Element.prototype
     // ----------------------
 
-    if (params.api.state in window.Element.prototype) {
-        throw new Error('The "Element" class already has a "' + params.api.state + '" property!');
+    if (_meta.get('api.state') in window.Element.prototype) {
+        throw new Error('The "Element" class already has a "' + _meta.get('api.state') + '" property!');
     }
-	Object.defineProperty(window.Element.prototype, params.api.state, {
+	Object.defineProperty(window.Element.prototype, _meta.get('api.state'), {
 		get: function() {
             return Observer.proxy(getOrCreateState(this));
 		}
@@ -67,10 +67,10 @@ export default function init( _config = {} ) {
 
     // ----------------------
 
-    if (params.api.setState in window.Element.prototype) {
-        throw new Error('The "Element" class already has a "' + params.api.setState + '" property!');
+    if (_meta.get('api.setState') in window.Element.prototype) {
+        throw new Error('The "Element" class already has a "' + _meta.get('api.setState') + '" property!');
     }
-    Object.defineProperty(window.Element.prototype, params.api.setState, {
+    Object.defineProperty(window.Element.prototype, _meta.get('api.setState'), {
         value: function(stateObject, params = {}) {
             if (!params.update) {
                 getOrCreateState(this, stateObject);
@@ -87,10 +87,10 @@ export default function init( _config = {} ) {
 
     // ----------------------
 
-    if (params.api.clearState in window.Element.prototype) {
-        throw new Error('The "Element" class already has a "' + params.api.clearState + '" property!');
+    if (_meta.get('api.clearState') in window.Element.prototype) {
+        throw new Error('The "Element" class already has a "' + _meta.get('api.clearState') + '" property!');
     }
-    Object.defineProperty(window.Element.prototype, params.api.clearState, {
+    Object.defineProperty(window.Element.prototype, _meta.get('api.clearState'), {
         value: function() {
             getOrCreateState(this, {});
         }
@@ -100,10 +100,10 @@ export default function init( _config = {} ) {
     // Define the global "state" object
     // ----------------------
 
-    if (params.api.state in document) {
-        throw new Error('The "document" object already has a "' + params.api.state + '" property!');
+    if (_meta.get('api.state') in document) {
+        throw new Error('The "document" object already has a "' + _meta.get('api.state') + '" property!');
     }
-	Object.defineProperty(document, params.api.state, {
+	Object.defineProperty(document, _meta.get('api.state'), {
 		get: function() {
             return Observer.proxy(getOrCreateState(document));
 		}
@@ -111,10 +111,10 @@ export default function init( _config = {} ) {
 
     // ----------------------
 
-    if (params.api.setState in document) {
-        throw new Error('The "document" object already has a "' + params.api.setState + '" property!');
+    if (_meta.get('api.setState') in document) {
+        throw new Error('The "document" object already has a "' + _meta.get('api.setState') + '" property!');
     }
-    Object.defineProperty(document, params.api.setState, {
+    Object.defineProperty(document, _meta.get('api.setState'), {
         value: function(stateObject, params = {}) {
             if (!params.update) {
                 getOrCreateState(document, stateObject);
@@ -131,10 +131,10 @@ export default function init( _config = {} ) {
 
     // ----------------------
 
-    if (params.api.clearState in document) {
-        throw new Error('The "document" object already has a "' + params.api.clearState + '" property!');
+    if (_meta.get('api.clearState') in document) {
+        throw new Error('The "document" object already has a "' + _meta.get('api.clearState') + '" property!');
     }
-    Object.defineProperty(document, params.api.clearState, {
+    Object.defineProperty(document, _meta.get('api.clearState'), {
         value: function() {
             getOrCreateState(document, {});
         }
