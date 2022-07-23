@@ -70,8 +70,8 @@ function queryReduce( contexts, query, returnLine, traps, params, level = 0 ) {
     
     // -----------
     // Promises?
-    const tryAwait = params.await && _isFunction( traps.await );
-    const promises = ( tryAwait && contexts.map( context => traps.await( context.value, level ) ) ) || [];
+    const tryAwait = params.await && _isFunction( traps.ready );
+    const promises = ( tryAwait && contexts.map( context => traps.ready( context.value, level ) ) ) || [];
     if ( promises.filter( x => x ).length ) {
         if ( params.await === 'atomic' ) {
             // Wait until all promises have settled (each may resolve or reject).
@@ -177,7 +177,7 @@ function segmentGetEach( contexts, segment, returnLine, traps, params, level ) {
  * @return Array
  */
 const segTokensParseCache = new Map;
-export function parseIdentifierToken( segToken, operators ) {
+export function parseIdentifierToken( segToken, operators = [] ) {
     let result = segTokensParseCache.get( segToken );
     if ( !result ) {
         let $segToken = segToken;

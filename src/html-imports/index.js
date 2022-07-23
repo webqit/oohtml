@@ -2,6 +2,7 @@
 /**
  * @imports
  */
+import wqDom from '@webqit/dom';
 import { _internals } from '@webqit/util/js/index.js';
 import { _any, _from as _arrFrom } from '@webqit/util/arr/index.js';
 import { parseIdentifierToken } from '../object-ql.js';
@@ -17,18 +18,21 @@ import { parseIdentifierToken } from '../object-ql.js';
  * 
  * The export element class mixin.
  */
-const _ = el => _internals( el, 'oohtml' );
+const _ = ( el, ...args ) => _internals( el, 'oohtml', ...args );
 function ImportElementMixin( BaseClass, params ) {
-    const window = this, dom = window.wq.dom( window );
+    const window = this, dom = window.wq.dom;
     return class extends BaseClass {
 
-         /**
+        /**
          * @constructor
          */
         constructor( ...args ) {
-            super( ...args );
-            this.el = this.el || this;
-            _( this.el ).set( 'slottedElements', new Set() );
+            super();
+            const el = args[ 0 ] || this;
+            Object.defineProperty( this, 'el', { get: () => el } );
+            _( this.el ).set( 'instance', this );
+            _( this.el ).set( 'slottedElements', new Set );
+            _( this.el ).set( 'specialMutationEventStack', [] );
         }
 
         /**
@@ -86,15 +90,6 @@ function ImportElementMixin( BaseClass, params ) {
         }
 
         /**
-         * Returns the slot's implementable exports
-         *
-         * @return array
-         */
-        get exports() {
-            return _( this.el ).get( 'exports' );
-        }
-
-        /**
          * Creates the slot's anchor node.
          *
          * @return Element
@@ -109,7 +104,7 @@ function ImportElementMixin( BaseClass, params ) {
          *
          * @return void
          */
-        connectedCallback() {
+        doConnectedCallback() {
             if ( _( this.el ).get( 'anchorNode' ) ) return;
             const anchorNode = this.createAnchorNode();
             this.bindAnchorElement( anchorNode );
@@ -138,8 +133,31 @@ function ImportElementMixin( BaseClass, params ) {
          * @return void
          */
         resolve( moduleQueryResult, importId = null, importModifiers = {} ) {
-            const importId = _( this.el ).get( 'importId' );
-            const importModifiers = _( this.el ).get( 'importModifiers' );
+            // -------
+            moduleQueryResult = moduleQueryResult.slice( 0 ) // IMPORTANT - often coming from cache
+            importId = importId || _( this.el ).get( 'importId' );
+            importModifiers = importModifiers || _( this.el ).get( 'importModifiers' );
+            // -------
+            const resolve = exportsSets => {
+                const slottableElements = exportsSets.reduce( ( targetExportsSet, exportsSet ) => {
+                    exportsSet.forEach( exportItem => targetExportsSet.add( exportItem ) );
+                    return targetExportsSet;
+                }, new Set );
+                this.fill( slottableElements );
+            };
+            const getExportsSetAsync = ( template, callback ) => {
+                const itemModuleStore = _( template ).get( 'moduleStore' );
+                const getExportsSet = () => {
+                    // TODO: honour importModifiers
+                    return itemModuleStore.get( `#${ importId }` );
+                };
+                itemModuleStore.ready( () => callback( getExportsSet() ) );
+            };
+            ( function eatResult( prevExportsSet = [] ) {
+                const resultItem = moduleQueryResult.shift();
+                if ( !resultItem ) return resolve( prevExportsSet );
+                getExportsSetAsync( resultItem.value, exportsSet => eatResult( prevExportsSet.concat( exportsSet || [] ) ) );
+            } )();
         }
 
         /**
@@ -150,11 +168,10 @@ function ImportElementMixin( BaseClass, params ) {
          * @return void
          */
         fill( slottableElements ) {
-            if ( _any( params.importInertContexts, inertContext => this.el.closest( inertContext ) ) ) return;
+            if ( _any( params.importInertContexts || [], inertContext => this.el.closest( inertContext ) ) ) return;
             if ( Array.isArray( slottableElements ) ) { slottableElements = new Set( slottableElements ) }
             
             // If no more available in source, delete
-            const slottedElementsUnchanged = new Set;
             const slottedElements = _( this.el ).get( 'slottedElements' );
             slottedElements.forEach( slottedElement => {
                 const slottedElementOriginal = _( slottedElement ).get( 'original' );
@@ -162,29 +179,32 @@ function ImportElementMixin( BaseClass, params ) {
                 // otherwise remove it from slot... to reflect this change
                 if ( slottableElements.has( slottedElementOriginal ) ) {
                     slottableElements.delete( slottedElementOriginal );
-                    slottedElementsUnchanged.add( slottedElement );
-                } else { slottedElement.remove(); }
+                } else {
+                    slottedElements.delete( slottedElement );
+                    slottedElement.remove();
+                }
             } );
 
             // Make sure anchor node is what's in place...
-            // not the import element itslef - but all only when we have newSlottedElements.size
+            // not the import element itslef - but all only when we have slottableElements.size
             const anchorNode = _( this.el ).get( 'anchorNode' );
-            if ( this.el.isConnected && newSlottedElements.size ) { this.el.replaceWith( anchorNode ) }
+            if ( this.el.isConnected && slottableElements.size ) {
+                _( this.el ).get( 'specialMutationEventStack' ).push( 1 );
+                this.el.replaceWith( anchorNode );
+            }
 
             // Insert slottables now
-            const newSlottedElements = new Set;
             slottableElements.forEach( slottableElement => {
                 // Clone each slottable element and give it a reference to its original
-                // Then add to slot
                 const slottableElementClone = slottableElement.cloneNode( true );
                 _( slottableElementClone ).set( 'original', slottableElement );
-                newSlottedElements.add( slottableElementClone );
+                // Then add to slot
+                slottedElements.add( slottableElementClone );
                 anchorNode.before( slottableElementClone );
             } );
 
             // New total slotted elements should included those unchanged
-            slottedElementsUnchanged.forEach( slottedElement => newSlottedElements.add( slottedElement ) );
-            this.bindSlottedElements( newSlottedElements );
+            this.bindSlottedElements( new Set( slottedElements ) );
         }
 
         /**
@@ -202,7 +222,12 @@ function ImportElementMixin( BaseClass, params ) {
          * @return void
          */
         bindSlottedElements( newSlottedElements ) {
-            this.unbindSlottedElements();
+            // Forget previous bindings... but not when newSlottedElements is empty
+            // because we still need to get the import element to return to slot - thanks to being able to detect total exit of previous slottedElements.
+            // On the other hand, not forgetting previous bindings opens the risk of them never ever reporting total exit state -
+            // being that some of those slottedElements might have crossed unchanged
+            // into newSlottedElements. Except if in future we're able to detect the exit of JUST THE ONES THAT DIDNT CROSS
+            if ( newSlottedElements.size ) this.unbindSlottedElements();
             if ( Array.isArray( newSlottedElements ) ) { newSlottedElements = new Set( newSlottedElements ) }
 
             // Slotted elements should be added to the slottedElements set
@@ -214,20 +239,18 @@ function ImportElementMixin( BaseClass, params ) {
             } );
 
             // New observer... for when all slotted elements have been removed from slot.
-            const slottedElementsObserver = dom.realtime( newSlottedElements ).disconnected( ( removed, state, isTransient, addedState, removedState ) => {
+            const slottedElementsObserver = dom.realtime( ...newSlottedElements ).disconnectedCallback( ( removed, connectedState, transientPrevConnectedState, totalConnected, totalDisconnected ) => {
                 // Disconnect observer when all slotted elements have been removed from slot.
-                if ( removedState && removedState.size === newSlottedElements.size ) { slottedElementsObserver.disconnect(); }
-                
+                if ( totalDisconnected && totalDisconnected.size === newSlottedElements.size ) { slottedElementsObserver.disconnect(); }
+
                 // The removed slotted element should be removed from the slottedElements set
                 // and should forget reference to this slot
-                removed.forEach( rm => {
-                    // Let's ensure this wasn't slotted again...
-                    if ( !rm.parentNode ) { slottedElements.delete( rm ); }
-                    // if the slotted hasn't been slotted somewhere
-                    if ( _( rm ).get( 'slot' ) === this.el ) {
-                        _( rm ).delete( 'slot' );
-                    }
-                } );
+                // Let's ensure this wasn't slotted again...
+                if ( !removed.isConnected ) { slottedElements.delete( removed ); }
+                // if the slotted hasn't been slotted somewhere
+                if ( _( removed ).get( 'slot' ) === this.el ) {
+                    _( removed ).delete( 'slot' );
+                }
 
                 // If this was the last of the s,ottable in the same family of IDs,
                 // we should restore the original slot
@@ -235,9 +258,12 @@ function ImportElementMixin( BaseClass, params ) {
                     // Must be assigned bu now
                     // for it to be removed in the first place
                     const anchorNode = _( this.el ).get( 'anchorNode' );
-                    if ( anchorNode.isConnected ) { anchorNode.replaceWith( this.el ); }
+                    if ( anchorNode.isConnected ) {
+                        _( this.el ).get( 'specialMutationEventStack' ).push( 1 );
+                        anchorNode.replaceWith( this.el );
+                    }
                 }
-            }, { maintainCallState: true, ignoreTransients: true } );
+            }, { each: true, maintainCallState: true } );
             _( this.el ).set( 'slottedElementsObserver', slottedElementsObserver );
 
         }
@@ -258,7 +284,7 @@ function ImportElementMixin( BaseClass, params ) {
          *
          * @return void
          */
-        disconnectedCallback() { this.unbindSlottedElements(); }
+        doDisconnectedCallback() { this.unbindSlottedElements(); }
         
     }
 
@@ -317,35 +343,39 @@ function hydrate( ImportElement, params ) {
  * @return Void
  */
 function realtime( ImportElement, params ) {
-    const window = this, dom = window.wq.dom( window );
+    const window = this, dom = window.wq.dom;
     // ----------
     // Tree...
-    dom.realtime( window.document ).querySelectorAll( params.modulerefSelector, ( entry, state ) => {
+    dom.realtime().querySelectorAll( params.modulerefSelector, ( entry, connectedState ) => {
         const isImportElement = entry.matches( params.element.import );
-        
+        if ( isImportElement && ( _( entry ).get( 'specialMutationEventStack' ) || [] ).length ) {
+            // Slotting is going on... we ignore, but unset the flag
+            return _( entry ).get( 'specialMutationEventStack' ).pop();
+        }
+
         // Any previous observer should be disconnected
-        let attributesObserver = _( entry ).get( 'attributesObserver' );
-        if ( attributesObserver ) attributesObserver.disconnect();
+        let attributesRealtimeConn = _( entry ).get( 'attributesRealtimeConn' );
+        if ( attributesRealtimeConn ) attributesRealtimeConn.disconnect();
         
         // Handle element absence/presence
         // specially for import elements
-        if ( state === 'removed' ) {
+        if ( !connectedState ) {
             // Also just disconnect modules query observer
-            let moduleQueryObserver = _( this.el ).get( 'moduleQueryObserver' );
-            if ( moduleQueryObserver ) { moduleQueryObserver.disconnect(); }
-            if ( isImportElement ) { ImportElement.instance( entry ).disconnectedCallback();  }
+            let moduleQueryRealtimeConn = _( entry ).get( 'moduleQueryRealtimeConn' );
+            if ( moduleQueryRealtimeConn ) { moduleQueryRealtimeConn.unsubscribe(); }
+            if ( isImportElement ) { ImportElement.instance( entry ).doDisconnectedCallback();  }
             return;
-        } else if ( isImportElement ) { ImportElement.instance( entry ).connectedCallback();  }
+        } else if ( isImportElement ) { ImportElement.instance( entry ).doConnectedCallback();  }
 
         // Move on to observing attributes
         // specially for import elements
         const observedAttributes = [ params.attr.moduleref ];
-        if ( isImportElement ) { observedAttributes.push( params.attr.importId ) }
-        attributesObserver = dom.realtime( entry ).getAttributes( observedAttributes, ( moduleRefExpr, importIdExpr = null ) => {
+        if ( isImportElement ) { observedAttributes.push( params.attr.importid ) }
+        attributesRealtimeConn = dom.realtime( entry ).attributes( observedAttributes, ( moduleRefExpr, importIdExpr = null ) => {
             
             // Any previous observer should be disconnected
-            let moduleQueryObserver = _( entry ).get( 'moduleQueryObserver' );
-            if ( moduleQueryObserver ) moduleQueryObserver.disconnect();
+            let moduleQueryRealtimeConn = _( entry ).get( 'moduleQueryRealtimeConn' );
+            if ( moduleQueryRealtimeConn ) moduleQueryRealtimeConn.unsubscribe();
 
             // Set attribute props
             // specially for import elements
@@ -363,7 +393,8 @@ function realtime( ImportElement, params ) {
                 if ( !isImportElement ) return;
                 // We don't have a reference...
                 // so, we'll inherit from compositionBlock and use it
-                const compositionBlock = entry.parentNode.closest( params.modulerefSelector );
+                const parentNode = entry.parentNode/* in case not connected */ || _( entry ).get( 'anchorNode' ).parentNode;
+                const compositionBlock = parentNode.closest( params.modulerefSelector );
                 if ( !compositionBlock ) return;
 
                 // Cross-link with composition block
@@ -388,46 +419,52 @@ function realtime( ImportElement, params ) {
 
             // Query modules in realtime
             // continue differently for import elements
-            moduleQueryObserver = dom.realtime( window.document ).objectQuery( moduleRefExpr, moduleQueryResult => {
+            moduleQueryRealtimeConn = dom.realtime().importsObjectModelQuery( moduleRefExpr, moduleQueryResult => {
                 _( entry ).set( 'moduleQueryResult', moduleQueryResult );
                 if ( isImportElement ) { ImportElement.instance( entry ).resolve( moduleQueryResult, importId, importModifiers ); }
                 else { _( entry, 'imports' ).forEach( importElement => { ImportElement.instance( importElement ).resolve( moduleQueryResult ); } ); }
-            } );
-            _( entry ).set( 'moduleQueryObserver', moduleQueryObserver );
+            }, {}/* traps */, { realtime: true, await: 'atomic' } );
+            _( entry ).set( 'moduleQueryRealtimeConn', moduleQueryRealtimeConn );
 
         } );
-        _( entry ).set( 'attributesObserver', attributesObserver );
+        _( entry ).set( 'attributesRealtimeConn', attributesRealtimeConn );
         
-    } );
+    }, { each: true } );
 
 }
 
 /**
  * Initializes HTML Modules.
- *
- * @param Object	            paramsOverride
+ * 
+ * @param $params  Object
  *
  * @return Void
  */
-export function init( paramsOverride = {} ) {
-    const window = this, dom = window.wq.dom( window );
+export default function init( $params = { }) {
+    const window = this, dom = wqDom.call( window );
     // Params
-    const params = dom.meta( 'oohtml', {
+    const params = dom.meta( 'oohtml' ).copyWithDefaults( $params, {
         element: { import: 'import', },
-        attr: { importid: 'name', exportsearch: 'exportsearch', },
-    }, paramsOverride );
-    params.exportgroupSelector = `[${ window.CSS.escape(params.attr.exportgroup) }]`;
-    params.modulerefSelector = `[${ window.CSS.escape(params.attr.moduleref) }]`;
+        attr: { importid: 'name', exportsearch: 'exportsearch', moduleref: 'template', exportgroup: 'exportgroup', },
+    } );
+    params.exportgroupSelector = `[${ window.CSS.escape( params.attr.exportgroup ) }]`;
+    params.modulerefSelector = `[${ window.CSS.escape( params.attr.moduleref ) }]`;
     // The ImportElement class
-    const ImportElement = ImportElementMixin.call( window, class {
-        static instance( el ) { return _( el ).get( 'instance' ) || new ImportElement( el ); }
-        constructor( el ) {
-            this.el = el;
-            _( el ).set( 'instance', this );
-        }
-    }, params );
+    if ( params.element.import.includes( '-' ) ) {
+        dom.ImportElement = ImportElementMixin.call( window, class extends window.HTMLElement {
+            static instance( el ) {
+                if ( !( el instanceof dom.ImportElement ) ) throw new Error( `Unable to resolve import element class.` );
+                return el;
+            }
+        }, params );
+        window.customElements.define( params.element.import, dom.ImportElement );
+    } else {
+        dom.ImportElement = ImportElementMixin.call( window, class {
+            static instance( el ) { return _( el ).get( 'instance' ) || new dom.ImportElement( el ); }
+        }, params );
+    }
     // Start realtime DOM bindings...
-    realtime.call( this, ImportElement, params );
+    realtime.call( this, dom.ImportElement, params );
     // Hydration
-    dom.ready( () => { hydrate.call( this, ImportElement, params ) } );
+    dom.ready( () => { hydrate.call( this, dom.ImportElement, params ) } );
 }

@@ -2,8 +2,9 @@
 /**
  * @imports
  */
+import wqDom from '@webqit/dom';
 import { _internals } from '@webqit/util/js/index.js';
-import { _from as _arrFrom } from '@webqit/util/arr/index.js';
+import { _from as _arrFrom, _intersect } from '@webqit/util/arr/index.js';
 import { query as objectQuery } from '../object-ql.js';
 
 /**
@@ -17,7 +18,11 @@ import { query as objectQuery } from '../object-ql.js';
  * 
  * The reactivity object on the "internals" of module elements.
  */
-const _ = el => _internals( el, 'oohtml' );
+const _ = ( el, ...args ) => _internals( el, 'oohtml', ...args );
+const intersects = ( a, b ) => {
+    if ( Array.isArray( b ) ) return _intersect( a, b ).length;
+    return a.includes( b );
+}
 class ModuleStore extends Map {
     constructor( ...args ) {
         super( ...args );
@@ -35,33 +40,49 @@ class ModuleStore extends Map {
         return returnValue;
     }
     get( key ) {
-        let returnValue = super.get( key );
+        // Fire must come first...
+        // observers may need to make values available
         this.fire( 'get', key );
-        return returnValue;
+        return super.get( key );
     }
     setState( key, value ) {
         let returnValue = this.state.set( key, value );
-        this.fire( 'state', key, value );
+        this.fire( 'set:state', key, value );
         return returnValue;
     }
     getState( key ) {
-        this.state.get( key );
+        // Fire must come first...
+        // observers may need to make values available
+        this.fire( 'get:state', key );
+        return this.state.get( key );
     }
     observe( type, key, callback ) {
-        this.observers.add( { type, key, callback } );
-        return () => this.unobserve( type, key, callback );
+        const entry = { type, key, callback };
+        this.observers.add( entry );
+        return () => this.observers.delete( entry);;
     }
     unobserve( type, key, callback ) {
+        if ( Array.isArray( type ) || Array.isArray( key ) ) {
+            throw new Error( `The "type" and "key" arguments can only be strings.` );
+        }
         this.observers.forEach( entry => {
-            if ( !( [ entry.type, '*' ].includes( type ) && [ entry.key, '*' ].includes( key ) && entry.callback === callback ) ) return;
-            this.observers[ type ].delete( entry);
+            if ( !( intersects( [ type, '*' ], entry.type ) && intersects( [ key, '*' ], entry.key ) && entry.callback === callback ) ) return;
+            this.observers.delete( entry);
         } );
     }
     fire( type, key, ...args ) {
-        this.observers[ type ].forEach( entry => {
-            if ( !( [ entry.type, '*' ].includes( type ) && [ entry.key, '*' ].includes( key ) ) ) return;
+        // IMPORTANT: Array.from() must be used so that new additions to this.observers
+        // during the loop aren't picked up!
+        Array.from( this.observers ).forEach( entry => {
+            if ( !( intersects( [ type, '*' ], entry.type ) && intersects( [ key, '*' ], entry.key ) ) ) return;
             entry.callback( ...args );
         } );
+    }
+    ready( callback = null ) {
+        let request = ( this.getState( 'request' ) || {} ).request;
+        if ( !callback ) return request;
+        if ( request ) request.then( callback );
+        else callback();
     }
 }
 
@@ -106,25 +127,27 @@ function srcFetch( template ) {
     const fire = ( type, detail ) => template.dispatchEvent( new window.CustomEvent( type, { detail } ) );
     const src = template.getAttribute( 'src' );
     const moduleStore = _( template ).get( 'moduleStore' );
-    // Unique src only
-    if ( ( moduleStore.getState( 'loading' ) || {} ).src === src ) return;
-    // Refrence to the promise
-    const request = window.fetch( src );
-    moduleStore.setState( 'loading', { src, request } );
+    // Ongoing request?
+    const ongoingRequest = moduleStore.getState( 'request' );
+    if ( ongoingRequest && ongoingRequest.src === src ) return;
+    if ( ongoingRequest ) ongoingRequest.controller.abort();
+    const controller = new AbortController();
     // The promise
-    return request.then( response => {
+    const request = window.fetch( src, { signal: controller.signal } ).then( response => {
         return response.ok ? response.text() : Promise.reject( response.statusText );
     }).then( content => {
-        moduleStore.setState( 'loading', undefined );
-        template.innerHTML = content;
+        template.innerHTML = content.trim(); // IMPORTANT: .trim()
+        moduleStore.setState( 'request', undefined );
         fire( 'load' );
-        res( template );
-    }).catch( e => {
-        moduleStore.setState( 'loading', undefined );
-        console.error( `Error fetching the bundle at ${ src }: ${ e.message }` );
+        return template;
+    } ).catch( e => {
+        console.error( `Error fetching the bundle at "${ src }": ${ e.message }` );
+        moduleStore.setState( 'request', undefined );
         fire('loaderror');
-        res( template );
+        return template;
     } );
+    moduleStore.setState( 'request', { src, request, controller } );
+    return request;
 }
 
 /**
@@ -137,7 +160,7 @@ function srcFetch( template ) {
  * @return Void
  */
 function buildGraph( template, params, { parent, level = 0 } ) {
-    const window = this, dom = window.wq.dom( window );
+    const window = this, dom = window.wq.dom;
     _( template ).set( 'moduleMeta', { parent, level } );
     // Store...
     let moduleStore =  _( template ).get( 'moduleStore' );
@@ -146,46 +169,73 @@ function buildGraph( template, params, { parent, level = 0 } ) {
         _( template ).set( 'moduleStore', moduleStore );
     }
     // Contents...
-    dom.realtime( template ).children( ( entry, state ) => {
-        let moduleId;
-        if ( entry.matches( params.templateSelector ) && ( moduleId = entry.getAttribute( params.attr.moduleid ) ) ) {
-            //validateModuleId( moduleId );
-            if ( state === 'removed' ) {
-                moduleStore.delete( moduleId );
-            } else {
-                moduleStore.set( moduleId, entry );
-                buildGraph.call( this, entry, params, { parent: template, level: level + 1 } );
+    const connA = dom.realtime( template ).children( ( entries, connectedState ) => {
+        const exports = new Map;
+        entries.forEach( entry => {
+            if ( entry.nodeType !== 1 ) return;
+            let moduleId;
+            if ( entry.matches( params.templateSelector ) && ( moduleId = entry.getAttribute( params.attr.moduleid ) ) ) {
+                //validateModuleId( moduleId );
+                if ( !connectedState ) {
+                    _( entry ).get( 'moduleRealtimeConn' ).disconnect();
+                    moduleStore.delete( moduleId );
+                } else {
+                    const moduleRealtimeConn = buildGraph.call( this, entry, params, { parent: template, level: level + 1 } );
+                    _( entry ).set( 'moduleRealtimeConn', moduleRealtimeConn );
+                    moduleStore.set( moduleId, entry );
+                }
+                return;
             }
-            return;
-        }
-        let exportId, exports;
-        if ( entry.matches( params.element.export ) ) {
-            exportId = entry.getAttribute( params.attr.exportid ) || 'default';
-            exports = _arrFrom( entry.children ).map( exportItem => {
-                exportItem.setAttribute( params.attr.exportgroup, exportId );
-                return exportItem;
-            } );
-        } else { 
-            exportId = entry.getAttribute( params.attr.exportgroup ) || 'default';
-            exports = [ entry ];
-        }
-        //validateExportId( exportId );
-        let exportsSet = moduleStore.get( `#${ exportId }` ) || new Set;
-        exports.forEach( x => { state === 'removed' ? exportsSet.delete( x ) : exportsSet.add( x ) } );
-        if ( !exportsSet.size ) { moduleStore.delete( `#${ exportId }` ) }
-        else { moduleStore.set( `#${ exportId }`, exportsSet ) }
+            let exportId, exportGroup;
+            if ( entry.matches && entry.matches( params.element.export ) ) {
+                exportId = entry.getAttribute( params.attr.exportid ) || 'default';
+                exportGroup = _arrFrom( entry.children ).map( exportItem => {
+                    exportItem.setAttribute( params.attr.exportgroup, exportId );
+                    return exportItem;
+                } );
+            } else { 
+                exportId = entry.getAttribute( params.attr.exportgroup ) || 'default';
+                exportGroup = [ entry ];
+            }
+            //validateExportId( exportId );
+            if ( !exports.has( exportId ) ) { exports.set( exportId, [] ); }
+            exports.get( exportId ).push( ...exportGroup );
+        } );
+        exports.forEach( ( exportGroup, exportId ) => {
+            let exportsSet = moduleStore.get( `#${ exportId }` );
+            if ( connectedState ) {
+                exportsSet = new Set( exportsSet ? [ ...exportsSet ].concat( exportGroup ) : exportGroup );
+            } else if ( exportsSet ) {
+                exportGroup.forEach( el => exportsSet.delete( el ) );
+            }
+            if ( !exportsSet.size ) { moduleStore.delete( `#${ exportId }` ); }
+            else { moduleStore.set( `#${ exportId }`, exportsSet ) }
+        } );
     } );
     // Attributes
-    const srcFetchHook = () => {
+    const srcFetchHook = ( isImmediate = false/* just for when debugging */ ) => {
         if ( ( template.content || template ).children.length ) return;
+        moduleStore.unobserve( 'get:state', 'request', srcFetchHook );
         moduleStore.unobserve( 'get', '*', srcFetchHook );
         return srcFetch.call( this, template );
     };
-    dom.realtime( template ).getAttributes( [ 'src', 'loading' ], ( src, loading ) => {
+    const connB = dom.realtime( template ).attributes( [ 'src', 'loading' ], ( src, loading ) => {
         if ( !src ) return;
-        if ( loading === 'lazy' ) { moduleStore.observe( 'get', '*', srcFetchHook ); }
-        else { srcFetchHook(); }
+        if ( loading === 'lazy' ) {
+            // When someone tries to see if he should await this module
+            moduleStore.observe( 'get:state', 'request', srcFetchHook );
+            // When someone tries to read entries of this module
+            moduleStore.observe( 'get', '*', srcFetchHook );
+        } else { srcFetchHook( true ); }
     } );
+    return { disconnect() {
+        [ connA, connB ].forEach( conn => conn.disconnect() );
+        moduleStore.forEach( ( entry, key ) => {
+            if ( key.startsWith( '#' ) ) return;
+            _( entry ).get( 'moduleRealtimeConn' ).disconnect();
+        } );
+    } };
+
 }
 
 /**
@@ -196,56 +246,61 @@ function buildGraph( template, params, { parent, level = 0 } ) {
  * @return Void
  */
 function realtime( params ) {
-    const window = this, dom = window.wq.dom( window );
+    const window = this, dom = window.wq.dom;
     let moduleStore = _( window.document ).get( 'moduleStore' );
     if ( !moduleStore ) {
         moduleStore = new ModuleStore;
         _( window.document ).set( 'moduleStore', moduleStore );
     }
-    dom.realtime( window.document ).querySelectorAll( params.templateSelector, ( entry, state ) => {
-    let moduleId = entry.getAttribute( params.attr.moduleid );
-    //validateModuleId( moduleId );
-    if ( state === 'removed' ) {
-        moduleStore.delete( moduleId );
-    } else {
-        moduleStore.set( moduleId, entry );
-        buildGraph.call( this, entry, params, { parent: window.document } );
-    }
-    } );
+    dom.realtime().querySelectorAll( params.templateSelector, ( entry, connectedState ) => {
+        let moduleId = entry.getAttribute( params.attr.moduleid );
+        //validateModuleId( moduleId );
+        if ( !connectedState ) {
+            _( entry ).get( 'moduleRealtimeConn' ).disconnect();
+            moduleStore.delete( moduleId );
+        } else {
+            const moduleRealtimeConn = buildGraph.call( this, entry, params, { parent: window.document } );
+            _( entry ).set( 'moduleRealtimeConn', moduleRealtimeConn );
+            moduleStore.set( moduleId, entry );
+        }
+    }, { each: true } );
 }
 
 /**
  * Initializes HTML Modules.
- *
- * @param Object	            paramsOverride
+ * 
+ * @param $params  Object
  *
  * @return Void
  */
-export function init( paramsOverride = {} ) {
-    const window = this, dom = window.wq.dom( window );
+export default function init( $params = {} ) {
+    const window = this, dom = wqDom.call( window );
     // Params
-    const params = dom.meta( 'oohtml', {
+    const params = dom.meta( 'oohtml' ).copyWithDefaults( $params, {
         element: { template: '', export: 'export', import: 'import', },
         attr: { moduleid: 'name', moduleref: 'template', exportid: 'name', exportgroup: 'exportgroup', },
         api: { templateClass: '', templates: 'templates', exports: 'exports', moduleref: 'template',  },
-    }, paramsOverride );
+    } );
     params.templateSelector = `template${ ( params.element.template ? `[is="${ params.element.template }"]` : '' ) }[ ${ window.CSS.escape( params.attr.moduleid ) }]`;
     // Tree...
     realtime.call( this, params );
     // nativate?
     if ( params.nativate !== false ) { nativate.call( this, params ); }
     // Extend wq.dom().query with a importsObjectModelQuery() function
-    dom.define( 'importsObjectModelQuery', ( context, [ expr, returnLine, traps = {}, params = {} ], next ) => {
-        if ( context !== window.document && !context.matches( params.templateSelector ) ) return next();
+    dom.extend( 'importsObjectModelQuery', function( expr, returnLine, traps = {}, params = {} ) {
+        const context = this.get( 0 ) || window.document;
+        if ( !context || ( context !== window.document && !context.matches( params.templateSelector ) ) ) {
+            throw new Error( `The "importsObjectModelQuery()" method can only be called on a selection of the document object or "<template>" element objects.` );
+        }
         return objectQuery( context, expr, returnLine, {
             // Gets a module object
             get: ( template, key ) => _( template ).get( 'moduleStore' ).get( key ),
             // Gets all module keys
             keys: template => Array.from( _( template ).get( 'moduleStore' ).keys() ).filter( key => !key.startsWith( '#' ) ),
             // Subscribes to changes
-            subscribe: ( template, key, callback ) => _( template ).get( 'moduleStore' ).observe( '*', key, callback ),
+            subscribe: ( template, key, callback ) => _( template ).get( 'moduleStore' ).observe( [ 'set', 'delete' ], key, callback ),
             // Returns a promise if a module is loading
-            await: template => ( _( template ).get( 'moduleStore' ).getState( 'loading' ) || {} ).request,
+            ready: template => _( template ).get( 'moduleStore' ).ready(),
             ...traps,
         }, params );
     }, { supportsRealtime: true } );
