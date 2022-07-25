@@ -24,7 +24,7 @@ describe(`Modules & Imports`, function() {
             expect( document.templates.get( 'temp0' ) ).to.have.property( 'exports' );
         } );
 
-        it ( `Should be automatically resolved: import default export...`, async function() {
+        it ( `<import> element be automatically resolved: import default export...`, async function() {
             printDocument( document );
             const slot = _( document.body.firstElementChild ).get( 'slot' );
             expect( document.body.children ).to.have.length( 2 );
@@ -34,7 +34,7 @@ describe(`Modules & Imports`, function() {
             expect( slot.importId ).to.eq( 'default' );
         } );
 
-        it( `Should be resolved again: after having mutated an export right at its module.`, async function() {
+        it( `<import> element be resolved again: after having mutated an export right at its module.`, async function() {
             const templateEl = document.querySelector( 'template' );
             await delay( 300, () => {
                 let added = document.createElement( 'div' );
