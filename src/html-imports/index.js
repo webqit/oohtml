@@ -14,14 +14,25 @@ import { parseIdentifierToken } from '../object-ql.js';
  */
 
 /**
+ * Internals shorthand.
+ * 
+ * @param Any el 
+ * @param Array args 
+ * 
+ * @return Any
+ */
+const _ = ( el, ...args ) => _internals( el, 'oohtml', ...args );
+
+/**
  * @ImportElementMixin
  * 
  * The export element class mixin.
  */
-const _ = ( el, ...args ) => _internals( el, 'oohtml', ...args );
-function ImportElementMixin( BaseClass, params ) {
-    const window = this, dom = window.wq.dom;
-    return class extends BaseClass {
+function classes( params ) {
+    const window = this, { dom } = window.wq;
+    // --------------------
+    const SuperExportElement = params.element.import.includes( '-' ) ? window.HTMLElement : class {};
+    class HTMLImportElement extends SuperExportElement {
 
         /**
          * @constructor
@@ -113,7 +124,7 @@ function ImportElementMixin( BaseClass, params ) {
         /**
          * Called by the Slots hydrator.
          *
-         * @param Comment       anchorNode
+         * @param Comment anchorNode
          *
          * @return void
          */
@@ -126,9 +137,9 @@ function ImportElementMixin( BaseClass, params ) {
         /**
          * Resolves the slot from a module query result.
          *
-         * @param Map               moduleQueryResult
-         * @param String            importId
-         * @param Object            importModifiers
+         * @param Map  moduleQueryResult
+         * @param String importId
+         * @param Object importModifiers
          *
          * @return void
          */
@@ -146,12 +157,12 @@ function ImportElementMixin( BaseClass, params ) {
                 this.fill( slottableElements );
             };
             const getExportsSetAsync = ( template, callback ) => {
-                const itemModuleStore = _( template ).get( 'moduleStore' );
+                const itemExports = _( template ).get( 'exports' );
                 const getExportsSet = () => {
                     // TODO: honour importModifiers
-                    return itemModuleStore.get( `#${ importId }` );
+                    return itemExports.get( `#${ importId }` );
                 };
-                itemModuleStore.ready( () => callback( getExportsSet() ) );
+                itemExports.ready( () => callback( getExportsSet() ) );
             };
             ( function eatResult( prevExportsSet = [] ) {
                 const resultItem = moduleQueryResult.shift();
@@ -163,7 +174,7 @@ function ImportElementMixin( BaseClass, params ) {
         /**
          * Fills the slot with slottableElements
          *
-         * @param Array            slottableElements
+         * @param Array  slottableElements
          *
          * @return void
          */
@@ -217,7 +228,7 @@ function ImportElementMixin( BaseClass, params ) {
         /**
          * Bind a slotted element.
          *
-         * @param array              newSlottedElements
+         * @param array  newSlottedElements
          *
          * @return void
          */
@@ -287,19 +298,30 @@ function ImportElementMixin( BaseClass, params ) {
         doDisconnectedCallback() { this.unbindSlottedElements(); }
         
     }
-
+    // --------------------
+    if ( params.element.import.includes( '-' ) ) {
+        HTMLImportElement.node = el => {
+            if ( !( el instanceof HTMLImportElement ) ) throw new Error( `Unable to resolve import element class.` );
+            return el;
+        };
+        window.customElements.define( params.element.import, HTMLImportElement );
+    } else {
+        HTMLImportElement.node = el => _( el ).get( 'instance' ) || new HTMLImportElement( el );
+    }
+    // --------------------
+    window.wq.HTMLImportElement = HTMLImportElement;
+    return { HTMLImportElement };
 }
 
 /**
  * Performs hydration for server-slotted elements.
  *
- * @param Class	                ImportElement
- * @param Object	            params
+ * @param Object params
  *
  * @return Void
  */
-function hydrate( ImportElement, params ) {
-    const window = this;
+function hydrate( params ) {
+    const window = this, { HTMLImportElement } = window.wq;
     function scan( context ) {
         const slottedElements = new Set;
         context.childNodes.forEach( node => {
@@ -314,9 +336,9 @@ function hydrate( ImportElement, params ) {
                 reviver.innerHTML = nodeValue;
                 const importEl = reviver.firstChild;
                 if ( !importEl.matches( params.element.import ) ) return;
-                const importElInstance = ImportElement.instance( importEl );
-                importElInstance.bindAnchorElement( node/* the comment node */ );
-                importElInstance.bindSlottedElements( [ ...slottedElements ] );
+                const importElement = HTMLImportElement.node( importEl );
+                importElement.bindAnchorElement( node/* the comment node */ );
+                importElement.bindSlottedElements( [ ...slottedElements ] );
                 // Empty basket
                 slottedElements.clear();
             }
@@ -326,10 +348,10 @@ function hydrate( ImportElement, params ) {
         // hydration() might be running AFTER certain <slots> have resolved
         // and slottedElement might be a just-resolved node
         if ( _( slottedElement ).get( 'slot' ) ) return;
-        if ( _( slottedElement.parentNode ).get( 'importsCan' ) ) return;
+        if ( _( slottedElement.parentNode ).get( 'hydrationVisit' ) ) return;
         scan( slottedElement.parentNode );
         // Scanning is once for every parent
-        _( slottedElement.parentNode ).set( 'importsCan', true );
+        _( slottedElement.parentNode ).set( 'hydrationVisit', true );
     } );
 }
 
@@ -337,13 +359,12 @@ function hydrate( ImportElement, params ) {
  * Performs realtime capture of elements and their attributes
  * and their module query results; then resolves the respective import elements.
  *
- * @param Class	                ImportElement
- * @param Object	            params
+ * @param Object params
  *
  * @return Void
  */
-function realtime( ImportElement, params ) {
-    const window = this, dom = window.wq.dom;
+function realtime( params ) {
+    const window = this, { dom, HTMLImportElement } = window.wq;
     // ----------
     // Tree...
     dom.realtime().querySelectorAll( params.modulerefSelector, ( entry, connectedState ) => {
@@ -363,9 +384,9 @@ function realtime( ImportElement, params ) {
             // Also just disconnect modules query observer
             let moduleQueryRealtimeConn = _( entry ).get( 'moduleQueryRealtimeConn' );
             if ( moduleQueryRealtimeConn ) { moduleQueryRealtimeConn.unsubscribe(); }
-            if ( isImportElement ) { ImportElement.instance( entry ).doDisconnectedCallback();  }
+            if ( isImportElement ) { HTMLImportElement.node( entry ).doDisconnectedCallback();  }
             return;
-        } else if ( isImportElement ) { ImportElement.instance( entry ).doConnectedCallback();  }
+        } else if ( isImportElement ) { HTMLImportElement.node( entry ).doConnectedCallback();  }
 
         // Move on to observing attributes
         // specially for import elements
@@ -402,7 +423,7 @@ function realtime( ImportElement, params ) {
                 _( entry ).set( 'compositionBlock', compositionBlock );
                 _( compositionBlock, 'imports' ).set( importId, entry );
                 const moduleQueryResult = _( compositionBlock ).get( 'moduleQueryResult' );
-                ImportElement.instance( entry ).resolve( moduleQueryResult );
+                HTMLImportElement.node( entry ).resolve( moduleQueryResult );
                 return;
             }
 
@@ -419,11 +440,11 @@ function realtime( ImportElement, params ) {
 
             // Query modules in realtime
             // continue differently for import elements
-            moduleQueryRealtimeConn = dom.realtime().importsObjectModelQuery( moduleRefExpr, moduleQueryResult => {
+            moduleQueryRealtimeConn = _( window.document ).get( 'exports' ).query( moduleRefExpr, moduleQueryResult => {
                 _( entry ).set( 'moduleQueryResult', moduleQueryResult );
-                if ( isImportElement ) { ImportElement.instance( entry ).resolve( moduleQueryResult, importId, importModifiers ); }
-                else { _( entry, 'imports' ).forEach( importElement => { ImportElement.instance( importElement ).resolve( moduleQueryResult ); } ); }
-            }, {}/* traps */, { realtime: true, await: 'atomic' } );
+                if ( isImportElement ) { HTMLImportElement.node( entry ).resolve( moduleQueryResult, importId, importModifiers ); }
+                else { _( entry, 'imports' ).forEach( importElement => { HTMLImportElement.node( importElement ).resolve( moduleQueryResult ); } ); }
+            }, { realtime: true, await: 'atomic' } );
             _( entry ).set( 'moduleQueryRealtimeConn', moduleQueryRealtimeConn );
 
         } );
@@ -442,29 +463,22 @@ function realtime( ImportElement, params ) {
  */
 export default function init( $params = { }) {
     const window = this, dom = wqDom.call( window );
-    // Params
+    // -------
+    // params
     const params = dom.meta( 'oohtml' ).copyWithDefaults( $params, {
         element: { import: 'import', },
         attr: { importid: 'name', exportsearch: 'exportsearch', moduleref: 'template', exportgroup: 'exportgroup', },
     } );
     params.exportgroupSelector = `[${ window.CSS.escape( params.attr.exportgroup ) }]`;
-    params.modulerefSelector = `[${ window.CSS.escape( params.attr.moduleref ) }]`;
-    // The ImportElement class
-    if ( params.element.import.includes( '-' ) ) {
-        dom.ImportElement = ImportElementMixin.call( window, class extends window.HTMLElement {
-            static instance( el ) {
-                if ( !( el instanceof dom.ImportElement ) ) throw new Error( `Unable to resolve import element class.` );
-                return el;
-            }
-        }, params );
-        window.customElements.define( params.element.import, dom.ImportElement );
-    } else {
-        dom.ImportElement = ImportElementMixin.call( window, class {
-            static instance( el ) { return _( el ).get( 'instance' ) || new dom.ImportElement( el ); }
-        }, params );
-    }
-    // Start realtime DOM bindings...
-    realtime.call( this, dom.ImportElement, params );
-    // Hydration
-    dom.ready( () => { hydrate.call( this, dom.ImportElement, params ) } );
+    params.modulerefSelector = `[${ window.CSS.escape( params.attr.moduleref ) }]`;    
+    const { HTMLImportElement } = classes.call( this, params );
+    // -------
+    // hydration...
+    dom.ready( () => { hydrate.call( this, params ) } );
+    // -------
+    // realtime...
+    realtime.call( this, params );
+    // -------
+    // APIs
+    return { HTMLImportElement };
 }

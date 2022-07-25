@@ -2,72 +2,8 @@
 /**
  * @imports
  */
-import { _internals } from '@webqit/util/js/index.js';
 import { expect } from 'chai';
-import init from '../src/index.js';
-import jsdom from 'jsdom';
-
-/**
- * -------
- * HELPERS
- * -------
- */
-
-const _ = ( el, ...args ) => _internals( el, 'oohtml', ...args );
-
-function createDocument( head = '', body = '' ) {
-    // TODO: Proper indentation for pretty-printing
-    const instance  = new jsdom.JSDOM(`
-    <!DOCTYPE html><html><head>
-    ${ head }
-    </head><body template="temp0/temp1/temp2">
-    ${ body }
-    </body></html>
-    `);
-    init.call( instance.window );
-    return instance.window;
-}
-
-function mockRemoteFetch( window, contents, delay = 1000 ) {
-    window.fetch = url => {
-        console.info( 'Fetching .......... ', url );
-        const successResponse = () => ( { ok: true, text: () => Promise.resolve( contents[ url ] ), } );
-        return new Promise( ( res, rej ) => {
-            setTimeout( () => {
-                if ( contents[ url ] ) res( successResponse() )
-                else rej( { message: 'Not found.' } );
-            }, delay );
-        } );
-    };
-}
-
-function delay( duration, callback = undefined ) {
-    return new Promise( res => {
-        setTimeout( () => res( callback && callback() ), duration );
-    } );
-}
-
-function printDocument( document, desc = '' ) {
-    return; new Promise( res => {
-        setTimeout( () => {
-            console.log( '' );
-            console.log( '-------------' );
-            console.log( desc );
-            console.log( '-------------' );
-            console.log( document.documentElement.outerHTML );
-            console.log( '-------------' );
-            console.log( '' );
-            res();
-        }, 0 );
-    } );
-}
-
-/**
- * -------
- * TESTS
- * -------
- */
-
+import { delay, createDocument, mockRemoteFetch, printDocument, _ } from './index.js';
 
 describe(`Modules & Imports`, function() {
 
@@ -82,6 +18,11 @@ describe(`Modules & Imports`, function() {
         const body = `
         <html-import template="temp0"></html-import>`;
         const { document } = createDocument( head, body );
+
+        it ( `The document object and <template> elements should expose a "templates" and "exports" property, respectively...`, async function() {
+            expect( document ).to.have.property( 'templates' );
+            expect( document.templates.get( 'temp0' ) ).to.have.property( 'exports' );
+        } );
 
         it ( `Should be automatically resolved: import default export...`, async function() {
             printDocument( document );
@@ -125,12 +66,12 @@ describe(`Modules & Imports`, function() {
         const { document } = createDocument( head, body );
         const importEl = document.querySelector( 'import' );
 
-        it ( `Should not be resolved: no match for given import ID...`, async function() {
+        it ( `<import> element should not be resolved: no match for given import ID...`, async function() {
             printDocument( document );
             expect( document.body.firstElementChild.nodeName ).to.eq( 'IMPORT' );
         } );
 
-        it ( `Should be automatically resolved: new import ID is set...`, async function() {
+        it ( `<import> element should be automatically resolved: new import ID is set...`, async function() {
             await delay( 300, () => {
                 importEl.setAttribute( 'name', 'input' );
             } );
@@ -138,7 +79,7 @@ describe(`Modules & Imports`, function() {
             expect( document.body.firstElementChild.nodeName ).to.eq( 'INPUT' );
         } );
 
-        it ( `Should be automatically resolved: new moduleref is set - nested...`, async function() {
+        it ( `<import> element should be automatically resolved: new moduleref is set - nested...`, async function() {
             await delay( 300, () => {
                 importEl.setAttribute( 'template', 'temp0/temp1' );
             } );
@@ -146,7 +87,7 @@ describe(`Modules & Imports`, function() {
             expect( document.body.firstElementChild.nodeName ).to.eq( 'TEXTAREA' );
         } );
 
-        it ( `Should be automatically resolved: moduleref is unset - should now be inherited from <body>...`, async function() {
+        it ( `<import> element should be automatically resolved: moduleref is unset - should now be inherited from <body>...`, async function() {
             await delay( 300, () => {
                 importEl.removeAttribute( 'template' );
             } );
@@ -154,7 +95,7 @@ describe(`Modules & Imports`, function() {
             expect( document.body.firstElementChild.nodeName ).to.eq( 'SELECT' );
         } );
 
-        it ( `Should be automatically resolved: moduleref at <body> is changed...`, async function() {
+        it ( `<import> element should be automatically resolved: moduleref at <body> is changed...`, async function() {
             await delay( 300, () => {
                 document.body.setAttribute( 'template', 'temp0' );
             } );
@@ -162,7 +103,7 @@ describe(`Modules & Imports`, function() {
             expect( document.body.firstElementChild.nodeName ).to.eq( 'INPUT' );
         } );
 
-        it ( `Should be automatically restored: slotted element is removed from DOM...`, async function() {
+        it ( `<import> element should be automatically RESTORED: slotted element is removed from DOM...`, async function() {
             await delay( 300, () => {
                 document.body.querySelector( 'input' ).remove();
             } );
@@ -170,6 +111,47 @@ describe(`Modules & Imports`, function() {
             expect( document.body.firstElementChild.nodeName ).to.eq( 'IMPORT' );
         } );
         
+    } );
+
+    describe(`query()...`, function() {
+
+        const head = `
+        <template name="temp0">
+            <template name="temp1">
+                <template name="temp2"></template>
+            </template>
+        </template>`;
+        const body = ``;
+        const { document } = createDocument( head, body );
+
+        it ( `doucment.templates.query() should get the target module...`, async function() {
+            const temp2Result = document.templates.query( 'temp0/temp1/temp2' );
+            expect( temp2Result ).to.an( 'array').with.length( 1 );
+        } );
+
+        it ( `doucment.templates.query() in live mode should capture the addition of target module, then STOP capturing on being disconnected...`, async function() {
+            const temp2Result = document.templates.query( 'temp0/temp1/temp2' );
+            let temp3Result;
+            const conn = document.templates.query( 'temp0/temp1/temp2/temp3', result => {
+                temp3Result = result;
+            }, { realtime: true } );
+            // Addition...
+            const templateEl = document.createElement( 'template' );
+            templateEl.setAttribute( 'name', 'temp3' );
+            temp2Result[ 0 ].value.content.appendChild( templateEl );
+            await delay( 0 );
+            expect( temp3Result ).to.an( 'array').with.length( 1 );
+            // Removal
+            templateEl.remove();
+            await delay( 0 );
+            expect( temp3Result ).to.an( 'array').with.length( 0 );
+            // Re-addition
+            conn.unsubscribe();
+            temp2Result[ 0 ].value.content.appendChild( templateEl );
+            await delay( 0 );
+            expect( temp3Result ).to.an( 'array').with.length( 0 );
+        } );
+
     } );
 
     describe(`Remote...`, function() {
@@ -190,7 +172,7 @@ describe(`Modules & Imports`, function() {
         const timeout = 2000;
         mockRemoteFetch( window, { '/bundle.html': bundle1, '/child-bundle.html': childBundle }, timeout );
 
-        it( `Should not yet be resolved. Bundle should be not found.`, async function() {
+        it( `<import> element should not yet be resolved. Bundle should be not found.`, async function() {
             await delay( 300, async () => {
                 // Add a remote module
                 const templateEl = document.createElement( 'template' );
