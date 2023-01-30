@@ -36,7 +36,7 @@ describe(`Namespaced HTML`, function() {
 
     } );
 
-    describe(`query()...`, function() {
+    describe( `query()...`, function() {
 
         const head = ``;
         const body = `

@@ -47,7 +47,7 @@ describe(`Modules & Imports`, function() {
         } );
     } );
 
-    describe(`Dynamic...`, function() {
+    describe( `Dynamic...`, function() {
         
         const head = `
         <template name="temp0">
@@ -113,7 +113,7 @@ describe(`Modules & Imports`, function() {
         
     } );
 
-    describe(`query()...`, function() {
+    describe( `query()...`, function() {
 
         const head = `
         <template name="temp0">
@@ -154,7 +154,7 @@ describe(`Modules & Imports`, function() {
 
     } );
 
-    describe(`Remote...`, function() {
+    describe( `Remote...`, function() {
         this.timeout( 10000 );
 
         const head = ``, body = ``;
