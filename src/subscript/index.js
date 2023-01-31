@@ -13,7 +13,7 @@ import { config } from '../util.js';
  * @param Object config
  */
 export default function init( _config = {} ) {
-
+ 
     const WebQit = domInit.call( this );
     if ( _config.onDomReady ) {
         WebQit.DOM.ready( () => {
