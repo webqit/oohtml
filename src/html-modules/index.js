@@ -2,11 +2,11 @@
 /**
  * @imports
  */
-import { _isEmpty, _internals } from '@webqit/util/js/index.js';
-import { _remove, _from as _arrFrom } from '@webqit/util/arr/index.js';
-import { _each } from '@webqit/util/obj/index.js';
-import domInit from '@webqit/browser-pie/src/dom/index.js';
-import { config, scopeQuery } from '../util.js';
+import wqDom from '@webqit/dom';
+import { _internals } from '@webqit/util/js/index.js';
+import { _from as _arrFrom } from '@webqit/util/arr/index.js';
+import { query as objectQuery } from '../object-ql.js';
+import Observable from '../Observable.js';
 
 /**
  * ---------------------------
@@ -15,370 +15,259 @@ import { config, scopeQuery } from '../util.js';
  */
 
 /**
- * @init
+ * Internals shorthand.
  * 
- * @param Object config
+ * @param Any el 
+ * @param Array args 
+ * 
+ * @return Any
  */
-export default function init( _config = {} ) {
+const _ = ( el, ...args ) => _internals( el, 'oohtml', ...args );
 
-    const WebQit = domInit.call( this );
-    if ( _config.onDomReady ) {
-        WebQit.DOM.ready( () => {
-            init.call( this, { ..._config, onDomReady: false } );
-        } );
-        return;
-    }
-
-    const window = WebQit.window;
-    const document = WebQit.window.document;
-    const mutations = WebQit.DOM.mutations;
-
-    const _meta = config.call(this, {
-        element: {
-            template: '',
-            export: 'export',
-            import: 'import',
-        },
-        attr: {
-            moduleid: 'name',
-            moduleref: 'template',
-            exportid: 'name',
-            exportgroup: 'exportgroup',
-        },
-        api: {
-            templateClass: '',
-            templates: 'templates',
-            exports: 'exports',
-            moduleref: 'template',
-        },
-    }, _config.params );
-
-    const templateSelector = 'template' + (_meta.get('element.template') ? '[is="' + _meta.get('element.template') + '"]' : '') + '[' + window.CSS.escape(_meta.get('attr.moduleid')) + ']';
-    var TemplateElementClass = window.HTMLTemplateElement;
-    if (_meta.get('api.templateClass')) {
-        if (!window[_meta.get('api.templateClass')]) {
-            throw new Error('The custom element class "' + _meta.get('api.templateClass') + '" is not defined!');
+/**
+ * @HTMLExportsCollection
+ * 
+ * The internal HTMLExportsCollection object
+ * within <template> elements and the document object.
+ */
+function classes( params ) {
+    const window = this;
+    // --------------------
+    class HTMLExportsCollection extends Observable {
+        set( key, value ) {
+            const isPartId = key.startsWith( '#' );
+            if ( isPartId && !( value instanceof Set ) ) throw new Error( `Value for export ID "${ key }" must be an instance of Set.` );
+            else if ( !isPartId && !value.content/* rough way to check for <template> */ ) throw new Error( `Value for export ID "${ key }" must be an instance of HTMLTemplateElement.` );
+            return super.set( key, value );
         }
-        TemplateElementClass = window[_meta.get('api.templateClass')];
-    }
-
-    // ----------------------
-    // Capture template elements
-    // ----------------------
-
-    const fireDocumentTemplateEvent = (type, value, path) => {
-        if (type === 'templatemutation') {
-            ['addedExports', 'removedExports'].forEach(listType => {
-                Object.defineProperty(value, listType, {value: Object.keys(value[listType]).map(name => ({name, items: value[listType][name]}))});
-            });
-            ['addedTemplates', 'removedTemplates'].forEach(listType => {
-                Object.defineProperty(value, listType, {value: Object.keys(value[listType]).map(name => ({name, item: value[listType][name]}))});
-            });
+        ready( callback = null ) {
+            let request = ( this.getState( 'request' ) || {} ).request;
+            if ( !callback ) return request;
+            if ( request ) request.then( callback );
+            else callback();
         }
-        Object.defineProperty(value, 'path', {value: path});
-        document.dispatchEvent(new window.CustomEvent(type, {detail: value}));
-    };
-
-    const loadTemplateContent = (template, path) => {
-        const fireTemplateEvent = type => {
-            template.dispatchEvent(new window.CustomEvent(type, {detail: {path}}));
-        };
-        var src = template.getAttribute('src');
-        return new Promise((resolve, reject) => {
-            // Missing in jsdom
-            if (window.fetch) {
-                window.fetch(src).then(response => {
-                    return response.ok ? response.text() : Promise.reject(response.statusText);
-                }).then(content => {
-                    template.innerHTML = content;
-                    fireTemplateEvent('load');
-                    fireDocumentTemplateEvent('templatecontentloaded', {template}, path);
-                    resolve(template);
-                }).catch(error => {
-                    console.error('Error fetching the bundle at ' + src + '. (' + error + ')');
-                    // Dispatch the event.
-                    template.innerHTML = '';
-                    fireTemplateEvent('loaderror');
-                    fireDocumentTemplateEvent('templatecontentloaderror', {template}, path);
-                    resolve(template);
-                });
-            } else {
-                resolve();
-                console.error('Error fetching the bundle at ' + src + '. (window.fetch() not supported by browser.)');
+        expose() { return this; }
+        query( expr, returnLine, params = {}, traps = {} ) {
+            const context = this.context;
+            if ( !context || ( context !== window.document && !context.matches( params.templateSelector ) ) ) {
+                throw new Error( `HTMLExportsCollection.query() expects a "<template>" element or the document object.` );
             }
-        });
-    };
+            return objectQuery( context, expr, returnLine, {
+                // Gets a module object
+                get: ( context, key ) => HTMLExportsCollection.node( context ).get( key ),
+                // Gets all module keys
+                keys: context => HTMLExportsCollection.node( context ).keyNames().filter( key => !key.startsWith( '#' ) ),
+                // Subscribes to changes
+                subscribe: ( context, key, callback ) => HTMLExportsCollection.node( context ).observe( [ 'set', 'delete' ], key, callback ),
+                // Returns a promise if a module is loading
+                ready: context => HTMLExportsCollection.node( context ).ready(),
+                ...traps,
+            }, params );
+        }
+        static node( context ) {
+            if ( !_( context ).has( 'exports' ) ) {
+                const collection = new this;
+                Object.defineProperty( collection, 'context', { value: context } );
+                _( context ).set( 'exports', collection );
+            }
+            return _( context ).get( 'exports' );
+        }
+    }
+    class HTMLModulesCollection extends HTMLExportsCollection {};
+    // --------------------
+    window.wq.HTMLModulesCollection = HTMLModulesCollection;
+    window.wq.HTMLExportsCollection = HTMLExportsCollection;
+    return { HTMLModulesCollection, HTMLExportsCollection };
+}
 
-    const discoverContents = (node, contentNode, path, mutationType = null, fireEvents = true) => {
+/**
+ * Fetches a module's "src".
+ *
+ * @param HTMLTemplateElement template
+ *
+ * @return Promise
+ */
+function srcFetch( template ) {
+    const window = this, { HTMLExportsCollection } = window.wq;
+    const fire = ( type, detail ) => template.dispatchEvent( new window.CustomEvent( type, { detail } ) );
+    const src = template.getAttribute( 'src' );
+    const exports = HTMLExportsCollection.node( template );
+    // Ongoing request?
+    const ongoingRequest = exports.getState( 'request' );
+    if ( ongoingRequest && ongoingRequest.src === src ) return;
+    if ( ongoingRequest ) ongoingRequest.controller.abort();
+    const controller = new AbortController();
+    // The promise
+    const request = window.fetch( src, { signal: controller.signal } ).then( response => {
+        return response.ok ? response.text() : Promise.reject( response.statusText );
+    }).then( content => {
+        template.innerHTML = content.trim(); // IMPORTANT: .trim()
+        exports.setState( 'request', undefined );
+        fire( 'load' );
+        return template;
+    } ).catch( e => {
+        console.error( `Error fetching the bundle at "${ src }": ${ e.message }` );
+        exports.setState( 'request', undefined );
+        fire('loaderror');
+        return template;
+    } );
+    exports.setState( 'request', { src, request, controller } );
+    return request;
+}
 
-        // -----------------------
-        // Templates and exports
-        const manageComponent = (el, eventsObject, mutationType, fireEvents) => {
-            if (!el.matches) {
-                // Not an element child
+/**
+ * Builds a modules/exports graph.
+ *
+ * @param HTMLTemplateElement        template
+ * @param Object	                 params
+ * @param Object                     meta
+ *
+ * @return Void
+ */
+function buildGraph( template, params, { parent, level = 0 } ) {
+    const window = this, { dom, HTMLExportsCollection } = window.wq;
+    _( template ).set( 'moduleMeta', { parent, level } );
+    const exports =  HTMLExportsCollection.node( template );
+    // Contents...
+    const connA = dom.realtime( template ).children( ( entries, connectedState ) => {
+        const partials = new Map;
+        entries.forEach( entry => {
+            if ( entry.nodeType !== 1 ) return;
+            let moduleId;
+            if ( entry.matches( params.templateSelector ) && ( moduleId = entry.getAttribute( params.attr.moduleid ) ) ) {
+                // TODO: validateModuleId( moduleId );
+                if ( !connectedState ) {
+                    _( entry ).get( 'moduleRealtimeConn' ).disconnect();
+                    exports.delete( moduleId );
+                } else {
+                    const moduleRealtimeConn = buildGraph.call( this, entry, params, { parent: template, level: level + 1 } );
+                    _( entry ).set( 'moduleRealtimeConn', moduleRealtimeConn );
+                    exports.set( moduleId, entry );
+                }
                 return;
             }
-            var templateName, exportId;
-            if (el.matches(templateSelector) && (templateName = el.getAttribute(_meta.get('attr.moduleid'))) && validateModuleName(templateName)) {
-                var _path = (path ? path + '/' : '') + templateName;
-                if (mutationType === 'removed') {
-                    _internals(node, 'oohtml', 'templates').delete(templateName)
-                    if (_internals(el, 'oohtml').get('parentTemplate') === node) {
-                        _internals(el, 'oohtml').delete('parentTemplate');
-                    }
-                    if (eventsObject) {
-                        eventsObject.removedTemplates[templateName] = el;
-                    }
-                } else if (mutationType === 'added') {
-                    _internals(node, 'oohtml', 'templates').set(templateName, el);
-                    _internals(el, 'oohtml').set('parentTemplate', node);
-                    if (eventsObject) {
-                        eventsObject.addedTemplates[templateName] = el;
-                    }
-                }
-                // Recurse
-                discoverContents(el, el.content, _path, mutationType, fireEvents);
-            } else {
-                const manageExportItem = exportItem => {
-                    var exportId = exportItem.getAttribute(_meta.get('attr.exportgroup')) || 'default';
-                    if (mutationType === 'removed') {
-                        if (_internals(node, 'oohtml', 'exports').has(exportId)) {
-                            _remove(_internals(node, 'oohtml', 'exports').get(exportId), exportItem);
-                            if (!_internals(node, 'oohtml', 'exports').has(exportId).length) {
-                                _internals(node, 'oohtml', 'exports').delete(exportId);
-                            }
-                            if (eventsObject) {
-                                if (!eventsObject.removedExports[exportId]) {
-                                    eventsObject.removedExports[exportId] = [];
-                                }
-                                eventsObject.removedExports[exportId].push(exportItem);
-                            }
-                        }
-                    } else if (mutationType === 'added') {
-                        if (!_internals(node, 'oohtml', 'exports').has(exportId)) {
-                            _internals(node, 'oohtml', 'exports').set(exportId, []);
-                        }
-                        _internals(node, 'oohtml', 'exports').get(exportId).push(exportItem);
-                        if (eventsObject) {
-                            if (!eventsObject.addedExports[exportId]) {
-                                eventsObject.addedExports[exportId] = [];
-                            }
-                            eventsObject.addedExports[exportId].push(exportItem);
-                        }
-                    }
-                };
-                if (el.matches(_meta.get('element.export'))) {
-                    var exportId = el.getAttribute(_meta.get('attr.exportid')) || 'default';
-                    _arrFrom(el.children).forEach(exportItem => {
-                        exportItem.setAttribute(_meta.get('attr.exportgroup'), exportId);
-                        manageExportItem(exportItem);
-                    });
-                } else {
-                    manageExportItem(el);
-                }
+            let exportId, exportItems;
+            if ( entry.matches && entry.matches( params.element.export ) ) {
+                exportId = entry.getAttribute( params.attr.exportid ) || 'default';
+                exportItems = _arrFrom( entry.children ).map( exportItem => {
+                    exportItem.setAttribute( params.attr.exportgroup, exportId );
+                    return exportItem;
+                } );
+            } else { 
+                exportId = entry.getAttribute( params.attr.exportgroup ) || 'default';
+                exportItems = [ entry ];
             }
-        };
-
-        // -----------------------
-        // Run...
-        node.modulemutationsType = mutationType;
-        const eventsObject = { addedTemplates: Object.create(null), removedTemplates: Object.create(null), addedExports: Object.create(null), removedExports: Object.create(null), }; 
-        _arrFrom(contentNode.children).forEach(el => manageComponent(el, eventsObject, mutationType, fireEvents));
-        if (fireEvents) {
-            fireDocumentTemplateEvent('templatemutation', eventsObject, path);
-        }
-
-        // -----------------------
-        // Handle content loading
-        if (mutationType === 'added' && !_internals(node, 'oohtml').get('onLiveMode')) {
-            _internals(node, 'oohtml').set('onLiveMode', true);
-            const honourSrc = () => {
-                if (node.content.children.length) return;
-                _internals(node, 'oohtml').delete('queryCallback');
-                return loadTemplateContent(node, path);
-            };
-            if (node.getAttribute('src')) {
-                if (node.getAttribute('loading') === 'lazy') {
-                    _internals(node, 'oohtml').set('queryCallback', honourSrc);
-                } else {
-                    loadingTemplates.push(honourSrc());
-                }
+            // TODO: validateExportId( exportId );
+            if ( !partials.has( exportId ) ) { partials.set( exportId, [] ); }
+            partials.get( exportId ).push( ...exportItems );
+        } );
+        partials.forEach( ( exportItems, exportId ) => {
+            let exportNode = exports.get( `#${ exportId }` );
+            if ( connectedState ) {
+                exportNode = new Set( exportNode ? [ ...exportNode ].concat( exportItems ) : exportItems );
+            } else if ( exportNode ) {
+                exportItems.forEach( el => exportNode.delete( el ) );
             }
-            mutations.onAttrChange(node, mr => {
-                if (mr[0].target.getAttribute(mr[0].attributeName) === mr[0].oldValue) return;
-                if (node.getAttribute('loading') === 'lazy') {
-                    _internals(node, 'oohtml').set('queryCallback', honourSrc);
-                } else if (mr[0].attributeName === 'loading') {
-                    _internals(node, 'oohtml').delete('queryCallback');
-                } else {
-                    honourSrc();
-                }
-            }, ['src', 'loading']);
-                
-            // -----------------------
-            // Watch mutations
-            var mo = new window.MutationObserver(mutations => {
-                const eventsObject = { addedTemplates: Object.create(null), removedTemplates: Object.create(null), addedExports: Object.create(null), removedExports: Object.create(null), };    
-                mutations.forEach(mutation => {
-                    mutation.addedNodes.forEach(el => manageComponent(el, eventsObject, 'added', true));
-                    mutation.removedNodes.forEach(el => manageComponent(el, eventsObject, 'removed', true));
-                });
-                fireDocumentTemplateEvent('templatemutation', eventsObject, path);
-            });
-            mo.observe(contentNode, {childList: true});
-        }
-
+            if ( !connectedState && !exportNode.size ) { exports.delete( `#${ exportId }` ); }
+            else { exports.set( `#${ exportId }`, exportNode ) }
+        } );
+    } );
+    // Attributes
+    const srcFetchHook = ( isImmediate = false/* just for when debugging */ ) => {
+        if ( ( template.content || template ).children.length ) return;
+        exports.unobserve( 'get:state', 'request', srcFetchHook );
+        exports.unobserve( 'get', '*', srcFetchHook );
+        return srcFetch.call( this, template );
     };
+    const connB = dom.realtime( template ).attributes( [ 'src', 'loading' ], ( src, loading ) => {
+        if ( !src ) return;
+        if ( loading === 'lazy' ) {
+            // When someone tries to see if he should await this module
+            exports.observe( 'get:state', 'request', srcFetchHook );
+            // When someone tries to read entries of this module
+            exports.observe( 'get', '*', srcFetchHook );
+        } else { srcFetchHook( true ); }
+    } );
+    return { disconnect() {
+        [ connA, connB ].forEach( conn => conn.disconnect() );
+        exports.forEach( ( entry, key ) => {
+            if ( key.startsWith( '#' ) ) return;
+            _( entry ).get( 'moduleRealtimeConn' ).disconnect();
+        } );
+    } };
 
-    // ----------------------
-    // Define the global "templates" object
-    // ----------------------
+}
 
-    if (_meta.get('api.templates') in document) {
-        throw new Error('document already has a "' + _meta.get('api.templates') + '" property!');
-    }
-    const loadingTemplates = [];
-    Object.defineProperty(document, _meta.get('api.templates'), {
-        get: function() {
-            return mapToObject(_internals(document, 'oohtml', 'templates'));
+/**
+ * Performs realtime capture of elements and builds their contents graph.
+ *
+ * @param Object	            params
+ *
+ * @return Void
+ */
+function realtime( params ) {
+    const window = this, { dom, HTMLModulesCollection, HTMLExportsCollection } = window.wq;
+    const modules = HTMLModulesCollection.node( window.document );
+    dom.realtime().querySelectorAll( params.templateSelector, ( entry, connectedState ) => {
+        let moduleId = entry.getAttribute( params.attr.moduleid );
+        //validateModuleId( moduleId );
+        if ( !connectedState ) {
+            _( entry ).get( 'moduleRealtimeConn' ).disconnect();
+            modules.delete( moduleId );
+        } else {
+            const moduleRealtimeConn = buildGraph.call( this, entry, params, { parent: window.document } );
+            _( entry ).set( 'moduleRealtimeConn', moduleRealtimeConn );
+            modules.set( moduleId, entry );
         }
-    });
+    }, { each: true } );
+}
 
-    // ----------------------
-    // Define the "templates" and "exports" properties on HTMLTemplateElement.prototype
-    // ----------------------
+/**
+ * Exposes HTML Modules with native APIs.
+ *
+ * @param Object params
+ *
+ * @return Void
+ */
+function expose( params ) {
+    const window = this, { HTMLModulesCollection, HTMLExportsCollection } = window.wq;
+    // Assertions
+    if ( params.api.modules in window.document ) { throw new Error( `document already has a "${ params.api.modules }" property!` ); }
+    if ( params.api.exports in window.HTMLTemplateElement.prototype ) { throw new Error( `The "HTMLTemplateElement" class already has a "${ params.api.exports }" property!` ); }
+    // Definitions
+    Object.defineProperty( window.document, params.api.modules, { get: function() {
+        return HTMLModulesCollection.node( window.document ).expose();
+    } });
+    Object.defineProperty( window.HTMLTemplateElement.prototype, params.api.exports, { get: function() {
+        return HTMLExportsCollection.node( this ).expose();
+    } } );
+}
 
-    if (_meta.get('api.templates') in TemplateElementClass.prototype) {
-        throw new Error('The "HTMLTemplateElement" class already has a "' + _meta.get('api.templates') + '" property!');
-    }
-    Object.defineProperty(TemplateElementClass.prototype, _meta.get('api.templates'), {
-        get: function() {
-            if (_internals(this, 'oohtml').has('queryCallback')) {
-                _internals(this, 'oohtml').get('queryCallback')();
-            }
-            return mapToObject(_internals(this, 'oohtml', 'templates'));
-        }
-    });
-    if (_meta.get('api.exports') in TemplateElementClass.prototype) {
-        throw new Error('The "HTMLTemplateElement" class already has a "' + _meta.get('api.exports') + '" property!');
-    }
-    Object.defineProperty(TemplateElementClass.prototype, _meta.get('api.exports'), {
-        get: function() {
-            if (_internals(this, 'oohtml').has('queryCallback')) {
-                _internals(this, 'oohtml').get('queryCallback')();
-            }
-            return mapToObject(_internals(this, 'oohtml', 'exports'));
-        }
-    });
-
-    const mapToObject = map => {
-        return Object.defineProperties({}, Array.from(map.keys()).reduce((desc, name) => {
-            desc[name] = {get: () => map.get(name)};
-            return desc;
-        }, {}));
-    };
-
-    const validateModuleName = name => {
-        var invalidCharacterMatch;
-        if (invalidCharacterMatch = name.match(/([^a-zA-Z0-9\_\-\@])/)) {
-            console.error(`Invalid character "${invalidCharacterMatch}" in the module name: ${name}.`);
-            return false;
-        }
-        return true;
-    };
-
-    const templatesQuery = query => {
-        var _module = document.createElement('template');
-        // -----------------
-        scopeQuery([document], query, function(host, prop) {
-            var collection = _internals(host, 'oohtml', 'templates');
-            if (arguments.length === 1) return collection;
-            if (prop.startsWith(':')) return _internals(host, 'oohtml', 'exports').get(prop.substr(1));
-            return collection.get(prop);
-        }).forEach($module => {
-            _internals($module, 'oohtml', 'templates').forEach((template, moduleId) => {
-                _internals(_module, 'oohtml', 'templates').set(moduleId, template);
-            });
-            _internals($module, 'oohtml', 'exports').forEach((exports, exportId) => {
-                if (!_internals(_module, 'oohtml', 'exports').has(exportId)) {
-                    _internals(_module, 'oohtml', 'exports').set(exportId, []);
-                }
-                _internals(_module, 'oohtml', 'exports').get(exportId).push(...exports);
-            });
-        });
-        return _module;
-    };
-
-    _arrFrom(document.querySelectorAll(templateSelector)).forEach(async el => {
-        var name = el.getAttribute(_meta.get('attr.moduleid'));
-        if (!el.closest(_meta.get('element.import')) && validateModuleName(name)) {
-            _internals(document, 'oohtml', 'templates').set(name, el);
-            discoverContents(el, el.content, name, 'added', false);
-        }
-    });
-    mutations.onPresenceChange(templateSelector, async (els, presence) => {
-        const eventsObject = { addedTemplates: Object.create(null), removedTemplates: Object.create(null), addedExports: Object.create(null), removedExports: Object.create(null), }; 
-        els.forEach(el => {
-            var name = el.getAttribute(_meta.get('attr.moduleid'));
-            if (el.closest(_meta.get('element.import')) || !validateModuleName(name)) return;
-            if (presence) {
-                _internals(document, 'oohtml', 'templates').set(name, el);
-                discoverContents(el, el.content, name, 'added');
-                eventsObject.addedTemplates[name] = el;
-            } else {
-                if (_internals(document, 'oohtml', 'templates').get(name) === el) {
-                    _internals(document, 'oohtml', 'templates').delete(name);
-                }
-                discoverContents(el, el.content, name, 'removed');
-                eventsObject.removedTemplates[name] = el;
-            }
-        });
-        fireDocumentTemplateEvent('templatemutation', eventsObject, '');
-    });
-
-    // ----------------------
-    // Capture import elements
-    // ----------------------
-
-    mutations.onPresent(_meta.get('element.import'), el => {
-        discoverContents(el, el, '', 'added', false);
-    });
-
-    // ----------------------
-    // Define the "template" property on Element.prototype
-    // ----------------------
-
-    if (_meta.get('api.moduleref') in window.Element.prototype) {
-        throw new Error('The "Element" class already has a "' + _meta.get('api.moduleref') + '" property!');
-    }
-    Object.defineProperty(window.Element.prototype, _meta.get('api.moduleref'), {
-        get: function() {
-            var templateId;
-            if (!_internals(this, 'oohtml').has('module') 
-            && (templateId = this.getAttribute(_meta.get('attr.moduleref')))) {
-                var _module = templatesQuery(templateId);
-                _internals(this, 'oohtml').set('module', _module)
-            }
-            return _internals(this, 'oohtml').get('module');
-        },
-    });
-
-    // ----------------------
-    // Hydrate
-    // ----------------------
-
-    //Object.defineProperty(document, 'templatesQuery', { value: templatesQuery });
-    var templatesReadyState = loadingTemplates.length ? 'loading' : 'indeterminate';
-    Object.defineProperty(document, 'templatesReadyState', { get: () => templatesReadyState });
-    WebQit.DOM.ready.call(WebQit, () => {
-        loadingTemplates.forEach(promise => {
-            promise && promise.catch(error => {
-                console.warn(error);
-            });
-        });
-        return Promise.all(loadingTemplates).then(() => {
-            templatesReadyState = 'complete';
-            document.dispatchEvent(new window.Event('templatesreadystatechange'));
-        });
-    });
+/**
+ * Initializes HTML Modules.
+ * 
+ * @param $params  Object
+ *
+ * @return Void
+ */
+export default function init( $params = {} ) {
+    const window = this, dom = wqDom.call( window );
+    // -------
+    // params
+    const params = dom.meta( 'oohtml' ).copyWithDefaults( $params, {
+        element: { template: '', export: 'export', import: 'import', },
+        attr: { moduleid: 'name', moduleref: 'template', exportid: 'name', exportgroup: 'exportgroup', },
+        api: { modules: 'templates', exports: 'exports',  },
+    } );
+    params.templateSelector = `template${ ( params.element.template ? `[is="${ params.element.template }"]` : '' ) }[ ${ window.CSS.escape( params.attr.moduleid ) }]`;
+    const { HTMLExportsCollection } = classes.call( this, params );
+    // -------
+    // realtime...
+    realtime.call( this, params );
+    // -------
+    // expose?
+    if ( params.expose !== false ) { expose.call( this, params ); }
+    // -------
+    // APIs
+    return { HTMLExportsCollection };
 }
