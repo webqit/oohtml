@@ -4,282 +4,143 @@
  */
 import wqDom from '@webqit/dom';
 import { SubscriptFunction } from '@webqit/subscript';
-import { _internals, _isFunction, _isNumeric } from '@webqit/util/js/index.js';
-import Observable from '../Observable.js';
-
-
-
-
 
 /**
- * Internals shorthand.
+ * @init
  * 
- * @param Any el 
- * @param Array args 
- * 
- * @return Any
+ * @param Object $params
  */
-const _ = ( el, ...args ) => _internals( el, 'oohtml', ...args );
+export default function init( $params = {} ) {
+	const window = this, dom = wqDom.call( window );
+    // -------
+    // params
+    const params = dom.meta( 'oohtml' ).copyWithDefaults( $params, {
+        selectors: { script: 'script[type="subscript"]', },
+        retention: 'retain',
+    } );
+    // -------
+    // realtime?
+    realtime.call( this, params );
+    // -------
+}
 
 /**
- * @Exports
- * 
- * The internal Namespace object
- * within elements and the document object.
+ * Performs realtime capture of elements and builds their relationships.
+ *
+ * @param Object params
+ *
+ * @return Void
  */
-function classes( params ) {
-	const window = this, { Observer } = window.wq;
-    // --------------------
-	class SubscriptElement {
-
-        /**
-         * @params
-         */
-        static get subscriptParams() { return { ...( params.subscriptParams || {} ), globalsAutoObserve: [ 'document' ] }; }
-        static get compilerParams() { return { ...( params.compilerParams || {} ) }; }
-        static get runtimeParams() { return { ...( params.runtimeParams || {} ) }; }
-
-        /**
-         * Create a new SubscriptElement class that extends the given base class.
-         * 
-         * @param Class   BaseElement
-         * 
-         * @return Class
-         */
-        static extend( BaseElement ) {
-            class ExtendedSubscriptElement extends BaseElement {
-                static get subscriptMethods() { return []; }
-                constructor() {
-                    super();
-                    this.constructor.subscriptMethods.forEach( methodName => {
-                        if ( !this[ methodName ] ) { throw new Error( `[static get subscriptMethods()]: "${ methodName }" is not a method.` ); }
-                        if ( methodName === 'constructor' ) { throw new Error( `Class constructors cannot be subscript methods.` ); }
-                        this[ methodName ] = SubscriptElement.addMethod( this, this[ methodName ] );
-                    } );
-                }
-                connectedCallback() {
-                    // Often needed on second-time addition to the DOM, as removal from DOM would have disconnected observation.
-                    // Otherwise, the hook - collection.observe( 'set', '*' ) below - should suffice
-                    connectedCallback.call( this );
-                    if ( super.connectedCallback ) super.connectedCallback();
-                }
-                disconnectedCallback() {
-                    disconnectedCallback.call( this );
-                    if ( super.disconnectedCallback ) super.disconnectedCallback();
-                }
-            }
-            return ExtendedSubscriptElement;
+function realtime( params ) {
+	const window = this, { dom } = window.wq;
+    // ---
+    window.wq.transformCache = new Map;
+    window.wq.compileCache = [ new Map, new Map, ];
+    // ---
+    const handled = () => {};
+	dom.Realtime.intercept( window.document, 'script[scoped],script[contract]', record => {
+        record.incomingNodes.forEach( script => {
+            // ---
+            if ( 'contract' in script ) return handled( script );
+            Object.defineProperty( script, 'contract', { value: script.hasAttribute( 'contract' ) } ); 
+            if ( 'scoped' in script ) return handled( script );
+            Object.defineProperty( script, 'scoped', { value: script.hasAttribute( 'scoped' ) } ); 
+            // ---
+            const thisContext = script.scoped ? record.target : ( script.type === 'module' ? undefined : window );
+            compile.call( this, script, thisContext, params );
+        } );
+        record.outgoingNodes.forEach( script => {
+        } );
+	}, { subtree: true, on: 'connected' } );
+    // ---
+    window.wq.exec = ( execHash ) => {
+        const exec = fromHash( execHash );
+        if ( !exec ) throw new Error( `Argument must be a valid exec hash.` );
+        const { script, compiledScript, context } = exec;
+        switch ( params.retention ) {
+            case 'dispose':
+                script.remove();
+                break;
+            case 'hidden':
+                script.textContent = `"hidden"`;
+                break;
+            default:
+                script.textContent = compiledScript.function.originalSource;
         }
+        execute.call( this, compiledScript, context );
+    };
+}
 
-        /**
-         * Inspects an element instance and returns all Subscript runtimes
-         * - runtimes of both methods and scripts.
-         * 
-         * @param Element   element
-         * 
-         * @return Map
-         */
-        static inspect( element ) {
-            let collection = _( element ).get( 'runtimes' );
-            if ( !collection ) {
-                collection = new Observable;
-                collection.observe( 'set', '*', value => {
-                    // Validate...
-                    if ( !_isFunction( value ) || !_isFunction( value.thread ) ) { throw new Error( `Values must be a SubscriptFunction.` ); }
-                    // Start observing?
-                    if ( collection.size === 1 ) { connectedCallback.call( element ); }
-                } );
-                collection.observe( 'delete', '*', () => {
-                    // Stop observing?
-                    if ( !collection.size ) { disconnectedCallback.call( element ); }
-                } );
-                _( element ).set( 'runtimes', collection );
-            }
-            return collection;
-        }
-
-        /**
-         * Executes a script in the context of the given element.
-         * 
-         * @param Element   element
-         * @param <script>|String   script
-         * 
-         * @return Function
-         */
-        static compile( element, script ) {
-            const source = ( typeof script === 'string' ? script : ( script.textContent || '' ) ).trim();
-            return integrateRuntime( element, SubscriptFunction.call( element, source, { compilerParams: this.compilerParams, runtimeParams: this.runtimeParams } ) );
-        }
-
-        /**
-         * Transforms a function to a method on the given element.
-         * 
-         * @param Element   element
-         * @param Function   script
-         * 
-         * @return Function
-         */
-        static addMethod( element, method ) {
-            const subscriptFunction = SubscriptFunction.clone( method, element, this.compilerParams, this.runtimeParams );
-            return integrateRuntime( element, subscriptFunction );
-        }
-
-    }
-    function integrateRuntime( element, subscriptFunction ) {
-        const collection = SubscriptElement.inspect( element );
-        let id = subscriptFunction.name;
-        if ( !id ) { id = [ ...collection.keys() ].filter( k => _isNumeric( k ) ).length; }
-        collection.set( id, subscriptFunction );
-        return subscriptFunction;
-    }
-    function connectedCallback() {
-        if ( !Observer || _( this ).get( 'realtime' ) ) return;
-        const collection = SubscriptElement.inspect( this );
-        const signals = ( mutations, evt, namespace = [] ) => {
-            collection.forEach( runtime => runtime.thread( ...mutations.map( mu => namespace.concat( mu.path ) ) ) );
+// ------------------
+// Script runner
+export function execute( script, context ) {
+    if ( !script.function ) throw new Error( `Input script must already be compiled!` );
+    script.function.call( context );
+    const window = this, { dom } = window.wq;
+    if ( !( context instanceof window.EventTarget ) ) return;
+    let changeHandler;
+    if ( script.contract ) {
+        changeHandler = e => {
         };
-        ( SubscriptElement.subscriptParams.globalsAutoObserve || [] ).forEach( identifier => {
-            Observer.observe( window[ identifier ], mutations => signals( mutations, null, [ identifier ] ), { 
-                subtree: true, diff: true, tags: [ this, 'subscript-element', identifier ], unique: true
-            } );
-        } );
-        Observer.observe( this, mutations => signals( mutations, null, [ 'this' ] ), { 
-            subtree: true, diff: true, tags: [ this, 'subscript-element', 'this' ], unique: true
-        } );
-        _( this ).set( 'realtime', true );
+        context.addEventListener( 'namespacechange', changeHandler );
+        context.addEventListener( 'statechange', changeHandler );
     }
-    function disconnectedCallback() {
-        if ( !Observer || !_( this ).get( 'realtime' ) ) return;
-        ( SubscriptElement.subscriptParams.globalsAutoObserve || [] ).forEach( identifier => {
-            Observer.unobserve( window[ identifier ], null, null, { 
-                subtree: true, tags: [ this, 'subscript-element', identifier ]
-            } );
-        } );
-        Observer.unobserve( this, null, null, { 
-            subtree: true, tags: [ this, 'subscript-element', 'this' ]
-        } );
-        _( this ).set( 'realtime', false );
-    }
-    // --------------------
-	window.wq.SubscriptElement = SubscriptElement;
-	return { SubscriptElement };
+    dom.Realtime.intercept( window.document, context, () => {
+        if ( script.contract ) {
+            context.removeEventListener( 'namespacechange', changeHandler );
+            context.removeEventListener( 'statechange', changeHandler );
+        }
+        context.dispatchEvent( new window.CustomEvent( 'beforeremove' ) );
+    }, { subtree: true, on: 'disconnected' } );
+    return script;
 }
 
 // ------------------
-// Token JavaScript source
-export function tokenize( source, _callback ) {
-    const lastI = source.length - 1;
-    return [ ...source ].reduce( ( [ splits, meta, skip ], char, i ) => {
-        
-        if ( skip ) {
-            splits[ 0 ] += char;
-            return [ splits, meta, --skip ];
-        }
-        let callbackReturn;
-
-        if ( meta.openQuote || meta.openComment ) {
-            if ( char === meta.openQuote ) {
-                meta.openQuote = null;
-                callbackReturn = _callback( splits, 'end-quote', char, meta, i, i === lastI );
-            } else if ( meta.openQuote ) {
-                callbackReturn = _callback( splits, 'ongoing-quote', char, meta, i, i === lastI );
-            } else if ( meta.openComment ) {
-                if ( ( meta.openComment === '//' && char === `\n` ) || ( meta.openComment === '/*' && splits[ 0 ].substr( -1 ) === '*' && char === '/' ) ) {
-                    meta.openComment = null;
-                    callbackReturn = _callback( splits, 'end-comment', char, meta, i, i === lastI );
-                }
+// JAVASCRIPT::[SCOPED|CONTRACT]
+export function compile( script, context, params = {} ) {
+    const wq = this.wq, cache = wq.compileCache[ script.contract ? 0 : 1 ];
+    const sourceHash = toHash( script.textContent );
+    // Script instances are parsed only once
+    let source = script.textContent, compiledScript;
+    if ( !( compiledScript = cache.get( sourceHash ) ) ) {
+        // Are there "import" (and "await") statements? Then, we need to rewrite that
+        let imports = [], meta = {};
+        let targetKeywords = [];
+        if ( !script.contract ) targetKeywords.push( 'await ' );
+        if ( script.type === 'module' ) targetKeywords.push( 'import ' );
+        if ( targetKeywords.length && ( new RegExp( targetKeywords.join( '|' ) ) ).test( source ) ) {
+            [ imports, source, meta ] = parse( source );
+            if ( imports.length ) {
+                source = `\n\t${ rewriteImportStmts( imports ).join( `\n\t` ) }\n\t${ source }\n`;
             }
-            if ( callbackReturn !== false ) {
-                splits[ 0 ] += char;
-            }
-            return [ splits, meta, typeof callbackReturn === 'number' ? callbackReturn : skip ];
         }
-
-        let enclosure;
-        if ( enclosure = [ '()', '{}', '[]' ].filter( pair => char === pair[ 0 ] )[ 0 ] ) {
-            callbackReturn = _callback( splits, 'start-enclosure', char, meta, i, i === lastI );
-            meta.openEnclosures.unshift( enclosure );
-        } else if ( meta.openEnclosures.length && char === meta.openEnclosures[ 0 ][ 1 ] ) {
-            meta.openEnclosures.shift();
-            callbackReturn = _callback( splits, 'end-enclosure', char, meta, i, i === lastI );
-        } else if ( [ '"', "'", "`" ].includes( char ) ) {
-            callbackReturn = _callback( splits, 'start-quote', char, meta, i, i === lastI );
-            meta.openQuote = char;
-        } else if ( !meta.openComment && [ '/*', '//' ].includes( source.substring( i, 2 ) ) ) {
-            callbackReturn = _callback( splits, 'start-comment', char, meta, i, i === lastI );
-            meta.openComment = source.substring( i, 2 );
+        // Let's obtain a material functions
+        let _Function;
+        if ( script.contract ) {
+            _Function = SubscriptFunction( source, { ...params, module: script.type === 'module' } );
         } else {
-            callbackReturn = _callback( splits, 'char', char, meta, i, i === lastI );
+            const isAsync = meta.topLevelAwait || imports.length;
+            const _FunctionConstructor = isAsync ? Object.getPrototypeOf( async function() {} ).constructor : Function;
+            _Function = params.runtimeParams?.compileFunction 
+                ? params.runtimeParams.compileFunction( source )
+                : new _FunctionConstructor( source );
+            Object.defineProperty( _Function, 'originalSource', { configurable: true, value: script.textContent } );
         }
-
-        if ( callbackReturn !== false ) {
-            splits[ 0 ] += char;
-        }
-        return [ splits, meta, typeof callbackReturn === 'number' ? callbackReturn : skip ];
-
-    }, [ [ '' ], { openEnclosures: [], }, 0 ] );
-}
-
-// ------------------
-// Parse import statements
-function parseImportStmt( str ) {
-    const getUrl = str => {
-        let quo = /^[`'"]/.exec( str );
-        return quo && str.substring( 1, str.lastIndexOf( quo[ 0 ] ) );
+        // Save material function to compile cache
+        compiledScript = Object.defineProperty( script.cloneNode(), 'function', { value: _Function } );
+        script.scoped && Object.defineProperty( compiledScript, 'scoped', Object.getOwnPropertyDescriptor( script, 'scoped') );
+        script.contract && Object.defineProperty( compiledScript, 'contract', Object.getOwnPropertyDescriptor( script, 'contract') );
+        cache.set( sourceHash, compiledScript );
     }
-    let _import = { items: [ { id: '' } ] }, _str = str.replace( 'import', '' ).trim();
-    if ( !( _import.url = getUrl( _str ) ) ) {
-        tokenize( _str, ( splits, event, char, meta, i, isLastChar ) => {
-            if ( [ 'start-quote', 'ongoing-quote', 'end-quote', 'char' ].includes( event ) ) {
-                if ( _import.url ) return;
-                if ( !meta.openQuote ) {
-                    let remainder = _str.substring( i );
-                    if ( char === ',' ) {
-                        _import.items.unshift( { id: '' } );
-                        return;
-                    }
-                    if ( remainder.startsWith( ' as ' ) ) {
-                        _import.items[ 0 ].alias = '';
-                        return 3;
-                    }
-                    if ( remainder.startsWith( ' from ' ) ) {
-                        _import.url = getUrl( remainder.replace( 'from', '' ).trim() );
-                        return remainder.length;
-                    }
-                }
-                if ( 'alias' in _import.items[ 0 ] ) {
-                    _import.items[ 0 ].alias += char;
-                } else {
-                    _import.items[ 0 ].id += char;
-                    if ( meta.openEnclosures.length ) {
-                        _import.items[ 0 ].enclosed = true;
-                    }
-                }
-            }
-        } );
-    }
-    _import.items = _import.items
-        .map( item => ( {
-            id: item.id && !item.alias && !item.enclosed ? 'default' : item.id.trim(),
-            alias: item.alias ? item.alias.trim() : item.id.trim(),
-        } ) )
-        .filter( item => item.id )
-        .reverse();
-    return _import;
+    const execHash = toHash( { script, compiledScript, context } );
+    script.textContent = `wq.exec('${ execHash }');`;
 }
- 
-
-
-
-
-
-
 
 // ------------------
 // Match import statements
 // and detect top-level await
-export function parse( source, parseImports = false ) {
-    const [ tokens, meta ] = tokenize( source, ( splits, event, char, meta, i, isLastChar ) => {
+export function parse( source ) {
+    const [ tokens, meta ] = tokenize( source, ( $tokens, event, char, meta, i, isLastChar ) => {
         
         if ( event === 'start-enclosure' && char === '{' && !meta.openAsync?.type && meta.openEnclosures.length === meta.openAsync?.scopeId ) {
             meta.openAsync.type = 'block';
@@ -294,19 +155,19 @@ export function parse( source, parseImports = false ) {
             if ( meta.openImport === 'closing' && (
                 char === ';'/* explicit */ || ![ ' ', `\n` ].includes( char )/* implicit */ || isLastChar
             ) ) {
-                if ( char === ';' || i === lastI ) {
-                    splits[ 0 ] += char;
-                    splits.unshift( '' );
-                } else { splits.unshift( char ); }
+                if ( char === ';' || isLastChar ) {
+                    $tokens[ 0 ] += char;
+                    $tokens.unshift( '' );
+                } else { $tokens.unshift( char ); }
                 meta.openImport = null;
                 return false;
             }
 
             let remainder = source.substring( i - 1 );
 
-            if ( !meta.openImport && /^[\W]?import /.test( remainder ) ) {
+            if ( !meta.openImport && /^[\W]?import[ ]*[^\(]/.test( remainder ) ) {
                 meta.openImport = 'starting';
-                splits.unshift( '' );
+                $tokens.unshift( '' );
                 return 6;
             }
             if ( meta.openImport === 'starting' && /^[\W]?from /.test( remainder ) ) {
@@ -338,8 +199,7 @@ export function parse( source, parseImports = false ) {
     let imports = [], body = '', _str;
     for ( const str of tokens.reverse() ) {
         if ( ( _str = str.trim() ).startsWith( 'import ' ) ) {
-            if ( parseImports ) { imports.push( parseImportStmt( str ) ); }
-            else { imports.push( str ); }
+            imports.push( str );
         } else if ( _str ) { body += str; }
     }
 
@@ -347,121 +207,157 @@ export function parse( source, parseImports = false ) {
 }
 
 // ------------------
+// Rewrite import statements
+export function rewriteImportStmts( imports ) {
+    const importSpecs = [], importPromises = [];
+    imports.forEach( ( $import, i ) => {
+        $import = parseImportStmt( $import );
+        // Identify whole imports and individual imports
+        const [ wholeImport, individualImports ] = $import.items.reduce( ( [ whole, parts ], item ) => {
+            return item.id === '*' ? [ item.alias, parts ] : [ whole, parts.concat( item ) ];
+        }, [ null, [] ] );
+        if ( wholeImport ) {
+            // const main = await import("url");
+            importSpecs.push( `const ${ wholeImport } = __$imports$__[${ i }];` );
+        }
+        if ( individualImports.length ) {
+            // const { aa: bb, cc } = await import("url");
+            const individualImportsSpec = individualImports.map( item => `${ item.id }${ item.id !== item.alias ? `: ${ item.alias }` : '' }` ).join( ', ' );
+            importSpecs.push( `const { ${ individualImportsSpec } } = __$imports$__[${ i }];` );
+        }
+        importPromises.push( `import("${ $import.url }")` );
+    } );
+    return [
+        `\n\tconst __$imports$__ = await Promise.all([\n\t\t${ importPromises.join( `,\n\t\t` ) }\n\t]);`,
+        importSpecs.join( `\n\t` ),
+    ];
+}
+
+// ------------------
+// Parse import statements
+export function parseImportStmt( str ) {
+    const getUrl = str => {
+        let quo = /^[`'"]/.exec( str );
+        return quo && str.substring( 1, str.lastIndexOf( quo[ 0 ] ) );
+    }
+    let $import = { items: [ { id: '' } ] }, _str = str.replace( 'import', '' ).trim();
+    if ( !( $import.url = getUrl( _str ) ) ) {
+        tokenize( _str, ( $tokens, event, char, meta, i, isLastChar ) => {
+            if ( [ 'start-quote', 'ongoing-quote', 'end-quote', 'char' ].includes( event ) ) {
+                if ( $import.url ) return;
+                if ( !meta.openQuote ) {
+                    let remainder = _str.substring( i );
+                    if ( char === ',' ) {
+                        $import.items.unshift( { id: '' } );
+                        return;
+                    }
+                    if ( remainder.startsWith( ' as ' ) ) {
+                        $import.items[ 0 ].alias = '';
+                        return 3;
+                    }
+                    if ( remainder.startsWith( ' from ' ) ) {
+                        $import.url = getUrl( remainder.replace( 'from', '' ).trim() );
+                        return remainder.length;
+                    }
+                }
+                if ( 'alias' in $import.items[ 0 ] ) {
+                    $import.items[ 0 ].alias += char;
+                } else {
+                    $import.items[ 0 ].id += char;
+                    if ( meta.openEnclosures.length ) {
+                        $import.items[ 0 ].enclosed = true;
+                    }
+                }
+            }
+        } );
+    }
+    $import.items = $import.items
+        .map( item => ( {
+            id: item.id && !item.alias && !item.enclosed ? 'default' : item.id.trim(),
+            alias: item.alias ? item.alias.trim() : item.id.trim(),
+        } ) )
+        .filter( item => item.id )
+        .reverse();
+    return $import;
+}
+
+// ------------------
+// Token JavaScript source
+export function tokenize( source, _callback ) {
+    const lastI = source.length - 1;
+    return [ ...source ].reduce( ( [ $tokens, meta, skip ], char, i ) => {
+        
+        if ( skip ) {
+            $tokens[ 0 ] += char;
+            return [ $tokens, meta, --skip ];
+        }
+        let callbackReturn;
+
+        if ( meta.openQuote || meta.openComment ) {
+            if ( char === meta.openQuote ) {
+                meta.openQuote = null;
+                callbackReturn = _callback( $tokens, 'end-quote', char, meta, i, i === lastI );
+            } else if ( meta.openQuote ) {
+                callbackReturn = _callback( $tokens, 'ongoing-quote', char, meta, i, i === lastI );
+            } else if ( meta.openComment ) {
+                if ( ( meta.openComment === '//' && char === `\n` ) || ( meta.openComment === '/*' && $tokens[ 0 ].substr( -1 ) === '*' && char === '/' ) ) {
+                    meta.openComment = null;
+                    callbackReturn = _callback( $tokens, 'end-comment', char, meta, i, i === lastI );
+                }
+            }
+            if ( callbackReturn !== false ) {
+                $tokens[ 0 ] += char;
+            }
+            return [ $tokens, meta, typeof callbackReturn === 'number' ? callbackReturn : skip ];
+        }
+
+        let enclosure;
+        if ( enclosure = [ '()', '{}', '[]' ].filter( pair => char === pair[ 0 ] )[ 0 ] ) {
+            callbackReturn = _callback( $tokens, 'start-enclosure', char, meta, i, i === lastI );
+            meta.openEnclosures.unshift( enclosure );
+        } else if ( meta.openEnclosures.length && char === meta.openEnclosures[ 0 ][ 1 ] ) {
+            meta.openEnclosures.shift();
+            callbackReturn = _callback( $tokens, 'end-enclosure', char, meta, i, i === lastI );
+        } else if ( [ '"', "'", "`" ].includes( char ) ) {
+            callbackReturn = _callback( $tokens, 'start-quote', char, meta, i, i === lastI );
+            meta.openQuote = char;
+        } else if ( !meta.openComment && [ '/*', '//' ].includes( source.substr( i, 2 ) ) ) {
+            callbackReturn = _callback( $tokens, 'start-comment', char, meta, i, i === lastI );
+            meta.openComment = source.substr( i, 2 );
+        } else {
+            callbackReturn = _callback( $tokens, 'char', char, meta, i, i === lastI );
+        }
+
+        if ( callbackReturn !== false ) {
+            $tokens[ 0 ] += char;
+        }
+        return [ $tokens, meta, typeof callbackReturn === 'number' ? callbackReturn : skip ];
+
+    }, [ [ '' ], { openEnclosures: [], }, 0 ] );
+}
+
+// ------------------
 // Unique ID generator
+const hashTable = new Map;
 const uniqId = () => (0|Math.random()*9e6).toString(36);
 
 // ------------------
-// JAVASCRIPT::[SCOPED]
-export function handleScopedJS( script, shared = true ) {
-    const uiid = uniqId();
-    let imports = [], body = script.textContent, meta = {};
-    if ( /(import |await )/.test( body ) ) {
-        [ imports, body, meta ] = parse( body, shared );
+// Hash of anything generator
+export function toHash( val ) {
+    let hash;
+    if ( !( hash = hashTable.get( val ) ) ) {
+        hash = uniqId();
+        hashTable.set( val, hash );
     }
-    let func;
-    if ( shared && imports.length ) {
-        imports = imports.reduce( ( _imports, _import ) => {
-            const importSource = `await import("${ _import.url }")`;
-            const [ main, others ] = _import.items.reduce( ( [ main, others ], item ) => {
-                return item.id === '*' ? [ item.alias, others ] : [ main, others.concat( item ) ];
-            }, [ null, [] ] );
-            if ( main ) {
-                // const main = await import("url");
-                _imports = _imports.concat( `const ${ main } = ${ importSource };` );
-            }
-            if ( others.length ) {
-                // const { aa: bb, cc } = main | await import("url");
-                const importSpec = others.map( item => `${ item.id }${ item.id !== item.alias ? `: ${ item.alias }` : '' }` ).join( ', ' );
-                const _importSource = `${ main ? main : importSource };`;
-                _imports = _imports.concat( `const { ${ importSpec } } = ${ _importSource }` );
-            }
-            if ( !_import.items.length ) {
-                _imports = _imports.concat( `${ importSource };` );
-            }
-            return _imports;
-        }, [] );
-        func = `${ meta.topLevelAwait || imports.length ? 'async ' : ''}function() {
-            ${ imports.join( `\n\t` ) }
-            ${ body }
-        \n}`;
-        //script.parentNode?.setAttribute( `scoped-js`, uiid );
-    } else {
-        func = `${ imports.join( `\n\t` ) }\n
-        ${ meta.topLevelAwait ? 'async ' : ''}function() {
-            ${ body }
-        \n}`;
-        //script.toggleAttribute( `scoped-js-${ uiid }`, true );
-    }
-    return func;
+    return hash;
 }
 
 // ------------------
-// JAVASCRIPT::[CONTRACT]
-function handleContractJS( thisContext, node ) {
-    const compiled = SubscriptElement.compile( thisContext, node );
-    compiled(); // Auto-run
-}
-
-/**
- * Performs realtime capture of elements and builds their relationships.
- *
- * @param Object params
- *
- * @return Void
- */
-function realtime( params ) {
-	const window = this, { dom, SubscriptElement } = window.wq;
-    const handled = () => {};
-	dom.Realtime.intercept( window.document, 'script[scoped],script[contract]', record => {
-        record.incomingNodes.forEach( node => {
-            // ----------
-            if ( 'contract' in node ) return handled( node );
-            Object.defineProperty( node, 'contract', { value: node.hasAttribute( 'contract' ) } ); 
-            if ( 'scoped' in node ) return handled( node );
-            Object.defineProperty( node, 'scoped', { value: node.hasAttribute( 'scoped' ) } ); 
-            // ----------
-            const thisContext = node.scoped ? node.parentNode : ( node.type === 'module' ? undefined : window );
-            if ( node.contract ) return handleContractJS( thisContext, node );
-            if ( node.scoped ) return handleScopedJS( thisContext, node );
-
-        } );
-        record.outgoingNodes.forEach( node => {
-        } );
-
-        let scriptMeta = _( script ).get( 'meta' );
-		if ( connectedState ) {
-            if ( scriptMeta ) return;
-            const context = script.parentNode;
-            const compiled = SubscriptElement.compile( context, script );
-            _( script ).set( 'meta', { context, compiled } );
-            compiled(); // Auto-run
-		} else if ( scriptMeta ) {
-            const collection = SubscriptElement.inspect( scriptMeta.context );
-            collection.forEach( ( entry, key ) => {
-                if ( entry === scriptMeta.compiled ) { collection.delete( key ); }
-            } );
-            _( script ).delete( 'meta' );
-		}
-	}, { each: true } );
-}
-
-/**
- * @init
- * 
- * @param Object $params
- */
-export default function init( $params = {} ) {
-	const window = this, dom = wqDom.call( window );
-    // -------
-    // params
-    const params = dom.meta( 'oohtml' ).copyWithDefaults( $params, {
-        selectors: { script: 'script[type="subscript"]', },
+// Value of any hash
+export function fromHash( hash ) {
+    let val;
+    hashTable.forEach( ( _hash, _val ) => {
+        if ( _hash === hash ) val = _val;
     } );
-	const { SubscriptElement } = classes.call( this, params );
-    // -------
-    // realtime?
-    realtime.call( this, params );
-    // -------
-    // APIs
-	return { SubscriptElement };
+    return val;
 }

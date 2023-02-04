@@ -3,9 +3,10 @@
  * @imports
  */
 import { _internals } from '@webqit/util/js/index.js';
-import { compileFunction } from 'vm';
+import { createContext, compileFunction, runInContext } from 'vm';
 import jsdom from 'jsdom';
 import init, { Observer } from '../src/index.js';
+import wqDom from '@webqit/dom';
 
 /**
  * -------
@@ -24,37 +25,64 @@ export function delay( duration, callback = undefined ) {
 }
 
 export function createDocument( head = '', body = '' ) {
+    // -------
+    const skeletonDoc = `
+    <!DOCTYPE html>
+    <html>
+        <head>${head}</head>
+        <body>${body}</body>
+    </html>`;
+    // --------
     // TODO: Proper indentation for pretty-printing
-    const instance  = new jsdom.JSDOM(`
-    <!DOCTYPE html><html><head>
-    ${ head }
-    </head><body template="temp0/temp1/temp2">
-    ${ body }
-    </body></html>
-    `);
+    const instance  = new jsdom.JSDOM( skeletonDoc );
     init.call( instance.window );
     return instance.window;
 }
 
-export function createDocumentForSubscript( head = '', body = '' ) {
-    // TODO: Proper indentation for pretty-printing
-    const instance  = new jsdom.JSDOM(`
-    <!DOCTYPE html><html><head>
-    ${ head }
-    </head><body>
-    ${ body }
-    </body></html>
-    `,
-    { runScripts: 'dangerously' } );
-    const vmContext = instance.getInternalVMContext();
-    const subscriptParams = { runtimeParams: {
-        compileFunction: ( code, parameters ) => compileFunction( code, parameters, {
-            parsingContext: vmContext,
-        } ),
-    } };
-    init.call( instance.window, { Subscript: subscriptParams } );
+export function createDocumentForScopedJS( body = '', head = '', callback = null, params = {} ) {
+    // -------
+    const skeletonDoc = `
+    <!DOCTYPE html>
+    <html>
+        <head>${head}</head>
+        <body>${body}</body>
+    </html>`;
+    // --------
+    const instance  = new jsdom.JSDOM( skeletonDoc, {
+        url: 'http://localhost',
+        ...params,
+        beforeParse( window ) {
+            window.testRecords = [];
+            createContext( window );
+            // -----------------
+            // Running advanced scripts
+            const subscriptParams = {
+                runtimeParams: {
+                    compileFunction: ( code, parameters ) => compileFunction( code, parameters, {
+                        parsingContext: window,
+                    } ),
+                }
+            };
+            init.call( window, { ScopedJS: subscriptParams } );
+            // -----------------
+            // Running basic scripts
+            const dom = wqDom.call( window );
+            if ( params.runScripts !== 'dangerously' ) {
+                dom.Realtime.observe( window.document, 'script', record => {
+                    record.addedNodes.forEach( script => {
+                        //console.log( '-----------------------------------------', script.textContent );
+                        runInContext( script.textContent, window );
+                    } );
+                }, { subtree: true } );
+            }
+            // -----------------
+            if ( callback ) callback( window, window.wq.dom );
+        }
+    } );
+    // --------
     return instance.window;
-}
+};
+
 
 export function mockRemoteFetch( window, contents, delay = 1000 ) {
     window.fetch = url => {
