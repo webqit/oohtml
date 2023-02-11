@@ -25,58 +25,30 @@ import Observable from '../Observable.js';
 const _ = ( el, ...args ) => _internals( el, 'oohtml', ...args );
 
 /**
- * @Exports
+ * @init
  * 
- * The internal Namespace object
- * within elements and the document object.
+ * @param Object $params
  */
-function classes( params ) {
-	const window = this;
-    // --------------------
-	class HTMLNamespaceCollection extends Observable {
-		set( key, value ) {
-			if ( !( 'innerHTML' in value )/* rough way to check for elements */ ) throw new Error( `Value for namespace entry "${ key }" must be an Element.` );
-			return super.set( key, value );
-		}
-		expose() { return this; }
-        query( expr, returnLine, params = {}, traps = {} ) {
-			const context = this.context;
-            if ( !context || ( context !== window.document && !( context instanceof window.Element ) ) ) {
-                throw new Error( `HTMLNamespaceCollection.query() expects an element or the document object.` );
-            }
-            return objectQuery( context, expr, returnLine, {
-                // Gets a module object
-                get: ( context, key ) => HTMLNamespaceCollection.node( context ).get( key ),
-                // Gets all module keys
-                keys: context => HTMLNamespaceCollection.node( context ).keyNames(),
-                // Subscribes to changes
-                subscribe: ( context, key, callback ) => HTMLNamespaceCollection.node( context ).observe( [ 'set', 'delete' ], key, callback ),
-                ...traps,
-            }, params );
-        }
-		static node( context ) {
-			if ( !_( context ).has( 'namespace' ) ) {
-				const namespace = new this;
-                Object.defineProperty( namespace, 'context', { value: context } );
-				namespace.observe( 'get', key => {
-					if ( namespace.has( key ) ) return;
-					const node = _arrFrom( context.querySelectorAll( `[${ window.CSS.escape( params.attr.id ) }="${ key }"]` ) ).filter( node => {
-						const ownerRoot = node.parentNode.closest( params.namespaceSelector );
-						if ( context === window.document ) {
-							// Only IDs without a scope actually belong to the document scope
-							return !ownerRoot;
-						}
-						return ownerRoot === context;
-					} )[ 0 ];
-					if ( node ) namespace.set( key, node );
-				} );
-				_( context ).set( 'namespace', namespace );
-			}
-			return _( context ).get( 'namespace' );
-		}
-	}
-    // --------------------
-	window.wq.HTMLNamespaceCollection = HTMLNamespaceCollection;
+export default function init( $params = {} ) {
+	const window = this, dom = wqDom.call( window );
+    // -------
+	// params
+    const params = dom.meta( 'oohtml' ).copyWithDefaults( $params, {
+		attr: { namespace: 'namespace',  id: 'id', },
+        api: { namespace: 'namespace', },
+		eagermode: true,
+    } );
+	params.idSelector = `[${ window.CSS.escape( params.attr.id ) }]`;
+	params.namespaceSelector = `[${ window.CSS.escape( params.attr.namespace ) }]`;
+	const { HTMLNamespaceCollection } = classes.call( this, params );
+    // -------
+    // realtime...
+    realtime.call( this, params );
+    // -------
+    // expose?
+    if ( params.expose !== false ) { expose.call( this, params ); }
+    // -------
+	// APIs
 	return { HTMLNamespaceCollection };
 }
 
@@ -96,12 +68,12 @@ function realtime( params ) {
 		const namespace = HTMLNamespaceCollection.node( ownerRoot );
 		if ( connectedState ) {
 			if ( namespace.get( identifier ) !== entry ) {
-				namespace.set( identifier, entry );
 				_( entry ).set( 'ownerNamespace', ownerRoot );
+				namespace.set( identifier, entry );
 			}
 		} else if ( namespace.get( identifier ) === entry ) {
-			namespace.delete( identifier );
 			_( entry ).delete( 'ownerNamespace' );
+			namespace.delete( identifier );
 		}
 	}, { each: true } );
 }
@@ -128,29 +100,57 @@ function expose( params ) {
 }
 
 /**
- * @init
+ * @Exports
  * 
- * @param Object $params
+ * The internal Namespace object
+ * within elements and the document object.
  */
-export default function init( $params = {} ) {
-	const window = this, dom = wqDom.call( window );
-    // -------
-	// params
-    const params = dom.meta( 'oohtml' ).copyWithDefaults( $params, {
-		attr: { namespace: 'namespace',  id: 'id', },
-        api: { namespace: 'namespace', },
-		eagermode: true,
-    } );
-	params.idSelector = `[${ window.CSS.escape( params.attr.id ) }]`;
-	params.namespaceSelector = `[${ window.CSS.escape( params.attr.namespace ) }]`;
-	const { HTMLNamespaceCollection } = classes.call( this, params );
-    // -------
-    // realtime...
-    realtime.call( this, params );
-    // -------
-    // expose?
-    if ( params.expose !== false ) { expose.call( this, params ); }
-    // -------
-	// APIs
+function classes( params ) {
+	const window = this;
+    // --------------------
+	class HTMLNamespaceCollection extends Observable {
+		static node( context ) {
+			if ( !_( context ).has( 'namespace' ) ) {
+				const namespace = new this;
+                Object.defineProperty( namespace, 'context', { value: context } );
+				namespace.observe( 'get', key => {
+					if ( namespace.has( key ) ) return;
+					const node = _arrFrom( context.querySelectorAll( `[${ window.CSS.escape( params.attr.id ) }="${ key }"]` ) ).filter( node => {
+						const ownerRoot = node.parentNode.closest( params.namespaceSelector );
+						if ( context === window.document ) {
+							// Only IDs without a scope actually belong to the document scope
+							return !ownerRoot;
+						}
+						return ownerRoot === context;
+					} )[ 0 ];
+					if ( node ) namespace.set( key, node );
+				} );
+				_( context ).set( 'namespace', namespace );
+			}
+			return _( context ).get( 'namespace' );
+		}
+        query( expr, returnLine, params = {}, traps = {} ) {
+			const context = this.context;
+            if ( !context || ( context !== window.document && !( context instanceof window.Element ) ) ) {
+                throw new Error( `HTMLNamespaceCollection.query() expects an element or the document object.` );
+            }
+            return objectQuery( context, expr, returnLine, {
+                // Gets a module object
+                get: ( context, key ) => HTMLNamespaceCollection.node( context ).get( key ),
+                // Gets all module keys
+                keys: context => HTMLNamespaceCollection.node( context ).keyNames(),
+                // Subscribes to changes
+                subscribe: ( context, key, callback ) => HTMLNamespaceCollection.node( context ).observe( [ 'set', 'delete' ], key, callback ),
+                ...traps,
+            }, params );
+        }
+		set( key, value ) {
+			if ( !( 'innerHTML' in value )/* rough way to check for elements */ ) throw new Error( `Value for namespace entry "${ key }" must be an Element.` );
+			return super.set( key, value );
+		}
+		expose() { return this; }
+	}
+    // --------------------
+	window.wq.HTMLNamespaceCollection = HTMLNamespaceCollection;
 	return { HTMLNamespaceCollection };
 }

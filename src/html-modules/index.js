@@ -25,59 +25,56 @@ import Observable from '../Observable.js';
 const _ = ( el, ...args ) => _internals( el, 'oohtml', ...args );
 
 /**
- * @HTMLExportsCollection
+ * Initializes HTML Modules.
  * 
- * The internal HTMLExportsCollection object
- * within <template> elements and the document object.
+ * @param $params  Object
+ *
+ * @return Void
  */
-function classes( params ) {
-    const window = this;
-    // --------------------
-    class HTMLExportsCollection extends Observable {
-        set( key, value ) {
-            const isPartId = key.startsWith( '#' );
-            if ( isPartId && !( value instanceof Set ) ) throw new Error( `Value for export ID "${ key }" must be an instance of Set.` );
-            else if ( !isPartId && !value.content/* rough way to check for <template> */ ) throw new Error( `Value for export ID "${ key }" must be an instance of HTMLTemplateElement.` );
-            return super.set( key, value );
+export default function init( $params = {} ) {
+    const window = this, dom = wqDom.call( window );
+    // -------
+    // params
+    const params = dom.meta( 'oohtml' ).copyWithDefaults( $params, {
+        element: { template: '', export: 'export', import: 'import', },
+        attr: { moduleid: 'name', moduleref: 'template', exportid: 'name', exportgroup: 'exportgroup', },
+        api: { modules: 'templates', exports: 'exports',  },
+    } );
+    params.templateSelector = `template${ ( params.element.template ? `[is="${ params.element.template }"]` : '' ) }[ ${ window.CSS.escape( params.attr.moduleid ) }]`;
+    const { HTMLExportsCollection } = classes.call( this, params );
+    // -------
+    // realtime...
+    realtime.call( this, params );
+    // -------
+    // expose?
+    if ( params.expose !== false ) { expose.call( this, params ); }
+    // -------
+    // APIs
+    return { HTMLExportsCollection };
+}
+
+/**
+ * Performs realtime capture of elements and builds their contents graph.
+ *
+ * @param Object	            params
+ *
+ * @return Void
+ */
+function realtime( params ) {
+    const window = this, { dom, HTMLModulesCollection, HTMLExportsCollection } = window.wq;
+    const modules = HTMLModulesCollection.node( window.document );
+    dom.realtime().querySelectorAll( params.templateSelector, ( entry, connectedState ) => {
+        let moduleId = entry.getAttribute( params.attr.moduleid );
+        //validateModuleId( moduleId );
+        if ( !connectedState ) {
+            _( entry ).get( 'moduleRealtimeConn' ).disconnect();
+            modules.delete( moduleId );
+        } else {
+            const moduleRealtimeConn = buildGraph.call( this, entry, params, { parent: window.document } );
+            _( entry ).set( 'moduleRealtimeConn', moduleRealtimeConn );
+            modules.set( moduleId, entry );
         }
-        ready( callback = null ) {
-            let request = ( this.getState( 'request' ) || {} ).request;
-            if ( !callback ) return request;
-            if ( request ) request.then( callback );
-            else callback();
-        }
-        expose() { return this; }
-        query( expr, returnLine, params = {}, traps = {} ) {
-            const context = this.context;
-            if ( !context || ( context !== window.document && !context.matches( params.templateSelector ) ) ) {
-                throw new Error( `HTMLExportsCollection.query() expects a "<template>" element or the document object.` );
-            }
-            return objectQuery( context, expr, returnLine, {
-                // Gets a module object
-                get: ( context, key ) => HTMLExportsCollection.node( context ).get( key ),
-                // Gets all module keys
-                keys: context => HTMLExportsCollection.node( context ).keyNames().filter( key => !key.startsWith( '#' ) ),
-                // Subscribes to changes
-                subscribe: ( context, key, callback ) => HTMLExportsCollection.node( context ).observe( [ 'set', 'delete' ], key, callback ),
-                // Returns a promise if a module is loading
-                ready: context => HTMLExportsCollection.node( context ).ready(),
-                ...traps,
-            }, params );
-        }
-        static node( context ) {
-            if ( !_( context ).has( 'exports' ) ) {
-                const collection = new this;
-                Object.defineProperty( collection, 'context', { value: context } );
-                _( context ).set( 'exports', collection );
-            }
-            return _( context ).get( 'exports' );
-        }
-    }
-    class HTMLModulesCollection extends HTMLExportsCollection {};
-    // --------------------
-    window.wq.HTMLModulesCollection = HTMLModulesCollection;
-    window.wq.HTMLExportsCollection = HTMLExportsCollection;
-    return { HTMLModulesCollection, HTMLExportsCollection };
+    }, { each: true } );
 }
 
 /**
@@ -199,30 +196,6 @@ function buildGraph( template, params, { parent, level = 0 } ) {
 }
 
 /**
- * Performs realtime capture of elements and builds their contents graph.
- *
- * @param Object	            params
- *
- * @return Void
- */
-function realtime( params ) {
-    const window = this, { dom, HTMLModulesCollection, HTMLExportsCollection } = window.wq;
-    const modules = HTMLModulesCollection.node( window.document );
-    dom.realtime().querySelectorAll( params.templateSelector, ( entry, connectedState ) => {
-        let moduleId = entry.getAttribute( params.attr.moduleid );
-        //validateModuleId( moduleId );
-        if ( !connectedState ) {
-            _( entry ).get( 'moduleRealtimeConn' ).disconnect();
-            modules.delete( moduleId );
-        } else {
-            const moduleRealtimeConn = buildGraph.call( this, entry, params, { parent: window.document } );
-            _( entry ).set( 'moduleRealtimeConn', moduleRealtimeConn );
-            modules.set( moduleId, entry );
-        }
-    }, { each: true } );
-}
-
-/**
  * Exposes HTML Modules with native APIs.
  *
  * @param Object params
@@ -244,30 +217,57 @@ function expose( params ) {
 }
 
 /**
- * Initializes HTML Modules.
+ * @HTMLExportsCollection
  * 
- * @param $params  Object
- *
- * @return Void
+ * The internal HTMLExportsCollection object
+ * within <template> elements and the document object.
  */
-export default function init( $params = {} ) {
-    const window = this, dom = wqDom.call( window );
-    // -------
-    // params
-    const params = dom.meta( 'oohtml' ).copyWithDefaults( $params, {
-        element: { template: '', export: 'export', import: 'import', },
-        attr: { moduleid: 'name', moduleref: 'template', exportid: 'name', exportgroup: 'exportgroup', },
-        api: { modules: 'templates', exports: 'exports',  },
-    } );
-    params.templateSelector = `template${ ( params.element.template ? `[is="${ params.element.template }"]` : '' ) }[ ${ window.CSS.escape( params.attr.moduleid ) }]`;
-    const { HTMLExportsCollection } = classes.call( this, params );
-    // -------
-    // realtime...
-    realtime.call( this, params );
-    // -------
-    // expose?
-    if ( params.expose !== false ) { expose.call( this, params ); }
-    // -------
-    // APIs
-    return { HTMLExportsCollection };
+function classes( params ) {
+    const window = this;
+    // --------------------
+    class HTMLExportsCollection extends Observable {
+        static node( context ) {
+            if ( !_( context ).has( 'exports' ) ) {
+                const collection = new this;
+                Object.defineProperty( collection, 'context', { value: context } );
+                _( context ).set( 'exports', collection );
+            }
+            return _( context ).get( 'exports' );
+        }
+        query( expr, returnLine, params = {}, traps = {} ) {
+            const context = this.context;
+            if ( !context || ( context !== window.document && !context.matches( params.templateSelector ) ) ) {
+                throw new Error( `HTMLExportsCollection.query() expects a "<template>" element or the document object.` );
+            }
+            return objectQuery( context, expr, returnLine, {
+                // Gets a module object
+                get: ( context, key ) => HTMLExportsCollection.node( context ).get( key ),
+                // Gets all module keys
+                keys: context => HTMLExportsCollection.node( context ).keyNames().filter( key => !key.startsWith( '#' ) ),
+                // Subscribes to changes
+                subscribe: ( context, key, callback ) => HTMLExportsCollection.node( context ).observe( [ 'set', 'delete' ], key, callback ),
+                // Returns a promise if a module is loading
+                ready: context => HTMLExportsCollection.node( context ).ready(),
+                ...traps,
+            }, params );
+        }
+        ready( callback = null ) {
+            let request = ( this.getState( 'request' ) || {} ).request;
+            if ( !callback ) return request;
+            if ( request ) request.then( callback );
+            else callback();
+        }
+        set( key, value ) {
+            const isPartId = key.startsWith( '#' );
+            if ( isPartId && !( value instanceof Set ) ) throw new Error( `Value for export ID "${ key }" must be an instance of Set.` );
+            else if ( !isPartId && !value.content/* rough way to check for <template> */ ) throw new Error( `Value for export ID "${ key }" must be an instance of HTMLTemplateElement.` );
+            return super.set( key, value );
+        }
+        expose() { return this; }
+    }
+    class HTMLModulesCollection extends HTMLExportsCollection {};
+    // --------------------
+    window.wq.HTMLModulesCollection = HTMLModulesCollection;
+    window.wq.HTMLExportsCollection = HTMLExportsCollection;
+    return { HTMLModulesCollection, HTMLExportsCollection };
 }

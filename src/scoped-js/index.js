@@ -3,7 +3,7 @@
  * @imports
  */
 import wqDom from '@webqit/dom';
-import { SubscriptFunction } from '@webqit/subscript';
+import SubscriptFunctionLite from '@webqit/subscript/src/SubscriptFunctionLite.js';
 
 /**
  * @init
@@ -49,14 +49,16 @@ function realtime( params ) {
             const thisContext = script.scoped ? record.target : ( script.type === 'module' ? undefined : window );
             compile.call( this, script, thisContext, params );
         } );
-        record.outgoingNodes.forEach( script => {
-        } );
 	}, { subtree: true, on: 'connected' } );
     // ---
     window.wq.exec = ( execHash ) => {
         const exec = fromHash( execHash );
         if ( !exec ) throw new Error( `Argument must be a valid exec hash.` );
-        const { script, compiledScript, context } = exec;
+        const { script, compiledScript, thisContext } = exec;
+        if ( thisContext instanceof window.Element && script.scoped ) {
+            if ( !thisContext.scripts ) { Object.defineProperty( thisContext, 'scripts', { value: new Set } ); }
+            thisContext.scripts.add( script );
+        }
         switch ( params.retention ) {
             case 'dispose':
                 script.remove();
@@ -67,37 +69,42 @@ function realtime( params ) {
             default:
                 script.textContent = compiledScript.function.originalSource;
         }
-        execute.call( this, compiledScript, context );
+        return execute.call( this, compiledScript, thisContext, script );
     };
 }
 
 // ------------------
 // Script runner
-export function execute( script, context ) {
-    if ( !script.function ) throw new Error( `Input script must already be compiled!` );
-    script.function.call( context );
+export function execute( compiledScript, thisContext, script ) {
+    if ( !compiledScript.function ) throw new Error( `Input script must already be compiled!` );
+    // Execute...
+    const returnValue = compiledScript.function.call( thisContext );
+    if ( compiledScript.contract ) {
+        Object.defineProperty( script, 'sync', { value: ( ...args ) => _await( returnValue, ( [ , sync ] ) => sync( ...args ) ) } );
+    }
+    // Observe,,,
     const window = this, { dom } = window.wq;
-    if ( !( context instanceof window.EventTarget ) ) return;
+    if ( !( thisContext instanceof window.EventTarget ) ) return returnValue;
     let changeHandler;
     if ( script.contract ) {
-        changeHandler = e => {
-        };
-        context.addEventListener( 'namespacechange', changeHandler );
-        context.addEventListener( 'statechange', changeHandler );
+        changeHandler = e => { script.sync(); };
+        thisContext.addEventListener( 'namespacechange', changeHandler );
+        thisContext.addEventListener( 'statechange', changeHandler );
     }
-    dom.Realtime.intercept( window.document, context, () => {
+    dom.Realtime.intercept( window.document, thisContext, () => {
         if ( script.contract ) {
-            context.removeEventListener( 'namespacechange', changeHandler );
-            context.removeEventListener( 'statechange', changeHandler );
+            thisContext.removeEventListener( 'namespacechange', changeHandler );
+            thisContext.removeEventListener( 'statechange', changeHandler );
         }
-        context.dispatchEvent( new window.CustomEvent( 'beforeremove' ) );
+        thisContext.dispatchEvent( new window.CustomEvent( 'beforeremove' ) );
+        thisContext.scripts.delete( script );
     }, { subtree: true, on: 'disconnected' } );
     return script;
 }
 
 // ------------------
 // JAVASCRIPT::[SCOPED|CONTRACT]
-export function compile( script, context, params = {} ) {
+export function compile( script, thisContext, params = {} ) {
     const wq = this.wq, cache = wq.compileCache[ script.contract ? 0 : 1 ];
     const sourceHash = toHash( script.textContent );
     // Script instances are parsed only once
@@ -106,8 +113,8 @@ export function compile( script, context, params = {} ) {
         // Are there "import" (and "await") statements? Then, we need to rewrite that
         let imports = [], meta = {};
         let targetKeywords = [];
-        if ( !script.contract ) targetKeywords.push( 'await ' );
         if ( script.type === 'module' ) targetKeywords.push( 'import ' );
+        if ( script.type === 'module' && !script.contract ) targetKeywords.push( 'await ' );
         if ( targetKeywords.length && ( new RegExp( targetKeywords.join( '|' ) ) ).test( source ) ) {
             [ imports, source, meta ] = parse( source );
             if ( imports.length ) {
@@ -117,9 +124,20 @@ export function compile( script, context, params = {} ) {
         // Let's obtain a material functions
         let _Function;
         if ( script.contract ) {
-            _Function = SubscriptFunction( source, { ...params, module: script.type === 'module' } );
+            const parserParams = {
+                ...( params.parserParams || {} ),
+                allowReturnOutsideFunction: false,
+                allowAwaitOutsideFunction: script.type === 'module',
+                allowSuperOutsideMethod: false,
+            }
+            const runtimeParams = {
+                ...( params.runtimeParams || {} ),
+                async: script.type === 'module',
+                apiVersion: 2,
+            };
+            _Function = SubscriptFunctionLite( source, { ...params, parserParams, runtimeParams, } );
         } else {
-            const isAsync = meta.topLevelAwait || imports.length;
+            const isAsync = script.type === 'module'//meta.topLevelAwait || imports.length;
             const _FunctionConstructor = isAsync ? Object.getPrototypeOf( async function() {} ).constructor : Function;
             _Function = params.runtimeParams?.compileFunction 
                 ? params.runtimeParams.compileFunction( source )
@@ -132,7 +150,7 @@ export function compile( script, context, params = {} ) {
         script.contract && Object.defineProperty( compiledScript, 'contract', Object.getOwnPropertyDescriptor( script, 'contract') );
         cache.set( sourceHash, compiledScript );
     }
-    const execHash = toHash( { script, compiledScript, context } );
+    const execHash = toHash( { script, compiledScript, thisContext } );
     script.textContent = `wq.exec('${ execHash }');`;
 }
 
@@ -340,6 +358,7 @@ export function tokenize( source, _callback ) {
 // Unique ID generator
 const hashTable = new Map;
 const uniqId = () => (0|Math.random()*9e6).toString(36);
+const _await = ( value, callback ) => value instanceof Promise ? value.then( callback ) : callback( value );
 
 // ------------------
 // Hash of anything generator

@@ -23,6 +23,27 @@ import Observable from '../Observable.js';
 const _ = ( el, ...args ) => _internals( el, 'oohtml', ...args );
 
 /**
+ * @init
+ * 
+ * @param Object $params
+ */
+export default function init( $params = {} ) {
+	const window = this, dom = wqDom.call( window );
+    // -------
+    // params
+    const params = dom.meta( 'oohtml' ).copyWithDefaults( $params, {
+        api: { state: 'state', },
+    } );
+	const { HTMLState } = classes.call( this, params );
+    // -------
+    // expose?
+    if ( params.expose !== false ) { expose.call( this, params ); }
+    // -------
+    // APIs
+	return { HTMLState };
+}
+
+/**
  * @Exports
  * 
  * The internal Namespace object
@@ -66,25 +87,4 @@ function expose( params ) {
     Object.defineProperty( window.Element.prototype, params.api.state, { get: function() {
         return HTMLState.node( this ).expose();
     } } );
-}
-
-/**
- * @init
- * 
- * @param Object $params
- */
-export default function init( $params = {} ) {
-	const window = this, dom = wqDom.call( window );
-    // -------
-    // params
-    const params = dom.meta( 'oohtml' ).copyWithDefaults( $params, {
-        api: { state: 'state', },
-    } );
-	const { HTMLState } = classes.call( this, params );
-    // -------
-    // expose?
-    if ( params.expose !== false ) { expose.call( this, params ); }
-    // -------
-    // APIs
-	return { HTMLState };
 }
