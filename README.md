@@ -10,7 +10,7 @@
 OOHTML offers a set of five features that make common UI development paradigms possible as native web platform features. These features may be used individually or together for some great UI-authoring capabilites. Here is an overview:
 
 > **Warning**
-> <br>Major updates coming in the "next" branch!
+> <br>Major updates and improvements coming in the "next" branch!
 
 + [HTML Modules](#html-modules)
 + [HTML Imports](#html-imports)
