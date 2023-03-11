@@ -11,10 +11,10 @@ describe(`Namespaced HTML`, function() {
     describe( `Basic...`, function() {
         
         const head = `
-        <meta name="oohtml" content="attr.id=data-id" />`;
+        <meta name="oohtml" content="attr.id=:id" />`;
         const body = `
-        <div data-id="main" namespace>
-            <div data-id="child"></div>
+        <div :id="main" namespace>
+            <div :id="child"></div>
         </div>`;
         const { document } = createDocument( head, body );
 
@@ -29,7 +29,7 @@ describe(`Namespaced HTML`, function() {
                 idReceived = records[ 0 ].key;
             } );
             const item = document.createElement( 'div' );
-            item.setAttribute( 'data-id', 'some-id' );
+            item.setAttribute( ':id', 'some-id' );
             document.body.appendChild( item );
             expect( idReceived ).to.eq( 'some-id' );
         } );

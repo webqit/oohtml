@@ -70,7 +70,7 @@ function realtime( params ) {
                 script.remove();
                 break;
             case 'hidden':
-                script.textContent = `"hidden"`;
+                script.textContent = `"source hidden"`;
                 break;
             default:
                 script.textContent = compiledScript.function.originalSource;

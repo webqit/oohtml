@@ -15,7 +15,7 @@ export default function init( $params = {} ) {
 	const window = this, dom = wqDom.call( window );
     // -------
     const params = dom.meta( 'oohtml' ).copyWithDefaults( $params, {
-		attr: { namespace: 'namespace',  id: 'data-id', },
+		attr: { namespace: 'namespace',  id: ':id', },
         api: { namespace: 'namespace', },
 		staticsensitivity: true,
 		eagermode: true,
