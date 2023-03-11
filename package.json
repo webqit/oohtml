@@ -30,20 +30,18 @@
   },
   "main": "./src/index.js",
   "scripts": {
-    "test": "mocha --extension .teest.js --exit",
+    "test": "mocha --extension .test.js --exit",
     "test:coverage": "c8 --reporter=text-lcov npm run test | coveralls",
-    "build0": "esbuild main=src/targets.browser.js html-modules=src/html-modules/targets.browser.js html-imports=src/html-imports/targets.browser.js state-api=src/state-api/targets.browser.js namespaced-html=src/namespaced-html/targets.browser.js subscript=src/subscript/targets.browser.js --bundle --minify --sourcemap --outdir=dist",
-    "build": "esbuild main=src/targets.browser.js scoped-js=src/scoped-js/targets.browser.js --bundle --minify --sourcemap --outdir=dist",
+    "build": "esbuild main=src/targets.browser.js html-modules=src/html-modules/targets.browser.js html-imports=src/html-imports/targets.browser.js namespaced-html=src/namespaced-html/targets.browser.js scoped-js=src/scoped-js/targets.browser.js state-api=src/state-api/targets.browser.js context-api=src/context-api/targets.browser.js --bundle --minify --sourcemap --outdir=dist",
     "preversion": "npm run test && npm run build && git add -A dist",
     "postversion": "npm publish",
     "postpublish": "git push && git push --tags"
   },
   "dependencies": {
-    "@webqit/dom": "^1.0.3",
-    "@webqit/observer": "^1.7.5",
-    "@webqit/subscript": "file:../subscript",
-    "@webqit/util": "^0.8.7",
-    "acorn": "^8.7.0"
+    "@webqit/dom": "^2.0.0",
+    "@webqit/observer": "^2.0.0",
+    "@webqit/subscript": "^2.1.34",
+    "@webqit/util": "^0.8.9"
   },
   "devDependencies": {
     "chai": "^4.3.4",

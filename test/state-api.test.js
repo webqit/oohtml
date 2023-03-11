@@ -4,6 +4,7 @@
  */
 import { expect } from 'chai';
 import { createDocument } from './index.js';
+import Observer from '@webqit/observer';
 
 describe(`State API`, function() {
 
@@ -20,10 +21,10 @@ describe(`State API`, function() {
 
         it ( `State objects should be observable...`, async function() {
             let idReceived = null;
-            document.state.observe( 'set', '*', ( value, key ) => {
-                idReceived = key;
+            Observer.observe( document.state, records => {
+                idReceived = records[ 0 ].key;
             } );
-            document.state.set( 'someKey', 'someValue' );
+            document.state.someKey = 'someValue';
             expect( idReceived ).to.eq( 'someKey' );
         } );
 

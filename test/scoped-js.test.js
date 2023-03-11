@@ -10,7 +10,7 @@ describe(`Test: Scoped JS`, function() {
     describe(`Scripts`, function() {
 
         it(`Should do basic observe`, async function() {
-            const body = `            
+            const head = '', body = `            
             <h1>Hello World!</h1>
             <script>
             let ul = document.createElement( 'ul' );
@@ -20,11 +20,11 @@ describe(`Test: Scoped JS`, function() {
             </script>
             <div><p>Hello World!</p></div>`;
 
-            const window = createDocumentForScopedJS( body, '', ( window, { Realtime } ) => {
+            const window = createDocumentForScopedJS( head, body, ( window, dom ) => {
                 // Observer is bound before document is parsed.
                 // Elements are going to show up as they are being parsed.
-                Realtime.observe( window.document, 'h1,p,li', record => {
-                    window.testRecords.push( record.addedNodes[ 0 ] );
+                dom.realtime( window.document ).observe( 'h1,p,li', record => {
+                    window.testRecords.push( record.entrants[ 0 ] );
                 }, { subtree: true } );
             }, { runScripts: 'dangerously' } );
 
@@ -38,18 +38,18 @@ describe(`Test: Scoped JS`, function() {
     describe(`Scripts`, function() {
 
         it(`Should do basic observe`, async function() {
-            const body = `            
+            const head = '', body = `            
             <h1>Hello World!</h1>
             <script scoped contract>
-                testRecords.push(this);
+                testRecords.push( this );
             </script>`;
 
-            const window = createDocumentForScopedJS( body );
+            const window = createDocumentForScopedJS( head, body );
 
             await delay( 60 );
             expect( window.testRecords ).to.have.length( 1 );
             expect( window.testRecords[ 0 ] ).to.eql( window.document.body );
-            console.log('::::::::::::', window.document.documentElement.outerHTML);
+            //console.log('::::::::::::', window.document.documentElement.outerHTML);
         });
 
     });

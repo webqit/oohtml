@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="subscript-compiler-url" content="http://127.0.0.1:5500/subscript/dist/compiler.js" />
+        <script src="/oohtml/dist/main.js"></script>
+        <script>
+            window.extVar = 'External variable initial value.';
+        </script>
+        <template exportid="temp0">
+            <input exportid="input" />
+            <template exportid="temp1">
+                <textarea exportid="input"></textarea>
+                <template exportid="temp2">
+                    <select exportid="input"></select>
+                </template>
+                <template exportid="temp2b" inherits="#input"></template>
+                <template exportid="temp2c">
+                    <textarea exportid="input"></textarea>
+                </template>
+            </template>
+        </template>
+    </head>
+    <body>
+
+        <div importscontext="temp0/temp1">
+            <textarea exportid="input"></textarea>
+            <!--<import module="#input"></import>-->
+        </div>
+
+        <div id="diiiiv">
+            DIV
+            <script scoped contract>
+                console.log( 'Execution context: ' + this.tagName );
+                console.log( extVar );
+                this.addEventListener( 'remove', e => {
+                    console.log('removing...');
+                } );
+                setTimeout( () => {
+                    this.remove();
+                }, 10000 );
+            </script>
+        </div>
+
+        <div id="diiiiv2">
+            DIV
+            <script scoped contract>
+                console.log( 'Execution context: ' + this.tagName );
+                console.log( extVar );
+                this.addEventListener( 'beforeremove', e => {
+                    console.log('removing...');
+                } );
+                setTimeout( () => {
+                    this.remove();
+                }, 10000 );
+            </script>
+        </div>
+
+        <script>
+            const diiiiv = document.querySelector( '#diiiiv' );
+            setTimeout( () => {
+                extVar = 'External variable updated value!';
+                diiiiv.scripts.forEach( script => {
+                    script.rerender( [ 'extVar' ] );
+                } );
+            }, 5000 );
+        </script>
+        
+    </body>
+</html>

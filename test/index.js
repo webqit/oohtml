@@ -24,28 +24,34 @@ export function delay( duration, callback = undefined ) {
     } );
 }
 
-export function createDocument( head = '', body = '' ) {
+export function createDocument( head = '', body = '', callback = null, ) {
     // -------
     const skeletonDoc = `
     <!DOCTYPE html>
     <html>
-        <head>${head}</head>
-        <body>${body}</body>
+        <head>${ head }</head>
+        <body>${ body }</body>
     </html>`;
     // --------
     // TODO: Proper indentation for pretty-printing
-    const instance  = new jsdom.JSDOM( skeletonDoc );
-    init.call( instance.window );
+    const instance  = new jsdom.JSDOM( skeletonDoc, {
+        url: 'http://localhost',
+        beforeParse( window ) {
+            init.call( window );
+            if ( callback ) callback( window, window.wq.dom );
+        }
+    } );
+    // --------
     return instance.window;
 }
 
-export function createDocumentForScopedJS( body = '', head = '', callback = null, params = {} ) {
+export function createDocumentForScopedJS( head = '', body = '', callback = null, params = {} ) {
     // -------
     const skeletonDoc = `
     <!DOCTYPE html>
     <html>
-        <head>${head}</head>
-        <body>${body}</body>
+        <head>${ head }</head>
+        <body>${ body }</body>
     </html>`;
     // --------
     const instance  = new jsdom.JSDOM( skeletonDoc, {
@@ -68,8 +74,8 @@ export function createDocumentForScopedJS( body = '', head = '', callback = null
             // Running basic scripts
             const dom = wqDom.call( window );
             if ( params.runScripts !== 'dangerously' ) {
-                dom.Realtime.observe( window.document, 'script', record => {
-                    record.addedNodes.forEach( script => {
+                dom.realtime( window.document ).observe( 'script', record => {
+                    record.entrants.forEach( script => {
                         //console.log( '-----------------------------------------', script.textContent );
                         runInContext( script.textContent, window );
                     } );

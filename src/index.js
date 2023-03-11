@@ -3,10 +3,11 @@
  * @imports
  */
 import Observer from '@webqit/observer';
+import StateAPI from './state-api/index.js';
+import ContextAPI from './context-api/index.js';
 import HTMLModules from './html-modules/index.js';
 import HTMLImports from './html-imports/index.js';
 import NamespacedHTML from './namespaced-html/index.js';
-import StateAPI from './state-api/index.js';
 import ScopedJS from './scoped-js/index.js';
 
 /**
@@ -17,11 +18,12 @@ export default function init( configs = {} ) {
     if ( this.wq.oohtml ) return;
     this.wq.Observer = Observer;
     // --------------
-    //HTMLModules.call( this, (configs.HTMLModules || {}));
-    //HTMLImports.call( this, (configs.HTMLImports || {}));
-    //NamespacedHTML.call(this, (configs.NamespacedHTML || {}));
-    //StateAPI.call(this, (configs.StateAPI || {}));
-    ScopedJS.call(this, (configs.ScopedJS || {}));
+    StateAPI.call(this, ( configs.StateAPI || {} ) );
+    ContextAPI.call( this, ( configs.ContextAPI || {} ) );
+    HTMLModules.call( this, ( configs.HTMLModules || {} ) );
+    HTMLImports.call( this, ( configs.HTMLImports || {} ) );
+    NamespacedHTML.call(this, ( configs.NamespacedHTML || {} ) );
+    ScopedJS.call( this, ( configs.ScopedJS || {} ) );
     // --------------
     this.wq.oohtml = {};
 }
@@ -29,6 +31,4 @@ export default function init( configs = {} ) {
 /**
  * @exports
  */
-export {
-    Observer,
-}
+export { Observer }

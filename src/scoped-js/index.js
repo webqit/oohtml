@@ -2,8 +2,8 @@
 /**
  * @imports
  */
-import wqDom from '@webqit/dom';
 import SubscriptFunctionLite from '@webqit/subscript/src/SubscriptFunctionLite.js';
+import wqDom from '@webqit/dom';
 
 /**
  * @init
@@ -13,15 +13,16 @@ import SubscriptFunctionLite from '@webqit/subscript/src/SubscriptFunctionLite.j
 export default function init( $params = {} ) {
 	const window = this, dom = wqDom.call( window );
     // -------
-    // params
     const params = dom.meta( 'oohtml' ).copyWithDefaults( $params, {
-        selectors: { script: 'script[type="subscript"]', },
         retention: 'retain',
+        mimeType: '',
     } );
+	params.scriptSelector = ( Array.isArray( params.mimeType ) ? params.mimeType : [ params.mimeType ] ).reduce( ( selector, mm ) => {
+        const qualifier = mm ? `[type=${ window.CSS.escape( mm ) }]` : '';
+        return selector.concat( `script${ qualifier }[scoped],script${ qualifier }[contract]` );
+    }, [] ).join( ',' );
     // -------
-    // realtime?
     realtime.call( this, params );
-    // -------
 }
 
 /**
@@ -38,9 +39,8 @@ function realtime( params ) {
     window.wq.compileCache = [ new Map, new Map, ];
     // ---
     const handled = () => {};
-	dom.Realtime.intercept( window.document, 'script[scoped],script[contract]', record => {
-        record.incomingNodes.forEach( script => {
-            // ---
+	dom.realtime( window.document ).observe( params.scriptSelector, record => {
+        record.entrants.forEach( script => {
             if ( 'contract' in script ) return handled( script );
             Object.defineProperty( script, 'contract', { value: script.hasAttribute( 'contract' ) } ); 
             if ( 'scoped' in script ) return handled( script );
@@ -49,7 +49,7 @@ function realtime( params ) {
             const thisContext = script.scoped ? record.target : ( script.type === 'module' ? undefined : window );
             compile.call( this, script, thisContext, params );
         } );
-	}, { subtree: true, on: 'connected' } );
+	}, { subtree: true, timing: 'intercept', generation: 'entrants' } );
     // ---
     window.wq.exec = ( execHash ) => {
         const exec = fromHash( execHash );
@@ -80,25 +80,25 @@ export function execute( compiledScript, thisContext, script ) {
     // Execute...
     const returnValue = compiledScript.function.call( thisContext );
     if ( compiledScript.contract ) {
-        Object.defineProperty( script, 'sync', { value: ( ...args ) => _await( returnValue, ( [ , sync ] ) => sync( ...args ) ) } );
+        Object.defineProperty( script, 'rerender', { value: ( ...args ) => _await( returnValue, ( [ , rerender ] ) => rerender( ...args ) ) } );
     }
     // Observe,,,
     const window = this, { dom } = window.wq;
     if ( !( thisContext instanceof window.EventTarget ) ) return returnValue;
     let changeHandler;
     if ( script.contract ) {
-        changeHandler = e => { script.sync(); };
+        changeHandler = e => { script.rerender( ( e.detail || { paths: [] } ).paths ); };
         thisContext.addEventListener( 'namespacechange', changeHandler );
         thisContext.addEventListener( 'statechange', changeHandler );
     }
-    dom.Realtime.intercept( window.document, thisContext, () => {
+    dom.realtime( window.document ).observe( thisContext, () => {
         if ( script.contract ) {
             thisContext.removeEventListener( 'namespacechange', changeHandler );
             thisContext.removeEventListener( 'statechange', changeHandler );
         }
-        thisContext.dispatchEvent( new window.CustomEvent( 'beforeremove' ) );
+        thisContext.dispatchEvent( new window.CustomEvent( 'remove' ) );
         thisContext.scripts.delete( script );
-    }, { subtree: true, on: 'disconnected' } );
+    }, { subtree: true, timing: 'sync', generation: 'exits' } );
     return script;
 }
 
