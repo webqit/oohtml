@@ -19,6 +19,8 @@ export default function init( $params = {} ) {
     exposeAPIs.call( this, params );
 }
 
+export { Observer }
+
 /**
  * @Exports
  * 

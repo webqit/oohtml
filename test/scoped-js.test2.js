@@ -42,6 +42,7 @@ describe(`Test: Scoped JS`, function() {
             <h1>Hello World!</h1>
             <script scoped contract>
                 testRecords.push( this );
+                console.log('-------scoped JS here.');
             </script>`;
 
             const window = createDocumentForScopedJS( head, body );

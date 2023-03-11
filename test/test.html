@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <meta name="subscript-compiler-url" content="http://127.0.0.1:5500/subscript/dist/compiler.js" />
-        <script src="/oohtml/dist/main.js"></script>
+        <meta name="oohtml" content="script.retention=hidden" />
+        <script src="https://unpkg.com/@webqit/oohtml/dist/main.js"></script>
         <script>
             window.extVar = 'External variable initial value.';
+            window.Observer = wq.Observer;
         </script>
         <template exportid="temp0">
             <input exportid="input" />
@@ -27,41 +28,42 @@
             <!--<import module="#input"></import>-->
         </div>
 
-        <div id="diiiiv">
-            DIV
-            <script scoped contract>
-                console.log( 'Execution context: ' + this.tagName );
-                console.log( extVar );
-                this.addEventListener( 'remove', e => {
-                    console.log('removing...');
-                } );
-                setTimeout( () => {
-                    this.remove();
-                }, 10000 );
+        <div id="div1">
+            [1]: Scoped contract script here! See the console.
+            <script type="module" scoped contract>
+                console.log( '[1]: Execution context: ' + this.tagName, this.someProp );
+                console.log( '[1]: Dependencies: ', ( await [ ...this.scripts ][ 0 ].properties ).dependencies );
+                console.log( `[1]: ${ extVar }` );
+                this.addEventListener( 'remove', e => { console.log( '[1]: Removing...' ); } );
+                setTimeout( () => { this.remove(); }, 10000 );
             </script>
         </div>
 
-        <div id="diiiiv2">
-            DIV
-            <script scoped contract>
-                console.log( 'Execution context: ' + this.tagName );
-                console.log( extVar );
-                this.addEventListener( 'beforeremove', e => {
-                    console.log('removing...');
-                } );
-                setTimeout( () => {
-                    this.remove();
-                }, 10000 );
+        <div id="div2">
+            [2]: Scoped contract script here! See the console.
+            <script type="module" scoped contract>
+                console.log( '[2]: Execution context: ', this.tagName );
+                console.log( '[2]: Dependencies: ', ( await [ ...this.scripts ][ 0 ].properties ).dependencies );
+                console.log( `[2]: ${ extVar }` );
+                this.addEventListener( 'remove', e => { console.log( '[2]: Removing...' ); } );
+                setTimeout( () => { this.remove(); }, 10000 );
             </script>
         </div>
 
         <script>
-            const diiiiv = document.querySelector( '#diiiiv' );
+            const div1 = document.querySelector( '#div1' );
             setTimeout( () => {
+                Observer.set( globalThis, 'extVar', 'External variable updated value!' );
+                Observer.set( div1, 'someProp', 'someProp value!' );
+                setTimeout( () => {
+                    Observer.set( globalThis, 'extVar', 'External variable updated value again!' );
+                }, 6000 );
+                /*
                 extVar = 'External variable updated value!';
-                diiiiv.scripts.forEach( script => {
+                div1.scripts.forEach( script => {
                     script.rerender( [ 'extVar' ] );
                 } );
+                */
             }, 5000 );
         </script>
         

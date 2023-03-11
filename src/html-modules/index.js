@@ -35,6 +35,8 @@ export default function init( $params = {} ) {
     realtime.call( this, params );
 }
 
+export { Observer }
+
 /**
  * Returns the "exports" object associated with the given node.
  *

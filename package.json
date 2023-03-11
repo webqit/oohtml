@@ -30,7 +30,7 @@
   },
   "main": "./src/index.js",
   "scripts": {
-    "test": "mocha --extension .test.js --exit",
+    "test": "mocha --extension .test2.js --exit",
     "test:coverage": "c8 --reporter=text-lcov npm run test | coveralls",
     "build": "esbuild main=src/targets.browser.js html-modules=src/html-modules/targets.browser.js html-imports=src/html-imports/targets.browser.js namespaced-html=src/namespaced-html/targets.browser.js scoped-js=src/scoped-js/targets.browser.js state-api=src/state-api/targets.browser.js context-api=src/context-api/targets.browser.js --bundle --minify --sourcemap --outdir=dist",
     "preversion": "npm run test && npm run build && git add -A dist",
@@ -39,8 +39,8 @@
   },
   "dependencies": {
     "@webqit/dom": "^2.0.0",
-    "@webqit/observer": "^2.0.0",
-    "@webqit/subscript": "^2.1.34",
+    "@webqit/observer": "^2.0.1",
+    "@webqit/subscript": "^2.1.35",
     "@webqit/util": "^0.8.9"
   },
   "devDependencies": {

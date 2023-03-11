@@ -2,7 +2,9 @@
 /**
  * @imports
  */
-import SubscriptFunctionLite from '@webqit/subscript/src/SubscriptFunctionLite.js';
+import { parserParams, compilerParams, runtimeParams } from '@webqit/subscript/src/params.js';
+import SubscriptFunction from '@webqit/subscript/src/SubscriptFunctionLite.js';
+import Observer from '@webqit/observer';
 import wqDom from '@webqit/dom';
 
 /**
@@ -14,16 +16,20 @@ export default function init( $params = {} ) {
 	const window = this, dom = wqDom.call( window );
     // -------
     const params = dom.meta( 'oohtml' ).copyWithDefaults( $params, {
-        retention: 'retain',
-        mimeType: '',
+        script: { retention: 'retain', mimeType: '' },
+        parserParams: { ...parserParams, allowReturnOutsideFunction: false, allowSuperOutsideMethod: false, },
+        compilerParams: { ...compilerParams, globalsNoObserve: [ ...compilerParams.globalsNoObserve, 'alert' ] },
+        runtimeParams: { ...runtimeParams, apiVersion: 2, },
     } );
-	params.scriptSelector = ( Array.isArray( params.mimeType ) ? params.mimeType : [ params.mimeType ] ).reduce( ( selector, mm ) => {
+	params.scriptSelector = ( Array.isArray( params.script.mimeType ) ? params.script.mimeType : [ params.script.mimeType ] ).reduce( ( selector, mm ) => {
         const qualifier = mm ? `[type=${ window.CSS.escape( mm ) }]` : '';
         return selector.concat( `script${ qualifier }[scoped],script${ qualifier }[contract]` );
     }, [] ).join( ',' );
     // -------
     realtime.call( this, params );
 }
+
+export { Observer }
 
 /**
  * Performs realtime capture of elements and builds their relationships.
@@ -59,7 +65,7 @@ function realtime( params ) {
             if ( !thisContext.scripts ) { Object.defineProperty( thisContext, 'scripts', { value: new Set } ); }
             thisContext.scripts.add( script );
         }
-        switch ( params.retention ) {
+        switch ( params.script.retention ) {
             case 'dispose':
                 script.remove();
                 break;
@@ -79,22 +85,30 @@ export function execute( compiledScript, thisContext, script ) {
     if ( !compiledScript.function ) throw new Error( `Input script must already be compiled!` );
     // Execute...
     const returnValue = compiledScript.function.call( thisContext );
-    if ( compiledScript.contract ) {
-        Object.defineProperty( script, 'rerender', { value: ( ...args ) => _await( returnValue, ( [ , rerender ] ) => rerender( ...args ) ) } );
-    }
-    // Observe,,,
-    const window = this, { dom } = window.wq;
-    if ( !( thisContext instanceof window.EventTarget ) ) return returnValue;
-    let changeHandler;
     if ( script.contract ) {
-        changeHandler = e => { script.rerender( ( e.detail || { paths: [] } ).paths ); };
-        thisContext.addEventListener( 'namespacechange', changeHandler );
-        thisContext.addEventListener( 'statechange', changeHandler );
+        // Rerending processes,,,
+        Object.defineProperty( script, 'rerender', { value: ( ...args ) => _await( returnValue, ( [ , rerender ] ) => rerender( ...args ) ) } );
+        _await( script.properties, properties => {
+            const getPaths = ( base, record_s ) => ( Array.isArray( record_s ) ? record_s : [ record_s ] ).map( record => [ ...base, ...( record.path || [ record.key ] ) ] );
+            properties.processes = properties.dependencies.map( path => {
+                if ( path[ 0 ] === 'this' ) {
+                    return Observer.deep( thisContext, path.slice( 1 ), Observer.observe, record_s => {
+                        script.rerender( ...getPaths( [ 'this' ], record_s ) );
+                    } );
+                }
+                return Observer.deep( globalThis, path, Observer.observe, record_s => {
+                    script.rerender( ...getPaths( [], record_s ) );
+                } );
+            } );
+        } );
     }
+    const window = this, { dom } = window.wq;
     dom.realtime( window.document ).observe( thisContext, () => {
         if ( script.contract ) {
-            thisContext.removeEventListener( 'namespacechange', changeHandler );
-            thisContext.removeEventListener( 'statechange', changeHandler );
+            // Rerending processes,,,
+            _await( script.properties, properties => {
+                properties.processes.forEach( process => process.abort() );
+            } );
         }
         thisContext.dispatchEvent( new window.CustomEvent( 'remove' ) );
         thisContext.scripts.delete( script );
@@ -124,18 +138,11 @@ export function compile( script, thisContext, params = {} ) {
         // Let's obtain a material functions
         let _Function;
         if ( script.contract ) {
-            const parserParams = {
-                ...( params.parserParams || {} ),
-                allowReturnOutsideFunction: false,
-                allowAwaitOutsideFunction: script.type === 'module',
-                allowSuperOutsideMethod: false,
-            }
-            const runtimeParams = {
-                ...( params.runtimeParams || {} ),
-                async: script.type === 'module',
-                apiVersion: 2,
-            };
-            _Function = SubscriptFunctionLite( source, { ...params, parserParams, runtimeParams, } );
+            let { parserParams, compilerParams, runtimeParams } = params;
+            parserParams = { ...parserParams, allowAwaitOutsideFunction: script.type === 'module' };
+            runtimeParams = { ...runtimeParams, async: script.type === 'module' };
+            _Function = SubscriptFunction( source, { compilerParams, parserParams, runtimeParams, } );
+            Object.defineProperty( script, 'properties', { configurable: true, value: SubscriptFunction.inspect( _Function, 'properties' ) } );
         } else {
             const isAsync = script.type === 'module'//meta.topLevelAwait || imports.length;
             const _FunctionConstructor = isAsync ? Object.getPrototypeOf( async function() {} ).constructor : Function;

@@ -27,6 +27,8 @@ export default function init( $params = {} ) {
     realtime.call( this, params );
 }
 
+export { Observer }
+
 /**
  * Exposes Namespaced HTML with native APIs.
  *
