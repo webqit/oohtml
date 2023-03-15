@@ -49,7 +49,7 @@ export function getModulesObject( node, autoCreate = true ) {
 	if ( !_( node ).has( 'modules' ) && autoCreate ) {
 		const modulesObj = Object.create( null );
 		Observer.intercept( modulesObj, 'set', ( event, receiver, next ) => {
-			if ( !event.key.startsWith( '#' ) || event.value instanceof Set ) return next();
+			if ( !event.value || !event.key.startsWith( '#' ) || event.value instanceof Set ) return next();
             if ( !Array.isArray( event.value ) ) { event.value = [ event.value ]; }
             event.value = new Set( event.value );
 			return next();

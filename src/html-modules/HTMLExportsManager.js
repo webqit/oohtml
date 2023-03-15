@@ -163,10 +163,10 @@ export default class HTMLExportsManager {
         let inheritedIds = ( this.host.getAttribute( this.params.template.attr.inherits ) || '' ).trim();
         const handleInherited = records => {
             records.forEach( record => {
-                const localValue = Observer.get( this.modules, record.key );
-                if ( [ 'get'/*initial get*/, 'set', 'defineProperty' ].includes( record.type ) && !localValue ) {
+                if ( Observer.get( this.modules, record.key ) !== record.oldValue ) return;
+                if ( [ 'get'/*initial get*/, 'set', 'defineProperty' ].includes( record.type ) ) {
                     Observer[ record.type.replace( 'get', 'set' ) ]( this.modules, record.key, record.value );
-                } else if ( record.type === 'deleteProperty' && localValue === record.oldValue ) {
+                } else if ( record.type === 'deleteProperty' ) {
                     Observer.deleteProperty( this.modules, record.key );
                 }
             } );

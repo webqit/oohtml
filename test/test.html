@@ -2,7 +2,7 @@
 <html>
     <head>
         <meta name="oohtml" content="script.retention=hidden" />
-        <script src="https://unpkg.com/@webqit/oohtml/dist/main.js"></script>
+        <script src="/oohtml/dist/main.js"></script>
         <script>
             window.extVar = 'External variable initial value.';
             window.Observer = wq.Observer;
@@ -10,7 +10,7 @@
         <template exportid="temp0">
             <input exportid="#input" />
             <template exportid="temp1">
-                <textarea exportid="#input"></textarea>
+                <textarea exportid="#input" placeholder="This is to be rendered"></textarea>
                 <template exportid="temp2">
                     <select exportid="#input"></select>
                 </template>
@@ -24,7 +24,7 @@
     <body>
 
         <div importscontext="temp0/temp1">
-            <textarea exportid="#input"></textarea>
+            <textarea exportid="#input" placeholder="This is server-rendered"></textarea>
             <!--<import module="#input"></import>-->
         </div>
 
