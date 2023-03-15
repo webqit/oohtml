@@ -107,13 +107,13 @@ export default class HTMLContext {
      * @handleEvent()
      */
     handleEvent( event ) {
-        if ( this.disposed || ( event.target === this.host && !event.request?.selfScoped )
+        if ( this.disposed || ( event.target === this.host && event.request?.superContextOnly )
         || !event.request || typeof event.callback !== 'function' || !this.constructor.matchRequest( this.id, event.request ) ) return;
         event.stopPropagation();
         if ( event.type === 'contextclaim' ) {
             const claims = new Set;
             this.subscriptions.forEach( subscriptionEvent => {
-                if ( !event.target.contains( subscriptionEvent.request.selfScoped ? subscriptionEvent.target : subscriptionEvent.target.parentNode ) 
+                if ( !event.target.contains( subscriptionEvent.request.superContextOnly ? subscriptionEvent.target.parentNode : subscriptionEvent.target ) 
                 || !this.constructor.matchRequest( event.request/*provider ID*/, subscriptionEvent.request/*request ID*/ ) ) return;
                 this.subscriptions.delete( subscriptionEvent );
                 claims.add( subscriptionEvent );
@@ -133,7 +133,7 @@ export default class HTMLContext {
         this.disposed = false;
         host.addEventListener( 'contextrequest', this );
         host.addEventListener( 'contextclaim', this );
-        HTMLContextManager.instance( host ).ask( this.id, claims => claims.forEach( subscriptionEvent => {
+        HTMLContextManager.instance( host ).ask( { ...this.id, superContextOnly: true }, claims => claims.forEach( subscriptionEvent => {
             this.subscribe( subscriptionEvent );
             this.handle( subscriptionEvent );
         } ), { type: 'contextclaim' } );

@@ -82,7 +82,7 @@ export default class _HTMLImportsContext extends HTMLContext {
                 return update();
             }
             // This superModules contextrequest is automatically aborted by the injected signal below
-            const request = this.constructor.createRequest( { detail: record.value.trim(), live: true, signal } );
+            const request = this.constructor.createRequest( { detail: record.value.trim(), live: true, signal, superContextOnly: true } );
             HTMLContextManager.instance( this.host ).ask( request, response => {
                 this.altModules = !( response && Object.getPrototypeOf( response ) ) ? response : getModulesObject( response );
                 update();

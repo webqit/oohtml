@@ -71,32 +71,32 @@ export default class HTMLExportsManager {
         const fragmentsExports = new Map;
         entries.forEach( entry => {
             if ( entry.nodeType !== 1 ) return;
-            if ( entry.matches( this.params.templateSelector ) ) {
-                if ( isConnected ) {
-                    const moduleExport = new HTMLExportsManager( entry, this.params, this.host, this.level + 1 );
-                    if ( moduleExport.exportId ) { Observer.set( this.modules, moduleExport.exportId, entry ); }
-                } else {
-                    const moduleExport = HTMLModulesGraph.instance( entry, this.params );
-                    if ( moduleExport.exportId ) { Observer.deleteProperty( this.modules, moduleExport.exportId ); }
-                    moduleExport.dispose();
-                }
-            } else {
-                const exportId = ( entry.getAttribute( this.params.export.attr.exportid ) || '' ).trim() || 'default';
-                this.validateExportId( exportId );
+            const exportId = ( entry.getAttribute( this.params.export.attr.exportid ) || '' ).trim() || '#default';
+            const isPackage = entry.matches( this.params.templateSelector );
+            if ( exportId.startsWith( '#' ) ) {
+                this.validateExportId( exportId.substring( 1 ) );
                 if ( !fragmentsExports.has( exportId ) ) { fragmentsExports.set( exportId, [] ); }
                 fragmentsExports.get( exportId ).push( entry );
+            } else {
+                if ( isConnected ) {
+                    if ( isPackage ) { new HTMLExportsManager( entry, this.params, this.host, this.level + 1 ); }
+                    Observer.set( this.modules, exportId, entry );
+                } else {
+                    if ( isPackage ) { HTMLModulesGraph.instance( entry, this.params ).dispose(); }
+                    Observer.deleteProperty( this.modules, exportId );
+                }
             }
         } );
         // ----------------
         fragmentsExports.forEach( ( fragments, exportId ) => {
-            let existingFragments = Observer.get( this.modules, `#${ exportId }` );
+            let existingFragments = Observer.get( this.modules, exportId );
             if ( isConnected ) {
                 existingFragments = new Set( ( existingFragments ? [ ...existingFragments ] : [] ).concat( fragments ) );
             } else if ( existingFragments ) {
                 fragments.forEach( el => existingFragments.delete( el ) );
             }
-            if ( !isConnected && !existingFragments.size ) { Observer.deleteProperty( this.modules, `#${ exportId }` ); }
-            else { Observer.set( this.modules, `#${ exportId }`, existingFragments ) }
+            if ( !isConnected && !existingFragments.size ) { Observer.deleteProperty( this.modules, exportId ); }
+            else { Observer.set( this.modules, exportId, existingFragments ) }
         } );
     }
 
@@ -158,20 +158,28 @@ export default class HTMLExportsManager {
      * @returns Void|AbortController
      */
     evalInheritance( ) {
-        let inheritedIds;
-        if ( this.parent && ( inheritedIds = ( this.host.getAttribute( this.params.template.attr.inherits ) || '' ).trim() ) 
-        && ( inheritedIds = inheritedIds.split( ' ' ).map( id => id.trim() ) ).length ) {
-            const parentExportsObj = getModulesObject( this.parent );
-            return Observer.get( parentExportsObj, inheritedIds, records => {
-                records.forEach( record => {
-                    if ( [ 'get'/*initial get*/, 'set', 'defineProperty' ].includes( record.type ) ) {
-                        Observer[ record.type.replace( 'get', 'set' ) ]( this.modules, record.key, record.value );
-                    } else if ( record.type === 'deleteProperty' ) {
-                        Observer.deleteProperty( this.modules, record.key );
-                    }
-                } );
-            }, { live: true } );
+        if ( !this.parent ) return [];
+        let extendedId = ( this.host.getAttribute( this.params.template.attr.extends ) || '' ).trim();
+        let inheritedIds = ( this.host.getAttribute( this.params.template.attr.inherits ) || '' ).trim();
+        const handleInherited = records => {
+            records.forEach( record => {
+                const localValue = Observer.get( this.modules, record.key );
+                if ( [ 'get'/*initial get*/, 'set', 'defineProperty' ].includes( record.type ) && !localValue ) {
+                    Observer[ record.type.replace( 'get', 'set' ) ]( this.modules, record.key, record.value );
+                } else if ( record.type === 'deleteProperty' && localValue === record.oldValue ) {
+                    Observer.deleteProperty( this.modules, record.key );
+                }
+            } );
+        };
+        const realtimes = [];
+        const parentExportsObj = getModulesObject( this.parent );
+        if ( extendedId ) {
+            realtimes.push( Observer.deep( parentExportsObj, [ extendedId, this.params.template.api.modules, Infinity ], Observer.get, handleInherited, { live: true } ) );
         }
+        if ( ( inheritedIds = inheritedIds.split( ' ' ).map( id => id.trim() ).filter( x => x ) ).length ) {
+            realtimes.push( Observer.get( parentExportsObj, inheritedIds, handleInherited, { live: true } ) );
+        }
+        return realtimes;
     }
     
     /**
@@ -182,7 +190,7 @@ export default class HTMLExportsManager {
     dispose() {
         this.realtimeA.disconnect();
         this.realtimeB.disconnect();
-        this.realtimeC?.abort();
+        this.realtimeC.forEach( r => r.abort() );
         Object.entries( this.modules ).forEach( ( [ key, entry ] ) => {
             if ( key.startsWith( '#' ) ) return;
             HTMLExportsManager.instance( entry ).dispose();

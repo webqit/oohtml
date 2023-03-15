@@ -19,7 +19,7 @@ export default function init( $params = {} ) {
     const window = this, dom = wqDom.call( window );
     // -------
     const params = dom.meta( 'oohtml' ).copyWithDefaults( $params, {
-        template: { attr: { exportid: 'exportid', inherits: 'inherits' }, api: { modules: 'modules', exportid: 'exportid' }, },
+        template: { attr: { exportid: 'exportid', extends: 'extends', inherits: 'inherits' }, api: { modules: 'modules', exportid: 'exportid' }, },
         context: { attr: { importscontext: 'importscontext', contextname: 'contextname' }, api: { modules: 'modules' }, },
         export: { attr: { exportid: 'exportid' }, },
         staticsensitivity: true,

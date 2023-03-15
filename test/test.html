@@ -8,15 +8,15 @@
             window.Observer = wq.Observer;
         </script>
         <template exportid="temp0">
-            <input exportid="input" />
+            <input exportid="#input" />
             <template exportid="temp1">
-                <textarea exportid="input"></textarea>
+                <textarea exportid="#input"></textarea>
                 <template exportid="temp2">
-                    <select exportid="input"></select>
+                    <select exportid="#input"></select>
                 </template>
                 <template exportid="temp2b" inherits="#input"></template>
                 <template exportid="temp2c">
-                    <textarea exportid="input"></textarea>
+                    <textarea exportid="#input"></textarea>
                 </template>
             </template>
         </template>
@@ -24,7 +24,7 @@
     <body>
 
         <div importscontext="temp0/temp1">
-            <textarea exportid="input"></textarea>
+            <textarea exportid="#input"></textarea>
             <!--<import module="#input"></import>-->
         </div>
 

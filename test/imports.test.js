@@ -3,7 +3,7 @@
  * @imports
  */
 import { expect } from 'chai';
-import { delay, createDocument, mockRemoteFetch, printDocument, _ } from './index.js';
+import { delay, createDocument, mockRemoteFetch, _ } from './index.js';
 
 describe(`HTML Imports`, function() {
 
@@ -41,15 +41,37 @@ describe(`HTML Imports`, function() {
         
         const head = `
         <template exportid="temp0">
+            <!-- ------- -->
             <p>Hello world Export</p>
             <p>Hellort</p>
-            <input exportid="input" />
+            <input exportid="#input" />
             <template exportid="temp1">
-                <textarea exportid="input"></textarea>
+                <textarea exportid="#input"></textarea>
                 <template exportid="temp2">
-                    <select exportid="input"></select>
+                    <select exportid="#input"></select>
                 </template>
             </template>
+            <!-- ------- -->
+            <template exportid="_landing1">
+                <div exportid="#main.html">a</div>
+                <template exportid="_landing2">
+                    <div exportid="#main.html">b</div>
+                    <template exportid="_docs">
+                        <div exportid="#main.html">c</div>
+                    </template>
+                </template>
+            </template>
+            <!-- ------- -->
+            <template exportid="landing1" extends="_landing1">
+                <div exportid="#README.md">1</div>
+                <template exportid="landing2" extends="_landing2">
+                    <div exportid="#README.md">2</div>
+                    <template exportid="docs" extends="_docs">
+                        <div exportid="#README.md">3</div>
+                    </template>
+                </template>
+            </template>
+            <!-- ------- -->
         </template>`;
         const body = `
         <import module="temp0/uuu"></import>`;
@@ -86,6 +108,12 @@ describe(`HTML Imports`, function() {
             document.body.querySelector( 'input' ).remove();
             expect( document.body.firstElementChild.nodeName ).to.eq( 'IMPORT' );
         } );
+
+        /*
+        it ( ``, async function() {
+            console.log('"""""""""""""""""""""""""""""""""""""""""""""', document.modules.temp0.modules.landing1.modules.landing2.modules.docs.modules);
+        } );
+        */
         
     } );
 
@@ -131,17 +159,17 @@ describe(`HTML Imports`, function() {
 
             const head = `
             <template exportid="temp0">
-                <input exportid="input" />
+                <input exportid="#input" />
                 <template exportid="temp1">
-                    <textarea exportid="input"></textarea>
+                    <textarea exportid="#input"></textarea>
                     <template exportid="temp2">
-                        <select exportid="input"></select>
+                        <select exportid="#input"></select>
                     </template>
                 </template>
             </template>`;
             const body = `
             <div importscontext="temp0/temp1">
-                <textarea exportid="input"></textarea>
+                <textarea exportid="#input"></textarea>
                 <!--<import module="#input"></import>-->
             </div>`;
             const { document } = createDocument( head, body );
@@ -163,17 +191,17 @@ describe(`HTML Imports`, function() {
 
             const head = `
             <template exportid="temp0">
-                <input exportid="input" />
+                <input exportid="#input" />
                 <template exportid="temp1">
-                    <textarea exportid="input"></textarea>
+                    <textarea exportid="#input"></textarea>
                     <template exportid="temp2">
-                        <select exportid="input"></select>
+                        <select exportid="#input"></select>
                     </template>
                 </template>
             </template>`;
             const body = `
             <div importscontext="temp0/temp1">
-                <textarea exportid="input"></textarea>
+                <textarea exportid="#input"></textarea>
                 <!--<import module="#input"></import>-->
             </div>`;
             const { document } = createDocument( head, body );

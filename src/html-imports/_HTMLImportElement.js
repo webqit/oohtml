@@ -53,7 +53,7 @@ export default function( params ) {
 
             priv.importRequest = ( callback, signal = null ) => {
                 const detail = priv.moduleRef && !priv.moduleRef.includes( '#' ) ? `${ priv.moduleRef }#default` : priv.moduleRef;
-                const request = _HTMLImportsContext.createRequest( { detail, live: signal && true, signal, selfScoped: true } );
+                const request = _HTMLImportsContext.createRequest( { detail, live: signal && true, signal } );
                 HTMLContextManager.instance( this.el.isConnected ? this.el.parentNode : priv.anchorNode.parentNode ).ask( request, response => {
                     callback( ( response instanceof Set ? new Set( response ) : response ) || [] );
                 } );
@@ -73,9 +73,9 @@ export default function( params ) {
                 priv.hydrationImportRequest = new AbortController;
                 priv.importRequest( modules => {
                     if ( priv.originalsRemapped ) { return this.fill( modules ); }
-                    const identifiersMap = [ ...modules ].map( module => ( { el: module, exportId: module.getAttribute( params.export.attr.exportid ) || 'default', tagName: module.tagName, } ) );
+                    const identifiersMap = [ ...modules ].map( module => ( { el: module, exportId: module.getAttribute( params.export.attr.exportid ) || '#default', tagName: module.tagName, } ) );
                     slottedElements.forEach( slottedElement => {
-                        const tagName = slottedElement.tagName, exportId = slottedElement.getAttribute( params.export.attr.exportid ) || 'default';
+                        const tagName = slottedElement.tagName, exportId = slottedElement.getAttribute( params.export.attr.exportid ) || '#default';
                         const originalsMatch = identifiersMap.filter( moduleIdentifiers => tagName === moduleIdentifiers.tagName && exportId === moduleIdentifiers.exportId );
                         if ( originalsMatch.length !== 1 ) return;
                         _( slottedElement ).set( 'original@imports', originalsMatch[ 0 ].el );
