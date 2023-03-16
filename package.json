@@ -40,7 +40,7 @@
   "dependencies": {
     "@webqit/dom": "^2.0.0",
     "@webqit/observer": "^2.0.1",
-    "@webqit/subscript": "^2.1.35",
+    "@webqit/subscript": "^2.1.36",
     "@webqit/util": "^0.8.9"
   },
   "devDependencies": {
