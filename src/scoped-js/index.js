@@ -17,9 +17,11 @@ export default function init( $params = {} ) {
     // -------
     const params = dom.meta( 'oohtml' ).copyWithDefaults( $params, {
         script: { retention: 'retain', mimeType: '' },
-        parserParams: { ...parserParams, allowReturnOutsideFunction: false, allowSuperOutsideMethod: false, },
-        compilerParams: { ...compilerParams, globalsNoObserve: [ ...compilerParams.globalsNoObserve, 'alert' ] },
-        runtimeParams: { ...runtimeParams, apiVersion: 2, },
+        config: resolveParams( {
+            parserParams: { allowReturnOutsideFunction: false, allowSuperOutsideMethod: false },
+            compilerParams: { globalsNoObserve: [ 'alert' ] },
+            runtimeParams: { apiVersion: 2 },
+        } ),
     } );
 	params.scriptSelector = ( Array.isArray( params.script.mimeType ) ? params.script.mimeType : [ params.script.mimeType ] ).reduce( ( selector, mm ) => {
         const qualifier = mm ? `[type=${ window.CSS.escape( mm ) }]` : '';
@@ -29,7 +31,10 @@ export default function init( $params = {} ) {
     realtime.call( this, params );
 }
 
-export { Observer }
+export {
+    SubscriptFunction,
+    Observer,
+}
 
 /**
  * Performs realtime capture of elements and builds their relationships.
@@ -136,9 +141,8 @@ export function compile( script, thisContext, params = {} ) {
             }
         }
         // Let's obtain a material functions
-        let _Function;
+        let _Function, { parserParams, compilerParams, runtimeParams } = params.config;
         if ( script.contract ) {
-            let { parserParams, compilerParams, runtimeParams } = params;
             parserParams = { ...parserParams, allowAwaitOutsideFunction: script.type === 'module' };
             runtimeParams = { ...runtimeParams, async: script.type === 'module' };
             _Function = SubscriptFunction( source, { compilerParams, parserParams, runtimeParams, } );
@@ -146,8 +150,8 @@ export function compile( script, thisContext, params = {} ) {
         } else {
             const isAsync = script.type === 'module'//meta.topLevelAwait || imports.length;
             const _FunctionConstructor = isAsync ? Object.getPrototypeOf( async function() {} ).constructor : Function;
-            _Function = params.runtimeParams?.compileFunction 
-                ? params.runtimeParams.compileFunction( source )
+            _Function = runtimeParams?.compileFunction 
+                ? runtimeParams.compileFunction( source )
                 : new _FunctionConstructor( source );
             Object.defineProperty( _Function, 'originalSource', { configurable: true, value: script.textContent } );
         }

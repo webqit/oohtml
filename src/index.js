@@ -8,7 +8,7 @@ import ContextAPI from './context-api/index.js';
 import HTMLModules from './html-modules/index.js';
 import HTMLImports from './html-imports/index.js';
 import NamespacedHTML from './namespaced-html/index.js';
-import ScopedJS from './scoped-js/index.js';
+import ScopedJS, { SubscriptFunction } from './scoped-js/index.js';
 
 /**
  * @init
@@ -17,6 +17,7 @@ export default function init( configs = {} ) {
     if ( !this.wq ) { this.wq = {}; }
     if ( this.wq.oohtml ) return;
     this.wq.Observer = Observer;
+    this.wq.SubscriptFunction = SubscriptFunction;
     // --------------
     StateAPI.call(this, ( configs.StateAPI || {} ) );
     ContextAPI.call( this, ( configs.ContextAPI || {} ) );
