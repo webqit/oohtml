@@ -15,7 +15,6 @@ import wqDom from '@webqit/dom';
 export default function init( $params = {} ) {
 	const window = this, dom = wqDom.call( window );
     if ( !window.wq ) { window.wq = {}; }
-    // -------
     window.wq.SubscriptFunction = SubscriptFunction;
     // -------
     const params = dom.meta( 'oohtml' ).copyWithDefaults( $params, {

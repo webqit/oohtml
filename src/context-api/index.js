@@ -16,7 +16,6 @@ import HTMLContext from './HTMLContext.js';
 export default function init( $params = { }) {
     const window = this, dom = wqDom.call( window );
     if ( !window.wq ) { window.wq = {}; }
-    // -------
     window.wq.HTMLContextManager = HTMLContextManager;
     window.wq.HTMLContext = HTMLContext;
     // -------

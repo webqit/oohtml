@@ -18,6 +18,9 @@ import { _ } from '../util.js';
 export default function init( $params = {} ) {
     const window = this, dom = wqDom.call( window );
     if ( !window.wq ) { window.wq = {}; }
+    window.wq.HTMLImportsContext = class extends _HTMLImportsContext {
+        static get params() { return params; }
+    };
     // -------
     const params = dom.meta( 'oohtml' ).copyWithDefaults( $params, {
         template: { attr: { exportid: 'exportid', extends: 'extends', inherits: 'inherits' }, api: { modules: 'modules', exportid: 'exportid' }, },
@@ -28,10 +31,6 @@ export default function init( $params = {} ) {
     params.window = window;
     params.templateSelector = `template[${ window.CSS.escape( params.template.attr.exportid ) }]`;
     params.ownerContextSelector = [ params.context.attr.contextname, params.context.attr.importscontext ].map( a => `[${ window.CSS.escape( a ) }]` ).join( ',' );
-    // -------
-    window.wq.HTMLImportsContext = class extends _HTMLImportsContext {
-        static get params() { return params; }
-    };
     // -------
     exposeModulesObjects.call( this, params );
     realtime.call( this, params );
