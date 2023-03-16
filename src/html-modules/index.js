@@ -17,6 +17,7 @@ import { _ } from '../util.js';
  */
 export default function init( $params = {} ) {
     const window = this, dom = wqDom.call( window );
+    if ( !window.wq ) { window.wq = {}; }
     // -------
     const params = dom.meta( 'oohtml' ).copyWithDefaults( $params, {
         template: { attr: { exportid: 'exportid', extends: 'extends', inherits: 'inherits' }, api: { modules: 'modules', exportid: 'exportid' }, },
@@ -27,9 +28,10 @@ export default function init( $params = {} ) {
     params.window = window;
     params.templateSelector = `template[${ window.CSS.escape( params.template.attr.exportid ) }]`;
     params.ownerContextSelector = [ params.context.attr.contextname, params.context.attr.importscontext ].map( a => `[${ window.CSS.escape( a ) }]` ).join( ',' );
-    params.HTMLImportsContext = class extends _HTMLImportsContext {
+    // -------
+    window.wq.HTMLImportsContext = class extends _HTMLImportsContext {
         static get params() { return params; }
-    }
+    };
     // -------
     exposeModulesObjects.call( this, params );
     realtime.call( this, params );
@@ -92,15 +94,15 @@ function exposeModulesObjects( params ) {
  * @return Void
  */
 function realtime( params ) {
-    const window = this, { dom } = window.wq;
+    const window = this, { dom, HTMLImportsContext } = window.wq;
     // ------------
     const attachImportsContext = host => {
-        const contextId = params.HTMLImportsContext.createId( host );
-        params.HTMLImportsContext.attachTo( host, contextId );
+        const contextId = HTMLImportsContext.createId( host );
+        HTMLImportsContext.attachTo( host, contextId );
     };
     const detachImportsContext = ( host, force ) => {
-        const contextId = params.HTMLImportsContext.createId( host );
-        params.HTMLImportsContext.detachFrom( host, contextId, cx => {
+        const contextId = HTMLImportsContext.createId( host );
+        HTMLImportsContext.detachFrom( host, contextId, cx => {
             return force || host.matches && !host.matches( params.ownerContextSelector ) && !Object.keys( cx.modules ).length;
         } );
     };

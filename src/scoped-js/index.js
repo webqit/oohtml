@@ -2,7 +2,7 @@
 /**
  * @imports
  */
-import { parserParams, compilerParams, runtimeParams } from '@webqit/subscript/src/params.js';
+import { resolveParams } from '@webqit/subscript/src/params.js';
 import SubscriptFunction from '@webqit/subscript/src/SubscriptFunctionLite.js';
 import Observer from '@webqit/observer';
 import wqDom from '@webqit/dom';
@@ -14,6 +14,9 @@ import wqDom from '@webqit/dom';
  */
 export default function init( $params = {} ) {
 	const window = this, dom = wqDom.call( window );
+    if ( !window.wq ) { window.wq = {}; }
+    // -------
+    window.wq.SubscriptFunction = SubscriptFunction;
     // -------
     const params = dom.meta( 'oohtml' ).copyWithDefaults( $params, {
         script: { retention: 'retain', mimeType: '' },

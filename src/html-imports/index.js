@@ -15,6 +15,7 @@ import { _ } from '../util.js';
  */
 export default function init( $params = { }) {
     const window = this, dom = wqDom.call( window );
+    if ( !window.wq ) { window.wq = {}; }
     // -------
     const params = dom.meta( 'oohtml' ).copyWithDefaults( $params, {
         import: { tagName: 'import', attr: { moduleref: 'module' }, },
@@ -22,7 +23,8 @@ export default function init( $params = { }) {
         isomorphic: true,
     } );
     params.slottedElementsSelector = `[${ window.CSS.escape( params.export.attr.exportid ) }]`;
-    params.HTMLImportElement = _HTMLImportElement.call( this, params );
+    // -------
+    window.wq.HTMLImportElement = _HTMLImportElement.call( this, params );
     // -------
     dom.ready( () => hydration.call( this, params ) );
     realtime.call( this, params );
@@ -37,13 +39,13 @@ export default function init( $params = { }) {
  * @return Void
  */
 function realtime( params ) {
-    const window = this, { dom } = window.wq;
+    const window = this, { dom, HTMLImportElement } = window.wq;
     dom.realtime( window.document ).observe( params.import.tagName, record => {
         record.entrants.forEach( node => handleRealtime( node, true, record ) );
         record.exits.forEach( node => handleRealtime( node, false, record ) );
     }, { subtree: true, timing: 'sync' } );
     function handleRealtime( entry, connectedState, record ) {
-        const elInstance = params.HTMLImportElement.instance( entry );
+        const elInstance = HTMLImportElement.instance( entry );
         if ( connectedState ) { elInstance[ '#' ].connectedCallback(); }
         else { elInstance[ '#' ].disconnectedCallback(); }
     }
@@ -57,7 +59,7 @@ function realtime( params ) {
  * @return Void
  */
 function hydration( params ) {
-    const window = this;
+    const window = this, { HTMLImportElement } = window.wq;
     function scan( context ) {
         const slottedElements = new Set;
         context.childNodes.forEach( node => {
@@ -73,7 +75,7 @@ function hydration( params ) {
                 reviver.innerHTML = nodeValue;
                 const importEl = reviver.firstChild;
                 if ( !importEl.matches( params.import.tagName ) ) return;
-                params.HTMLImportElement.instance( importEl )[ '#' ].hydrate(
+                HTMLImportElement.instance( importEl )[ '#' ].hydrate(
                     node/* the comment node */, slottedElements
                 );
                 slottedElements.clear();
