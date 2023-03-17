@@ -3,7 +3,7 @@
  * @imports
  */
 import { expect } from 'chai';
-import { delay, createDocumentForScopedJS, Observer } from './index.js';
+import { delay, createDocumentForScopedJS } from './index.js';
 
 describe(`Test: Scoped JS`, function() {
 
@@ -50,7 +50,7 @@ describe(`Test: Scoped JS`, function() {
             await delay( 60 );
             expect( window.testRecords ).to.have.length( 1 );
             expect( window.testRecords[ 0 ] ).to.eql( window.document.body );
-            //console.log('::::::::::::', window.document.documentElement.outerHTML);
+            //console.log('::::::::::::', window.testRecords );
         });
 
     });

@@ -4,7 +4,7 @@
  */
 import { expect } from 'chai';
 import Observer from '@webqit/observer';
-import { delay, createDocument, mockRemoteFetch, printDocument, _ } from './index.js';
+import { delay, createDocument, mockRemoteFetch, _ } from './index.js';
 const getQueryPath = str => str.split( '/' ).join( '/modules/' ).split( '/' );
 
 describe(`HTML Modules`, function() {

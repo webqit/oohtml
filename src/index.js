@@ -16,7 +16,7 @@ import ScopedJS from './scoped-js/index.js';
 export default function init( configs = {} ) {
     if ( !this.wq ) { this.wq = {}; }
     if ( this.wq.oohtml ) return;
-    this.wq.Observer = Observer;
+    this.wq.oohtml = {};
     // --------------
     StateAPI.call(this, ( configs.StateAPI || {} ) );
     ContextAPI.call( this, ( configs.ContextAPI || {} ) );
@@ -25,7 +25,6 @@ export default function init( configs = {} ) {
     NamespacedHTML.call(this, ( configs.NamespacedHTML || {} ) );
     ScopedJS.call( this, ( configs.ScopedJS || {} ) );
     // --------------
-    this.wq.oohtml = {};
 }
 
 /**

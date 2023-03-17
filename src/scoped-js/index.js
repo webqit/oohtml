@@ -15,14 +15,17 @@ import wqDom from '@webqit/dom';
 export default function init( $params = {} ) {
 	const window = this, dom = wqDom.call( window );
     if ( !window.wq ) { window.wq = {}; }
-    window.wq.SubscriptFunction = SubscriptFunction;
+    if ( !window.wq.oohtml ) { window.wq.oohtml = {}; }
+    window.wq.oohtml.Script = { compileCache: [ new Map, new Map, ] };
+    window.wq.SubscriptFunction = $params.SubscriptFunction/* allow for injection, e.g. from test runner */ || SubscriptFunction;
+    window.wq.Observer = Observer;
     // -------
     const params = dom.meta( 'oohtml' ).copyWithDefaults( $params, {
         script: { retention: 'retain', mimeType: '' },
         config: resolveParams( {
-            parserParams: { allowReturnOutsideFunction: false, allowSuperOutsideMethod: false },
-            compilerParams: { globalsNoObserve: [ 'alert' ] },
-            runtimeParams: { apiVersion: 2 },
+            parserParams: { allowReturnOutsideFunction: false, allowSuperOutsideMethod: false, ...( $params.parserParams || {} ) },
+            compilerParams: { globalsNoObserve: [ 'alert' ], ...( $params.compilerParams || {} ) },
+            runtimeParams: { apiVersion: 2, ...( $params.runtimeParams || {} ) },
         } ),
     } );
 	params.scriptSelector = ( Array.isArray( params.script.mimeType ) ? params.script.mimeType : [ params.script.mimeType ] ).reduce( ( selector, mm ) => {
@@ -47,10 +50,6 @@ export {
  */
 function realtime( params ) {
 	const window = this, { dom } = window.wq;
-    // ---
-    window.wq.transformCache = new Map;
-    window.wq.compileCache = [ new Map, new Map, ];
-    // ---
     const handled = () => {};
 	dom.realtime( window.document ).observe( params.scriptSelector, record => {
         record.entrants.forEach( script => {
@@ -64,7 +63,7 @@ function realtime( params ) {
         } );
 	}, { subtree: true, timing: 'intercept', generation: 'entrants' } );
     // ---
-    window.wq.exec = ( execHash ) => {
+    window.wq.oohtml.Script.run = ( execHash ) => {
         const exec = fromHash( execHash );
         if ( !exec ) throw new Error( `Argument must be a valid exec hash.` );
         const { script, compiledScript, thisContext } = exec;
@@ -126,7 +125,8 @@ export function execute( compiledScript, thisContext, script ) {
 // ------------------
 // JAVASCRIPT::[SCOPED|CONTRACT]
 export function compile( script, thisContext, params = {} ) {
-    const wq = this.wq, cache = wq.compileCache[ script.contract ? 0 : 1 ];
+    const { wq: { oohtml, SubscriptFunction } } = this;
+    const cache = oohtml.Script.compileCache[ script.contract ? 0 : 1 ];
     const sourceHash = toHash( script.textContent );
     // Script instances are parsed only once
     let source = script.textContent, compiledScript;
@@ -164,7 +164,7 @@ export function compile( script, thisContext, params = {} ) {
         cache.set( sourceHash, compiledScript );
     }
     const execHash = toHash( { script, compiledScript, thisContext } );
-    script.textContent = `wq.exec('${ execHash }');`;
+    script.textContent = `wq.oohtml.Script.run('${ execHash }');`;
 }
 
 // ------------------
