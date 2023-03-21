@@ -3,7 +3,7 @@
  * @imports
  */
 import Observer from '@webqit/observer';
-import StateAPI from './state-api/index.js';
+import BindingsAPI from './bindings-api/index.js';
 import ContextAPI from './context-api/index.js';
 import HTMLModules from './html-modules/index.js';
 import HTMLImports from './html-imports/index.js';
@@ -18,7 +18,7 @@ export default function init( configs = {} ) {
     if ( this.wq.oohtml ) return;
     this.wq.oohtml = {};
     // --------------
-    StateAPI.call(this, ( configs.StateAPI || {} ) );
+    BindingsAPI.call(this, ( configs.BindingsAPI || {} ) );
     ContextAPI.call( this, ( configs.ContextAPI || {} ) );
     HTMLModules.call( this, ( configs.HTMLModules || {} ) );
     HTMLImports.call( this, ( configs.HTMLImports || {} ) );
