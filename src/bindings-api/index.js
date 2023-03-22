@@ -72,9 +72,9 @@ function exposeAPIs( config ) {
  *
  * @return Void
  */
-function applyBindings( target, bindings, { merge, namespace } = {} ) {
+function applyBindings( target, bindings, { merge, diff, namespace } = {} ) {
     const bindingsObj = getBindingsObject( target );
-    const $params = { namespace };
+    const $params = { diff, namespace };
     if ( merge ) return Observer.set( bindingsObj, bindings, $params );;
     const exitingKeys = Observer.ownKeys( bindingsObj, $params ).filter( key => !( key in bindings ) );
     return Observer.batch( bindingsObj, () => {
