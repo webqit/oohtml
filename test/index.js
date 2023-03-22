@@ -16,7 +16,7 @@ import webqitDom from '@webqit/dom';
  */
 
 export { Observer };
-export const _ = ( el, ...args ) => _internals( el, 'oohtml', ...args );
+export const _ = ( ...args ) => _internals( 'oohtml', ...args );
 export function delay( duration, callback = undefined ) {
     return new Promise( res => {
         setTimeout( () => res( callback && callback() ), duration );

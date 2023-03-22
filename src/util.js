@@ -6,7 +6,7 @@ import webqitDom from '@webqit/dom';
 import { _internals } from '@webqit/util/js/index.js';
 import { _inherit } from '@webqit/util/obj/index.js';
 
-export const _ = ( node, ...args ) => _internals( node, 'oohtml', ...args );
+export const _ = ( ...args ) => _internals( 'oohtml', ...args );
 
 export function _init( name, $config, $defaults ) {
     const window = this, dom = webqitDom.call( window );
