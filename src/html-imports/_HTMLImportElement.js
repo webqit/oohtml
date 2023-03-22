@@ -9,16 +9,14 @@ import { _ } from '../util.js';
 /**
  * Creates the HTMLImportElement class.
  * 
- * @param Object params 
+ * @param Object config 
  * 
  * @return HTMLImportElement
  */
-export default function( params ) {
-    const window = this, { dom } = window.wq;
-    const BaseExportElement = params.import.tagName.includes( '-' )
-        ? ( params.HTMLImportBaseElement || window.HTMLElement )
-        : class {};
-    return class HTMLImportElement extends BaseExportElement {
+export default function( config ) {
+    const window = this, { dom } = window.webqit;
+    const BaseElement = config.import.tagName.includes( '-' ) ? window.HTMLElement : class {};
+    return class HTMLImportElement extends BaseElement {
         
         /**
          * @instance
@@ -28,7 +26,7 @@ export default function( params ) {
          * @returns 
          */
         static instance( node ) {
-            if ( params.import.tagName.includes( '-' ) && ( node instanceof this ) )  return node;
+            if ( config.import.tagName.includes( '-' ) && ( node instanceof this ) )  return node;
             return _( node ).get( 'import::instance' ) || new this( node );;
         }
 
@@ -61,7 +59,7 @@ export default function( params ) {
 
             priv.hydrate = ( anchorNode, slottedElements ) => {
                 // ----------------
-                priv.moduleRef = ( this.el.getAttribute( params.import.attr.moduleref ) || '' ).trim();
+                priv.moduleRef = ( this.el.getAttribute( config.import.attr.moduleref ) || '' ).trim();
                 priv.setAnchorNode( anchorNode );
                 priv.autoRestore( () => {
                     slottedElements.forEach( slottedElement => {
@@ -73,9 +71,9 @@ export default function( params ) {
                 priv.hydrationImportRequest = new AbortController;
                 priv.importRequest( modules => {
                     if ( priv.originalsRemapped ) { return this.fill( modules ); }
-                    const identifiersMap = [ ...modules ].map( module => ( { el: module, exportId: module.getAttribute( params.export.attr.exportid ) || '#default', tagName: module.tagName, } ) );
+                    const identifiersMap = [ ...modules ].map( module => ( { el: module, exportId: module.getAttribute( config.export.attr.exportid ) || '#default', tagName: module.tagName, } ) );
                     slottedElements.forEach( slottedElement => {
-                        const tagName = slottedElement.tagName, exportId = slottedElement.getAttribute( params.export.attr.exportid ) || '#default';
+                        const tagName = slottedElement.tagName, exportId = slottedElement.getAttribute( config.export.attr.exportid ) || '#default';
                         const originalsMatch = identifiersMap.filter( moduleIdentifiers => tagName === moduleIdentifiers.tagName && exportId === moduleIdentifiers.exportId );
                         if ( originalsMatch.length !== 1 ) return;
                         _( slottedElement ).set( 'original@imports', originalsMatch[ 0 ].el );
@@ -112,7 +110,7 @@ export default function( params ) {
                 // Totally initialize this instance?
                 if ( !priv.anchorNode ) { priv.setAnchorNode( this.createAnchorNode() ); }
                 if ( priv.moduleRefRealtime ) return;
-                priv.moduleRefRealtime = dom.realtime( this.el ).attr( params.import.attr.moduleref, ( record, { signal } ) => {
+                priv.moduleRefRealtime = dom.realtime( this.el ).attr( config.import.attr.moduleref, ( record, { signal } ) => {
                     priv.moduleRef = record.value;
                     ;
                     // Below, we ignore first restore from hydration
@@ -138,7 +136,7 @@ export default function( params ) {
          * @return Element
          */
         createAnchorNode() {
-            if ( !params.isomorphic ) { return window.document.createTextNode( '' ) }
+            if ( !config.isomorphic ) { return window.document.createTextNode( '' ) }
             return window.document.createComment( this.el.outerHTML );
         }
 
@@ -174,8 +172,8 @@ export default function( params ) {
                     // Clone each slottable element and give it a reference to its original
                     const slottableElementClone = slottableElement.cloneNode( true );
                     // The folllowing references must be set before adding to DODM
-                    if ( !slottableElementClone.hasAttribute( params.export.attr.exportid ) ) {
-                        slottableElementClone.toggleAttribute( params.export.attr.exportid, true );
+                    if ( !slottableElementClone.hasAttribute( config.export.attr.exportid ) ) {
+                        slottableElementClone.toggleAttribute( config.export.attr.exportid, true );
                     }
                     _( slottableElementClone ).set( 'original@imports', slottableElement );
                     _( slottableElementClone ).set( 'slot@imports', this.el );

@@ -2,11 +2,23 @@
 /**
  * @imports
  */
+import webqitDom from '@webqit/dom';
 import { _internals } from '@webqit/util/js/index.js';
+import { _inherit } from '@webqit/util/obj/index.js';
 
 export const _ = ( node, ...args ) => _internals( node, 'oohtml', ...args );
 
-export  const _compare = ( a, b, depth = 1, objectSizing = false ) => {
+export function _init( name, $config, $defaults ) {
+    const window = this, dom = webqitDom.call( window );
+    window.webqit || ( window.webqit = {} );
+    window.webqit.oohtml || ( window.webqit.oohtml = {} );
+    window.webqit.oohtml.configs || ( window.webqit.oohtml.configs = {} );
+    const config = _inherit( 1, dom.meta( name ).json(), $config, $defaults );
+    window.webqit.oohtml.configs[ name.toUpperCase().replace( '-', '_' ) ] = config;
+    return { config, dom, window };
+}
+
+export function _compare( a, b, depth = 1, objectSizing = false ) {
     if ( depth && typeof a === 'object' && a && typeof b === 'object' && b && ( !objectSizing || Object.keys( a ).length === Object.keys( b ).length ) ) {
         for ( let key in a ) {
             if ( !_compare( a[ key ], b[ key ], depth - 1, objectSizing ) ) return false;

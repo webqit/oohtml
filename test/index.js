@@ -7,7 +7,7 @@ import { createContext, compileFunction, runInContext } from 'vm';
 import jsdom from 'jsdom';
 import init, { Observer } from '../src/index.js';
 import { SubscriptFunction } from '@webqit/subscript';
-import wqDom from '@webqit/dom';
+import webqitDom from '@webqit/dom';
 
 /**
  * -------
@@ -35,7 +35,7 @@ export function createDocument( head = '', body = '', callback = null, ) {
         url: 'http://localhost',
         beforeParse( window ) {
             init.call( window );
-            if ( callback ) callback( window, window.wq.dom );
+            if ( callback ) callback( window, window.webqit.dom );
         }
     } );
     return instance.window;
@@ -55,16 +55,18 @@ export function createDocumentForScopedJS( head = '', body = '', callback = null
             window.testRecords = [];
             createContext( window );
             // Running advanced scripts
-            init.call( window, { ScopedJS: {
+            init.call( window, { SCOPED_JS: {
                 SubscriptFunction,
-                runtimeParams: {
-                    compileFunction: ( code, parameters ) => compileFunction( code, parameters, {
-                        parsingContext: window,
-                    } ),
+                advanced: {
+                    runtimeParams: {
+                        compileFunction: ( code, parameters ) => compileFunction( code, parameters, {
+                            parsingContext: window,
+                        } ),
+                    }
                 }
             } } );
             // Running basic scripts
-            const dom = wqDom.call( window );
+            const dom = webqitDom.call( window );
             if ( params.runScripts !== 'dangerously' ) {
                 dom.realtime( window.document ).observe( 'script', record => {
                     record.entrants.forEach( script => {
@@ -74,7 +76,7 @@ export function createDocumentForScopedJS( head = '', body = '', callback = null
                 }, { subtree: true } );
             }
             // Sync callback?
-            if ( callback ) callback( window, window.wq.dom );
+            if ( callback ) callback( window, window.webqit.dom );
         }
     } );
     return instance.window;

@@ -25,11 +25,11 @@ export default class Compiler {
     }
 
     // Set window property
-    constructor( window, params, executeCallback ) {
+    constructor( window, config, executeCallback ) {
         this.window = window;
-        this.params = params;
+        this.config = config;
         // This is a global function
-        window.wq.oohtml.Script.run = ( execHash ) => {
+        window.webqit.oohtml.Script.run = ( execHash ) => {
             const exec = this.constructor.fromHash( execHash );
             if ( !exec ) throw new Error( `Argument must be a valid exec hash.` );
             const { script, compiledScript, thisContext } = exec;
@@ -37,7 +37,7 @@ export default class Compiler {
                 if ( !thisContext.scripts ) { Object.defineProperty( thisContext, 'scripts', { value: new Set } ); }
                 thisContext.scripts.add( script );
             }
-            switch ( params.script.retention ) {
+            switch ( config.script.retention ) {
                 case 'dispose':
                     script.remove();
                     break;
@@ -54,7 +54,7 @@ export default class Compiler {
     // Compile scipt
     compile( script, thisContext ) {
         const _static = this.constructor;
-        const { wq: { oohtml, SubscriptFunction } } = this.window;
+        const { webqit: { oohtml, SubscriptFunction } } = this.window;
         const cache = oohtml.Script.compileCache[ script.contract ? 0 : 1 ];
         const sourceHash = _static.toHash( script.textContent );
         // Script instances are parsed only once
@@ -72,7 +72,7 @@ export default class Compiler {
                 }
             }
             // Let's obtain a material functions
-            let _Function, { parserParams, compilerParams, runtimeParams } = this.params.config;
+            let _Function, { parserParams, compilerParams, runtimeParams } = this.config.advanced;
             if ( script.contract ) {
                 parserParams = { ...parserParams, allowAwaitOutsideFunction: script.type === 'module' };
                 runtimeParams = { ...runtimeParams, async: script.type === 'module' };
@@ -93,7 +93,7 @@ export default class Compiler {
             cache.set( sourceHash, compiledScript );
         }
         const execHash = _static.toHash( { script, compiledScript, thisContext } );
-        script.textContent = `wq.oohtml.Script.run('${ execHash }');`;
+        script.textContent = `webqit.oohtml.Script.run('${ execHash }');`;
     }
 
     // Match import statements

@@ -2,39 +2,33 @@
 /**
  * @imports
  */
-import wqDom from '@webqit/dom';
 import Observer from '@webqit/observer';
 import _HTMLImportsContext from './_HTMLImportsContext.js';
 import HTMLExportsManager from './HTMLExportsManager.js';
-import { _ } from '../util.js';
+import { _, _init } from '../util.js';
 
 /**
  * Initializes HTML Modules.
  * 
- * @param Object        $params 
+ * @param Object        $config 
  *
  * @return Void
  */
-export default function init( $params = {} ) {
-    const window = this, dom = wqDom.call( window );
-    if ( !window.wq ) { window.wq = {}; }
-    window.wq.Observer = Observer;
-    window.wq.HTMLImportsContext = class extends _HTMLImportsContext {
-        static get params() { return params; }
-    };
-    // -------
-    const params = dom.meta( 'oohtml' ).copyWithDefaults( $params, {
+export default function init( $config = {} ) {
+    const { config, window } = _init.call( this, 'html-modules', $config, {
         template: { attr: { exportid: 'exportid', extends: 'extends', inherits: 'inherits' }, api: { modules: 'modules', exportid: 'exportid' }, },
         context: { attr: { importscontext: 'importscontext', contextname: 'contextname' }, api: { modules: 'modules' }, },
         export: { attr: { exportid: 'exportid' }, },
         staticsensitivity: true,
     } );
-    params.window = window;
-    params.templateSelector = `template[${ window.CSS.escape( params.template.attr.exportid ) }]`;
-    params.ownerContextSelector = [ params.context.attr.contextname, params.context.attr.importscontext ].map( a => `[${ window.CSS.escape( a ) }]` ).join( ',' );
-    // -------
-    exposeModulesObjects.call( this, params );
-    realtime.call( this, params );
+    config.templateSelector = `template[${ window.CSS.escape( config.template.attr.exportid ) }]`;
+    config.ownerContextSelector = [ config.context.attr.contextname, config.context.attr.importscontext ].map( a => `[${ window.CSS.escape( a ) }]` ).join( ',' );
+    window.webqit.HTMLImportsContext = class extends _HTMLImportsContext {
+        static get config() { return config; }
+    };
+    window.webqit.Observer = Observer;
+    exposeModulesObjects.call( window, config );
+    realtime.call( window, config );
 }
 
 export { Observer }
@@ -64,37 +58,37 @@ export function getModulesObject( node, autoCreate = true ) {
 /**
  * Exposes HTML Modules with native APIs.
  *
- * @param Object        params
+ * @param Object        config
  *
  * @return Void
  */
-function exposeModulesObjects( params ) {
+function exposeModulesObjects( config ) {
     const window = this;
     // Assertions
-    if ( params.context.api.modules in window.document ) { throw new Error( `document already has a "${ params.context.api.modules }" property!` ); }
-    if ( params.template.api.modules in window.HTMLElement.prototype ) { throw new Error( `The "HTMLElement" class already has a "${ params.template.api.modules }" property!` ); }
-    if ( params.template.api.exportid in window.HTMLTemplateElement.prototype ) { throw new Error( `The "HTMLTemplateElement" class already has a "${ params.template.api.exportid }" property!` ); }
+    if ( config.context.api.modules in window.document ) { throw new Error( `document already has a "${ config.context.api.modules }" property!` ); }
+    if ( config.template.api.modules in window.HTMLElement.prototype ) { throw new Error( `The "HTMLElement" class already has a "${ config.template.api.modules }" property!` ); }
+    if ( config.template.api.exportid in window.HTMLTemplateElement.prototype ) { throw new Error( `The "HTMLTemplateElement" class already has a "${ config.template.api.exportid }" property!` ); }
     // Definitions
-    Object.defineProperty( window.document, params.context.api.modules, { get: function() {
+    Object.defineProperty( window.document, config.context.api.modules, { get: function() {
         return getModulesObject( window.document );
     } } );
-    Object.defineProperty( window.HTMLElement.prototype, params.template.api.modules, { get: function() {
+    Object.defineProperty( window.HTMLElement.prototype, config.template.api.modules, { get: function() {
         return getModulesObject( this );
     } } );
-    Object.defineProperty( window.HTMLTemplateElement.prototype, params.template.api.exportid, { get: function() {
-        return this.isConnected ? HTMLExportsManager.instance( this, params ).exportId : this.getAttribute( params.template.attr.exportid );
+    Object.defineProperty( window.HTMLTemplateElement.prototype, config.template.api.exportid, { get: function() {
+        return this.getAttribute( config.template.attr.exportid );
     } } );
 }
 
 /**
  * Performs realtime capture of elements and builds their contents graph.
  *
- * @param Object	    params
+ * @param Object	    config
  *
  * @return Void
  */
-function realtime( params ) {
-    const window = this, { dom, HTMLImportsContext } = window.wq;
+function realtime( config ) {
+    const window = this, { dom, HTMLImportsContext } = window.webqit;
     // ------------
     const attachImportsContext = host => {
         const contextId = HTMLImportsContext.createId( host );
@@ -103,15 +97,15 @@ function realtime( params ) {
     const detachImportsContext = ( host, force ) => {
         const contextId = HTMLImportsContext.createId( host );
         HTMLImportsContext.detachFrom( host, contextId, cx => {
-            return force || host.matches && !host.matches( params.ownerContextSelector ) && !Object.keys( cx.modules ).length;
+            return force || host.matches && !host.matches( config.ownerContextSelector ) && !Object.keys( cx.modules ).length;
         } );
     };
     // ------------
-    dom.realtime( window.document ).observe( [ params.templateSelector, params.ownerContextSelector ], record => {
+    dom.realtime( window.document ).observe( [ config.templateSelector, config.ownerContextSelector ], record => {
         record.entrants.forEach( entry => {
-            if ( entry.matches( params.templateSelector ) ) {
+            if ( entry.matches( config.templateSelector ) ) {
                 Object.defineProperty( entry, 'scoped', { value: entry.hasAttribute( 'scoped' ) } ); 
-                const moduleExport = new HTMLExportsManager( entry, params );
+                const moduleExport = new HTMLExportsManager( window, entry, config );
                 moduleExport.ownerContext = entry.scoped ? record.target : window.document;
                 const ownerContextModulesObj = getModulesObject( moduleExport.ownerContext );
                 if ( moduleExport.exportId ) { Observer.set( ownerContextModulesObj, moduleExport.exportId, entry ); }
@@ -124,8 +118,8 @@ function realtime( params ) {
             }
         } );
         record.exits.forEach( entry => {
-            if ( entry.matches( params.templateSelector ) ) {
-                const moduleExport = HTMLExportsManager.instance( entry, params );
+            if ( entry.matches( config.templateSelector ) ) {
+                const moduleExport = HTMLExportsManager.instance( window, entry, config );
                 const ownerContextModulesObj = getModulesObject( moduleExport.ownerContext );
                 if ( moduleExport.exportId ) { Observer.deleteProperty( ownerContextModulesObj, moduleExport.exportId ); }
                 detachImportsContext( moduleExport.ownerContext );
@@ -133,5 +127,5 @@ function realtime( params ) {
                 detachImportsContext( entry, true );
             }
         } );
-    }, { subtree: true, timing: 'sync', staticSensitivity: params.staticsensitivity } );
+    }, { subtree: true, timing: 'sync', staticSensitivity: config.staticsensitivity } );
 }

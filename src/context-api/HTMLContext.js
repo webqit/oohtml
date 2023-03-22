@@ -8,9 +8,9 @@ import HTMLContextManager from './HTMLContextManager.js';
 export default class HTMLContext {
 
     /**
-     * @params
+     * @config
      */
-    static get params() {
+    static get config() {
         return {};
     }
 
@@ -41,7 +41,7 @@ export default class HTMLContext {
     static createId( host, fields = {} ) {
         const id = { type: 'HTMLModules', ...fields };
         if ( id.name ) return id;
-        if ( host.getAttribute && !( id.name = ( host.getAttribute( this.params.context.attr.contextname ) || '' ).trim() ) ) {
+        if ( host.getAttribute && !( id.name = ( host.getAttribute( this.config.context.attr.contextname ) || '' ).trim() ) ) {
             delete id.name;
         } else if ( !host.ownerDocument ) {
             id.name = 'root';

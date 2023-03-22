@@ -11,24 +11,25 @@ export default class HTMLExportsManager {
     /**
      * @instance
      */
-    static instance( host, params ) {
-        return _( host ).get( 'exportsmanager::instance' ) || new this( host, params );;
+    static instance( window, host, config ) {
+        return _( host ).get( 'exportsmanager::instance' ) || new this( window, host, config );
     }
 
     /**
      * @constructor
      */
-    constructor( host, params, parent = null, level = 0 ) {
+    constructor( window, host, config = {}, parent = null, level = 0 ) {
         _( host ).get( `exportsmanager::instance` )?.dispose();
         _( host ).set( `exportsmanager::instance`, this );
         this.host = host;
-        this.params = params;
+        this.window = window;
+        this.config = config;
         this.parent = parent;
         this.level = level;
         this.modules = getModulesObject( this.host );
-        this.exportId = ( this.host.getAttribute( this.params.template.attr.exportid ) || '' ).trim();
+        this.exportId = ( this.host.getAttribute( this.config.template?.attr.exportid ) || '' ).trim();
         this.validateExportId( this.exportId );
-        const dom = params.window.wq.dom;
+        const dom = this.window.webqit.dom;
         // ----------
         this.realtimeA = dom.realtime( this.host.content ).children( record => {
             this.export( record.entrants, true );
@@ -71,18 +72,18 @@ export default class HTMLExportsManager {
         const fragmentsExports = new Map;
         entries.forEach( entry => {
             if ( entry.nodeType !== 1 ) return;
-            const exportId = ( entry.getAttribute( this.params.export.attr.exportid ) || '' ).trim() || '#default';
-            const isPackage = entry.matches( this.params.templateSelector );
+            const exportId = ( entry.getAttribute( this.config.export.attr.exportid ) || '' ).trim() || '#default';
+            const isPackage = entry.matches( this.config.templateSelector );
             if ( exportId.startsWith( '#' ) ) {
                 this.validateExportId( exportId.substring( 1 ) );
                 if ( !fragmentsExports.has( exportId ) ) { fragmentsExports.set( exportId, [] ); }
                 fragmentsExports.get( exportId ).push( entry );
             } else {
                 if ( isConnected ) {
-                    if ( isPackage ) { new HTMLExportsManager( entry, this.params, this.host, this.level + 1 ); }
+                    if ( isPackage ) { new HTMLExportsManager( this.window, entry, this.config, this.host, this.level + 1 ); }
                     Observer.set( this.modules, exportId, entry );
                 } else {
-                    if ( isPackage ) { HTMLModulesGraph.instance( entry, this.params ).dispose(); }
+                    if ( isPackage ) { HTMLExportsManager.instance( this.window, entry ).dispose(); }
                     Observer.deleteProperty( this.modules, exportId );
                 }
             }
@@ -128,15 +129,14 @@ export default class HTMLExportsManager {
      * @return Promise
      */
     load( src ) {
-        const window = this.params.window;
         if ( this.host.content.children.length ) return;
         // Ongoing request?
         if ( this.fetchInFlight?.src === src ) return this.fetchInFlight.request;
         this.fetchInFlight?.controller.abort();
         // The promise
         const controller = new AbortController();
-        const fire = ( type, detail ) => this.host.dispatchEvent( new window.CustomEvent( type, { detail } ) );
-        const request = window.fetch( src, { signal: controller.signal } ).then( response => {
+        const fire = ( type, detail ) => this.host.dispatchEvent( new this.window.CustomEvent( type, { detail } ) );
+        const request = this.window.fetch( src, { signal: controller.signal } ).then( response => {
             return response.ok ? response.text() : Promise.reject( response.statusText );
         }).then( content => {
             this.host.innerHTML = content.trim(); // IMPORTANT: .trim()
@@ -159,8 +159,8 @@ export default class HTMLExportsManager {
      */
     evalInheritance( ) {
         if ( !this.parent ) return [];
-        let extendedId = ( this.host.getAttribute( this.params.template.attr.extends ) || '' ).trim();
-        let inheritedIds = ( this.host.getAttribute( this.params.template.attr.inherits ) || '' ).trim();
+        let extendedId = ( this.host.getAttribute( this.config.template.attr.extends ) || '' ).trim();
+        let inheritedIds = ( this.host.getAttribute( this.config.template.attr.inherits ) || '' ).trim();
         const handleInherited = records => {
             records.forEach( record => {
                 if ( Observer.get( this.modules, record.key ) !== record.oldValue ) return;
@@ -174,7 +174,7 @@ export default class HTMLExportsManager {
         const realtimes = [];
         const parentExportsObj = getModulesObject( this.parent );
         if ( extendedId ) {
-            realtimes.push( Observer.deep( parentExportsObj, [ extendedId, this.params.template.api.modules, Infinity ], Observer.get, handleInherited, { live: true } ) );
+            realtimes.push( Observer.deep( parentExportsObj, [ extendedId, this.config.template.api.modules, Infinity ], Observer.get, handleInherited, { live: true } ) );
         }
         if ( ( inheritedIds = inheritedIds.split( ' ' ).map( id => id.trim() ).filter( x => x ) ).length ) {
             realtimes.push( Observer.get( parentExportsObj, inheritedIds, handleInherited, { live: true } ) );
@@ -193,7 +193,7 @@ export default class HTMLExportsManager {
         this.realtimeC.forEach( r => r.abort() );
         Object.entries( this.modules ).forEach( ( [ key, entry ] ) => {
             if ( key.startsWith( '#' ) ) return;
-            HTMLExportsManager.instance( entry ).dispose();
+            HTMLExportsManager.instance( this.window, entry ).dispose();
         } );
     }
 }

@@ -39,9 +39,9 @@ export default class _HTMLImportsContext extends HTMLContext {
 
         // Parse and translate detail
         if ( ( event.request.detail || '' ).trim() === '/' ) return event.respondWith( this.modules );
-        const $params = this.constructor.params;
+        const $config = this.constructor.config;
         let path = ( event.request.detail || '' ).split( /\/|(?<=\w)(?=\W)/g ).map( x => x.trim() ).filter( x => x );
-        if ( path.length ) { path = path.join( `/${ $params.template.api.modules }/` )?.split( '/' ) || []; }
+        if ( path.length ) { path = path.join( `/${ $config.template.api.modules }/` )?.split( '/' ) || []; }
         // No detail?
         if ( !path.length ) return event.respondWith();
 
@@ -70,12 +70,12 @@ export default class _HTMLImportsContext extends HTMLContext {
             }
         };
         // ----------------
-        const $params = this.constructor.params;
-        if ( !this.host.matches || !$params.context.attr.importscontext ) return;
+        const $config = this.constructor.config;
+        if ( !this.host.matches || !$config.context.attr.importscontext ) return;
         // Any existing this.refdSourceController? Abort!
         this.refdSourceController?.disconnect();
-        const dom = this.host.ownerDocument.defaultView.wq.dom;
-        this.refdSourceController = dom.realtime( this.host ).attr( $params.context.attr.importscontext, ( record, { signal } ) => {
+        const dom = this.host.ownerDocument.defaultView.webqit.dom;
+        this.refdSourceController = dom.realtime( this.host ).attr( $config.context.attr.importscontext, ( record, { signal } ) => {
             // No importscontext attr set. But we're still watching
             if ( !record.value ) {
                 this.altModules = undefined;

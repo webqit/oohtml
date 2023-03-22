@@ -10,5 +10,5 @@ import init, { Observer } from './index.js';
 init.call( window );
 
 // As globals
-if ( !self.wq ) { self.wq = {}; }
-self.wq.Observer = Observer;
+if ( !self.webqit ) { self.webqit = {}; }
+self.webqit.Observer = Observer;

@@ -6,35 +6,30 @@ import { resolveParams } from '@webqit/subscript/src/params.js';
 import SubscriptFunction from '@webqit/subscript/src/SubscriptFunctionLite.js';
 import Observer from '@webqit/observer';
 import Compiler from './Compiler.js';
-import wqDom from '@webqit/dom';
+import { _init } from '../util.js';
 
 /**
  * @init
  * 
- * @param Object $params
+ * @param Object $config
  */
-export default function init( $params = {} ) {
-	const window = this, dom = wqDom.call( window );
-    if ( !window.wq ) { window.wq = {}; }
-    if ( !window.wq.oohtml ) { window.wq.oohtml = {}; }
-    window.wq.oohtml.Script = { compileCache: [ new Map, new Map, ] };
-    window.wq.SubscriptFunction = $params.SubscriptFunction/* allow for injection, e.g. from test runner */ || SubscriptFunction;
-    window.wq.Observer = Observer;
-    // -------
-    const params = dom.meta( 'oohtml' ).copyWithDefaults( $params, {
+export default function init( { advanced = {}, ...$config } ) {
+    const { config, window } = _init.call( this, 'scoped-js', $config, {
         script: { retention: 'retain', mimeType: '' },
-        config: resolveParams( {
-            parserParams: { allowReturnOutsideFunction: false, allowSuperOutsideMethod: false, ...( $params.parserParams || {} ) },
-            compilerParams: { globalsNoObserve: [ 'alert' ], ...( $params.compilerParams || {} ) },
-            runtimeParams: { apiVersion: 2, ...( $params.runtimeParams || {} ) },
+        advanced: resolveParams( advanced, {
+            parserParams: { allowReturnOutsideFunction: false, allowSuperOutsideMethod: false },
+            compilerParams: { globalsNoObserve: [ 'alert' ] },
+            runtimeParams: { apiVersion: 2 },
         } ),
     } );
-	params.scriptSelector = ( Array.isArray( params.script.mimeType ) ? params.script.mimeType : [ params.script.mimeType ] ).reduce( ( selector, mm ) => {
+	config.scriptSelector = ( Array.isArray( config.script.mimeType ) ? config.script.mimeType : [ config.script.mimeType ] ).reduce( ( selector, mm ) => {
         const qualifier = mm ? `[type=${ window.CSS.escape( mm ) }]` : '';
         return selector.concat( `script${ qualifier }[scoped],script${ qualifier }[contract]` );
     }, [] ).join( ',' );
-    // -------
-    realtime.call( this, params );
+    window.webqit.oohtml.Script = { compileCache: [ new Map, new Map, ] };
+    window.webqit.SubscriptFunction = $config.SubscriptFunction/* allow for injection, e.g. from test runner */ || SubscriptFunction;
+    window.webqit.Observer = Observer;
+    realtime.call( window, config );
 }
 
 export {
@@ -65,7 +60,7 @@ export function execute( compiledScript, thisContext, script ) {
             } );
         } );
     }
-    const window = this, { dom } = window.wq;
+    const window = this, { dom } = window.webqit;
     dom.realtime( window.document ).observe( thisContext, () => {
         if ( script.contract ) {
             // Rerending processes,,,
@@ -82,14 +77,14 @@ export function execute( compiledScript, thisContext, script ) {
 /**
  * Performs realtime capture of elements and builds their relationships.
  *
- * @param Object params
+ * @param Object config
  *
  * @return Void
  */
-function realtime( params ) {
-	const window = this, { dom } = window.wq;
-    const compiler = new Compiler( window, params, execute ), handled = () => {};
-	dom.realtime( window.document ).observe( params.scriptSelector, record => {
+function realtime( config ) {
+	const window = this, { dom } = window.webqit;
+    const compiler = new Compiler( window, config, execute ), handled = () => {};
+	dom.realtime( window.document ).observe( config.scriptSelector, record => {
         record.entrants.forEach( script => {
             if ( 'contract' in script ) return handled( script );
             Object.defineProperty( script, 'contract', { value: script.hasAttribute( 'contract' ) } ); 
