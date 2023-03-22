@@ -4,7 +4,7 @@
  */
 import webqitDom from '@webqit/dom';
 import { _internals } from '@webqit/util/js/index.js';
-import { _inherit } from '@webqit/util/obj/index.js';
+import { _merge } from '@webqit/util/obj/index.js';
 
 export const _ = ( ...args ) => _internals( 'oohtml', ...args );
 
@@ -13,7 +13,7 @@ export function _init( name, $config, $defaults ) {
     window.webqit || ( window.webqit = {} );
     window.webqit.oohtml || ( window.webqit.oohtml = {} );
     window.webqit.oohtml.configs || ( window.webqit.oohtml.configs = {} );
-    const config = _inherit( 1, dom.meta( name ).json(), $config, $defaults );
+    const config = _merge( 2, $defaults, $config, dom.meta( name ).json() );
     window.webqit.oohtml.configs[ name.toUpperCase().replace( '-', '_' ) ] = config;
     return { config, dom, window };
 }
