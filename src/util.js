@@ -9,13 +9,16 @@ import { _merge } from '@webqit/util/obj/index.js';
 export const _ = ( ...args ) => _internals( 'oohtml', ...args );
 
 export function _init( name, $config, $defaults ) {
+    const _name = name.toUpperCase().replace( '-', '_' );
     const window = this, dom = webqitDom.call( window );
     window.webqit || ( window.webqit = {} );
     window.webqit.oohtml || ( window.webqit.oohtml = {} );
     window.webqit.oohtml.configs || ( window.webqit.oohtml.configs = {} );
-    const config = _merge( 2, $defaults, $config, dom.meta( name ).json() );
-    window.webqit.oohtml.configs[ name.toUpperCase().replace( '-', '_' ) ] = config;
-    return { config, dom, window };
+    window.webqit.oohtml.configs[ _name ] || ( window.webqit.oohtml.configs[ _name ] = {} );
+    // ---------------------
+    _merge( 2, window.webqit.oohtml.configs[ _name ], $defaults, $config, dom.meta( name ).json() );
+    // ---------------------
+    return { config: window.webqit.oohtml.configs[ _name ], dom, window };
 }
 
 export function _compare( a, b, depth = 1, objectSizing = false ) {
