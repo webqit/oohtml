@@ -84,8 +84,8 @@ export default class Compiler {
                 _Function = runtimeParams?.compileFunction 
                     ? runtimeParams.compileFunction( source )
                     : new _FunctionConstructor( source );
-                Object.defineProperty( _Function, 'originalSource', { configurable: true, value: script.textContent } );
             }
+            Object.defineProperty( _Function, 'originalSource', { configurable: true, value: script.textContent } );
             // Save material function to compile cache
             compiledScript = Object.defineProperty( script.cloneNode(), 'function', { value: _Function } );
             script.scoped && Object.defineProperty( compiledScript, 'scoped', Object.getOwnPropertyDescriptor( script, 'scoped') );
