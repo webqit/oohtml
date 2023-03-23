@@ -84,7 +84,7 @@ export function execute( compiledScript, thisContext, script ) {
 function realtime( config ) {
 	const window = this, { dom } = window.webqit;
     if ( !window.HTMLScriptElement.supports ) { window.HTMLScriptElement.supports = () => false; }
-    const potentialManualTypes = [ 'module' ].concat( config.script.mimeType );
+    const potentialManualTypes = [ 'module' ].concat( config.script.mimeType || [] );
     const compiler = new Compiler( window, config, execute ), handled = () => {};
 	dom.realtime( window.document ).subtree/*instead of observe(); reason: jsdom timing*/( config.scriptSelector, record => {
         record.entrants.forEach( script => {
