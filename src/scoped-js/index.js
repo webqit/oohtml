@@ -27,7 +27,7 @@ export default function init( { advanced = {}, ...$config } ) {
         return selector.concat( `script${ qualifier }[scoped],script${ qualifier }[contract]` );
     }, [] ).join( ',' );
     window.webqit.oohtml.Script = { compileCache: [ new Map, new Map, ] };
-    window.webqit.SubscriptFunction = $config.SubscriptFunction/* allow for injection, e.g. from test runner */ || SubscriptFunction;
+    window.webqit.SubscriptFunction = config.SubscriptFunction/* allow for injection, e.g. from test runner */ || SubscriptFunction;
     window.webqit.Observer = Observer;
     realtime.call( window, config );
 }

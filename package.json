@@ -38,10 +38,10 @@
     "postpublish": "git push && git push --tags"
   },
   "dependencies": {
-    "@webqit/dom": "^2.0.5",
-    "@webqit/observer": "^2.0.6",
+    "@webqit/dom": "^2.0.8",
+    "@webqit/observer": "^2.0.7",
     "@webqit/subscript": "^2.1.39",
-    "@webqit/util": "^0.8.10"
+    "@webqit/util": "^0.8.11"
   },
   "devDependencies": {
     "chai": "^4.3.4",
