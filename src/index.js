@@ -16,9 +16,9 @@ import ScopedJS from './scoped-js/index.js';
 export default function init( configs = {} ) {
     if ( !this.webqit ) { this.webqit = {}; }
     // --------------
-    BindingsAPI.call(this, ( configs.BINDINGS_API || {} ) );
+    BindingsAPI.call( this, ( configs.BINDINGS_API || {} ) );
     ContextAPI.call( this, ( configs.CONTEXT_API || {} ) );
-    NamespaceAPI.call(this, ( configs.NAMESPACE_API || {} ) );
+    NamespaceAPI.call( this, ( configs.NAMESPACE_API || {} ) );
     HTMLModules.call( this, ( configs.HTML_MODULES || {} ) );
     HTMLImports.call( this, ( configs.HTML_IMPORTS || {} ) );
     ScopedJS.call( this, ( configs.SCOPED_JS || {} ) );

@@ -34,10 +34,10 @@ export default function init( $config = {} ) {
  */
 function realtime( config ) {
     const window = this, { dom, HTMLImportElement } = window.webqit;
-    dom.realtime( window.document ).observe( config.import.tagName, record => {
+    dom.realtime( window.document ).subtree/*instead of observe(); reason: jsdom timing*/( config.import.tagName, record => {
         record.entrants.forEach( node => handleRealtime( node, true, record ) );
         record.exits.forEach( node => handleRealtime( node, false, record ) );
-    }, { subtree: true, timing: 'sync' } );
+    }, { live: true, timing: 'sync' } );
     function handleRealtime( entry, connectedState, record ) {
         const elInstance = HTMLImportElement.instance( entry );
         if ( connectedState ) { elInstance[ '#' ].connectedCallback(); }

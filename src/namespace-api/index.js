@@ -101,10 +101,10 @@ function realtime( config ) {
 			Observer.deleteProperty( namespaceObj, identifier );
 		}
 	};
-	dom.realtime( window.document ).observe( config.idSelector, record => {
+	dom.realtime( window.document ).subtree/*instead of observe(); reason: jsdom timing*/( config.idSelector, record => {
         record.entrants.forEach( entry => handle( record.target, entry, true ) );
         record.exits.forEach( entry => handle( record.target, entry, false ) );
-	}, { subtree: true, timing: 'sync', staticSensitivity: config.staticsensitivity } );
+	}, { live: true, timing: 'sync', staticSensitivity: config.staticsensitivity } );
 	// ----------------
 	if ( config.staticsensitivity ) {
 		dom.realtime( window.document, 'attr' ).observe( config.namespaceSelector, record => {

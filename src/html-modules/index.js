@@ -101,7 +101,7 @@ function realtime( config ) {
         } );
     };
     // ------------
-    dom.realtime( window.document ).observe( [ config.templateSelector, config.ownerContextSelector ], record => {
+    dom.realtime( window.document ).subtree/*instead of observe(); reason: jsdom timing*/( [ config.templateSelector, config.ownerContextSelector ], record => {
         record.entrants.forEach( entry => {
             if ( entry.matches( config.templateSelector ) ) {
                 Object.defineProperty( entry, 'scoped', { value: entry.hasAttribute( 'scoped' ) } ); 
@@ -127,5 +127,5 @@ function realtime( config ) {
                 detachImportsContext( entry, true );
             }
         } );
-    }, { subtree: true, timing: 'sync', staticSensitivity: config.staticsensitivity } );
+    }, { live: true, timing: 'sync', staticSensitivity: config.staticsensitivity } );
 }
