@@ -4,7 +4,6 @@
  */
 import { expect } from 'chai';
 import { createDocument } from './index.js';
-import Observer from '@webqit/observer';
 
 describe(`Bindings API`, function() {
 
@@ -12,7 +11,7 @@ describe(`Bindings API`, function() {
         
         const head = ``;
         const body = ``;
-        const { document } = createDocument( head, body );
+        const { document, window } = createDocument( head, body );
 
         it ( `The document object and elements should expose a "bindings" property each...`, async function() {
             expect( document ).to.have.property( 'bindings' );
@@ -20,6 +19,7 @@ describe(`Bindings API`, function() {
         } );
 
         it ( `Bindings objects should be observable...`, async function() {
+            const { webqit: { Observer } } = window;
             let idReceived = null;
             Observer.observe( document.bindings, records => {
                 idReceived = records[ 0 ].key;

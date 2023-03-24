@@ -3,12 +3,11 @@
  * @imports
  */
 import { expect } from 'chai';
-import { createDocument } from './index.js';
-import Observer from '@webqit/observer';
+import { createDocument, delay } from './index.js';
 
 describe(`Namespaced HTML`, function() {
 
-    describe( `Basic...`, function() {
+    describe( `Basic...`, async function() {
         
         const head = `
         <meta name="oohtml" content="attr.id=:id" />`;
@@ -16,7 +15,9 @@ describe(`Namespaced HTML`, function() {
         <div :id="main" namespace>
             <div :id="child"></div>
         </div>`;
-        const { document } = createDocument( head, body );
+        const { document, window } = createDocument( head, body );
+        await delay( 60 );
+        const { webqit: { Observer } } = window;
 
         it ( `The document object and elements should expose a "namespace" property each...`, async function() {
             expect( document ).to.have.property( 'namespace' );

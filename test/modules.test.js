@@ -3,8 +3,7 @@
  * @imports
  */
 import { expect } from 'chai';
-import Observer from '@webqit/observer';
-import { delay, createDocument, mockRemoteFetch, _ } from './index.js';
+import { createDocument, mockRemoteFetch, delay } from './index.js';
 const getQueryPath = str => str.split( '/' ).join( '/modules/' ).split( '/' );
 
 describe(`HTML Modules`, function() {
@@ -47,8 +46,9 @@ describe(`HTML Modules`, function() {
                     <p>Hellort</p>
                 </template>
             </template>`;
-            const { document } = createDocument( head, body );
-            await delay( 200 );
+            const { document, window } = createDocument( head, body );
+            await delay( 20 );
+            const { webqit: { Observer } } = window;
             // -------
             const temp0 = Observer.deep( document.modules, getQueryPath( 'temp0' ), Observer.get );
             expect( temp0 ).to.have.property( 'modules' );
@@ -79,13 +79,12 @@ describe(`HTML Modules`, function() {
     } );
 
     describe( `Remote...`, function() {
-        //return;
         this.timeout( 10000 );
 
         it( `Add remote lazy module, with a nested remote lazy module, then resolve.`, async function() {
 
             const head = ``, body = ``;
-            const window = createDocument( head, body, window => {
+            const { document, window } = createDocument( head, body, window => {
                 // Define remote responses
                 const temp0 = `
                 <template exportid="temp1" src="/temp1.html" loading="lazy"></template>`;
@@ -97,7 +96,9 @@ describe(`HTML Modules`, function() {
                 <p>Hellort</p>`;
                 const timeout = 1000;
                 mockRemoteFetch( window, { '/temp0.html': temp0, '/temp1.html': temp1, '/temp2.html': temp2 }, timeout );
-            } ), document = window.document;
+            } );
+            await delay( 20 );
+            const { webqit: { Observer } } = window;
             // -------
             // Add a remote module
             const templateEl = document.createElement( 'template' );
@@ -132,7 +133,6 @@ describe(`HTML Modules`, function() {
     } );
 
     describe( `Context...`, function() {
-        //return;
         this.timeout( 10000 );
 
         it( `Use the context API to fire a scoped-request that is imitially resolved from the document and then from a scoped context.`, async function() {
@@ -146,7 +146,9 @@ describe(`HTML Modules`, function() {
             </template>`;
             const body = `
             <div></div>`;
-            const window = createDocument( head, body ), document = window.document;
+            const { document, window } = createDocument( head, body );
+            await delay( 20 );
+
             // -------
             const addScopedModules = () => {
                 const templateEl = document.createElement( 'template' );

@@ -19,7 +19,7 @@ export default function init( { advanced = {}, ...$config } ) {
         advanced: resolveParams( advanced, {
             parserParams: { allowReturnOutsideFunction: false, allowSuperOutsideMethod: false },
             compilerParams: { globalsNoObserve: [ 'alert' ] },
-            runtimeParams: { apiVersion: 2, compileFunction: this.webqit.compileFunctionCallback },
+            runtimeParams: { apiVersion: 2 },
         } ),
     } );
 	config.scriptSelector = ( Array.isArray( config.script.mimeType ) ? config.script.mimeType : [ config.script.mimeType ] ).reduce( ( selector, mm ) => {
@@ -27,7 +27,7 @@ export default function init( { advanced = {}, ...$config } ) {
         return selector.concat( `script${ qualifier }[scoped],script${ qualifier }[contract]` );
     }, [] ).join( ',' );
     window.webqit.oohtml.Script = { compileCache: [ new Map, new Map, ] };
-    window.webqit.SubscriptFunction/* if already injected */ || ( window.webqit.SubscriptFunction = SubscriptFunction );
+    window.webqit.SubscriptFunction = SubscriptFunction;
     window.webqit.Observer = Observer;
     realtime.call( window, config );
 }

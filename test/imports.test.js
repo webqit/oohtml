@@ -3,7 +3,7 @@
  * @imports
  */
 import { expect } from 'chai';
-import { delay, createDocument, mockRemoteFetch, _ } from './index.js';
+import { createDocument, mockRemoteFetch, delay } from './index.js';
 
 describe(`HTML Imports`, function() {
 
@@ -25,8 +25,7 @@ describe(`HTML Imports`, function() {
 
         it ( `<import> element be automatically resolved: import default export...`, async function() {
             expect( document.body.children ).to.have.length( 2 );
-            const importElement = _( document.body.firstElementChild ).get( 'slot@imports' );
-            expect( importElement.nodeName ).to.eq( 'IMPORT' );
+            expect( document.body.firstElementChild.nodeName ).to.eq( 'P' );
         } );
 
         it( `<import> element be resolved again: after having mutated an export right at its module.`, async function() {
@@ -147,7 +146,7 @@ describe(`HTML Imports`, function() {
             // Should stil be waiting...
             expect( document.body.firstElementChild.nodeName ).to.eq( 'IMPORT' );
             // When remote request must have completed
-            await delay( ( timeout * 2 ) + 100 );
+            await delay( ( timeout * 2 ) + 150 );
             expect( document.body.firstElementChild.nodeName ).to.eq( 'P' );
             expect( document.body.lastElementChild.nodeName ).to.eq( 'P' );
         } );
@@ -173,7 +172,7 @@ describe(`HTML Imports`, function() {
                 <!--<import module="#input"></import>-->
             </div>`;
             const { document } = createDocument( head, body );
-            await true;
+            await delay( 20 );
 
             const routingElement = document.body.firstElementChild;
             expect( routingElement.firstElementChild.nodeName ).to.eq( 'TEXTAREA' );
@@ -205,7 +204,7 @@ describe(`HTML Imports`, function() {
                 <!--<import module="#input"></import>-->
             </div>`;
             const { document } = createDocument( head, body );
-            await true;
+            await delay( 20 );
 
             const routingElement = document.body.firstElementChild;
             expect( routingElement.firstElementChild.nodeName ).to.eq( 'TEXTAREA' );
