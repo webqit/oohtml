@@ -40,7 +40,7 @@ export default class _HTMLImportsContext extends HTMLContext {
         // Parse and translate detail
         if ( ( event.request.detail || '' ).trim() === '/' ) return event.respondWith( this.modules );
         const $config = this.constructor.config;
-        let path = ( event.request.detail || '' ).split( /\/|(?<=\w)(?=\W)/g ).map( x => x.trim() ).filter( x => x );
+        let path = ( event.request.detail || '' ).split( /\/|(?<=\w)(?=#)/g ).map( x => x.trim() ).filter( x => x );
         if ( path.length ) { path = path.join( `/${ $config.template.api.modules }/` )?.split( '/' ) || []; }
         // No detail?
         if ( !path.length ) return event.respondWith();
