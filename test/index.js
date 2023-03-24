@@ -55,16 +55,13 @@ export function createDocumentForScopedJS( head = '', body = '', callback = null
             window.testRecords = [];
             createContext( window );
             // Running advanced scripts
-            init.call( window, { SCOPED_JS: {
+            window.webqit = {
                 SubscriptFunction,
-                advanced: {
-                    runtimeParams: {
-                        compileFunction: ( code, parameters ) => compileFunction( code, parameters, {
-                            parsingContext: window,
-                        } ),
-                    }
-                }
-            } } );
+                compileFunctionCallback: ( code, parameters ) => compileFunction( code, parameters, {
+                    parsingContext: window,
+                } ),
+            };
+            init.call( window );
             // Running basic scripts
             const dom = webqitDom.call( window );
             if ( params.runScripts !== 'dangerously' ) {
