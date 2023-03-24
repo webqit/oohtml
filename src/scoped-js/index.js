@@ -19,7 +19,7 @@ export default function init( { advanced = {}, ...$config } ) {
         advanced: resolveParams( advanced, {
             parserParams: { allowReturnOutsideFunction: false, allowSuperOutsideMethod: false },
             compilerParams: { globalsNoObserve: [ 'alert' ] },
-            runtimeParams: { apiVersion: 2, compileFunction: window.webqit.compileFunctionCallback },
+            runtimeParams: { apiVersion: 2, compileFunction: this.webqit.compileFunctionCallback },
         } ),
     } );
 	config.scriptSelector = ( Array.isArray( config.script.mimeType ) ? config.script.mimeType : [ config.script.mimeType ] ).reduce( ( selector, mm ) => {
