@@ -2,6 +2,7 @@
 /**
  * @imports
  */
+import { _isTypeObject } from '@webqit/util/js/index.js';
 import { resolveParams } from '@webqit/subscript/src/params.js';
 import SubscriptFunction from '@webqit/subscript/src/SubscriptFunctionLite.js';
 import Observer from '@webqit/observer';
