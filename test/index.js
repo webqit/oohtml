@@ -30,7 +30,7 @@ export function createDocument( head = '', body = '', callback = null, ) {
     return createWindow( skeletonDoc, {
         // Notice we do not want to use the Path utility here.
         // Destroys the file:/// url convention especially in windows
-        url: import.meta.url.substring( 0, import.meta.url.lastIndexOf( '/test/' ) ),
+        url: import.meta.url.substring( 0, import.meta.url.lastIndexOf( '/test/index.js' ) ),
         beforeParse( window ) {
             if ( callback ) callback( window );
         }
