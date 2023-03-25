@@ -136,7 +136,7 @@ export default class HTMLExportsManager {
         // The promise
         const controller = new AbortController();
         const fire = ( type, detail ) => this.host.dispatchEvent( new this.window.CustomEvent( type, { detail } ) );
-        const request = this.window.fetch( src, { signal: controller.signal } ).then( response => {
+        const request = this.window.fetch( src, { signal: controller.signal, element: this.host } ).then( response => {
             return response.ok ? response.text() : Promise.reject( response.statusText );
         }).then( content => {
             this.host.innerHTML = content.trim(); // IMPORTANT: .trim()
