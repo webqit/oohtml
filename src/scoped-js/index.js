@@ -41,21 +41,27 @@ export {
 // Script runner
 export function execute( compiledScript, thisContext, script ) {
     if ( !compiledScript.function ) throw new Error( `Input script must already be compiled!` );
+    const _try = ( callback, isRerender = false ) => {
+        return callback();
+    };
     // Execute...
     const returnValue = compiledScript.function.call( thisContext );
     if ( script.contract ) {
         // Rerending processes,,,
         Object.defineProperty( script, 'rerender', { value: ( ...args ) => _await( returnValue, ( [ , rerender ] ) => rerender( ...args ) ) } );
         _await( script.properties, properties => {
-            const getPaths = ( base, record_s ) => ( Array.isArray( record_s ) ? record_s : [ record_s ] ).map( record => [ ...base, ...( record.path || [ record.key ] ) ] );
             properties.processes = properties.dependencies.map( path => {
-                if ( path[ 0 ] === 'this' ) {
-                    return Observer.deep( thisContext, path.slice( 1 ), Observer.observe, record_s => {
-                        script.rerender( ...getPaths( [ 'this' ], record_s ) );
+                const _env = { 'this': thisContext, 'globalThis': globalThis };
+                const getPaths = ( base, record_s ) => ( Array.isArray( record_s ) ? record_s : [ record_s ] ).map( record => [ ...base, ...( record.path || [ record.key ] ) ] );
+                properties.processes = properties.dependencies.map( path => {
+                    if ( _isTypeObject( _env[ path[ 0 ] ] ) ) {
+                        return Observer.deep( _env[ path[ 0 ] ], path.slice( 1 ), Observer.observe, record_s => {
+                            script.rerender( ...getPaths( [ path[ 0 ] ], record_s ) );
+                        } );
+                    }
+                    return Observer.deep( globalThis, path, Observer.observe, record_s => {
+                        script.rerender( ...getPaths( [], record_s ) );
                     } );
-                }
-                return Observer.deep( globalThis, path, Observer.observe, record_s => {
-                    script.rerender( ...getPaths( [], record_s ) );
                 } );
             } );
         } );
