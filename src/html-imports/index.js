@@ -13,14 +13,14 @@ import { _, _init } from '../util.js';
  * @return Void
  */
 export default function init( $config = {} ) {
-    const { config, dom, window } = _init.call( this, 'html-imports', $config, {
+    const { config, realdom, window } = _init.call( this, 'html-imports', $config, {
         import: { tagName: 'import', attr: { moduleref: 'module' }, },
         export: { attr: { exportid: 'exportid' }, },
         isomorphic: true,
     } );
     config.slottedElementsSelector = `[${ window.CSS.escape( config.export.attr.exportid ) }]`;
     window.webqit.HTMLImportElement = _HTMLImportElement.call( window, config );
-    dom.ready( () => hydration.call( window, config ) );
+    realdom.ready( () => hydration.call( window, config ) );
     realtime.call( window, config );
 }
 
@@ -33,8 +33,8 @@ export default function init( $config = {} ) {
  * @return Void
  */
 function realtime( config ) {
-    const window = this, { dom, HTMLImportElement } = window.webqit;
-    dom.realtime( window.document ).subtree/*instead of observe(); reason: jsdom timing*/( config.import.tagName, record => {
+    const window = this, { realdom, HTMLImportElement } = window.webqit;
+    realdom.realtime( window.document ).subtree/*instead of observe(); reason: jsdom timing*/( config.import.tagName, record => {
         record.entrants.forEach( node => handleRealtime( node, true, record ) );
         record.exits.forEach( node => handleRealtime( node, false, record ) );
     }, { live: true, timing: 'sync' } );

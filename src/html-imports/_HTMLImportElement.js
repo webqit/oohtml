@@ -14,7 +14,7 @@ import { _ } from '../util.js';
  * @return HTMLImportElement
  */
 export default function( config ) {
-    const window = this, { dom } = window.webqit;
+    const window = this, { realdom } = window.webqit;
     const BaseElement = config.import.tagName.includes( '-' ) ? window.HTMLElement : class {};
     return class HTMLImportElement extends BaseElement {
         
@@ -89,7 +89,7 @@ export default function( config ) {
                     priv.anchorNode.replaceWith( this.el );
                     return;
                 }
-                const autoRestoreRealtime = dom.realtime( window.document ).observe( [ ...priv.slottedElements ], record => {
+                const autoRestoreRealtime = realdom.realtime( window.document ).observe( [ ...priv.slottedElements ], record => {
                     record.exits.forEach( outgoingNode => {
                         _( outgoingNode ).delete( 'slot@imports' );
                         priv.slottedElements.delete( outgoingNode );
@@ -110,7 +110,7 @@ export default function( config ) {
                 // Totally initialize this instance?
                 if ( !priv.anchorNode ) { priv.setAnchorNode( this.createAnchorNode() ); }
                 if ( priv.moduleRefRealtime ) return;
-                priv.moduleRefRealtime = dom.realtime( this.el ).attr( config.import.attr.moduleref, ( record, { signal } ) => {
+                priv.moduleRefRealtime = realdom.realtime( this.el ).attr( config.import.attr.moduleref, ( record, { signal } ) => {
                     priv.moduleRef = record.value;
                     ;
                     // Below, we ignore first restore from hydration

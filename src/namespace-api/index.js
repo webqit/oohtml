@@ -85,7 +85,7 @@ function getNamespaceObject( node, config ) {
  * @return Void
  */
 function realtime( config ) {
-	const window = this, { dom } = window.webqit;
+	const window = this, { realdom } = window.webqit;
 	// ----------------
 	const handle = ( target, entry, incoming ) => {
 		const identifier = entry.getAttribute( config.attr.id );
@@ -101,13 +101,13 @@ function realtime( config ) {
 			Observer.deleteProperty( namespaceObj, identifier );
 		}
 	};
-	dom.realtime( window.document ).subtree/*instead of observe(); reason: jsdom timing*/( config.idSelector, record => {
+	realdom.realtime( window.document ).subtree/*instead of observe(); reason: jsdom timing*/( config.idSelector, record => {
         record.entrants.forEach( entry => handle( record.target, entry, true ) );
         record.exits.forEach( entry => handle( record.target, entry, false ) );
 	}, { live: true, timing: 'sync', staticSensitivity: config.staticsensitivity } );
 	// ----------------
 	if ( config.staticsensitivity ) {
-		dom.realtime( window.document, 'attr' ).observe( config.namespaceSelector, record => {
+		realdom.realtime( window.document, 'attr' ).observe( config.namespaceSelector, record => {
 			const ownerRoot = record.target.parentNode?.closest( config.namespaceSelector ) || _( record.target ).get( 'ownerNamespace' ) || window.document;
 			const ownerRootNamespaceObj = getNamespaceObject.call( window, ownerRoot, config );
 			const namespaceObj = getNamespaceObject.call( window, record.target, config );

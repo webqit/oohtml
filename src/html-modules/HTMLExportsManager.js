@@ -29,14 +29,14 @@ export default class HTMLExportsManager {
         this.modules = getModulesObject( this.host );
         this.exportId = ( this.host.getAttribute( this.config.template?.attr.exportid ) || '' ).trim();
         this.validateExportId( this.exportId );
-        const dom = this.window.webqit.dom;
+        const realdom = this.window.webqit.realdom;
         // ----------
-        this.realtimeA = dom.realtime( this.host.content ).children( record => {
+        this.realtimeA = realdom.realtime( this.host.content ).children( record => {
             this.export( record.entrants, true );
             this.export( record.exits, false );
         }, { live: true, timing: 'sync' } );
         // ----------
-        this.realtimeB = dom.realtime( this.host ).attr( [ 'src', 'loading' ], ( ...args ) => this.evaluateLoading( ...args ), {
+        this.realtimeB = realdom.realtime( this.host ).attr( [ 'src', 'loading' ], ( ...args ) => this.evaluateLoading( ...args ), {
             live: true,
             atomic: true,
             timing: 'sync',

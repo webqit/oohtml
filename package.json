@@ -34,12 +34,12 @@
     "test:coverage": "c8 --reporter=text-lcov npm run test | coveralls",
     "build": "esbuild main=src/targets.browser.js bindings-api=src/bindings-api/targets.browser.js context-api=src/context-api/targets.browser.js namespace-api=src/namespace-api/targets.browser.js html-modules=src/html-modules/targets.browser.js html-imports=src/html-imports/targets.browser.js scoped-js=src/scoped-js/targets.browser.js --bundle --minify --sourcemap --outdir=dist",
     "preversion": "npm run test && npm run build && git add -A dist",
-    "postversion": "npm publish",
+    "postversion": "npm publish --tag next",
     "postpublish": "git push && git push --tags"
   },
   "dependencies": {
-    "@webqit/dom": "^2.0.8",
     "@webqit/observer": "^2.0.7",
+    "@webqit/realdom": "^2.1.3",
     "@webqit/subscript": "^2.1.40",
     "@webqit/util": "^0.8.11"
   },

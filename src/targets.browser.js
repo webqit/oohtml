@@ -2,7 +2,7 @@
 /**
  * @imports
  */
-import init, { Observer } from './index.js';
+import init from './index.js';
 
 /**
  * @init

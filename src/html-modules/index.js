@@ -88,7 +88,7 @@ function exposeModulesObjects( config ) {
  * @return Void
  */
 function realtime( config ) {
-    const window = this, { dom, HTMLImportsContext } = window.webqit;
+    const window = this, { realdom, HTMLImportsContext } = window.webqit;
     // ------------
     const attachImportsContext = host => {
         const contextId = HTMLImportsContext.createId( host );
@@ -101,7 +101,7 @@ function realtime( config ) {
         } );
     };
     // ------------
-    dom.realtime( window.document ).subtree/*instead of observe(); reason: jsdom timing*/( [ config.templateSelector, config.ownerContextSelector ], record => {
+    realdom.realtime( window.document ).subtree/*instead of observe(); reason: jsdom timing*/( [ config.templateSelector, config.ownerContextSelector ], record => {
         record.entrants.forEach( entry => {
             if ( entry.matches( config.templateSelector ) ) {
                 Object.defineProperty( entry, 'scoped', { value: entry.hasAttribute( 'scoped' ) } ); 

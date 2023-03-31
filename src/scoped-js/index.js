@@ -67,8 +67,8 @@ export function execute( compiledScript, thisContext, script ) {
             } );
         } );
     }
-    const window = this, { dom } = window.webqit;
-    dom.realtime( window.document ).observe( thisContext, () => {
+    const window = this, { realdom } = window.webqit;
+    realdom.realtime( window.document ).observe( thisContext, () => {
         if ( script.contract ) {
             // Rerending processes,,,
             _await( script.properties, properties => {
@@ -89,11 +89,11 @@ export function execute( compiledScript, thisContext, script ) {
  * @return Void
  */
 function realtime( config ) {
-	const window = this, { dom } = window.webqit;
+	const window = this, { realdom } = window.webqit;
     if ( !window.HTMLScriptElement.supports ) { window.HTMLScriptElement.supports = () => false; }
     const potentialManualTypes = [ 'module' ].concat( config.script.mimeType || [] );
     const compiler = new Compiler( window, config, execute ), handled = () => {};
-	dom.realtime( window.document ).subtree/*instead of observe(); reason: jsdom timing*/( config.scriptSelector, record => {
+	realdom.realtime( window.document ).subtree/*instead of observe(); reason: jsdom timing*/( config.scriptSelector, record => {
         record.entrants.forEach( script => {
             if ( 'contract' in script ) return handled( script );
             Object.defineProperty( script, 'contract', { value: script.hasAttribute( 'contract' ) } ); 

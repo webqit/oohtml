@@ -74,8 +74,8 @@ export default class _HTMLImportsContext extends HTMLContext {
         if ( !this.host.matches || !$config.context.attr.importscontext ) return;
         // Any existing this.refdSourceController? Abort!
         this.refdSourceController?.disconnect();
-        const dom = this.host.ownerDocument.defaultView.webqit.dom;
-        this.refdSourceController = dom.realtime( this.host ).attr( $config.context.attr.importscontext, ( record, { signal } ) => {
+        const realdom = this.host.ownerDocument.defaultView.webqit.realdom;
+        this.refdSourceController = realdom.realtime( this.host ).attr( $config.context.attr.importscontext, ( record, { signal } ) => {
             // No importscontext attr set. But we're still watching
             if ( !record.value ) {
                 this.altModules = undefined;

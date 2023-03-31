@@ -2,7 +2,7 @@
 /**
  * @imports
  */
-import webqitDom from '@webqit/dom';
+import realdomInit from '@webqit/realdom';
 import { _internals } from '@webqit/util/js/index.js';
 import { _merge } from '@webqit/util/obj/index.js';
 
@@ -10,15 +10,15 @@ export const _ = ( ...args ) => _internals( 'oohtml', ...args );
 
 export function _init( name, $config, $defaults ) {
     const _name = name.toUpperCase().replace( '-', '_' );
-    const window = this, dom = webqitDom.call( window );
+    const window = this, realdom = realdomInit.call( window );
     window.webqit || ( window.webqit = {} );
     window.webqit.oohtml || ( window.webqit.oohtml = {} );
     window.webqit.oohtml.configs || ( window.webqit.oohtml.configs = {} );
     window.webqit.oohtml.configs[ _name ] || ( window.webqit.oohtml.configs[ _name ] = {} );
     // ---------------------
-    _merge( 2, window.webqit.oohtml.configs[ _name ], $defaults, $config, dom.meta( name ).json() );
+    _merge( 2, window.webqit.oohtml.configs[ _name ], $defaults, $config, realdom.meta( name ).json() );
     // ---------------------
-    return { config: window.webqit.oohtml.configs[ _name ], dom, window };
+    return { config: window.webqit.oohtml.configs[ _name ], realdom, window };
 }
 
 export function _compare( a, b, depth = 1, objectSizing = false ) {
