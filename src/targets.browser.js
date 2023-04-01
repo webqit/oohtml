@@ -11,4 +11,3 @@ init.call( window );
 
 // As globals
 if ( !self.webqit ) { self.webqit = {}; }
-self.webqit.Observer = Observer;
