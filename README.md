@@ -17,10 +17,10 @@ OOHTML offers a set of five features that make common UI development paradigms p
 + HTML Modules
 + HTML Imports
 + Namespace API
-+ Context API <sup>new</sup>
++ Context API <sup>(new)</sup>
 + <ins>Bindings API</ins><del>The State API</del>
 + <ins>Scoped JS</ins><del>Subscript</del>
-+ Scoped CSS<sup>planned</sup>
++ Scoped CSS <sup>(planned)</sup>
 
 
 ## Download Options
