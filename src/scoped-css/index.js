@@ -34,6 +34,7 @@ function realtime( config ) {
         record.entrants.forEach( style => {
             if ( 'scoped' in style ) return handled( style );
             Object.defineProperty( style, 'scoped', { value: style.hasAttribute( 'scoped' ) } );
+            if ( style.hasAttribute( 'ref' ) ) return; // Server-rendered
             const uuid = `scoped${ uniqId() }`;
             style.setAttribute( 'ref', uuid );
             style.textContent = `@scope from (:has(> style[ref="${ uuid }"])) {\n${ style.textContent }\n}`;

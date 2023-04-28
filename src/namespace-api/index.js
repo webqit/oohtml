@@ -14,6 +14,7 @@ export default function init( $config = {} ) {
     const { config, window } = _init.call( this, 'namespace-api', $config, {
 		attr: { namespace: 'namespace',  id: 'id', },
         api: { namespace: 'namespace', },
+		fragmentResolution: 'data-target',
 		staticsensitivity: true,
 		eagermode: true,
     } );
@@ -126,4 +127,20 @@ function realtime( config ) {
 		}, { subtree: true, timing: 'sync' } );
 	}
 	// ----------------
+	let prevTarget;
+	const activateTarget = () => {
+		const path = window.location.hash?.substring( 1 ).split( '/' ).map( s => s.trim() ).filter( s => s ) || [];
+		const currTarget = path.reduce( ( prev, segment ) => prev && prev[ config.api.namespace ][ segment ], window.document );
+		if ( prevTarget ) { prevTarget.toggleAttribute( config.fragmentResolution, false ); }
+		if ( path.length < 2 ) return;
+		if ( currTarget ) {
+			currTarget.toggleAttribute( config.fragmentResolution, true );
+			currTarget.scrollIntoView();
+		}
+		prevTarget = currTarget;
+	};
+	if ( config.fragmentResolution ) {
+		window.addEventListener( 'hashchange', activateTarget );
+		realdom.ready( activateTarget );
+	}
 }
