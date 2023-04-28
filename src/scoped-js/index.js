@@ -52,7 +52,7 @@ export function execute( compiledScript, thisContext, script ) {
         Object.defineProperty( script, 'rerender', { value: ( ...args ) => _await( returnValue, ( [ , rerender ] ) => rerender( ...args ) ) } );
         _await( script.properties, properties => {
             properties.processes = properties.dependencies.map( path => {
-                const _env = { 'this': thisContext, 'globalThis': globalThis };
+                const _env = { 'this': thisContext, 'globalThis': globalThis, 'window': globalThis.window, 'self': globalThis.self };
                 const getPaths = ( base, record_s ) => ( Array.isArray( record_s ) ? record_s : [ record_s ] ).map( record => [ ...base, ...( record.path || [ record.key ] ) ] );
                 properties.processes = properties.dependencies.map( path => {
                     if ( _isTypeObject( _env[ path[ 0 ] ] ) ) {

@@ -12,7 +12,7 @@ import { _, _init } from '../util.js';
  */
 export default function init( $config = {} ) {
     const { config, window } = _init.call( this, 'namespace-api', $config, {
-		attr: { namespace: 'namespace',  id: ':id', },
+		attr: { namespace: 'namespace',  id: 'id', },
         api: { namespace: 'namespace', },
 		staticsensitivity: true,
 		eagermode: true,

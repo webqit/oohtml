@@ -10,10 +10,10 @@ describe(`Namespaced HTML`, function() {
     describe( `Basic...`, async function() {
         
         const head = `
-        <meta name="oohtml" content="attr.id=:id" />`;
+        <meta name="oohtml" content="attr.id=id" />`;
         const body = `
-        <div :id="main" namespace>
-            <div :id="child"></div>
+        <div id="main" namespace>
+            <div id="child"></div>
         </div>`;
         const { document, window } = createDocument( head, body );
         await delay( 60 );
@@ -30,7 +30,7 @@ describe(`Namespaced HTML`, function() {
                 idReceived = records[ 0 ].key;
             } );
             const item = document.createElement( 'div' );
-            item.setAttribute( ':id', 'some-id' );
+            item.setAttribute( 'id', 'some-id' );
             document.body.appendChild( item );
             expect( idReceived ).to.eq( 'some-id' );
         } );
