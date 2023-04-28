@@ -53,7 +53,7 @@ export default function( config ) {
                 const detail = priv.moduleRef && !priv.moduleRef.includes( '#' ) && !priv.moduleRef.includes( '.' ) ? `${ priv.moduleRef }#default` : priv.moduleRef;
                 const request = _HTMLImportsContext.createRequest( { detail, live: signal && true, signal } );
                 HTMLContextManager.instance( this.el.isConnected ? this.el.parentNode : priv.anchorNode.parentNode ).ask( request, response => {
-                    callback( ( response instanceof Set ? response : new Set( response ) ) || [] );
+                    callback( ( response instanceof Set ? new Set( response ) : response ) || [] );
                 } );
             };
 
