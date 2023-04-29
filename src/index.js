@@ -3,37 +3,31 @@
  * @imports
  */
 import Observer from '@webqit/observer';
-import domInit from '@webqit/browser-pie/src/dom/index.js';
+import BindingsAPI from './bindings-api/index.js';
+import ContextAPI from './context-api/index.js';
+import NamespaceAPI from './namespace-api/index.js';
 import HTMLModules from './html-modules/index.js';
 import HTMLImports from './html-imports/index.js';
-import NamespacedHTML from './namespaced-html/index.js';
-import StateAPI from './state-api/index.js';
-import Subscript from './subscript/index.js';
+import ScopedCSS from './scoped-css/index.js';
+import ScopedJS from './scoped-js/index.js';
 
 /**
  * @init
  */
-export default function init(configs = {}) {
-
-    const WebQit = domInit.call(this);
-    if (WebQit.OOHTML) {
-        return;
-    }
+export default function init( configs = {} ) {
+    if ( !this.webqit ) { this.webqit = {}; }
     // --------------
-    WebQit.OOHTML = {};
-    WebQit.Observer = Observer;
+    BindingsAPI.call( this, ( configs.BINDINGS_API || {} ) );
+    ContextAPI.call( this, ( configs.CONTEXT_API || {} ) );
+    NamespaceAPI.call( this, ( configs.NAMESPACE_API || {} ) );
+    HTMLModules.call( this, ( configs.HTML_MODULES || {} ) );
+    HTMLImports.call( this, ( configs.HTML_IMPORTS || {} ) );
+    ScopedCSS.call( this, ( configs.SCOPED_CSS || {} ) );
+    ScopedJS.call( this, ( configs.SCOPED_JS || {} ) );
     // --------------
-    HTMLModules.call(this, (configs.HTMLModules || {}));
-    HTMLImports.call(this, (configs.HTMLImports || {}));
-    NamespacedHTML.call(this, (configs.NamespacedHTML || {}));
-    StateAPI.call(this, (configs.StateAPI || {}));
-    Subscript.call(this, (configs.Subscript || {}));
-
 }
 
 /**
  * @exports
  */
-export {
-    Observer,
-}
+export { Observer }
