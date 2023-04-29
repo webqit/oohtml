@@ -136,9 +136,8 @@ function realtime( config ) {
 			if ( config.target.attr ) { currTarget.toggleAttribute( config.target.attr, true ); }
 			if ( config.target.event ) { currTarget.dispatchEvent( new window.CustomEvent( config.target.event ) ); }
 			if ( config.target.scrolling && path.length > 1 ) { currTarget.scrollIntoView(); }
-			
+			prevTarget = currTarget;
 		}
-		prevTarget = currTarget;
 	};
 	window.addEventListener( 'hashchange', activateTarget );
 	realdom.ready( activateTarget );
