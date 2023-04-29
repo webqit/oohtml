@@ -25,7 +25,7 @@ OOHTML is an upcoming proposal!
 > + <ins>Scoped JS</ins><del>Subscript</del>
 > + Scoped CSS <sup>new</sup>
 
-<details>
+</details>
 
 ## Overview
 
