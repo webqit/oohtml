@@ -12,14 +12,14 @@ import { _, _init } from '../util.js';
  */
 export default function init( $config = {} ) {
     const { config, window } = _init.call( this, 'namespace-api', $config, {
-		attr: { namespace: 'namespace',  id: 'id', },
-        api: { namespace: 'namespace', },
-		fragmentResolution: 'data-target',
+		id: { attr: 'id' },
+		namespace: { attr: 'namespace',  api: 'namespace', },
+		target: { attr: ':target', event: ':target', scrolling: true },
 		staticsensitivity: true,
 		eagermode: true,
     } );
-	config.idSelector = `[${ window.CSS.escape( config.attr.id ) }]`;
-	config.namespaceSelector = `[${ window.CSS.escape( config.attr.namespace ) }]`;
+	config.idSelector = `[${ window.CSS.escape( config.id.attr ) }]`;
+	config.namespaceSelector = `[${ window.CSS.escape( config.namespace.attr ) }]`;
     window.webqit.Observer = Observer;
     exposeNamespaceObjects.call( window, config );
     realtime.call( window, config );
@@ -37,13 +37,13 @@ export { Observer }
 function exposeNamespaceObjects( config ) {
 	const window = this;
     // Assertions
-    if ( config.api.namespace in window.document ) { throw new Error( `document already has a "${ config.api.namespace }" property!` ); }
-    if ( config.api.namespace in window.Element.prototype ) { throw new Error( `The "Element" class already has a "${ config.api.namespace }" property!` ); }
+    if ( config.namespace.api in window.document ) { throw new Error( `document already has a "${ config.namespace.api }" property!` ); }
+    if ( config.namespace.api in window.Element.prototype ) { throw new Error( `The "Element" class already has a "${ config.namespace.api }" property!` ); }
     // Definitions
-    Object.defineProperty( window.document, config.api.namespace, { get: function() {
+    Object.defineProperty( window.document, config.namespace.api, { get: function() {
         return Observer.proxy( getNamespaceObject.call( window, window.document, config ) );
     } });
-    Object.defineProperty( window.Element.prototype, config.api.namespace, { get: function() {
+    Object.defineProperty( window.Element.prototype, config.namespace.api, { get: function() {
         return Observer.proxy( getNamespaceObject.call( window, this, config ) );
     } } );
 }
@@ -61,7 +61,7 @@ function getNamespaceObject( node, config ) {
 		const namespaceObj = Object.create( null );
 		Observer.intercept( namespaceObj, 'get', ( event, receiver, next ) => {
 			if ( Observer.has( namespaceObj, event.key ) || !config.eagermode ) return next();
-			const selector = `[${ window.CSS.escape( config.attr.id ) }="${ event.key }"]`;
+			const selector = `[${ window.CSS.escape( config.id.attr ) }="${ event.key }"]`;
 			const resultNode = Array.from( node.querySelectorAll( selector ) ).filter( idNode => {
 				const ownerRoot = idNode.parentNode.closest( config.namespaceSelector );
 				if ( node === window.document ) {
@@ -89,7 +89,7 @@ function realtime( config ) {
 	const window = this, { realdom } = window.webqit;
 	// ----------------
 	const handle = ( target, entry, incoming ) => {
-		const identifier = entry.getAttribute( config.attr.id );
+		const identifier = entry.getAttribute( config.id.attr );
 		const ownerRoot = target.closest( config.namespaceSelector ) || _( entry ).get( 'ownerNamespace' ) || window.document;
 		const namespaceObj = getNamespaceObject.call( window, ownerRoot, config );
 		if ( incoming ) {
@@ -130,17 +130,16 @@ function realtime( config ) {
 	let prevTarget;
 	const activateTarget = () => {
 		const path = window.location.hash?.substring( 1 ).split( '/' ).map( s => s.trim() ).filter( s => s ) || [];
-		const currTarget = path.reduce( ( prev, segment ) => prev && prev[ config.api.namespace ][ segment ], window.document );
-		if ( prevTarget ) { prevTarget.toggleAttribute( config.fragmentResolution, false ); }
-		if ( path.length < 2 ) return;
+		const currTarget = path.reduce( ( prev, segment ) => prev && prev[ config.namespace.api ][ segment ], window.document );
+		if ( prevTarget && config.target.attr ) { prevTarget.toggleAttribute( config.target.attr, false ); }
 		if ( currTarget ) {
-			currTarget.toggleAttribute( config.fragmentResolution, true );
-			currTarget.scrollIntoView();
+			if ( config.target.attr ) { currTarget.toggleAttribute( config.target.attr, true ); }
+			if ( config.target.event ) { currTarget.dispatchEvent( new window.CustomEvent( config.target.event ) ); }
+			if ( config.target.scrolling && path.length > 1 ) { currTarget.scrollIntoView(); }
+			
 		}
 		prevTarget = currTarget;
 	};
-	if ( config.fragmentResolution ) {
-		window.addEventListener( 'hashchange', activateTarget );
-		realdom.ready( activateTarget );
-	}
+	window.addEventListener( 'hashchange', activateTarget );
+	realdom.ready( activateTarget );
 }
