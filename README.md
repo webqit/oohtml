@@ -13,9 +13,10 @@ OOHTML is an upcoming proposal!
 
 > **Note**
 > <br>This is documentation for `OOHTML@2.x`. (Looking for [`OOHTML@1.x`](https://github.com/webqit/oohtml/tree/v1.10.4)?)
->
-> Changes in v2:
-> 
+
+<details>
+<summary>Changes in v2:</summary>
+
 > + HTML Modules
 > + HTML Imports
 > + Namespace API
@@ -23,6 +24,8 @@ OOHTML is an upcoming proposal!
 > + <ins>Bindings API</ins><del>The State API</del>
 > + <ins>Scoped JS</ins><del>Subscript</del>
 > + Scoped CSS <sup>new</sup>
+
+<details>
 
 ## Overview
 
