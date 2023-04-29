@@ -132,7 +132,7 @@ function realtime( config ) {
 		const path = window.location.hash?.substring( 1 ).split( '/' ).map( s => s.trim() ).filter( s => s ) || [];
 		const currTarget = path.reduce( ( prev, segment ) => prev && prev[ config.namespace.api ][ segment ], window.document );
 		if ( prevTarget && config.target.attr ) { prevTarget.toggleAttribute( config.target.attr, false ); }
-		if ( currTarget ) {
+		if ( currTarget && currTarget !== window.document ) {
 			if ( config.target.attr ) { currTarget.toggleAttribute( config.target.attr, true ); }
 			if ( config.target.event ) { currTarget.dispatchEvent( new window.CustomEvent( config.target.event ) ); }
 			if ( config.target.scrolling && path.length > 1 ) { currTarget.scrollIntoView(); }
