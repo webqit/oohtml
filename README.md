@@ -24,9 +24,7 @@ We need a new standards work that will coexist with seemingly related efforts li
 
 ## An Overview
 
-+ [Modular HTML](#modular-html)
-+ [HTML Imports](#html-imports)
-+ [Reactive HTML](#reactive-html)
+**[Modular HTML](#modular-html) • [HTML Imports](#html-imports) • [Reactive HTML](#reactive-html) • [Put Together](#put-together)**
 
 ### Modular HTML
 
@@ -185,34 +183,6 @@ document.context.ask(request, response => {
 });
 ```
 
-<details><summary>
-Extended Imports concepts
-</summary>
-
-└ *Remote modules with lazy-loading*:
-
-```html
-<template exportid="foo" src="/foo.html" loading="lazy"></template>
-```
-
-```js
-// On first access
-console.log(foo.modules.m1); // Module loading triggered, returns Promise<module:m1>
-```
-
-```js
-// On subsequent access, after load
-console.log(foo.modules.m1); // module:m1
-```
-
-```js
-// Using the context API with "live:true"
-let request = { type: 'HTMLModules', detail: 'foo#m2', live: true };
-document.context.ask(request, response => {
-    console.log(response); // module:/foo#m2; module loading triggered on first request and received asynchronously, then synchronously on subsequent requests after loaded
-});
-```
-
 └ *Module nesting for code organization*:
 
 ```html
@@ -295,6 +265,34 @@ document.context.ask(request, response => {
 
 ```js
 let { header, footer } = foo.modules.nested1.modules;
+```
+
+<details><summary>
+Extended Imports concepts
+</summary>
+
+└ *Remote modules with lazy-loading*:
+
+```html
+<template exportid="foo" src="/foo.html" loading="lazy"></template>
+```
+
+```js
+// On first access
+console.log(foo.modules.m1); // Module loading triggered, returns Promise<module:m1>
+```
+
+```js
+// On subsequent access, after load
+console.log(foo.modules.m1); // module:m1
+```
+
+```js
+// Using the context API with "live:true"
+let request = { type: 'HTMLModules', detail: 'foo#m2', live: true };
+document.context.ask(request, response => {
+    console.log(response); // module:/foo#m2; module loading triggered on first request and received asynchronously, then synchronously on subsequent requests after loaded
+});
 ```
 
 └ *"Imports Contexts" for context-based imports resolution*:
@@ -543,6 +541,8 @@ Observer.set(element, 'liveProperty'); // Live expressions rerun
 
 └ [Reactive HTML concepts](#)
 
+### Put Together
+
 All of OOHTML brings to the platform much of the modern UI development paradigms that community-based tools have encoded for years, and that just opens up new ways to leverage the web platform and bank less on abstractions! For example, the following is how something you could call a Single Page Application ([SPA](https://en.wikipedia.org/wiki/Single-page_application)) could be made - with zero tooling:
 
 └ *First, two components that are themselves analogous to a Single File Component ([SFC](https://vuejs.org/guide/scaling-up/sfc.html))*:
@@ -611,6 +611,10 @@ The polyfill can be loaded from the `unpkg.com` CDN, and should be placed early 
 
 > 22.75KB min+gzipped | 76.53KB min
 
+<details><summary>
+Extended usage concepts
+</summary>
+
 If you must load the script "async", one little trade-off has to be made for `<script scoped>` and `<script contract>` elements to have them ignored by the browser until the polyfill comes picking them up: *employing a custom MIME type in place of the standard `text/javascript` and `module` types*, in which case, a `<meta name="scoped-js">` element is used to configure the polyfill to honor the custom MIME type:
 
 ```html
@@ -646,6 +650,8 @@ Also, if you'll be going ahead to build a real world app to see OOHTML in action
 + the [`@webqit/oohtml-cli`](https://github.com/webqit/oohtml-cli) package for operating a file-based templating system.
 
 + the modest, OOHTML-based [Webflo](https://github.com/webqit/webflo) framework to greatly streamline your application development process!
+
+</details>
 
 That said, here are the performance-specific notes for this polyfill:
 
