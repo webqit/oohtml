@@ -24,7 +24,7 @@ We need a new standards work that will coexist with seemingly related efforts li
 
 ## An Overview
 
-Jump to sections...
+OOHTML comes in three sets of features. (You may jump to sections.)
 
 + [Modular HTML](#modular-html)
 + [HTML Imports](#html-imports)
