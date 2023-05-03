@@ -177,13 +177,19 @@ That said, here are the performance-specific notes for this polyfill:
 
 + Whether loaded lazily or eaderly, the compiler also factors in additional optimizations. For example, identical scripts are handled only first time, and only ever have once Contract Function instance!
 
-## Documentaion
 
-> *Full documentaion underway*
+## Documentation
 
-## Issues
+A more detailed documentation for OOHTML is underway in the [project wiki](wiki).
 
-To report bugs or request features, please submit an [issue](https://github.com/webqit/oohtml/issues).
+## Getting Involved
+
+All forms of contributions are welcome at this time. For example, syntax and other implementation details are all up for discussion. Also, help is needed with more formal documentation. And here are specific links:
+
++ [Project](https://github.com/webqit/oohtml)
++ [Documentation](wiki)
++ [Discusions](https://github.com/webqit/oohtml/discussions)
++ [Issues](https://github.com/webqit/oohtml/issues)
 
 ## License
 
