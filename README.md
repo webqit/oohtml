@@ -125,9 +125,37 @@ document.context.ask(request, response => {
 });
 ```
 
-<details><summary>
-Extended features
-</summary>
+└ *Scoped templates for object-scoped module system*:
+
+```html
+<section> <!-- object with own modules -->
+
+  <template exportid="foo" scoped> <!-- Scoped to host object and not available globally -->
+    <div exportid="m1"></div>
+    <div exportid="m2"></div>
+  </template>
+
+  <div>
+    <import module="foo#m2"></import> <!-- Relative path (beginning without a slash), resolves to the local module: foo#m2 -->
+    <import module="/foo#m2"></import> <!-- Absolute path, resolves to the global module: /foo#m2 -->
+  </div>
+
+</section>
+```
+
+```js
+// Using the Modules API
+let { foo } = section.modules;
+let { m1, m2 } = foo.modules;
+```
+
+```js
+// Using the context API
+let request = { type: 'HTMLModules', detail: '#m2' };
+section.querySelector('div').context.ask(request, response => {
+    console.log(response); // the local module: foo#m2
+});
+```
 
 └ *The <code>template src></code> element for remote modules*:
 
@@ -156,6 +184,10 @@ document.context.ask(request, response => {
     console.log(response); // module:/foo#m2; received asynchronously on module loaded
 });
 ```
+
+<details><summary>
+Extended Imports concepts
+</summary>
 
 └ *Remote modules with lazy-loading*:
 
@@ -344,38 +376,6 @@ section.querySelector('div').context.ask(request, response => {
 </body>
 ```
 
-└ *Scoped templates for object-scoped module system*:
-
-```html
-<section> <!-- object with own modules -->
-
-  <template exportid="foo" scoped> <!-- Scoped to host object and not available globally -->
-    <div exportid="m1"></div>
-    <div exportid="m2"></div>
-  </template>
-
-  <div>
-    <import module="foo#m2"></import> <!-- Relative path (beginning without a slash), resolves to the local module: foo#m2 -->
-    <import module="/foo#m2"></import> <!-- Absolute path, resolves to the global module: /foo#m2 -->
-  </div>
-
-</section>
-```
-
-```js
-// Using the Modules API
-let { foo } = section.modules;
-let { m1, m2 } = foo.modules;
-```
-
-```js
-// Using the context API
-let request = { type: 'HTMLModules', detail: '#m2' };
-section.querySelector('div').context.ask(request, response => {
-    console.log(response); // the local module: foo#m2
-});
-```
-
 └ *Object-scoped module system with context inheritance*:
 
 ```html
@@ -414,7 +414,134 @@ section.querySelector('div').context.ask(request, response => {
 
 The last set of features covers the concept of "state", "bindings", and "reactivity" for those objects at the DOM level - in the most exciting form of the terms and as an upgrade path! This comes factored into the design as something intrinsic to the problem.
 
-└ [Reactive APIs concepts](#)
+└ *The Observer API for general-purpose object observability*:
+
+```js
+function changeCallback(changes) {
+    console.log(changes[0].type, changes[0].key, changes[0].value, changes[0].oldValue);
+}
+```
+
+```js
+const obj = {};
+Observer.observe(obj, changeCallback);
+```
+
+```js
+Observer.set(obj, 'prop1', 'value1'); // Reported synchronously
+```
+
+```js
+Observer.deleteProperty(obj, 'prop1'); // Reported synchronously
+```
+
+└ *A Modules API that reflects module trees in real time*:
+
+```js
+// Observing the addition or removal of modules
+Observer.observe(document.modules, changeCallback);
+
+const module1 = document.createElement('template');
+module1.setAttribute('exportid', 'foo');
+document.body.appendChild(module1); // Reported synchronously
+```
+
+```js
+// Observing the addition or removal of modules
+Observer.observe(module1.modules, changeCallback);
+
+const header = document.createElement('header');
+header.setAttribute('exportid', 'header');
+module1.appendChild(header); // Reported synchronously
+```
+
+└ *A Namespace API that reflects the real-DOM&trade; in real-time*:
+
+```js
+// Observing the addition or removal of elements with an ID
+Observer.observe(document.namespace, changeCallback);
+
+const paragraph = document.createElement('p');
+paragraph.setAttribute('id', 'bar');
+document.body.appendChild(paragraph); // Reported synchronously
+```
+
+```js
+// Observing the addition or removal of elements with an ID
+paragraph.toggleAttribute('namespace', true);
+Observer.observe(paragraph.namespace, changeCallback);
+
+const span = document.createElement('span');
+span.setAttribute('id', 'baz');
+paragraph.appendChild(span); // Reported synchronously
+```
+
+└ *A Bindings API for binding application-level state to an object*:
+
+```js
+// Observing document-level bindings
+Observer.observe(document.bindings, changeCallback);
+
+// Set state
+document.bindings.userSignedIn = true;
+
+// Set data object
+document.bindings.data = { prop1: 'value1' };
+Observer.set(document.bindings.data, 'prop2', 'value2');
+```
+
+```js
+// Observing element-level bindings
+Observer.observe(element.bindings, changeCallback);
+
+// Set state
+element.bindings.isCollapsed = true;
+
+// Set data object
+element.bindings.data = { prop1: 'value1' };
+Observer.set(element.bindings.data, 'prop2', 'value2');
+```
+
+└ *"Contract Scripts" for reactive scripting*:
+
+```html
+<script contract>
+  console.log(this) // window
+
+  console.log(window.liveProperty) // live expression
+  console.log(liveProperty) // live expression; technically same as above
+
+  if (document.bindings.userSignedIn) {
+      // Live block
+      console.log('User signed in!');
+  }
+</script>
+```
+
+```js
+Observer.set(window, 'liveProperty'); // Live expressions rerun
+```
+
+```html
+<div>
+  <script contract scoped>
+    console.log(this) // div
+
+    console.log(this.liveProperty) // live expression
+
+    if (this.bindings.isCollapsed) {
+        // Live block
+        console.log('Section collapsed!');
+    }
+  </script>
+</div>
+```
+
+```js
+Observer.set(element, 'liveProperty'); // Live expressions rerun
+```
+
+└ [Reactive HTML concepts](#)
 
 All of OOHTML brings to the platform much of the modern UI development paradigms that community-based tools have encoded for years, and that just opens up new ways to leverage the web platform and bank less on abstractions! For example, the following is how something you could call a Single Page Application ([SPA](https://en.wikipedia.org/wiki/Single-page_application)) could be made - with zero tooling:
 
