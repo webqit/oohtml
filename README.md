@@ -432,6 +432,8 @@ section.querySelector('div').context.ask(request, response => {
 });
 ```
 
+</details>
+
 └ [HTML Imports concepts](#)
 
 ### Reactive APIs
