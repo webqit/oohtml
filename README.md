@@ -24,6 +24,8 @@ We need a new standards work that will coexist with seemingly related efforts li
 
 ## An Overview
 
+Jump to sections...
+
 + [Modular HTML](#modular-html)
 + [HTML Imports](#html-imports)
 + [Reactive HTML](#reactive-html)
@@ -600,7 +602,7 @@ All of OOHTML brings to the platform much of the modern UI development paradigms
 </body>
 ```
 
-And a wide range of use cases exists beyond the above! As another example, the following is a Listbox example lifted directively from [ARIA Authoring Practices Guide (APG)](https://www.w3.org/WAI/ARIA/apg/patterns/listbox/examples/listbox-grouped/#sc_label) but with IDs effectively "contained" at different levels within the component using the `namespace` attribute.
+As another example - being that a wide range of use cases exists beyond the above, the following is a Listbox example lifted directively from [ARIA Authoring Practices Guide (APG)](https://www.w3.org/WAI/ARIA/apg/patterns/listbox/examples/listbox-grouped/#sc_label) but with IDs effectively "contained" at different levels within the component using the `namespace` attribute.
 
 └ *A Listbox with namespaced IDs*:
 
