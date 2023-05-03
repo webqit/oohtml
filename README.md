@@ -181,7 +181,9 @@ document.context.ask(request, response => {
 
 </details>
 
-└ *Module nesting for code organization*:
+<details><summary><i>
+Module nesting for code organization
+</i>:</summary>
 
 ```html
 <head>
@@ -217,7 +219,11 @@ document.context.ask(request, response => {
 });
 ```
 
-└ *Module nesting with inheritance*:
+</details>
+
+<details><summary><i>
+Module nesting with inheritance
+</i>:</summary>
 
 ```html
 <template exportid="foo">
@@ -265,7 +271,11 @@ document.context.ask(request, response => {
 let { header, footer } = foo.modules.nested1.modules;
 ```
 
-└ *"Imports Contexts" for context-based imports resolution*:
+</details>
+
+<details><summary><i>
+"Imports Contexts" for context-based imports resolution
+</i>:</summary>
 
 ```html
 <head>
@@ -305,7 +315,11 @@ section.context.ask(request, response => {
 });
 ```
 
-└ *"Imports Contexts" with named contexts*:
+</details>
+
+<details><summary><i>
+"Imports Contexts" with named contexts
+</i>:</summary>
 
 ```html
 <body contextname="context1" importscontext="/foo/nested">
@@ -330,7 +344,11 @@ section.querySelector('div').context.ask(request, response => {
 });
 ```
 
-└ *"Imports Contexts" with context inheritance*:
+</details>
+
+<details><summary><i>
+"Imports Contexts" with context inheritance
+</i>:</summary>
 
 ```html
 <body importscontext="/foo">
@@ -344,7 +362,11 @@ section.querySelector('div').context.ask(request, response => {
 </body>
 ```
 
-└ *Scoped templates for object-scoped module system*:
+</details>
+
+<details><summary><i>
+Scoped templates for object-scoped module system
+</i>:</summary>
 
 ```html
 <section> <!-- object with own modules -->
@@ -376,7 +398,11 @@ section.querySelector('div').context.ask(request, response => {
 });
 ```
 
-└ *Object-scoped module system with context inheritance*:
+</details>
+
+<details><summary><i>
+Object-scoped module system with context inheritance
+</i>:</summary>
 
 ```html
 <body contextname="context1" importscontext="/bar">
@@ -408,7 +434,9 @@ section.querySelector('div').context.ask(request, response => {
 
 └ [HTML Imports concepts](#)
 
-**Reactive APIs**: The last set of features covers the concept of "state", "bindings", and "reactivity" for those objects at the DOM level - in the most exciting form of the terms and as an upgrade path! This comes factored into the design as something intrinsic to the problem.
+### Reactive APIs
+
+The last set of features covers the concept of "state", "bindings", and "reactivity" for those objects at the DOM level - in the most exciting form of the terms and as an upgrade path! This comes factored into the design as something intrinsic to the problem.
 
 └ [Reactive APIs concepts](#)
 
