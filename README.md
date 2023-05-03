@@ -24,7 +24,9 @@ We need a new standards work that will coexist with seemingly related efforts li
 
 ## An Overview
 
-**Modular HTML**: The first set of features covers authoring objects with self-contained structure, styling and *scripting*! This simply gets identifiers, style sheets and scripts to serve *at the object level* exactly as they do *at the document (object) level*.
+### Modular HTML
+
+The first set of features covers authoring objects with self-contained structure, styling and *scripting*! This simply gets identifiers, style sheets and scripts to serve *at the object level* exactly as they do *at the document (object) level*.
 
 └ *Namespaced IDs for modelling structure*:
 
@@ -72,7 +74,9 @@ let { styleSheets, scripts } = user; // Analogous to the document.styleSheets, d
 
 └ [Modular HTML concepts](#)
 
-**HTML Imports**: The next set of features covers *templating and reusing objects* - in both *declarative* and *programmatic* terms! It extends the `<template>` element with *export* semantics, and introduces a complementary new `<import>` element; and everything fits together as a real-time module system.
+### HTML Imports
+
+The next set of features covers *templating and reusing objects* - in both *declarative* and *programmatic* terms! It extends the `<template>` element with *export* semantics, and introduces a complementary new `<import>` element; and everything fits together as a real-time module system.
 
 └ *The `<template>` element for module export*:
 
@@ -119,7 +123,7 @@ document.context.ask(request, response => {
 
 <details>
 <summary>
-*The `<template src>` element for remote modules*:
+<i>The <code>template src><code> element for remote modules</i>:
 </summary>
 
 ```html
