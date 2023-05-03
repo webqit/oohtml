@@ -24,6 +24,10 @@ We need a new standards work that will coexist with seemingly related efforts li
 
 ## An Overview
 
++ [Modular HTML](#modular-html)
++ [HTML Imports](#html-imports)
++ [Reactive HTML](#reactive-html)
+
 ### Modular HTML
 
 The first set of features covers authoring objects with self-contained structure, styling and *scripting*! This simply gets identifiers, style sheets and scripts to serve *at the object level* exactly as they do *at the document (object) level*.
@@ -121,9 +125,11 @@ document.context.ask(request, response => {
 });
 ```
 
-<details><summary><i>
-The <code>template src></code> element for remote modules
-</i>:</summary>
+<details><summary>
+Extended features
+</summary>
+
+└ *The <code>template src></code> element for remote modules*:
 
 ```html
 <template exportid="foo" src="/foo.html"></template>
@@ -151,11 +157,7 @@ document.context.ask(request, response => {
 });
 ```
 
-</details>
-
-<details><summary><i>
-Remote modules with lazy-loading
-</i>:</summary>
+└ *Remote modules with lazy-loading*:
 
 ```html
 <template exportid="foo" src="/foo.html" loading="lazy"></template>
@@ -179,11 +181,7 @@ document.context.ask(request, response => {
 });
 ```
 
-</details>
-
-<details><summary><i>
-Module nesting for code organization
-</i>:</summary>
+└ *Module nesting for code organization*:
 
 ```html
 <head>
@@ -219,11 +217,7 @@ document.context.ask(request, response => {
 });
 ```
 
-</details>
-
-<details><summary><i>
-Module nesting with inheritance
-</i>:</summary>
+└ *Module nesting with inheritance*:
 
 ```html
 <template exportid="foo">
@@ -271,11 +265,7 @@ Module nesting with inheritance
 let { header, footer } = foo.modules.nested1.modules;
 ```
 
-</details>
-
-<details><summary><i>
-"Imports Contexts" for context-based imports resolution
-</i>:</summary>
+└ *"Imports Contexts" for context-based imports resolution*:
 
 ```html
 <head>
@@ -315,11 +305,7 @@ section.context.ask(request, response => {
 });
 ```
 
-</details>
-
-<details><summary><i>
-"Imports Contexts" with named contexts
-</i>:</summary>
+└ *"Imports Contexts" with named contexts*:
 
 ```html
 <body contextname="context1" importscontext="/foo/nested">
@@ -344,11 +330,7 @@ section.querySelector('div').context.ask(request, response => {
 });
 ```
 
-</details>
-
-<details><summary><i>
-"Imports Contexts" with context inheritance
-</i>:</summary>
+└ *"Imports Contexts" with context inheritance*:
 
 ```html
 <body importscontext="/foo">
@@ -362,11 +344,7 @@ section.querySelector('div').context.ask(request, response => {
 </body>
 ```
 
-</details>
-
-<details><summary><i>
-Scoped templates for object-scoped module system
-</i>:</summary>
+└ *Scoped templates for object-scoped module system*:
 
 ```html
 <section> <!-- object with own modules -->
@@ -398,11 +376,7 @@ section.querySelector('div').context.ask(request, response => {
 });
 ```
 
-</details>
-
-<details><summary><i>
-Object-scoped module system with context inheritance
-</i>:</summary>
+└ *Object-scoped module system with context inheritance*:
 
 ```html
 <body contextname="context1" importscontext="/bar">
@@ -436,7 +410,7 @@ section.querySelector('div').context.ask(request, response => {
 
 └ [HTML Imports concepts](#)
 
-### Reactive APIs
+### Reactive HTML
 
 The last set of features covers the concept of "state", "bindings", and "reactivity" for those objects at the DOM level - in the most exciting form of the terms and as an upgrade path! This comes factored into the design as something intrinsic to the problem.
 
