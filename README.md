@@ -10,7 +10,7 @@ Object-Oriented HTML (OOHTML) is a set of language features for authoring modula
 
 OOHTML is an upcoming proposal!
 
-**[Motivation](#motivation) • [Overview](#an-overview) • [Polyfill](#the-polyfill) • [Documentation](#documentation) • [Getting Involved](#getting-involved)**
+**[Motivation](#motivation) • [Overview](#an-overview) • [Polyfill](#the-polyfill) • [Documentation](#documentation) • [Getting Involved](#getting-involved) • [License](#license)**
 
 ## Motivation
 
