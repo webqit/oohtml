@@ -121,10 +121,9 @@ document.context.ask(request, response => {
 });
 ```
 
-<details>
-<summary>
-<i>The <code>template src><code> element for remote modules</i>:
-</summary>
+<details><summary><i>
+The <code>template src></code> element for remote modules
+</i>:</summary>
 
 ```html
 <template exportid="foo" src="/foo.html"></template>
@@ -154,7 +153,9 @@ document.context.ask(request, response => {
 
 </details>
 
-└ *Remote modules with lazy-loading*:
+<details><summary><i>
+Remote modules with lazy-loading
+</i>:</summary>
 
 ```html
 <template exportid="foo" src="/foo.html" loading="lazy"></template>
@@ -177,6 +178,8 @@ document.context.ask(request, response => {
     console.log(response); // module:/foo#m2; module loading triggered on first request and received asynchronously, then synchronously on subsequent requests after loaded
 });
 ```
+
+</details>
 
 └ *Module nesting for code organization*:
 
