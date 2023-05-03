@@ -27,7 +27,7 @@ We need a new standards work that will coexist with seemingly related efforts li
 + [Modular HTML](#modular-html)
 + [HTML Imports](#html-imports)
 + [Reactive HTML](#reactive-html)
-+ [Put Together](#put-together)**
++ [Put Together](#put-together)
 
 ### Modular HTML
 
@@ -598,6 +598,73 @@ All of OOHTML brings to the platform much of the modern UI development paradigms
   </script>
   
 </body>
+```
+
+And a wide range of use cases exists beyond the above! As another example, the following is a Listbox example lifted directively from [ARIA Authoring Practices Guide (APG)](https://www.w3.org/WAI/ARIA/apg/patterns/listbox/examples/listbox-grouped/#sc_label) but with IDs effectively "contained" at different levels within the component using the `namespace` attribute.
+
+└ *A Listbox with namespaced IDs*:
+
+```html
+<div namespace class="listbox-area">
+  <div>
+    <span id="ss_elem" class="listbox-label">
+      Choose your animal sidekick
+    </span>
+    <div id="ss_elem_list"
+         tabindex="0"
+         role="listbox"
+         aria-labelledby="ss_elem">
+      <ul role="group" aria-labelledby="cat" namespace>
+        <li role="presentation" id="cat">
+          Land
+        </li>
+        <li id="ss_elem_1" role="option">
+          Cat
+        </li>
+        <li id="ss_elem_2" role="option">
+          Dog
+        </li>
+        <li id="ss_elem_3" role="option">
+          Tiger
+        </li>
+        <li id="ss_elem_4" role="option">
+          Reindeer
+        </li>
+        <li id="ss_elem_5" role="option">
+          Raccoon
+        </li>
+      </ul>
+      <ul role="group" aria-labelledby="cat" namespace>
+        <li role="presentation" id="cat">
+          Water
+        </li>
+        <li id="ss_elem_6" role="option">
+          Dolphin
+        </li>
+        <li id="ss_elem_7" role="option">
+          Flounder
+        </li>
+        <li id="ss_elem_8" role="option">
+          Eel
+        </li>
+      </ul>
+      <ul role="group" aria-labelledby="cat" namespace>
+        <li role="presentation" id="cat">
+          Air
+        </li>
+        <li id="ss_elem_9" role="option">
+          Falcon
+        </li>
+        <li id="ss_elem_10" role="option">
+          Winged Horse
+        </li>
+        <li id="ss_elem_11" role="option">
+          Owl
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
 ```
 
 ## The Polyfill
