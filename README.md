@@ -602,7 +602,7 @@ All of OOHTML brings to the platform much of the modern UI development paradigms
 </body>
 ```
 
-As another example - being that a wide range of use cases exists beyond the above, the following is a Listbox example lifted directively from [ARIA Authoring Practices Guide (APG)](https://www.w3.org/WAI/ARIA/apg/patterns/listbox/examples/listbox-grouped/#sc_label) but with IDs effectively "contained" at different levels within the component using the `namespace` attribute.
+As another example - being that a wide range of use cases exists beyond the above, the following is a Listbox component lifted directively from [ARIA Authoring Practices Guide (APG)](https://www.w3.org/WAI/ARIA/apg/patterns/listbox/examples/listbox-grouped/#sc_label) but with IDs effectively "contained" at different levels within the component using the `namespace` attribute.
 
 └ *A Listbox with namespaced IDs*:
 
@@ -725,7 +725,11 @@ Also, if you'll be going ahead to build a real world app to see OOHTML in action
 
 </details>
 
-That said, here are the performance-specific notes for this polyfill:
+<details><summary>
+Notes
+</summary>
+
+Here are the performance-specific notes for this polyfill:
 
 + By default, the Contract Functions compiler (43.15KB min+gzipped | 157KB min) is excluded from the polyfill build and fetched separately on demand - on the first encounter with a Contract Script. This is loaded into a [Web Worker](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers) and all compilations are able to happen off the main thread! This ensures near-zero cost to your application loading and runtime performance!
 
@@ -747,6 +751,7 @@ That said, here are the performance-specific notes for this polyfill:
 
 + Whether loaded lazily or eaderly, the compiler also factors in additional optimizations. For example, identical scripts are handled only first time, and only ever have once Contract Function instance!
 
+</details>
 
 ## Documentation
 
