@@ -180,14 +180,14 @@ That said, here are the performance-specific notes for this polyfill:
 
 ## Documentation
 
-A more detailed documentation for OOHTML is underway in the [project wiki](wiki).
+A more detailed documentation for OOHTML is underway in the [project wiki](https://github.com/webqit/oohtml/wiki).
 
 ## Getting Involved
 
 All forms of contributions are welcome at this time. For example, syntax and other implementation details are all up for discussion. Also, help is needed with more formal documentation. And here are specific links:
 
 + [Project](https://github.com/webqit/oohtml)
-+ [Documentation](wiki)
++ [Documentation](https://github.com/webqit/oohtml/wiki)
 + [Discusions](https://github.com/webqit/oohtml/discussions)
 + [Issues](https://github.com/webqit/oohtml/issues)
 
