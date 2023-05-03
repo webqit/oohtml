@@ -89,22 +89,6 @@ All of OOHTML brings to the platform much of the modern UI development paradigms
 </body>
 ```
 
-> **Note**
-> <br>This is documentation for `OOHTML@2.x`. (Looking for [`OOHTML@1.x`](https://github.com/webqit/oohtml/tree/v1.10.4)?)
-
-<details>
-<summary>Changes in v2:</summary>
-
-> + HTML Modules <sup>(overhauled)</sup>
-> + HTML Imports <sup>(overhauled)</sup>
-> + Namespace API <sup>(overhauled)</sup>
-> + Context API <sup>(new)</sup>
-> + <ins>Bindings API</ins> <del>The State API</del>
-> + <ins>Scoped JS</ins> <del>Subscript</del>
-> + Scoped CSS <sup>new</sup>
-
-</details>
-
 ## The Polyfill
 
 OOHTML is being developed as something to be used today - via a polyfill. This has been helping to facilitate the "release - iterations" loop and its overall evolution.
@@ -181,6 +165,22 @@ That said, here are the performance-specific notes for this polyfill:
 ## Documentation
 
 A more detailed documentation for OOHTML is underway in the [project wiki](https://github.com/webqit/oohtml/wiki).
+
+> **Note**
+> <br>This is documentation for `OOHTML@2.x`. (Looking for [`OOHTML@1.x`](https://github.com/webqit/oohtml/tree/v1.10.4)?)
+
+<details>
+<summary>Changes in v2:</summary>
+
+> + HTML Modules <sup>(overhauled)</sup>
+> + HTML Imports <sup>(overhauled)</sup>
+> + Namespace API <sup>(overhauled)</sup>
+> + Context API <sup>(new)</sup>
+> + <ins>Bindings API</ins> <del>The State API</del>
+> + <ins>Scoped JS</ins> <del>Subscript</del>
+> + Scoped CSS <sup>new</sup>
+
+</details>
 
 ## Getting Involved
 
