@@ -24,7 +24,10 @@ We need a new standards work that will coexist with seemingly related efforts li
 
 ## An Overview
 
-**[Modular HTML](#modular-html) • [HTML Imports](#html-imports) • [Reactive HTML](#reactive-html) • [Put Together](#put-together)**
++ [Modular HTML](#modular-html)
++ [HTML Imports](#html-imports)
++ [Reactive HTML](#reactive-html)
++ [Put Together](#put-together)**
 
 ### Modular HTML
 
