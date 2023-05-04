@@ -12,6 +12,9 @@ Object-Oriented HTML (OOHTML) is a set of language features for authoring modula
 
 OOHTML is an upcoming proposal!
 
+> **Warn**
+> <br>The syntax on this page isn't finalized. You may need to keep tabs with us.
+
 ## Motivation
 
 The web has generally outgrown HTML's idea of a monolith architecture which has held to the document as the unit of abstraction for scripts, style sheets, and element identifiers (the `id` attribute, and in some scenarios, the `name` attribute). You realize that while you're trying to *model things* in markup and are thinking in objects, components, logical building blocks, reusable units of abstraction - as we have of things like [Vue's SFC](https://vuejs.org/api/sfc-spec.html), [Svelte component format](https://svelte.dev/docs#component-format-script), [11ty's WebC](https://www.11ty.dev/docs/languages/webc/#css-and-js-(bundler-mode)) - the language for the job is posing a "per document" constraint!
