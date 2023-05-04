@@ -131,7 +131,7 @@ The next set of features covers *templating and reusing objects* - in both *decl
 
 ```html
 -- file: /nested.html --
-<div as="fragment1"></div>
+<div as="fragment2"></div>
 --
 ```
 
