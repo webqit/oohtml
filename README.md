@@ -157,7 +157,6 @@ foo.addEventListener('load', loadedCallback);
 
 └ *The HTMLImports API for programmatic module import*:
 
-
 ```js
 // Using the HTMLImport API for event-based module import
 document.import('foo#fragment2', docFragment => {
@@ -259,14 +258,14 @@ Extended Imports concepts
 
 ```html
 <body>
-  <import ref="/foo#header"></import> <!-- Triggers and awaits module loading -->
+  <import ref="/foo#fragment1"></import> <!-- Triggers and awaits module loading -->
 </body>
 ```
 
 ```js
 // Using the HTMLImports API
-document.import('foo#fragment2', docFragment => {
-    console.log(docFragment); // First import? Triggers and awaits module loading! Synchronously? Accesses modules immediately
+document.import('foo#fragment1', docFragment => {
+    console.log(docFragment); // First-time import? Triggers and awaits module loading! Subsequently? Accesses modules immediately
 });
 ```
 
