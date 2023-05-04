@@ -12,7 +12,7 @@ Object-Oriented HTML (OOHTML) is a set of language features for authoring modula
 
 OOHTML is an upcoming proposal!
 
-> **Warn**
+> **Warning**
 > <br>The syntax on this page isn't finalized. You may need to keep tabs with us.
 
 ## Motivation
