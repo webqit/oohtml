@@ -155,9 +155,6 @@ foo.addEventListener('load', loadedCallback);
 </body>
 ```
 
-└ *The HTMLImports API for programmatic module import*:
-
-
 ```js
 // Using the HTMLImport API for event-based module import
 document.import('foo#fragment2', docFragment => {
@@ -257,16 +254,21 @@ Extended Imports concepts
 <template as="foo" src="/foo.html" loading="lazy"></template>
 ```
 
-```html
-<body>
-  <import ref="/foo#header"></import> <!-- Triggers and awaits module loading -->
-</body>
+```js
+// On first access
+console.log(foo.modules.m1); // Module loading triggered, returns Promise<module:m1>
 ```
 
 ```js
-// Using the HTMLImports API
-document.import('foo#fragment2', docFragment => {
-    console.log(docFragment); // First import? Triggers and awaits module loading! Synchronously? Accesses modules immediately
+// On subsequent access, after load
+console.log(foo.modules.m1); // module:m1
+```
+
+```js
+// Using the context API with "live:true"
+let request = { type: 'HTMLModules', detail: 'foo#m2', live: true };
+document.context.ask(request, response => {
+    console.log(response); // module:/foo#m2; module loading triggered on first request and received asynchronously, then synchronously on subsequent requests after loaded
 });
 ```
 
