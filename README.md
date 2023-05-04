@@ -23,7 +23,7 @@ As a consequence, much of this oldish monolith-oriented language by design don't
 
 We need a new standards work that will coexist with seemingly related efforts like Web Components to address the language-level problems that cause all the community-based wizardry around *naming things*, *containing styles*, *containing scripts*, and *reusing things* to proliferate! HTML's vocabulary will need to be extended, and much of its "per document" constraints will need to be relaxed! New APIs that provide an upgrade path from markup to JavaScript will need to be factored in!
 
-└ [See more in the introductory blog post](https://dev.to/oxharris/the-web-native-equations-1m1p-temp-slug-6661657?preview=ba70ad2c17f05b5761bc74516dbde8c9eff8b581a0420d87334fd9ef6bab9d6e6d3ab6aaf3fe02542bb9e7250d0a88a6df91dae40919aabcc9a07320)<sup>draft</sup>
+└ [See more in the introductory blog post](https://dev.to/oxharris/the-web-native-equations-1fragment1p-temp-slug-6661657?preview=ba70ad2c17f05b5761bc74516dbde8c9eff8b581a0420d87334fd9ef6bab9d6e6d3ab6aaf3fe02542bb9e7250d0a88a6df91dae40919aabcc9a07320)<sup>draft</sup>
 
 ## An Overview
 
@@ -86,48 +86,89 @@ let { styleSheets, scripts } = user; // Analogous to the document.styleSheets, d
 
 ### HTML Imports
 
-The next set of features covers *templating and reusing objects* - in both *declarative* and *programmatic* terms! It extends the `<template>` element with *export* semantics, and introduces a complementary new `<import>` element; and everything fits together as a real-time module system.
+The next set of features covers *templating and reusing objects* - in both *declarative* and *programmatic* terms! It extends the language with the *module identifier* attribute `as`, and introduces a complementary new `<import>` element; and everything fits together as a real-time module system.
 
-└ *The `<template>` element for module export*:
+└ *The `as` attribute for exposing reusable modules*:
 
 ```html
 <head>
 
-  <template exportid="foo">
-    <div exportid="m1"></div>
-    <div exportid="m2"></div>
+  <template as="foo">
+    <div as="fragment1"></div>
+    <div as="fragment2"></div>
   </template>
 
 </head>
+```
+
+└ *Module nesting for code organization*:
+
+```html
+<head>
+
+  <template as="foo">
+    <div as="fragment1"></div>
+
+    <template as="nested">
+      <div as="fragment2"></div>
+    </template>
+  </template>
+
+</head>
+```
+
+└ *The `<template src>` element for remote modules*:
+
+```html
+<template as="foo" src="/foo.html"></template>
+```
+
+```html
+-- file: /foo.html --
+<div as="fragment1"></div>
+<template as="nested" src="/nested.html"></template>
+```
+
+```html
+-- file: /nested.html --
+<div as="fragment2"></div>
+--
+```
+
+```js
+foo.addEventListener('load', loadedCallback);
 ```
 
 └ *The `<import>` element for declarative module import*:
 
 ```html
 <body>
-  <import module="/foo#m1"></import> <!-- Pending resolution -->
+  <import ref="/foo#fragment1"></import> <!-- Pending resolution -->
+  <import ref="/foo/nested#fragment2"></import> <!-- Pending resolution -->
 </body>
 ```
 
 ```html
 <body>
-  <div exportid="m1"></div> <!-- After resolution -->
+  <div as="fragment1"></div> <!-- After resolution -->
+  <div as="fragment2"></div> <!-- After resolution -->
 </body>
 ```
 
-└ *The Modules API for programmatic module import*:
+└ *The HTMLImports API for programmatic module import*:
+
 
 ```js
-// The modules API
-let { foo } = document.modules;
-let { m1, m2 } = foo.modules;
+// Using the HTMLImport API for event-based module import
+document.import('foo#fragment2', docFragment => {
+    console.log(docFragment); // DucmentFragment:/foo#fragment2, received synchronously
+});
 ```
 
 ```js
-// Using the context API for event-based module import
-let request = { type: 'HTMLModules', detail: 'foo#m2' };
-document.context.ask(request, response => {
-    console.log(response); // module:/foo#m2, received synchronously
+// Using the HTMLImports API
+document.import('/foo/nested#fragment2', docFragment => {
+    console.log(docFragment); // DucmentFragment:/foo/nested#fragment2;
 });
 ```
 
@@ -136,193 +177,105 @@ document.context.ask(request, response => {
 ```html
 <section> <!-- object with own modules -->
 
-  <template exportid="foo" scoped> <!-- Scoped to host object and not available globally -->
-    <div exportid="m1"></div>
-    <div exportid="m2"></div>
+  <template as="foo" scoped> <!-- Scoped to host object and not available globally -->
+    <div as="fragment1"></div>
   </template>
 
   <div>
-    <import module="foo#m2"></import> <!-- Relative path (beginning without a slash), resolves to the local module: foo#m2 -->
-    <import module="/foo#m2"></import> <!-- Absolute path, resolves to the global module: /foo#m2 -->
+    <import ref="foo#fragment1"></import> <!-- Relative path (beginning without a slash), resolves to the local module: foo#fragment1 -->
+    <import ref="/foo#fragment1"></import> <!-- Absolute path, resolves to the global module: /foo#fragment1 -->
   </div>
 
 </section>
 ```
 
 ```js
-// Using the Modules API
-let { foo } = section.modules;
-let { m1, m2 } = foo.modules;
-```
-
-```js
-// Using the context API
-let request = { type: 'HTMLModules', detail: '#m2' };
-section.querySelector('div').context.ask(request, response => {
-    console.log(response); // the local module: foo#m2
+// Using the HTMLImports API
+document.querySelector('div').import('foo#fragment1', docFragment => {
+    console.log(docFragment); // the local module: foo#fragment1
 });
 ```
 
-└ *The <code>template src></code> element for remote modules*:
-
-```html
-<template exportid="foo" src="/foo.html"></template>
-
--- file: /foo.html --
-<div exportid="m1"></div>
-<div exportid="m2"></div>
-```
-
-```html
-<body>
-  <import module="/foo#m1"></import> <!-- Resolved on module loaded -->
-</body>
-```
-
 ```js
-foo.addEventListener('load', loadedCallback);
-```
-
-```js
-// Using the context API with "live:true"
-let request = { type: 'HTMLModules', detail: 'foo#m2', live: true };
-document.context.ask(request, response => {
-    console.log(response); // module:/foo#m2; received asynchronously on module loaded
+// Using the HTMLImports API
+document.querySelector('div').import('/foo#fragment1', docFragment => {
+    console.log(docFragment); // the global module: foo#fragment1
 });
-```
-
-└ *Module nesting for code organization*:
-
-```html
-<head>
-
-  <template exportid="foo">
-    <div exportid="m1"></div>
-
-    <template exportid="nested">
-      <div exportid="m2"></div>
-    </template>
-
-    <template exportid="nested-remote-lazy" src="/foo.html" loading="lazy"></template>
-  </template>
-
-</head>
-```
-
-```html
-<body>
-  <import module="/foo/nested-remote-lazy#m1"></import>
-</body>
-```
-
-```js
-let { m2 } = foo.modules.nested.modules;
-```
-
-```js
-// Using the context API with "live:true"
-let request = { type: 'HTMLModules', detail: '/foo/nested-remote-lazy#m1', live: true };
-document.context.ask(request, response => {
-    console.log(response); // module:/foo/nested-remote-lazy#m1; module loading triggered on first request and received asynchronously, then synchronously on subsequent requests after loaded
-});
-```
-
-└ *Module nesting with inheritance*:
-
-```html
-<template exportid="foo">
-
-  <header exportid="header"></header>
-  <footer exportid="footer"></footer>
-
-  <template exportid="nested1" inherits="header footer"> <!-- Using the "inherits" attribute -->
-    <main exportid="main"></main>
-  </template>
-
-  <template exportid="nested2" inherits="header footer"> <!-- Using the "inherits" attribute -->
-    <main exportid="main"></main>
-  </template>
-
-</template>
-```
-
-```html
-<template exportid="foo">
-
-  <template exportid="common">
-    <header exportid="header"></header>
-    <footer exportid="footer"></footer>
-  </template>
-
-  <template exportid="nested1" extends="common"> <!-- Using the "extends" attribute -->
-    <main exportid="main"></main>
-  </template>
-
-  <template exportid="nested2" extends="common"> <!-- Using the "extends" attribute -->
-    <main exportid="main"></main>
-  </template>
-
-</template>
-```
-
-```html
-<body>
-  <import module="/foo/nested1#header"></import>
-</body>
-```
-
-```js
-let { header, footer } = foo.modules.nested1.modules;
 ```
 
 <details><summary>
 Extended Imports concepts
 </summary>
 
+└ *Module nesting with inheritance*:
+
+```html
+<template as="foo">
+
+  <header as="header"></header>
+  <footer as="footer"></footer>
+
+  <template as="nested1" inherits="header footer"> <!-- Using the "inherits" attribute -->
+    <main as="main"></main>
+  </template>
+
+  <template as="nested2" inherits="header footer"> <!-- Using the "inherits" attribute -->
+    <main as="main"></main>
+  </template>
+
+</template>
+```
+
+```html
+<template as="foo">
+
+  <template as="common">
+    <header as="header"></header>
+    <footer as="footer"></footer>
+  </template>
+
+  <template as="nested1" extends="common"> <!-- Using the "extends" attribute -->
+    <main as="main"></main>
+  </template>
+
+  <template as="nested2" extends="common"> <!-- Using the "extends" attribute -->
+    <main as="main"></main>
+  </template>
+
+</template>
+```
+
+```html
+<body>
+  <import ref="/foo/nested1#header"></import>
+</body>
+```
+
 └ *Remote modules with lazy-loading*:
 
 ```html
-<template exportid="foo" src="/foo.html" loading="lazy"></template>
+<template as="foo" src="/foo.html" loading="lazy"></template>
+```
+
+```html
+<body>
+  <import ref="/foo#header"></import> <!-- Triggers and awaits module loading -->
+</body>
 ```
 
 ```js
-// On first access
-console.log(foo.modules.m1); // Module loading triggered, returns Promise<module:m1>
-```
-
-```js
-// On subsequent access, after load
-console.log(foo.modules.m1); // module:m1
-```
-
-```js
-// Using the context API with "live:true"
-let request = { type: 'HTMLModules', detail: 'foo#m2', live: true };
-document.context.ask(request, response => {
-    console.log(response); // module:/foo#m2; module loading triggered on first request and received asynchronously, then synchronously on subsequent requests after loaded
+// Using the HTMLImports API
+document.import('foo#fragment2', docFragment => {
+    console.log(docFragment); // First import? Triggers and awaits module loading! Synchronously? Accesses modules immediately
 });
 ```
 
 └ *"Imports Contexts" for context-based imports resolution*:
 
 ```html
-<head>
-
-  <template exportid="foo">
-    <div exportid="m1"></div>
-
-    <template exportid="nested">
-      <div exportid="m2"></div>
-    </template>
-  </template>
-
-</head>
-```
-
-```html
 <body importscontext="/foo">
   <section>
-    <import module="#m1"></import> <!-- Relative path (beginning without a slash), resolves to: /foo#m1 -->
+    <import ref="#fragment1"></import> <!-- Relative path (beginning without a slash), resolves to: /foo#fragment1 -->
   </section>
 </body>
 ```
@@ -330,16 +283,15 @@ document.context.ask(request, response => {
 ```html
 <body importscontext="/foo/nested">
   <section>
-    <import module="#m2"></import> <!-- Relative path (beginning without a slash), resolves to: /foo/nested#m2 -->
+    <import ref="#fragment2"></import> <!-- Relative path (beginning without a slash), resolves to: /foo/nested#fragment2 -->
   </section>
 </body>
 ```
 
 ```js
-// Using the context API
-let request = { type: 'HTMLModules', detail: '#m2' };
-section.context.ask(request, response => {
-    console.log(response); // module:/foo/nested#m2
+// Using the HTMLImports API
+document.querySelector('section').import('#fragment2', docFragment => {
+    console.log(docFragment); // module:/foo/nested#fragment2
 });
 ```
 
@@ -348,12 +300,12 @@ section.context.ask(request, response => {
 ```html
 <body contextname="context1" importscontext="/foo/nested">
 
-  <import module="#m2"></import> <!-- Relative path (beginning without a slash), resolves to: /foo/nested#m2 -->
+  <import ref="#fragment2"></import> <!-- Relative path (beginning without a slash), resolves to: /foo/nested#fragment2 -->
 
   <section importscontext="/foo">
-    <import module="#m1"></import> <!-- Relative path (beginning without a slash), resolves to: /foo#m1 -->
+    <import ref="#fragment1"></import> <!-- Relative path (beginning without a slash), resolves to: /foo#fragment1 -->
     <div>
-      <import module="@context1:#m2"></import> <!-- Context-relative path (beginning with a context name), resolves to: /foo/nested#m2 -->
+      <import ref="@context1#fragment2"></import> <!-- Context-relative path (beginning with a context name), resolves to: /foo/nested#fragment2 -->
     </div>
   </section>
 
@@ -361,10 +313,9 @@ section.context.ask(request, response => {
 ```
 
 ```js
-// Using the context API
-let request = { type: 'HTMLModules', name: 'context1', detail: '#m2' };
-section.querySelector('div').context.ask(request, response => {
-    console.log(response); // module:/foo/nested#m2
+// Using the HTMLImports API
+document.querySelector('div').import('@context1#fragment2', docFragment => {
+    console.log(docFragment); // module:/foo/nested#fragment2
 });
 ```
 
@@ -373,10 +324,10 @@ section.querySelector('div').context.ask(request, response => {
 ```html
 <body importscontext="/foo">
 
-  <import module="#m1"></import> <!-- Relative path (beginning without a slash), resolves to: /foo#m1 -->
+  <import ref="#fragment1"></import> <!-- Relative path (beginning without a slash), resolves to: /foo#fragment1 -->
 
   <section importscontext="nested"> <!-- Relative path (beginning without a slash), resolves to: /foo/nested -->
-    <import module="#m2"></import> <!-- Relative path (beginning without a slash), resolves to: /foo/nested#m2 -->
+    <import ref="#fragment2"></import> <!-- Relative path (beginning without a slash), resolves to: /foo/nested#fragment2 -->
   </section>
 
 </body>
@@ -388,16 +339,15 @@ section.querySelector('div').context.ask(request, response => {
 <body contextname="context1" importscontext="/bar">
   <section importscontext="nested"> <!-- object with own modules, plus inherited context: /bar/nested -->
 
-    <template exportid="foo" scoped> <!-- Scoped to host object and not available globally -->
-      <div exportid="m1"></div>
-      <div exportid="m2"></div>
+    <template as="foo" scoped> <!-- Scoped to host object and not available globally -->
+      <div as="fragment1"></div>
+      <div as="fragment2"></div>
     </template>
 
     <div>
-      <import module="foo#m2"></import> <!-- Relative path (beginning without a slash), resolves to the local module: foo#m2, and if not found, resolves from context to the module: /bar/nested/foo#2 -->
-      <import module="foo#m3"></import> <!-- Relative path (beginning without a slash), resolves to the local module: foo#m3, and if not found, resolves from context to the module: /bar/nested/foo#3 -->
-      <import module="/foo#m2"></import> <!-- Absolute path, resolves to the global module: /foo#m2 -->
-      <import module="@context1:#m2"></import> <!-- Resolves to the global module: /bar#m2 -->
+      <import ref="foo#fragment2"></import> <!-- Relative path (beginning without a slash), resolves to the local module: foo#fragment2, and if not found, resolves from context to the module: /bar/nested/foo#2 -->
+      <import ref="/foo#fragment1"></import> <!-- Absolute path, resolves to the global module: /foo#fragment1 -->
+      <import ref="@context1#fragment1"></import> <!-- Resolves to the global module: /bar#fragment1 -->
     </div>
 
   </section>
@@ -405,10 +355,9 @@ section.querySelector('div').context.ask(request, response => {
 ```
 
 ```js
-// Using the context API to break out of scope
-let request = { type: 'HTMLModules', detail: '#m3' };
-section.querySelector('div').context.ask(request, response => {
-    console.log(response); // the local module: foo#m3, and if not found, resolves from context to the module: /bar/nested/foo#3
+// Using the HTMLImports API
+document.querySelector('div').import('#fragment2', docFragment => {
+    console.log(docFragment); // the local module: foo#fragment2, and if not found, resolves from context to the module: /bar/nested#fragment2
 });
 ```
 
@@ -439,26 +388,6 @@ Observer.set(obj, 'prop1', 'value1'); // Reported synchronously
 
 ```js
 Observer.deleteProperty(obj, 'prop1'); // Reported synchronously
-```
-
-└ *A Modules API that reflects module trees in real time*:
-
-```js
-// Observing the addition or removal of modules
-Observer.observe(document.modules, changeCallback);
-
-const module1 = document.createElement('template');
-module1.setAttribute('exportid', 'foo');
-document.body.appendChild(module1); // Reported synchronously
-```
-
-```js
-// Observing the addition or removal of modules
-Observer.observe(module1.modules, changeCallback);
-
-const header = document.createElement('header');
-header.setAttribute('exportid', 'header');
-module1.appendChild(header); // Reported synchronously
 ```
 
 └ *A Namespace API that reflects the real-DOM&trade; in real-time*:
@@ -556,16 +485,16 @@ All of OOHTML brings to the platform much of the modern UI development paradigms
 └ *First, two components that are themselves analogous to a Single File Component ([SFC](https://vuejs.org/guide/scaling-up/sfc.html))*:
 
 ```html
-<template exportid="pages">
+<template as="pages">
 
-  <template exportid="layout">
-    <header exportid="header"></header>
-    <footer exportid="footer"></footer>
+  <template as="layout">
+    <header as="header"></header>
+    <footer as="footer"></footer>
   </template>
 
   <!-- Home Page -->
-  <template exportid="home" extends="layout">
-    <main exportid="main" namespace>
+  <template as="home" extends="layout">
+    <main as="main" namespace>
       <h1 id="banner">Home Page</h1>
       <a id="cta" href="#/products">Go to Products</a>
       <template scoped></template>
@@ -575,8 +504,8 @@ All of OOHTML brings to the platform much of the modern UI development paradigms
   </template>
 
   <!-- Products Page -->
-  <template exportid="products" extends="layout">
-    <main exportid="main" namespace>
+  <template as="products" extends="layout">
+    <main as="main" namespace>
       <h1 id="banner">Products Page</h1>
       <a id="cta" href="#/home">Go to Home</a>
       <template scoped></template>
