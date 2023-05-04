@@ -701,6 +701,18 @@ If you must load the script "async", one little trade-off has to be made for `<s
 </body>
 ```
 
+The custom MIME type strategy also comes in as a "fix" for older browsers (in macOS, typical) where the polyfill is not able to intercept `<script scoped>` and `<script contract>` elements ahead of the browser - e.g. where...
+
+```html
+<body>
+  <script scoped>
+    console.log(this); // body
+  </script>
+</body>
+```
+
+...still gives the `window` object in the console.
+
 To use the polyfill on server-side DOM instances as made possible by libraries like [jsdom](https://github.com/jsdom/jsdom), simply install and initialize the library `@webqit/oohtml` with the DOM instance:
 
 ```bash
