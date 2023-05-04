@@ -23,7 +23,7 @@ As a consequence, much of this oldish monolith-oriented language by design don't
 
 We need a new standards work that will coexist with seemingly related efforts like Web Components to address the language-level problems that cause all the community-based wizardry around *naming things*, *containing styles*, *containing scripts*, and *reusing things* to proliferate! HTML's vocabulary will need to be extended, and much of its "per document" constraints will need to be relaxed! New APIs that provide an upgrade path from markup to JavaScript will need to be factored in!
 
-└ [See more in the introductory blog post](https://dev.to/oxharris/the-web-native-equations-1module1p-temp-slug-6661657?preview=ba70ad2c17f05b5761bc74516dbde8c9eff8b581a0420d87334fd9ef6bab9d6e6d3ab6aaf3fe02542bb9e7250d0a88a6df91dae40919aabcc9a07320)<sup>draft</sup>
+└ [See more in the introductory blog post](https://dev.to/oxharris/the-web-native-equations-1fragment1p-temp-slug-6661657?preview=ba70ad2c17f05b5761bc74516dbde8c9eff8b581a0420d87334fd9ef6bab9d6e6d3ab6aaf3fe02542bb9e7250d0a88a6df91dae40919aabcc9a07320)<sup>draft</sup>
 
 ## An Overview
 
@@ -94,8 +94,8 @@ The next set of features covers *templating and reusing objects* - in both *decl
 <head>
 
   <template as="foo">
-    <div as="module1"></div>
-    <div as="module2"></div>
+    <div as="fragment1"></div>
+    <div as="fragment2"></div>
   </template>
 
 </head>
@@ -107,10 +107,10 @@ The next set of features covers *templating and reusing objects* - in both *decl
 <head>
 
   <template as="foo">
-    <div as="module1"></div>
+    <div as="fragment1"></div>
 
     <template as="nested">
-      <div as="module2"></div>
+      <div as="fragment2"></div>
     </template>
   </template>
 
@@ -125,13 +125,13 @@ The next set of features covers *templating and reusing objects* - in both *decl
 
 ```html
 -- file: /foo.html --
-<div as="module1"></div>
+<div as="fragment1"></div>
 <template as="nested" src="/nested.html"></template>
 ```
 
 ```html
 -- file: /nested.html --
-<div as="module1"></div>
+<div as="fragment1"></div>
 --
 ```
 
@@ -143,15 +143,15 @@ foo.addEventListener('load', loadedCallback);
 
 ```html
 <body>
-  <import ref="/foo#module1"></import> <!-- Pending resolution -->
-  <import ref="/foo/nested#module2"></import> <!-- Pending resolution -->
+  <import ref="/foo#fragment1"></import> <!-- Pending resolution -->
+  <import ref="/foo/nested#fragment2"></import> <!-- Pending resolution -->
 </body>
 ```
 
 ```html
 <body>
-  <div as="module1"></div> <!-- After resolution -->
-  <div as="module2"></div> <!-- After resolution -->
+  <div as="fragment1"></div> <!-- After resolution -->
+  <div as="fragment2"></div> <!-- After resolution -->
 </body>
 ```
 
@@ -160,15 +160,15 @@ foo.addEventListener('load', loadedCallback);
 
 ```js
 // Using the HTMLImport API for event-based module import
-document.import('foo#module2', docFragment => {
-    console.log(docFragment); // DucmentFragment:/foo#module2, received synchronously
+document.import('foo#fragment2', docFragment => {
+    console.log(docFragment); // DucmentFragment:/foo#fragment2, received synchronously
 });
 ```
 
 ```js
 // Using the HTMLImports API
-document.import('/foo/nested#module2', docFragment => {
-    console.log(docFragment); // DucmentFragment:/foo/nested#module2;
+document.import('/foo/nested#fragment2', docFragment => {
+    console.log(docFragment); // DucmentFragment:/foo/nested#fragment2;
 });
 ```
 
@@ -178,12 +178,12 @@ document.import('/foo/nested#module2', docFragment => {
 <section> <!-- object with own modules -->
 
   <template as="foo" scoped> <!-- Scoped to host object and not available globally -->
-    <div as="module1"></div>
+    <div as="fragment1"></div>
   </template>
 
   <div>
-    <import ref="foo#module1"></import> <!-- Relative path (beginning without a slash), resolves to the local module: foo#module1 -->
-    <import ref="/foo#module1"></import> <!-- Absolute path, resolves to the global module: /foo#module1 -->
+    <import ref="foo#fragment1"></import> <!-- Relative path (beginning without a slash), resolves to the local module: foo#fragment1 -->
+    <import ref="/foo#fragment1"></import> <!-- Absolute path, resolves to the global module: /foo#fragment1 -->
   </div>
 
 </section>
@@ -191,15 +191,15 @@ document.import('/foo/nested#module2', docFragment => {
 
 ```js
 // Using the HTMLImports API
-section.querySelector('div').import('foo#module1', docFragment => {
-    console.log(docFragment); // the local module: foo#module1
+document.querySelector('div').import('foo#fragment1', docFragment => {
+    console.log(docFragment); // the local module: foo#fragment1
 });
 ```
 
 ```js
 // Using the HTMLImports API
-section.querySelector('div').import('/foo#module1', docFragment => {
-    console.log(docFragment); // the global module: foo#module1
+document.querySelector('div').import('/foo#fragment1', docFragment => {
+    console.log(docFragment); // the global module: foo#fragment1
 });
 ```
 
@@ -265,7 +265,7 @@ Extended Imports concepts
 
 ```js
 // Using the HTMLImports API
-document.import('foo#module2', docFragment => {
+document.import('foo#fragment2', docFragment => {
     console.log(docFragment); // First import? Triggers and awaits module loading! Synchronously? Accesses modules immediately
 });
 ```
@@ -275,7 +275,7 @@ document.import('foo#module2', docFragment => {
 ```html
 <body importscontext="/foo">
   <section>
-    <import ref="#module1"></import> <!-- Relative path (beginning without a slash), resolves to: /foo#module1 -->
+    <import ref="#fragment1"></import> <!-- Relative path (beginning without a slash), resolves to: /foo#fragment1 -->
   </section>
 </body>
 ```
@@ -283,15 +283,15 @@ document.import('foo#module2', docFragment => {
 ```html
 <body importscontext="/foo/nested">
   <section>
-    <import ref="#module2"></import> <!-- Relative path (beginning without a slash), resolves to: /foo/nested#module2 -->
+    <import ref="#fragment2"></import> <!-- Relative path (beginning without a slash), resolves to: /foo/nested#fragment2 -->
   </section>
 </body>
 ```
 
 ```js
 // Using the HTMLImports API
-document.querySelector('section').import('#module2', docFragment => {
-    console.log(docFragment); // module:/foo/nested#module2
+document.querySelector('section').import('#fragment2', docFragment => {
+    console.log(docFragment); // module:/foo/nested#fragment2
 });
 ```
 
@@ -300,12 +300,12 @@ document.querySelector('section').import('#module2', docFragment => {
 ```html
 <body contextname="context1" importscontext="/foo/nested">
 
-  <import ref="#module2"></import> <!-- Relative path (beginning without a slash), resolves to: /foo/nested#module2 -->
+  <import ref="#fragment2"></import> <!-- Relative path (beginning without a slash), resolves to: /foo/nested#fragment2 -->
 
   <section importscontext="/foo">
-    <import ref="#module1"></import> <!-- Relative path (beginning without a slash), resolves to: /foo#module1 -->
+    <import ref="#fragment1"></import> <!-- Relative path (beginning without a slash), resolves to: /foo#fragment1 -->
     <div>
-      <import ref="@context1#module2"></import> <!-- Context-relative path (beginning with a context name), resolves to: /foo/nested#module2 -->
+      <import ref="@context1#fragment2"></import> <!-- Context-relative path (beginning with a context name), resolves to: /foo/nested#fragment2 -->
     </div>
   </section>
 
@@ -314,8 +314,8 @@ document.querySelector('section').import('#module2', docFragment => {
 
 ```js
 // Using the HTMLImports API
-document.querySelector('div').import('@context1#module2', docFragment => {
-    console.log(docFragment); // module:/foo/nested#module2
+document.querySelector('div').import('@context1#fragment2', docFragment => {
+    console.log(docFragment); // module:/foo/nested#fragment2
 });
 ```
 
@@ -324,10 +324,10 @@ document.querySelector('div').import('@context1#module2', docFragment => {
 ```html
 <body importscontext="/foo">
 
-  <import ref="#module1"></import> <!-- Relative path (beginning without a slash), resolves to: /foo#module1 -->
+  <import ref="#fragment1"></import> <!-- Relative path (beginning without a slash), resolves to: /foo#fragment1 -->
 
   <section importscontext="nested"> <!-- Relative path (beginning without a slash), resolves to: /foo/nested -->
-    <import ref="#module2"></import> <!-- Relative path (beginning without a slash), resolves to: /foo/nested#module2 -->
+    <import ref="#fragment2"></import> <!-- Relative path (beginning without a slash), resolves to: /foo/nested#fragment2 -->
   </section>
 
 </body>
@@ -340,14 +340,14 @@ document.querySelector('div').import('@context1#module2', docFragment => {
   <section importscontext="nested"> <!-- object with own modules, plus inherited context: /bar/nested -->
 
     <template as="foo" scoped> <!-- Scoped to host object and not available globally -->
-      <div as="module1"></div>
-      <div as="module2"></div>
+      <div as="fragment1"></div>
+      <div as="fragment2"></div>
     </template>
 
     <div>
-      <import ref="foo#module2"></import> <!-- Relative path (beginning without a slash), resolves to the local module: foo#module2, and if not found, resolves from context to the module: /bar/nested/foo#2 -->
-      <import ref="/foo#module1"></import> <!-- Absolute path, resolves to the global module: /foo#module1 -->
-      <import ref="@context1#module1"></import> <!-- Resolves to the global module: /bar#module1 -->
+      <import ref="foo#fragment2"></import> <!-- Relative path (beginning without a slash), resolves to the local module: foo#fragment2, and if not found, resolves from context to the module: /bar/nested/foo#2 -->
+      <import ref="/foo#fragment1"></import> <!-- Absolute path, resolves to the global module: /foo#fragment1 -->
+      <import ref="@context1#fragment1"></import> <!-- Resolves to the global module: /bar#fragment1 -->
     </div>
 
   </section>
@@ -356,8 +356,8 @@ document.querySelector('div').import('@context1#module2', docFragment => {
 
 ```js
 // Using the HTMLImports API
-document.querySelector('div').import('#module2', docFragment => {
-    console.log(docFragment); // the local module: foo#module2, and if not found, resolves from context to the module: /bar/nested#module2
+document.querySelector('div').import('#fragment2', docFragment => {
+    console.log(docFragment); // the local module: foo#fragment2, and if not found, resolves from context to the module: /bar/nested#fragment2
 });
 ```
 
