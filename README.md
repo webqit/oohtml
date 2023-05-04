@@ -159,7 +159,7 @@ foo.addEventListener('load', loadedCallback);
 
 ```js
 // Using the HTMLImport API for event-based module import
-document.import('foo#fragment2', docFragment => {
+document.import('foo#fragment1', docFragment => {
     console.log(docFragment); // DucmentFragment:/foo#fragment2, received synchronously
 });
 ```
