@@ -769,6 +769,11 @@ Here are the performance-specific notes for this polyfill:
 
 + Whether loaded lazily or eaderly, the compiler also factors in additional optimizations. For example, identical scripts are handled only first time, and only ever have once Contract Function instance!
 
+Here are other notes:
+
++ **Scoped CSS**. This feature is only in "concept" implementation and doesn't work right now as is. The current implementation simply wraps `<style scoped>` blocks in an `@scope {}` block - which itself isn't supported in any browser. A working implementation may be coming soon, but you could try one of the working polyfills for `<style scoped>` out there; e.g. [samthor/scoped
+Public](https://github.com/samthor/scoped).
+
 </details>
 
 ## Documentation

@@ -11,7 +11,7 @@ import { _init } from '../util.js';
  */
 export default function init( { advanced = {}, ...$config } ) {
     const { config, window } = _init.call( this, 'scoped-css', $config, {
-        style: { retention: 'retain', mimeType: '' },
+        style: { retention: 'retain', mimeType: '', strategy: null },
     } );
 	config.styleSelector = ( Array.isArray( config.style.mimeType ) ? config.style.mimeType : [ config.style.mimeType ] ).reduce( ( selector, mm ) => {
         const qualifier = mm ? `[type=${ window.CSS.escape( mm ) }]` : '';
@@ -33,11 +33,13 @@ function realtime( config ) {
 	realdom.realtime( window.document ).subtree/*instead of observe(); reason: jsdom timing*/( config.styleSelector, record => {
         record.entrants.forEach( style => {
             if ( 'scoped' in style ) return handled( style );
-            Object.defineProperty( style, 'scoped', { value: style.hasAttribute( 'scoped' ) } );
-            if ( style.hasAttribute( 'ref' ) ) return; // Server-rendered
-            const uuid = `scoped${ uniqId() }`;
-            style.setAttribute( 'ref', uuid );
-            style.textContent = `@scope from (:has(> style[ref="${ uuid }"])) {\n${ style.textContent }\n}`;
+            if ( config.style.strategy === '@scope' ) {
+                Object.defineProperty( style, 'scoped', { value: style.hasAttribute( 'scoped' ) } );
+                if ( style.hasAttribute( 'ref' ) ) return; // Server-rendered
+                const uuid = `scoped${ uniqId() }`;
+                style.setAttribute( 'ref', uuid );
+                style.textContent = `@scope from (:has(> style[ref="${ uuid }"])) {\n${ style.textContent }\n}`;
+            }
         } );
 	}, { live: true, timing: 'intercept', generation: 'entrants' } );
     // ---
