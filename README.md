@@ -155,17 +155,17 @@ foo.addEventListener('load', loadedCallback);
 </body>
 ```
 
+└ *The HTMLImports API  for programmatic module import*:
+
 ```js
-// Using the HTMLImport API for event-based module import
-document.import('foo#fragment1', docFragment => {
-    console.log(docFragment); // DucmentFragment:/foo#fragment2, received synchronously
+document.import('/foo#fragment1', divElement => {
+    console.log(divElement); // module:/foo#fragment2, received synchronously
 });
 ```
 
 ```js
-// Using the HTMLImports API
-document.import('/foo/nested#fragment2', docFragment => {
-    console.log(docFragment); // DucmentFragment:/foo/nested#fragment2;
+document.import('/foo/nested#fragment2', divElement => {
+    console.log(divElement); // module:/foo/nested#fragment2;
 });
 ```
 
@@ -188,15 +188,15 @@ document.import('/foo/nested#fragment2', docFragment => {
 
 ```js
 // Using the HTMLImports API
-document.querySelector('div').import('foo#fragment1', docFragment => {
-    console.log(docFragment); // the local module: foo#fragment1
+document.querySelector('div').import('foo#fragment1', divElement => {
+    console.log(divElement); // the local module: foo#fragment1
 });
 ```
 
 ```js
 // Using the HTMLImports API
-document.querySelector('div').import('/foo#fragment1', docFragment => {
-    console.log(docFragment); // the global module: foo#fragment1
+document.querySelector('div').import('/foo#fragment1', divElement => {
+    console.log(divElement); // the global module: foo#fragment1
 });
 ```
 
@@ -251,24 +251,19 @@ Extended Imports concepts
 └ *Remote modules with lazy-loading*:
 
 ```html
+<!-- Loading doesn't happen until the first time this is being accessed -->
 <template as="foo" src="/foo.html" loading="lazy"></template>
 ```
 
-```js
-// On first access
-console.log(foo.modules.m1); // Module loading triggered, returns Promise<module:m1>
+```html
+<body>
+  <import ref="/foo#fragment1"></import> <!-- To be resolved after remote module has been loaded -->
+</body>
 ```
 
 ```js
-// On subsequent access, after load
-console.log(foo.modules.m1); // module:m1
-```
-
-```js
-// Using the context API with "live:true"
-let request = { type: 'HTMLModules', detail: 'foo#m2', live: true };
-document.context.ask(request, response => {
-    console.log(response); // module:/foo#m2; module loading triggered on first request and received asynchronously, then synchronously on subsequent requests after loaded
+document.import('/foo#fragment1', divElement => {
+    console.log(divElement); // To be received after remote module has been loaded
 });
 ```
 
@@ -292,8 +287,8 @@ document.context.ask(request, response => {
 
 ```js
 // Using the HTMLImports API
-document.querySelector('section').import('#fragment2', docFragment => {
-    console.log(docFragment); // module:/foo/nested#fragment2
+document.querySelector('section').import('#fragment2', divElement => {
+    console.log(divElement); // module:/foo/nested#fragment2
 });
 ```
 
@@ -316,8 +311,8 @@ document.querySelector('section').import('#fragment2', docFragment => {
 
 ```js
 // Using the HTMLImports API
-document.querySelector('div').import('@context1#fragment2', docFragment => {
-    console.log(docFragment); // module:/foo/nested#fragment2
+document.querySelector('div').import('@context1#fragment2', divElement => {
+    console.log(divElement); // module:/foo/nested#fragment2
 });
 ```
 
@@ -358,8 +353,8 @@ document.querySelector('div').import('@context1#fragment2', docFragment => {
 
 ```js
 // Using the HTMLImports API
-document.querySelector('div').import('#fragment2', docFragment => {
-    console.log(docFragment); // the local module: foo#fragment2, and if not found, resolves from context to the module: /bar/nested#fragment2
+document.querySelector('div').import('#fragment2', divElement => {
+    console.log(divElement); // the local module: foo#fragment2, and if not found, resolves from context to the module: /bar/nested#fragment2
 });
 ```
 
@@ -482,7 +477,9 @@ Observer.set(element, 'liveProperty'); // Live expressions rerun
 
 ### Put Together
 
-All of OOHTML brings to the platform much of the modern UI development paradigms that community-based tools have encoded for years, and that just opens up new ways to leverage the web platform and bank less on abstractions! For example, the following is how something you could call a Single Page Application ([SPA](https://en.wikipedia.org/wiki/Single-page_application)) could be made - with zero tooling:
+All of OOHTML brings to the platform much of the modern UI development paradigms that community-based tools have long encoded, and that just opens up new ways to leverage the web platform and bank less on abstractions! Here are a few examples in the wide range of use cases these features cover.
+
+**--> Example 1:** The following is how something you could call a Single Page Application ([SPA](https://en.wikipedia.org/wiki/Single-page_application)) could be made - with zero tooling:
 
 └ *First, two components that are themselves analogous to a Single File Component ([SFC](https://vuejs.org/guide/scaling-up/sfc.html))*:
 
@@ -536,7 +533,7 @@ All of OOHTML brings to the platform much of the modern UI development paradigms
 </body>
 ```
 
-As another example - being that a wide range of use cases exists beyond the above, the following is a Listbox component lifted directively from [ARIA Authoring Practices Guide (APG)](https://www.w3.org/WAI/ARIA/apg/patterns/listbox/examples/listbox-grouped/#sc_label) but with IDs effectively "contained" at different levels within the component using the `namespace` attribute.
+**--> Example 2:** The following is a Listbox component lifted directively from [ARIA Authoring Practices Guide (APG)](https://www.w3.org/WAI/ARIA/apg/patterns/listbox/examples/listbox-grouped/#sc_label) but with IDs effectively "contained" at different levels within the component using the `namespace` attribute.
 
 └ *A Listbox with namespaced IDs*:
 
@@ -600,6 +597,80 @@ As another example - being that a wide range of use cases exists beyond the abov
       </ul>
     </div>
   </div>
+</div>
+```
+
+**--> Example 3:** The following is a custom element that derives its Shadow DOM from an imported `<tenplate>`. The idea is to have different Shadow DOM layouts defined and let the "usage" context decide which variant is imported!
+
+└ *First, two layout options defined for the Shadow DOM*:
+
+```html
+<template as="vendor1">
+
+  <template as="components-layout1">
+    <template as="magic-button">
+      <span id="icon"></span> <span id="text"></span>
+    </template>
+  </template>
+
+  <template as="components-layout2">
+    <template as="magic-button">
+      <span id="text"></span> <span id="icon"></span>
+    </template>
+  </template>
+
+</template>
+```
+
+└ *Next, the Shadow DOM creation that let's the context decide what's imported*:
+
+```js
+customElements.define('magic-button', class extends HTMLElement {
+  connectedCallback() {
+    const shadowRoot = this.attachShadow({ mode: 'open' });
+    this.import('@vendor1/magic-button', template => {
+      shadowRoot.appendChild( template.content.cloneNode(true) );
+    });
+  }
+});
+```
+
+└ *Then, the part where we just drop the component in "layout" contexts*:
+
+```html
+<div contextname="vendor1" importscontext="/vendor1/components-layout1">
+
+  <magic-button></magic-button>
+
+  <aside contextname="vendor1" importscontext="/vendor1/components-layout2">
+    <magic-button></magic-button>
+  </aside>
+
+</div>
+```
+
+**--> Example 4:** The following is a "list" element that derives its list items from a "scoped" `<tenplate>` element. The idea is to have a "self-contained" component that's all markup-based, not class-based!
+
+└ *A list component with scoped module system*:
+
+```html
+<div namespace>
+
+  <ul id="list"></ul>
+
+  <template as="item" scoped>
+    <li>
+      <a></a>
+    </li>
+  </template>
+
+  <script scoped>
+    this.import('item', template => {
+      const clone = template.content.cloneNode(true);
+      this.namespace.list.appendChild(clone);
+    });
+  </script>
+
 </div>
 ```
 
