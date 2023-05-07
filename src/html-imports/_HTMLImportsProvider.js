@@ -3,30 +3,38 @@
  * @imports
  */
 import Observer from '@webqit/observer';
-import { HTMLContextManager, HTMLContext } from '../context-api/index.js';
+import { HTMLContext, HTMLContextProvider } from '../context-api/index.js';
 import { getModulesObject } from './index.js';
 import { _ } from '../util.js';
 
-export default class _HTMLImportsContext extends HTMLContext {
- 
+export default class _HTMLImportsProvider extends HTMLContextProvider {
+
+    /**
+     * @createId
+     */
+    static createId( host, fields = {} ) {
+        if ( !( 'type' in fields ) ) fields = { type: 'htmlimports', ...fields };
+        return super.createId( host, fields );
+    }
+
     /**
      * @createRequest
      */
     static createRequest( fields = {} ) {
-        const request = { type: 'HTMLModules', ...fields };
-        if ( !request.name && request.detail?.startsWith( '/' ) ) { request.name = 'root'; }
+        const request = { type: 'htmlimports', ...fields };
+        if ( !request.contextName && request.detail?.startsWith( '/' ) ) { request.contextName = 'root'; }
         else if ( request.detail?.startsWith( '@' ) ) {
-            const [ contextName, detail ] = request.detail.split( ':' ).map( s => s.trim() );
-            request.name = contextName.slice( 1 );
-            request.detail = detail;
+            const [ contextName, ...detail ] = request.detail.slice( 1 ).split( /(?<=\w)(?=\/|#)/ ).map( s => s.trim() );
+            request.contextName = contextName;
+            request.detail = detail.join( '' );
         }
         return request;
     }
-
+     
     /**
-     * @modules
+     * @localModules
      */
-    get modules() {
+    get localModules() {
         return getModulesObject( this.host );
     }
 
@@ -38,24 +46,24 @@ export default class _HTMLImportsContext extends HTMLContext {
         event.request.controller?.abort();
 
         // Parse and translate detail
-        if ( ( event.request.detail || '' ).trim() === '/' ) return event.respondWith( this.modules );
+        if ( ( event.request.detail || '' ).trim() === '/' ) return event.respondWith( this.localModules );
         const $config = this.constructor.config;
         let path = ( event.request.detail || '' ).split( /\/|(?<=\w)(?=#)/g ).map( x => x.trim() ).filter( x => x );
         if ( path.length ) { path = path.join( `/${ $config.template.api.modules }/` )?.split( '/' ) || []; }
         // No detail?
         if ( !path.length ) return event.respondWith();
-
+ 
         // We'll now fulfill request
-        const params = { live: event.request.live, descripted: true, midwayResults: true };
+        const options = { live: event.request.live, descripted: true, midwayResults: true };
         // Find a way to resolve request against two sources
-        event.request.controller = Observer.deep( this.modules, path, Observer.get, ( result, { signal } = {} ) => {
+        event.request.controller = Observer.deep( this.localModules, path, Observer.get, ( result, { signal } = {} ) => {
             if ( !result.value && this.host.isConnected === false ) return; // Subtree is being disposed
-            if ( result.value || !this.altModules ) return event.respondWith( result.value );
+            if ( result.value || !this.contextModules ) return event.respondWith( result.value );
             // This superModules binding is automatically aborted by the injected control.signal; see below
-            return Observer.deep( this.altModules, path, Observer.get, result => {
+            return Observer.deep( this.contextModules, path, Observer.get, result => {
                 return event.respondWith( result.value );
-            }, { signal, ...params } );
-        }, params );
+            }, { signal, ...options } );
+        }, options );
     }
 
     /**
@@ -78,13 +86,13 @@ export default class _HTMLImportsContext extends HTMLContext {
         this.refdSourceController = realdom.realtime( this.host ).attr( $config.context.attr.importscontext, ( record, { signal } ) => {
             // No importscontext attr set. But we're still watching
             if ( !record.value ) {
-                this.altModules = undefined;
+                this.contextModules = undefined;
                 return update();
             }
             // This superModules contextrequest is automatically aborted by the injected signal below
             const request = this.constructor.createRequest( { detail: record.value.trim(), live: true, signal, superContextOnly: true } );
-            HTMLContextManager.instance( this.host ).ask( request, response => {
-                this.altModules = !( response && Object.getPrototypeOf( response ) ) ? response : getModulesObject( response );
+            HTMLContext.instance( this.host ).request( request, response => {
+                this.contextModules = !( response && Object.getPrototypeOf( response ) ) ? response : getModulesObject( response );
                 update();
             } );
         }, { live: true, timing: 'sync', lifecycleSignals: true } );

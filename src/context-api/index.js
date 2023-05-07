@@ -3,8 +3,8 @@
  * @imports
  */
 import { _init } from '../util.js';
-import HTMLContextManager from './HTMLContextManager.js';
 import HTMLContext from './HTMLContext.js';
+import HTMLContextProvider from './HTMLContextProvider.js';
 
 /**
  * Initializes HTML Modules.
@@ -17,7 +17,7 @@ export default function init( $config = {} ) {
     const { config, window } = _init.call( this, 'context-api', $config, {
         api: { context: 'context', },
     } );
-    window.webqit.HTMLContextManager = HTMLContextManager;
+    window.webqit.HTMLContextProvider = HTMLContextProvider;
     window.webqit.HTMLContext = HTMLContext;
     exposeModulesObjects.call( window, config );
 }
@@ -36,10 +36,10 @@ function exposeModulesObjects( config ) {
     if ( config.api.context in window.HTMLElement.prototype ) { throw new Error( `The "HTMLElement" class already has a "${ config.api.context }" property!` ); }
     // Definitions
     Object.defineProperty( window.document, config.api.context, { get: function() {
-        return HTMLContextManager.instance( window.document );
+        return HTMLContext.instance( window.document );
     } } );
     Object.defineProperty( window.HTMLElement.prototype, config.api.context, { get: function() {
-        return HTMLContextManager.instance( this );
+        return HTMLContext.instance( this );
     } } );
 }
 
@@ -47,6 +47,6 @@ function exposeModulesObjects( config ) {
  * @exports
  */
 export {
-    HTMLContextManager,
+    HTMLContextProvider,
     HTMLContext,
 }

@@ -102,10 +102,10 @@ function realtime( config ) {
             if ( record.type === 'query' || ( potentialManualTypes.includes( script.type ) && !window.HTMLScriptElement.supports( script.type ) ) ) {
                 Object.defineProperty( script, 'handling', { value: 'manual' } ); 
             }
-            const thisContext = script.scoped ? record.target : ( script.type === 'module' ? undefined : window );
+            const thisContext = script.scoped ? script.parentNode || record.target : ( script.type === 'module' ? undefined : window );
             compiler.compile( script, thisContext );
         } );
-	}, { live: true, timing: 'intercept', generation: 'entrants' } );
+	}, { live: true, timing: 'intercept', generation: 'entrants', eventDetails: true } );
     // ---
 }
 

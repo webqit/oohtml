@@ -6,8 +6,8 @@ export default function() {
         /**
          * @constructor
          */
-        constructor( request, callback, { type = 'contextrequest', ...params } = {} ) {
-            super( type, params );
+        constructor( request, callback, { type = 'contextrequest', ...options } = {} ) {
+            super( type, options );
             Object.defineProperty( this, 'request', { get: () => request } );
             Object.defineProperty( this, 'callback', { get: () => callback } );
         }

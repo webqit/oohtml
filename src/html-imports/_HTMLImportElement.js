@@ -2,8 +2,8 @@
 /**
  * @imports
  */
-import { HTMLContextManager } from '../context-api/index.js';
-import _HTMLImportsContext from '../html-modules/_HTMLImportsContext.js';
+import { HTMLContext } from '../context-api/index.js';
+import _HTMLImportsContext from './_HTMLImportsProvider.js';
 import { _ } from '../util.js';
 
 /**
@@ -50,10 +50,9 @@ export default function( config ) {
             };
 
             priv.importRequest = ( callback, signal = null ) => {
-                const detail = priv.moduleRef && !priv.moduleRef.includes( '#' ) && !priv.moduleRef.includes( '.' ) ? `${ priv.moduleRef }#default` : priv.moduleRef;
-                const request = _HTMLImportsContext.createRequest( { detail, live: signal && true, signal } );
-                HTMLContextManager.instance( this.el.isConnected ? this.el.parentNode : priv.anchorNode.parentNode ).ask( request, response => {
-                    callback( ( response instanceof Set ? new Set( response ) : response ) || [] );
+                const request = _HTMLImportsContext.createRequest( { detail: priv.moduleRef, live: signal && true, signal } );
+                HTMLContext.instance( this.el.isConnected ? this.el.parentNode : priv.anchorNode.parentNode ).request( request, response => {
+                    callback( ( response instanceof window.HTMLTemplateElement ? [ ...response.content.children ] : response && [ response ] ) || [] );
                 } );
             };
 
@@ -71,9 +70,9 @@ export default function( config ) {
                 priv.hydrationImportRequest = new AbortController;
                 priv.importRequest( modules => {
                     if ( priv.originalsRemapped ) { return this.fill( modules ); }
-                    const identifiersMap = [ ...modules ].map( module => ( { el: module, exportId: module.getAttribute( config.export.attr.exportid ) || '#default', tagName: module.tagName, } ) );
+                    const identifiersMap = modules.map( module => ( { el: module, exportId: module.getAttribute( config.export.attr.exportid ), tagName: module.tagName, } ) );
                     slottedElements.forEach( slottedElement => {
-                        const tagName = slottedElement.tagName, exportId = slottedElement.getAttribute( config.export.attr.exportid ) || '#default';
+                        const tagName = slottedElement.tagName, exportId = slottedElement.getAttribute( config.export.attr.exportid );
                         const originalsMatch = identifiersMap.filter( moduleIdentifiers => tagName === moduleIdentifiers.tagName && exportId === moduleIdentifiers.exportId );
                         if ( originalsMatch.length !== 1 ) return;
                         _( slottedElement ).set( 'original@imports', originalsMatch[ 0 ].el );
@@ -112,7 +111,6 @@ export default function( config ) {
                 if ( priv.moduleRefRealtime ) return;
                 priv.moduleRefRealtime = realdom.realtime( this.el ).attr( config.import.attr.moduleref, ( record, { signal } ) => {
                     priv.moduleRef = record.value;
-                    ;
                     // Below, we ignore first restore from hydration
                     priv.importRequest( modules => !priv.hydrationImportRequest && this.fill( modules ), signal );
                 }, { live: true, timing: 'sync', lifecycleSignals: true } );

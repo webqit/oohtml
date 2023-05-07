@@ -6,7 +6,7 @@ import Observer from '@webqit/observer';
 import { getModulesObject } from './index.js';
 import { _ } from '../util.js';
 
-export default class HTMLExportsManager {
+export default class _HTMLExportsManager {
 
     /**
      * @instance
@@ -55,7 +55,7 @@ export default class HTMLExportsManager {
      * @returns Void
      */
     validateExportId( exportId ) {
-        if ( [ '@', '#', ':' ].some( token => exportId.includes( token ) ) ) {
+        if ( [ '@', '/', '#' ].some( token => exportId.includes( token ) ) ) {
             throw new Error( `The export ID "${ exportId }" contains an invalid character.` );
         }
     }
@@ -69,35 +69,18 @@ export default class HTMLExportsManager {
      * @returns Void
      */
     export( entries, isConnected ) {
-        const fragmentsExports = new Map;
         entries.forEach( entry => {
             if ( entry.nodeType !== 1 ) return;
-            const exportId = ( entry.getAttribute( this.config.export.attr.exportid ) || '' ).trim() || '#default';
+            const exportId = ( entry.getAttribute( this.config.export.attr.exportid ) || '' ).trim();
+            if ( !exportId ) return;
             const isPackage = entry.matches( this.config.templateSelector );
-            if ( exportId.startsWith( '#' ) ) {
-                this.validateExportId( exportId.substring( 1 ) );
-                if ( !fragmentsExports.has( exportId ) ) { fragmentsExports.set( exportId, [] ); }
-                fragmentsExports.get( exportId ).push( entry );
-            } else {
-                if ( isConnected ) {
-                    if ( isPackage ) { new HTMLExportsManager( this.window, entry, this.config, this.host, this.level + 1 ); }
-                    Observer.set( this.modules, exportId, entry );
-                } else {
-                    if ( isPackage ) { HTMLExportsManager.instance( this.window, entry ).dispose(); }
-                    Observer.deleteProperty( this.modules, exportId );
-                }
-            }
-        } );
-        // ----------------
-        fragmentsExports.forEach( ( fragments, exportId ) => {
-            let existingFragments = Observer.get( this.modules, exportId );
             if ( isConnected ) {
-                existingFragments = new Set( ( existingFragments ? [ ...existingFragments ] : [] ).concat( fragments ) );
-            } else if ( existingFragments ) {
-                fragments.forEach( el => existingFragments.delete( el ) );
+                if ( isPackage ) { new _HTMLExportsManager( this.window, entry, this.config, this.host, this.level + 1 ); }
+                Observer.set( this.modules, ( !isPackage && '#' || '' ) + exportId, entry );
+            } else {
+                if ( isPackage ) { _HTMLExportsManager.instance( this.window, entry ).dispose(); }
+                Observer.deleteProperty( this.modules, ( !isPackage && '#' || '' ) + exportId );
             }
-            if ( !isConnected && !existingFragments.size ) { Observer.deleteProperty( this.modules, exportId ); }
-            else { Observer.set( this.modules, exportId, existingFragments ) }
         } );
     }
 
@@ -111,14 +94,17 @@ export default class HTMLExportsManager {
     evaluateLoading( [ record1, record2 ], { signal } ) {
         const src = ( record1.value || '' ).trim();
         if ( !src ) return;
+        let $loadingPromise, loadingPromise = promise => {
+            if ( !promise ) return $loadingPromise; // Get
+            $loadingPromise = promise.then( () => interception.remove() ); // Set
+        };
         const loading = ( record2.value || '' ).trim();
-        if ( loading === 'lazy' ) {
-            const interception = Observer.intercept( this.modules, 'get', async ( descriptor, recieved, next ) => {
-                await this.load( src, true );
-                interception.remove();
-                return next();
-            }, { signal } );
-        } else { this.load( src ); }
+        const interception = Observer.intercept( this.modules, 'get', async ( descriptor, recieved, next ) => {
+            if ( loading === 'lazy' ) { loadingPromise( this.load( src, true ) ); }
+            await loadingPromise();
+            return next();
+        }, { signal } );
+        if ( loading !== 'lazy' ) { loadingPromise( this.load( src ) ); }
     }
     
     /**
@@ -129,7 +115,7 @@ export default class HTMLExportsManager {
      * @return Promise
      */
     load( src ) {
-        if ( this.host.content.children.length ) return;
+        if ( this.host.content.children.length ) return Promise.resolve();
         // Ongoing request?
         if ( this.fetchInFlight?.src === src ) return this.fetchInFlight.request;
         this.fetchInFlight?.controller.abort();
@@ -193,7 +179,7 @@ export default class HTMLExportsManager {
         this.realtimeC.forEach( r => r.abort() );
         Object.entries( this.modules ).forEach( ( [ key, entry ] ) => {
             if ( key.startsWith( '#' ) ) return;
-            HTMLExportsManager.instance( this.window, entry ).dispose();
+            _HTMLExportsManager.instance( this.window, entry ).dispose();
         } );
     }
 }
