@@ -86,16 +86,16 @@ let { styleSheets, scripts } = user; // Analogous to the document.styleSheets, d
 
 ### HTML Imports
 
-The next set of features covers *templating and reusing objects* - in both *declarative* and *programmatic* terms! It extends the language with the *module identifier* attribute `as`, and introduces a complementary new `<import>` element; and everything fits together as a real-time module system.
+The next set of features covers *templating and reusing objects* - in both *declarative* and *programmatic* terms! It extends the language with the *module identifier* attribute `def`, and introduces a complementary new `<import>` element; and everything fits together as a real-time module system.
 
-└ *The `as` attribute for exposing reusable modules*:
+└ *The `def` attribute for defining access to reusable modules*:
 
 ```html
 <head>
 
-  <template as="foo">
-    <div as="fragment1">A module fragment that can be accessed independently</div>
-    <div as="fragment2">Another module fragment that can be accessed independently</div>
+  <template def="foo">
+    <div def="fragment1">A module fragment that can be accessed independently</div>
+    <div def="fragment2">Another module fragment that can be accessed independently</div>
     <p>An element that isn't explicitly exposed.</p>
   </template>
 
@@ -107,11 +107,11 @@ The next set of features covers *templating and reusing objects* - in both *decl
 ```html
 <head>
 
-  <template as="foo">
-    <div as="fragment1"></div>
+  <template def="foo">
+    <div def="fragment1"></div>
 
-    <template as="nested">
-      <div as="fragment2"></div>
+    <template def="nested">
+      <div def="fragment2"></div>
     </template>
   </template>
 
@@ -121,18 +121,18 @@ The next set of features covers *templating and reusing objects* - in both *decl
 └ *The `<template src>` element for remote modules*:
 
 ```html
-<template as="foo" src="/foo.html"></template>
+<template def="foo" src="/foo.html"></template>
 ```
 
 ```html
 -- file: /foo.html --
-<div as="fragment1"></div>
-<template as="nested" src="/nested.html"></template>
+<div def="fragment1"></div>
+<template def="nested" src="/nested.html"></template>
 ```
 
 ```html
 -- file: /nested.html --
-<div as="fragment2"></div>
+<div def="fragment2"></div>
 --
 ```
 
@@ -151,8 +151,8 @@ foo.addEventListener('load', loadedCallback);
 
 ```html
 <body>
-  <div as="fragment1"></div> <!-- After resolution -->
-  <div as="fragment2"></div> <!-- After resolution -->
+  <div def="fragment1"></div> <!-- After resolution -->
+  <div def="fragment2"></div> <!-- After resolution -->
 </body>
 ```
 
@@ -175,8 +175,8 @@ document.import('/foo/nested#fragment2', divElement => {
 ```html
 <section> <!-- object with own modules -->
 
-  <template as="foo" scoped> <!-- Scoped to host object and not available globally -->
-    <div as="fragment1"></div>
+  <template def="foo" scoped> <!-- Scoped to host object and not available globally -->
+    <div def="fragment1"></div>
   </template>
 
   <div>
@@ -208,36 +208,36 @@ Extended Imports concepts
 └ *Module nesting with inheritance*:
 
 ```html
-<template as="foo">
+<template def="foo">
 
-  <header as="header"></header>
-  <footer as="footer"></footer>
+  <header def="header"></header>
+  <footer def="footer"></footer>
 
-  <template as="nested1" inherits="header footer"> <!-- Using the "inherits" attribute -->
-    <main as="main"></main>
+  <template def="nested1" inherits="header footer"> <!-- Using the "inherits" attribute -->
+    <main def="main"></main>
   </template>
 
-  <template as="nested2" inherits="header footer"> <!-- Using the "inherits" attribute -->
-    <main as="main"></main>
+  <template def="nested2" inherits="header footer"> <!-- Using the "inherits" attribute -->
+    <main def="main"></main>
   </template>
 
 </template>
 ```
 
 ```html
-<template as="foo">
+<template def="foo">
 
-  <template as="common">
-    <header as="header"></header>
-    <footer as="footer"></footer>
+  <template def="common">
+    <header def="header"></header>
+    <footer def="footer"></footer>
   </template>
 
-  <template as="nested1" extends="common"> <!-- Using the "extends" attribute -->
-    <main as="main"></main>
+  <template def="nested1" extends="common"> <!-- Using the "extends" attribute -->
+    <main def="main"></main>
   </template>
 
-  <template as="nested2" extends="common"> <!-- Using the "extends" attribute -->
-    <main as="main"></main>
+  <template def="nested2" extends="common"> <!-- Using the "extends" attribute -->
+    <main def="main"></main>
   </template>
 
 </template>
@@ -253,7 +253,7 @@ Extended Imports concepts
 
 ```html
 <!-- Loading doesn't happen until the first time this is being accessed -->
-<template as="foo" src="/foo.html" loading="lazy"></template>
+<template def="foo" src="/foo.html" loading="lazy"></template>
 ```
 
 ```html
@@ -337,9 +337,9 @@ document.querySelector('div').import('@context1#fragment2', divElement => {
 <body contextname="context1" importscontext="/bar">
   <section importscontext="nested"> <!-- object with own modules, plus inherited context: /bar/nested -->
 
-    <template as="foo" scoped> <!-- Scoped to host object and not available globally -->
-      <div as="fragment1"></div>
-      <div as="fragment2"></div>
+    <template def="foo" scoped> <!-- Scoped to host object and not available globally -->
+      <div def="fragment1"></div>
+      <div def="fragment2"></div>
     </template>
 
     <div>
@@ -485,16 +485,16 @@ All of OOHTML brings to the platform much of the modern UI development paradigms
 └ *First, two components that are themselves analogous to a Single File Component ([SFC](https://vuejs.org/guide/scaling-up/sfc.html))*:
 
 ```html
-<template as="pages">
+<template def="pages">
 
-  <template as="layout">
-    <header as="header"></header>
-    <footer as="footer"></footer>
+  <template def="layout">
+    <header def="header"></header>
+    <footer def="footer"></footer>
   </template>
 
   <!-- Home Page -->
-  <template as="home" extends="layout">
-    <main as="main" namespace>
+  <template def="home" extends="layout">
+    <main def="main" namespace>
       <h1 id="banner">Home Page</h1>
       <a id="cta" href="#/products">Go to Products</a>
       <template scoped></template>
@@ -504,8 +504,8 @@ All of OOHTML brings to the platform much of the modern UI development paradigms
   </template>
 
   <!-- Products Page -->
-  <template as="products" extends="layout">
-    <main as="main" namespace>
+  <template def="products" extends="layout">
+    <main def="main" namespace>
       <h1 id="banner">Products Page</h1>
       <a id="cta" href="#/home">Go to Home</a>
       <template scoped></template>
@@ -606,16 +606,16 @@ All of OOHTML brings to the platform much of the modern UI development paradigms
 └ *First, two layout options defined for the Shadow DOM*:
 
 ```html
-<template as="vendor1">
+<template def="vendor1">
 
-  <template as="components-layout1">
-    <template as="magic-button">
+  <template def="components-layout1">
+    <template def="magic-button">
       <span id="icon"></span> <span id="text"></span>
     </template>
   </template>
 
-  <template as="components-layout2">
-    <template as="magic-button">
+  <template def="components-layout2">
+    <template def="magic-button">
       <span id="text"></span> <span id="icon"></span>
     </template>
   </template>
@@ -659,7 +659,7 @@ customElements.define('magic-button', class extends HTMLElement {
 
   <ul id="list"></ul>
 
-  <template as="item" scoped>
+  <template def="item" scoped>
     <li>
       <a></a>
     </li>
@@ -744,7 +744,7 @@ Also, if you'll be going ahead to build a real world app to see OOHTML in action
 </details>
 
 <details><summary>
-Notes
+Important Notes
 </summary>
 
 Here are the performance-specific notes for this polyfill:
@@ -772,8 +772,44 @@ Here are the performance-specific notes for this polyfill:
 Here are other notes:
 
 + **Scoped CSS**. This feature is only in "concept" implementation and doesn't work right now as is. The current implementation simply wraps `<style scoped>` blocks in an `@scope {}` block - which itself isn't supported in any browser. A working implementation may be coming soon, but you could try one of the working polyfills for `<style scoped>` out there; e.g. [samthor/scoped
-Public](https://github.com/samthor/scoped).
+Public](https://github.com/samthor/scoped). To try the "concept" implementation, set the `style.strategy` config to `@scope`:
 
+    ```html
+    <head>
+      <meta name="scoped-css" content="style.strategy=@scope"> <!-- Must come before the polyfil -->
+      <script src="https://unpkg.com/@webqit/oohtml/dist/main.js"></script>
+    <head>
+    ```
+
+    Now the following `<style scoped>`...
+
+    ```html
+    <style scoped>
+      h2 { color: red; }
+    </style>
+    ```
+    
+    ...will be wrapped to something like:
+
+    ```html
+    <style ref="scoped8eff" scoped>
+      @scope from (:has(> style[ref="scoped8eff"])) {
+        h2 { color: red; }
+      }
+    </style>
+    ```
+
++ **HTML Imports**. The attribute names for exposing reusable modules and for referencing them - the `def` and `ref` keywords, respectively - aren't finalized. While the principle of operation remains, these attributes may be renamed in subsequent iterations. But the polyfill is designed to always defer to any syntax that has been explicitly specified using a meta tag. Here's an example:
+
+    ```html
+    <head>
+      <meta name="html-imports" content="export.attr.exportid=def; template.attr.exportid=def; import.attr.moduleref=ref;"> <!-- Must come before the polyfil -->
+      <script src="https://unpkg.com/@webqit/oohtml/dist/main.js"></script>
+    <head>
+    ```
+
+    Now, even when the default attribute names change, your `def` and `ref` implementation will still work:
+ 
 </details>
 
 ## Documentation

@@ -18,8 +18,8 @@ import { _, _init } from '../util.js';
  */
 export default function init( $config = {} ) {
     const { config, realdom, window } = _init.call( this, 'html-imports', $config, {
-        export: { attr: { exportid: 'as' }, },
-        template: { attr: { exportid: 'as', extends: 'extends', inherits: 'inherits' }, api: { modules: 'modules', exportid: 'exportid' }, },
+        export: { attr: { exportid: 'def' }, },
+        template: { attr: { exportid: 'def', extends: 'extends', inherits: 'inherits' }, api: { modules: 'modules', exportid: 'exportid' }, },
         context: { attr: { importscontext: 'importscontext', contextname: 'contextname' }, api: { modules: 'modules' }, },
         import: { tagName: 'import', attr: { moduleref: 'ref' }, },
         staticsensitivity: true,
