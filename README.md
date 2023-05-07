@@ -598,7 +598,7 @@ All of OOHTML brings to the platform much of the modern UI development paradigms
 </div>
 ```
 
-**--> Example 3:** The following is a custom element that derives its Shadow DOM from an imported `<tenplate>`. The idea is to have different Shadow DOM layouts defined and let the "usage" context decide which variant is imported!
+**--> Example 3:** The following is a custom element that derives its Shadow DOM from an imported `<tenplate>` element. The idea is to have different Shadow DOM layouts defined and let the "usage" context decide which variant is imported!
 
 └ *First, two layout options defined for the Shadow DOM*:
 
@@ -620,7 +620,7 @@ All of OOHTML brings to the platform much of the modern UI development paradigms
 </template>
 ```
 
-└ *Next, the Shadow DOM creation that let's the context decide what's imported*:
+└ *Next, the Shadow DOM creation that imports its layout from context*:
 
 ```js
 customElements.define('magic-button', class extends HTMLElement {
@@ -647,19 +647,25 @@ customElements.define('magic-button', class extends HTMLElement {
 </div>
 ```
 
-**--> Example 4:** The following is a "list" element that derives its list items from a "scoped" `<tenplate>` element. The idea is to have a "self-contained" component that's all markup-based, not class-based!
+**--> Example 4:** The following is a "component" that derives its list items and other reusable snippets from "scoped" `<tenplate>` elements. The idea is to have a "self-contained" component that's all markup-based, not class-based!
 
 └ *A list component with scoped module system*:
 
 ```html
 <div namespace>
 
+  <import ref="other"></import>
   <ul id="list"></ul>
+  <import ref="other"></import>
 
   <template def="item" scoped>
     <li>
       <a></a>
     </li>
+  </template>
+
+  <template def="other" scoped>
+    <button>Call to Action >><button>
   </template>
 
   <script scoped>
@@ -704,7 +710,7 @@ If you must load the script "async", one little trade-off has to be made for `<s
 </body>
 ```
 
-The custom MIME type strategy also comes in as a "fix" for certain runtimes - e.g. older browsers - where the polyfill is not able to intercept `<script scoped>` and `<script contract>` elements ahead of the runtime - e.g. where...
+The custom MIME type strategy also comes in as a "fix" for when in a browser or other runtime where the polyfill is not able to intercept `<script scoped>` and `<script contract>` elements ahead of the runtime - e.g. where...
 
 ```html
 <body>
@@ -744,7 +750,7 @@ Also, if you'll be going ahead to build a real world app to see OOHTML in action
 Implementation Notes
 </summary>
 
-Here are the performance-specific notes for this polyfill:
+Here are some performance-specific notes for this polyfill:
 
 + By default, the Contract Functions compiler (43.15KB min+gzipped | 157KB min) is excluded from the polyfill build and fetched separately on demand - on the first encounter with a Contract Script. This is loaded into a [Web Worker](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers) and all compilations are able to happen off the main thread! This ensures near-zero cost to your application loading and runtime performance!
 
