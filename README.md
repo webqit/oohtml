@@ -12,9 +12,6 @@ Object-Oriented HTML (OOHTML) is a set of language features for authoring modula
 
 OOHTML is an upcoming proposal!
 
-> **Warning**
-> <br>The syntax on this page isn't finalized. You may need to keep tabs with us.
-
 ## Motivation
 
 The web has generally outgrown HTML's idea of a monolith architecture which has held to the document as the unit of abstraction for scripts, style sheets, and element identifiers (the `id` attribute, and in some scenarios, the `name` attribute). You realize that while you're trying to *model things* in markup and are thinking in objects, components, logical building blocks, reusable units of abstraction - as we have of things like [Vue's SFC](https://vuejs.org/api/sfc-spec.html), [Svelte component format](https://svelte.dev/docs#component-format-script), [11ty's WebC](https://www.11ty.dev/docs/languages/webc/#css-and-js-(bundler-mode)) - the language for the job is posing a "per document" constraint!
@@ -744,7 +741,7 @@ Also, if you'll be going ahead to build a real world app to see OOHTML in action
 </details>
 
 <details><summary>
-Important Notes
+Implementation Notes
 </summary>
 
 Here are the performance-specific notes for this polyfill:
@@ -771,8 +768,7 @@ Here are the performance-specific notes for this polyfill:
 
 Here are other notes:
 
-+ **Scoped CSS**. This feature is only in "concept" implementation and doesn't work right now as is. The current implementation simply wraps `<style scoped>` blocks in an `@scope {}` block - which itself isn't supported in any browser. A working implementation may be coming soon, but you could try one of the working polyfills for `<style scoped>` out there; e.g. [samthor/scoped
-Public](https://github.com/samthor/scoped). To try the "concept" implementation, set the `style.strategy` config to `@scope`:
++ **Scoped CSS**. This feature is only in "concept" implementation and doesn't work right now as is. The current implementation simply wraps `<style scoped>` blocks in an `@scope {}` block - which itself isn't supported in any browser. To try this "concept" implementation, set the `style.strategy` config to `@scope`:
 
     ```html
     <head>
@@ -798,6 +794,8 @@ Public](https://github.com/samthor/scoped). To try the "concept" implementation,
       }
     </style>
     ```
+
+    A working implementation may be coming soon, but in the meantime, you could try one of the polyfills for `<style scoped>` out there; e.g. [samthor/scoped](https://github.com/samthor/scoped).
 
 + **HTML Imports**. The attribute names for exposing reusable modules and for referencing them - the `def` and `ref` keywords, respectively - aren't finalized. While the principle of operation remains, these attributes may be renamed in subsequent iterations. But the polyfill is designed to always defer to any syntax that has been explicitly specified using a meta tag. Here's an example:
 
