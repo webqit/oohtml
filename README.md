@@ -94,8 +94,9 @@ The next set of features covers *templating and reusing objects* - in both *decl
 <head>
 
   <template as="foo">
-    <div as="fragment1"></div>
-    <div as="fragment2"></div>
+    <div as="fragment1">A module fragment that can be accessed independently</div>
+    <div as="fragment2">Another module fragment that can be accessed independently</div>
+    <p>An element that isn't explicitly exposed.</p>
   </template>
 
 </head>
@@ -706,7 +707,7 @@ If you must load the script "async", one little trade-off has to be made for `<s
 </body>
 ```
 
-The custom MIME type strategy also comes in as a "fix" for older browsers (in macOS, typical) where the polyfill is not able to intercept `<script scoped>` and `<script contract>` elements ahead of the browser - e.g. where...
+The custom MIME type strategy also comes in as a "fix" for certain runtimes - e.g. older browsers - where the polyfill is not able to intercept `<script scoped>` and `<script contract>` elements ahead of the runtime - e.g. where...
 
 ```html
 <body>
