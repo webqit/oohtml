@@ -18,16 +18,15 @@ import { _, _init } from '../util.js';
  */
 export default function init( $config = {} ) {
     const { config, realdom, window } = _init.call( this, 'html-imports', $config, {
-        export: { attr: { exportid: 'def' }, },
-        template: { attr: { exportid: 'def', extends: 'extends', inherits: 'inherits' }, api: { modules: 'modules', exportid: 'exportid' }, },
-        context: { attr: { importscontext: 'importscontext', contextname: 'contextname' }, api: { modules: 'modules' }, },
+        template: { attr: { moduledef: 'def', fragmentdef: 'def', extends: 'extends', inherits: 'inherits' }, api: { modules: 'modules', moduledef: 'def' }, },
+        context: { attr: { importscontext: 'importscontext', contextname: 'contextname' }, api: { import: 'import' }, },
         import: { tagName: 'import', attr: { moduleref: 'ref' }, },
         staticsensitivity: true,
         isomorphic: true,
     } );
-    config.templateSelector = `template[${ window.CSS.escape( config.template.attr.exportid ) }]`;
+    config.templateSelector = `template[${ window.CSS.escape( config.template.attr.moduledef ) }]`;
     config.ownerContextSelector = [ config.context.attr.contextname, config.context.attr.importscontext ].map( a => `[${ window.CSS.escape( a ) }]` ).join( ',' );
-    config.slottedElementsSelector = `[${ window.CSS.escape( config.export.attr.exportid ) }]`;
+    config.slottedElementsSelector = `[${ window.CSS.escape( config.template.attr.fragmentdef ) }]`;
     window.webqit.HTMLImportElement = _HTMLImportElement.call( window, config );
     window.webqit.HTMLImportsProvider = class extends _HTMLImportsProvider {
         static get config() { return config; }
@@ -67,15 +66,15 @@ function exposeModulesObjects( config ) {
     const window = this;
     // Assertions
     if ( config.template.api.modules in window.HTMLTemplateElement.prototype ) { throw new Error( `The "HTMLTemplateElement" class already has a "${ config.template.api.modules }" property!` ); }
-    if ( config.template.api.exportid in window.HTMLTemplateElement.prototype ) { throw new Error( `The "HTMLTemplateElement" class already has a "${ config.template.api.exportid }" property!` ); }
+    if ( config.template.api.moduledef in window.HTMLTemplateElement.prototype ) { throw new Error( `The "HTMLTemplateElement" class already has a "${ config.template.api.moduledef }" property!` ); }
     if ( config.context.api.import in window.document ) { throw new Error( `document already has a "${ config.context.api.import }" property!` ); }
     if ( config.context.api.import in window.HTMLElement.prototype ) { throw new Error( `The "HTMLElement" class already has a "${ config.context.api.import }" property!` ); }
     // Definitions
     Object.defineProperty( window.HTMLTemplateElement.prototype, config.template.api.modules, { get: function() {
         return getModulesObject( this );
     } } );
-    Object.defineProperty( window.HTMLTemplateElement.prototype, config.template.api.exportid, { get: function() {
-        return this.getAttribute( config.template.attr.exportid );
+    Object.defineProperty( window.HTMLTemplateElement.prototype, config.template.api.moduledef, { get: function() {
+        return this.getAttribute( config.template.attr.moduledef );
     } } );
     Object.defineProperty( window.document, config.context.api.import, { value: function( ref, callback, options = {} ) {
         return importRequest( window.document, ref, callback, options );

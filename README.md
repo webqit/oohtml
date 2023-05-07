@@ -801,7 +801,7 @@ Here are other notes:
 
     ```html
     <head>
-      <meta name="html-imports" content="export.attr.exportid=def; template.attr.exportid=def; import.attr.moduleref=ref;"> <!-- Must come before the polyfil -->
+      <meta name="html-imports" content="template.attr.moduledef=def; template.attr.fragmentdef=def; import.attr.moduleref=ref;"> <!-- Must come before the polyfil -->
       <script src="https://unpkg.com/@webqit/oohtml/dist/main.js"></script>
     <head>
     ```

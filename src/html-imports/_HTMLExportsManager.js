@@ -27,7 +27,7 @@ export default class _HTMLExportsManager {
         this.parent = parent;
         this.level = level;
         this.modules = getModulesObject( this.host );
-        this.exportId = ( this.host.getAttribute( this.config.template?.attr.exportid ) || '' ).trim();
+        this.exportId = ( this.host.getAttribute( this.config.template?.attr.moduledef ) || '' ).trim();
         this.validateExportId( this.exportId );
         const realdom = this.window.webqit.realdom;
         // ----------
@@ -71,15 +71,15 @@ export default class _HTMLExportsManager {
     export( entries, isConnected ) {
         entries.forEach( entry => {
             if ( entry.nodeType !== 1 ) return;
-            const exportId = ( entry.getAttribute( this.config.export.attr.exportid ) || '' ).trim();
+            const isTemplate = entry.matches( this.config.templateSelector );
+            const exportId = ( entry.getAttribute( isTemplate ? this.config.template.attr.moduledef : this.config.template.attr.fragmentdef ) || '' ).trim();
             if ( !exportId ) return;
-            const isPackage = entry.matches( this.config.templateSelector );
             if ( isConnected ) {
-                if ( isPackage ) { new _HTMLExportsManager( this.window, entry, this.config, this.host, this.level + 1 ); }
-                Observer.set( this.modules, ( !isPackage && '#' || '' ) + exportId, entry );
+                if ( isTemplate ) { new _HTMLExportsManager( this.window, entry, this.config, this.host, this.level + 1 ); }
+                Observer.set( this.modules, ( !isTemplate && '#' || '' ) + exportId, entry );
             } else {
-                if ( isPackage ) { _HTMLExportsManager.instance( this.window, entry ).dispose(); }
-                Observer.deleteProperty( this.modules, ( !isPackage && '#' || '' ) + exportId );
+                if ( isTemplate ) { _HTMLExportsManager.instance( this.window, entry ).dispose(); }
+                Observer.deleteProperty( this.modules, ( !isTemplate && '#' || '' ) + exportId );
             }
         } );
     }

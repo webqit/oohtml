@@ -68,12 +68,12 @@ export default function( config ) {
                 } );
                 // ----------------
                 priv.hydrationImportRequest = new AbortController;
-                priv.importRequest( modules => {
-                    if ( priv.originalsRemapped ) { return this.fill( modules ); }
-                    const identifiersMap = modules.map( module => ( { el: module, exportId: module.getAttribute( config.export.attr.exportid ), tagName: module.tagName, } ) );
+                priv.importRequest( fragments => {
+                    if ( priv.originalsRemapped ) { return this.fill( fragments ); }
+                    const identifiersMap = fragments.map( fragment => ( { el: fragment, fragmentDef: fragment.getAttribute( config.template.attr.fragmentdef ) || '', tagName: fragment.tagName, } ) );
                     slottedElements.forEach( slottedElement => {
-                        const tagName = slottedElement.tagName, exportId = slottedElement.getAttribute( config.export.attr.exportid );
-                        const originalsMatch = identifiersMap.filter( moduleIdentifiers => tagName === moduleIdentifiers.tagName && exportId === moduleIdentifiers.exportId );
+                        const tagName = slottedElement.tagName, fragmentDef = slottedElement.getAttribute( config.template.attr.fragmentdef ) || '';
+                        const originalsMatch = identifiersMap.filter( fragmentIdentifiers => tagName === fragmentIdentifiers.tagName && fragmentDef === fragmentIdentifiers.fragmentDef );
                         if ( originalsMatch.length !== 1 ) return;
                         _( slottedElement ).set( 'original@imports', originalsMatch[ 0 ].el );
                     } );
@@ -112,7 +112,7 @@ export default function( config ) {
                 priv.moduleRefRealtime = realdom.realtime( this.el ).attr( config.import.attr.moduleref, ( record, { signal } ) => {
                     priv.moduleRef = record.value;
                     // Below, we ignore first restore from hydration
-                    priv.importRequest( modules => !priv.hydrationImportRequest && this.fill( modules ), signal );
+                    priv.importRequest( fragments => !priv.hydrationImportRequest && this.fill( fragments ), signal );
                 }, { live: true, timing: 'sync', lifecycleSignals: true } );
                 // Must come after
                 priv.hydrationImportRequest?.abort();
@@ -170,8 +170,8 @@ export default function( config ) {
                     // Clone each slottable element and give it a reference to its original
                     const slottableElementClone = slottableElement.cloneNode( true );
                     // The folllowing references must be set before adding to DODM
-                    if ( !slottableElementClone.hasAttribute( config.export.attr.exportid ) ) {
-                        slottableElementClone.toggleAttribute( config.export.attr.exportid, true );
+                    if ( !slottableElementClone.hasAttribute( config.template.attr.fragmentdef ) ) {
+                        slottableElementClone.toggleAttribute( config.template.attr.fragmentdef, true );
                     }
                     _( slottableElementClone ).set( 'original@imports', slottableElement );
                     _( slottableElementClone ).set( 'slot@imports', this.el );
