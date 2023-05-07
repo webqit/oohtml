@@ -30,6 +30,7 @@ export default function init( { advanced = {}, ...$config } ) {
 function realtime( config ) {
 	const window = this, { realdom } = window.webqit;
     if ( !window.HTMLScriptElement.supports ) { window.HTMLScriptElement.supports = () => false; }
+    const handled = () => {};
 	realdom.realtime( window.document ).subtree/*instead of observe(); reason: jsdom timing*/( config.styleSelector, record => {
         record.entrants.forEach( style => {
             if ( 'scoped' in style ) return handled( style );
