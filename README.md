@@ -31,7 +31,8 @@ OOHTML comes in three sets of features, and the following is an overview. A more
 + [Reactive HTML](#reactive-html)
 + [Put Together](#put-together)
 
-> **Note** This is documentation for `OOHTML@2.x`. (Looking for [`OOHTML@1.x`](https://github.com/webqit/oohtml/tree/v1.10.4)?)
+> **Note**
+> <br>This is documentation for `OOHTML@2.x`. (Looking for [`OOHTML@1.x`](https://github.com/webqit/oohtml/tree/v1.10.4)?)
 
 ### Modular HTML
 
