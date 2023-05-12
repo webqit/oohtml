@@ -16,7 +16,7 @@ OOHTML is an upcoming proposal!
 
 The web has generally outgrown HTML's idea of a monolith architecture which has held to the document as the unit of abstraction for scripts, style sheets, and element identifiers (the `id` attribute, and in some scenarios, the `name` attribute). Whereas you're trying to *model things* in markup and are thinking in objects, components, logical building blocks, reusable units of abstraction - as we have of things like [Vue's SFC](https://vuejs.org/api/sfc-spec.html), [Svelte component format](https://svelte.dev/docs#component-format-script), [11ty's WebC](https://www.11ty.dev/docs/languages/webc/#css-and-js-(bundler-mode)) - the language for the job is imposing a global namespace constraint!
 
-With all of scripts, style sheets and standard identifiers being "unuseable" beyond the global scope, and in fact, tied to the document, **the amount of precision and coordination that must happen at the global level in the typical web page is just too unrealistic to go by hand**! This is one more thing that retains unecessary tooling in the modern application development story!
+With all of scripts, style sheets and standard identifiers being "unuseable" beyond the global scope, and in fact, tied to the global scope, **the amount of precision and coordination that must happen at the global level in the typical web page is just too unrealistic to go by hand**! This is one more thing that retains unecessary tooling in the modern application development story!
 
 This project is a proposal for a new standards work that revisits much of the oldish monolith-oriented constraints in HTML that cause all the community-based wizardry around a *component* architecture to proliferate!
 
