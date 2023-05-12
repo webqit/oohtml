@@ -26,13 +26,12 @@ This project is a proposal for a new standards work that revisits much of the ol
 
 OOHTML comes in three sets of features, and the following is an overview. A more detailed documentation for OOHTML is underway in the [project wiki](https://github.com/webqit/oohtml/wiki).
 
-> **Note**
-> <br>This is documentation for `OOHTML@2.x`. (Looking for [`OOHTML@1.x`](https://github.com/webqit/oohtml/tree/v1.10.4)?)
-
 + [Modular HTML](#modular-html)
 + [HTML Imports](#html-imports)
 + [Reactive HTML](#reactive-html)
 + [Put Together](#put-together)
+
+> **Note** This is documentation for `OOHTML@2.x`. (Looking for [`OOHTML@1.x`](https://github.com/webqit/oohtml/tree/v1.10.4)?)
 
 ### Modular HTML
 
