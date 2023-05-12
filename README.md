@@ -24,30 +24,15 @@ This project is a proposal for a new standards work that revisits much of the ol
 
 ## An Overview
 
-OOHTML comes in three sets of features. (You may jump to sections.)
+OOHTML comes in three sets of features, and the following is an overview. A more detailed documentation for OOHTML is underway in the [project wiki](https://github.com/webqit/oohtml/wiki).
+
+> **Note**
+> <br>This is documentation for `OOHTML@2.x`. (Looking for [`OOHTML@1.x`](https://github.com/webqit/oohtml/tree/v1.10.4)?)
 
 + [Modular HTML](#modular-html)
 + [HTML Imports](#html-imports)
 + [Reactive HTML](#reactive-html)
 + [Put Together](#put-together)
-
-A more detailed documentation for OOHTML is underway in the [project wiki](https://github.com/webqit/oohtml/wiki).
-
-> **Note**
-> <br>This is documentation for `OOHTML@2.x`. (Looking for [`OOHTML@1.x`](https://github.com/webqit/oohtml/tree/v1.10.4)?)
-
-<details>
-<summary>Changes in v2:</summary>
-
-+ HTML Modules <sup>(overhauled)</sup>
-+ HTML Imports <sup>(overhauled)</sup>
-+ Namespace API <sup>(overhauled)</sup>
-+ Context API <sup>(new)</sup>
-+ <ins>Bindings API</ins> <del>The State API</del>
-+ <ins>Scoped JS</ins> <del>Subscript</del>
-+ Scoped CSS <sup>new</sup>
-
-</details>
 
 ### Modular HTML
 
