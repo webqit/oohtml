@@ -736,7 +736,7 @@ import init from '@webqit/oohtml';
 init.call( window[, options = {} ]);
 ```
 
-But all things "SSR" for OOHTML is best left to the [`@webqit/oohtml-ssr`](https://github.com/webqit/oohtml-ssr) package!
+But all things "SSR" for OOHTML are best left to the [`@webqit/oohtml-ssr`](https://github.com/webqit/oohtml-ssr) package!
 
 Also, if you'll be going ahead to build a real world app to see OOHTML in action, you may want to consider also using:
 
@@ -770,7 +770,7 @@ Here are some performance-specific notes for this polyfill:
     </head>
     ```
 
-+ Whether loaded lazily or eaderly, the compiler also factors in additional optimizations. For example, identical scripts are handled only first time, and only ever have once Contract Function instance!
++ Whether loaded lazily or eagerly, the compiler also factors in additional optimizations. For example, identical scripts are handled only first time, and only ever have once Contract Function instance!
 
 Here are other notes:
 
