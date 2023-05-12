@@ -83,7 +83,7 @@ let { styleSheets, scripts } = user; // APIs that are analogous to the document.
 
 ### HTML Imports
 
-The next set of features covers *templating and reusing objects* - in both *declarative* and *programmatic* terms! It extends the language with the *module identifier* attribute `def`, and introduces a complementary new `<import>` element; and everything fits together as a real-time module system.
+The next set of features covers *templating and reusing objects* - in both *declarative* and *programmatic* terms! It extends the language with the *module identifier* attribute `def`, and introduces a complementary new `<import>` element, and has everything working together as a real-time module system.
 
 └ *The `def` attribute for reusable "module" and "fragment" definitions*:
 
