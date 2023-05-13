@@ -56,6 +56,7 @@ export function execute( compiledScript, thisContext, script ) {
                 const getPaths = ( base, record_s ) => ( Array.isArray( record_s ) ? record_s : [ record_s ] ).map( record => [ ...base, ...( record.path || [ record.key ] ) ] );
                 properties.processes = properties.dependencies.map( path => {
                     if ( _isTypeObject( _env[ path[ 0 ] ] ) ) {
+                        if ( path.length === 1 ) return;
                         return Observer.deep( _env[ path[ 0 ] ], path.slice( 1 ), Observer.observe, record_s => {
                             script.rerender( ...getPaths( [ path[ 0 ] ], record_s ) );
                         } );

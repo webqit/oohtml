@@ -50,9 +50,11 @@ export default function( config ) {
             };
 
             priv.importRequest = ( callback, signal = null ) => {
-                const request = _HTMLImportsContext.createRequest( { detail: priv.moduleRef, live: signal && true, signal } );
+                const request = _HTMLImportsContext.createRequest( { detail: priv.moduleRef && !priv.moduleRef.includes( '#' ) ? priv.moduleRef + '#' : priv.moduleRef, live: signal && true, signal } );
                 HTMLContext.instance( this.el.isConnected ? this.el.parentNode : priv.anchorNode.parentNode ).request( request, response => {
-                    callback( ( response instanceof window.HTMLTemplateElement ? [ ...response.content.children ] : response && [ response ] ) || [] );
+                    callback( ( response instanceof window.HTMLTemplateElement ? [ ...response.content.children ] : (
+                        Array.isArray( response ) ? response : response && [ response ]
+                    ) ) || [] );
                 } );
             };
 

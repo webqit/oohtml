@@ -3,6 +3,7 @@
  * @imports
  */
 import Observer from '@webqit/observer';
+import { _isNumeric } from '@webqit/util/js/index.js';
 import { getModulesObject } from './index.js';
 import { _ } from '../util.js';
 
@@ -55,7 +56,7 @@ export default class _HTMLExportsManager {
      * @returns Void
      */
     validateExportId( exportId ) {
-        if ( [ '@', '/', '#' ].some( token => exportId.includes( token ) ) ) {
+        if ( [ '@', '/', '*', '#' ].some( token => exportId.includes( token ) ) ) {
             throw new Error( `The export ID "${ exportId }" contains an invalid character.` );
         }
     }
@@ -69,18 +70,32 @@ export default class _HTMLExportsManager {
      * @returns Void
      */
     export( entries, isConnected ) {
-        entries.forEach( entry => {
-            if ( entry.nodeType !== 1 ) return;
-            const isTemplate = entry.matches( this.config.templateSelector );
-            const exportId = ( entry.getAttribute( isTemplate ? this.config.template.attr.moduledef : this.config.template.attr.fragmentdef ) || '' ).trim();
-            if ( !exportId ) return;
-            if ( isConnected ) {
-                if ( isTemplate ) { new _HTMLExportsManager( this.window, entry, this.config, this.host, this.level + 1 ); }
-                Observer.set( this.modules, ( !isTemplate && '#' || '' ) + exportId, entry );
-            } else {
-                if ( isTemplate ) { _HTMLExportsManager.instance( this.window, entry ).dispose(); }
-                Observer.deleteProperty( this.modules, ( !isTemplate && '#' || '' ) + exportId );
-            }
+        let dirty, allFragments = Observer.get( this.modules, '#' ) || [];
+        Observer.batch( this.modules, () => {
+            entries.forEach( entry => {
+                if ( entry.nodeType !== 1 ) return;
+                const isTemplate = entry.matches( this.config.templateSelector );
+                const exportId = ( entry.getAttribute( isTemplate ? this.config.template.attr.moduledef : this.config.template.attr.fragmentdef ) || '' ).trim();
+                if ( isConnected ) {
+                    if ( isTemplate && exportId ) { new _HTMLExportsManager( this.window, entry, this.config, this.host, this.level + 1 ); }
+                    else {
+                        allFragments.push( entry );
+                        dirty = true;
+                    }
+                    if ( exportId ) {
+                        this.validateExportId( exportId );
+                        Observer.set( this.modules, ( !isTemplate && '#' || '' ) + exportId, entry );
+                    }
+                } else {
+                    if ( isTemplate && exportId ) { _HTMLExportsManager.instance( this.window, entry ).dispose(); }
+                    else {
+                        allFragments = allFragments.filter( x => x !== entry );
+                        dirty = true;
+                    }
+                    if ( exportId ) Observer.deleteProperty( this.modules, ( !isTemplate && '#' || '' ) + exportId );
+                }
+            } );
+            if ( dirty ) Observer.set( this.modules, '#', allFragments );
         } );
     }
 

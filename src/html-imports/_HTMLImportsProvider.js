@@ -54,14 +54,16 @@ export default class _HTMLImportsProvider extends HTMLContextProvider {
         if ( !path.length ) return event.respondWith();
  
         // We'll now fulfill request
-        const options = { live: event.request.live, descripted: true, midwayResults: true };
+        const options = { live: event.request.live, descripted: true };
         // Find a way to resolve request against two sources
         event.request.controller = Observer.deep( this.localModules, path, Observer.get, ( result, { signal } = {} ) => {
-            if ( !result.value && this.host.isConnected === false ) return; // Subtree is being disposed
-            if ( result.value || !this.contextModules ) return event.respondWith( result.value );
+            const _result = Array.isArray( result ) ? result : result.value;
+            const _isValidResult = Array.isArray( result ) ? result.length : result.value;
+            if ( !_isValidResult && this.host.isConnected === false ) return; // Subtree is being disposed
+            if ( _isValidResult || !this.contextModules ) return event.respondWith( _result );
             // This superModules binding is automatically aborted by the injected control.signal; see below
             return Observer.deep( this.contextModules, path, Observer.get, result => {
-                return event.respondWith( result.value );
+                return event.respondWith( Array.isArray( result ) ? result : result.value );
             }, { signal, ...options } );
         }, options );
     }

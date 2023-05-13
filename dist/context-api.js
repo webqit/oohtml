@@ -1,2 +1,1420 @@
-(()=>{function x(r){return!Array.isArray(r)&&typeof r=="object"&&r}function h(r){return Array.isArray(r)}function Z(r,e,n=null){return h(e)?r.filter(t=>n?e.filter(i=>n(t,i)).length:e.indexOf(t)!==-1):[]}function F(r,...e){if(globalThis.webqit||(globalThis.webqit={}),globalThis.webqit.refs||Object.defineProperty(globalThis.webqit,"refs",{value:new N}),!arguments.length)return globalThis.webqit.refs;let n=globalThis.webqit.refs.get(r);n||(n=new N,globalThis.webqit.refs.set(r,n));let t,i;for(;t=e.shift();)(i=n)&&!(n=n.get(t))&&(n=new N,i.set(t,n));return n}var N=class extends Map{constructor(...e){super(...e),this.observers=new Set}set(e,n){let t=super.set(e,n);return this.fire("set",e,n,e),t}delete(e){let n=super.delete(e);return this.fire("delete",e),n}has(e){return this.fire("has",e),super.has(e)}get(e){return this.fire("get",e),super.get(e)}keyNames(){return Array.from(super.keys())}observe(e,n,t){let i={type:e,key:n,callback:t};return this.observers.add(i),()=>this.observers.delete(i)}unobserve(e,n,t){if(Array.isArray(e)||Array.isArray(n))throw new Error('The "type" and "key" arguments can only be strings.');for(let i of this.observers)!(J([e,"*"],i.type)&&J([n,"*"],i.key)&&i.callback===t)||this.observers.delete(i)}fire(e,n,...t){for(let i of this.observers)!(J([e,"*"],i.type)&&J([n,"*"],i.key))||i.callback(...t)}},J=(r,e)=>Array.isArray(e)?Z(r,e).length:r.includes(e);function D(r){return typeof r=="function"}function $(r){return r===null||r===""}function P(r){return arguments.length&&(r===void 0||typeof r>"u")}function b(r){return Array.isArray(r)||typeof r=="object"&&r||D(r)}function K(r){return $(r)||P(r)||r===!1||r===0||b(r)&&!Object.keys(r).length}function _(r){return D(r)||r&&{}.toString.call(r)==="[object function]"}function R(r){return r instanceof Number||typeof r=="number"}function C(r){return R(r)||r!==!0&&r!==!1&&r!==null&&r!==""&&!isNaN(r*1)}function j(r){return r instanceof String||typeof r=="string"&&r!==null}function ee(r){return!j(r)&&!P(r.length)}function Q(r,...e){return e.forEach(n=>{r.indexOf(n)<0&&r.push(n)}),r}function te(t,e){e=e||Object.prototype,e=e&&!h(e)?[e]:e;for(var n=[],t=t;t&&(!e||e.indexOf(t)<0)&&t.name!=="default";)n.push(t),t=t?Object.getPrototypeOf(t):null;return n}function re(r,e){var n=[];return te(r,e).forEach(t=>{Q(n,...Object.getOwnPropertyNames(t))}),n}function q(r,e,n=!1,t=!1,i=!1){var o=0,s=r.shift();if((C(s)||s===!0||s===!1)&&(o=s,s=r.shift()),!r.length)throw new Error("_merge() requires two or more array/objects.");return r.forEach((l,d)=>{!b(l)&&!_(l)||(n?re(l):Object.keys(l)).forEach(m=>{if(!!e(m,s,l,d)){var f=s[m],c=l[m];if((h(f)&&h(c)||x(f)&&x(c))&&(o===!0||o>0))s[m]=h(f)&&h(c)?[]:{},q([C(o)?o-1:o,s[m],f,c],e,n,t,i);else if(h(s)&&h(l))t?s[m]=c:s.push(c);else try{i?Object.defineProperty(s,m,Object.getOwnPropertyDescriptor(l,m)):s[m]=l[m]}catch{}}})}),s}function V(...r){return q(r,(e,n,t)=>!0,!1,!1,!1)}function v(r,e=!0){return h(r)?r:!e&&x(r)?[r]:r!==!1&&r!==0&&K(r)?[]:ee(r)?Array.prototype.slice.call(r):x(r)?Object.values(r):[r]}function G(r,e,n={},t={}){e=v(e).slice();for(var i=r;!P(i)&&!$(i)&&e.length;){var o=e.shift();if(!(n.get?n.get(i,o):b(i)?o in i:i[o])){t.exists=!1;return}i=n.get?n.get(i,o):i[o]}return t.exists=!0,i}function ie(r,e,n,t={},i={}){let o=(f,c,a)=>i.set?i.set(f,c,a):(C(e[l])&&h(f)?f.push(a):f[c]=a,!0);e=v(e);for(var s=r,l=0;l<e.length;l++)if(l<e.length-1){if(!s||!b(s)&&!_(s))return!1;var d=G(s,e[l],i);if(!b(d)){if(i.buildTree===!1)return!1;d=_(i.buildTree)?i.buildTree(l):C(e[l+1])?[]:{};var m=o(s,e[l],d);if(!m)return!1}s=d}else return o(s,e[l],n)}var B=class{constructor(e,n=!0){Object.defineProperty(this,"window",{value:e}),Object.defineProperty(this,"readCallbacks",{value:new Set}),Object.defineProperty(this,"writeCallbacks",{value:new Set}),this.async=n,this.window.requestAnimationFrame?this._run():this.async=!1}_run(){this.window.requestAnimationFrame(()=>{for(let e of this.readCallbacks)e(),this.readCallbacks.delete(e);for(let e of this.writeCallbacks)e(),this.writeCallbacks.delete(e);this._run()})}onread(e,n=!1){if(n)return new Promise(t=>{this.async===!1?t(e()):this.readCallbacks.add(()=>{t(e())})});this.async===!1?e():this.readCallbacks.add(e)}onwrite(e,n=!1){if(n)return new Promise(t=>{this.async===!1?t(e()):this.writeCallbacks.add(()=>{t(e())})});this.async===!1?e():this.writeCallbacks.add(e)}cycle(e,n,t){this.onread(()=>{let i=e(t),o=s=>{s!==void 0&&this.onwrite(()=>{let l=n(s,t),d=m=>{m!==void 0&&this.cycle(e,n,m)};l instanceof Promise?l.then(d):d(l)})};i instanceof Promise?i.then(o):o(i)})}};var H=class{constructor(e,n,t){this.context=e,this.namespace=n,this.window=e.defaultView||e.ownerDocument?.defaultView||t,this.document=this.window.document,this.webqit=this.window.webqit,Object.defineProperty(this,"#",{value:{}})}resolveArgs(e){return _(e[0])?e=[[],...e]:x(e[0])&&e.length===1?e=[[],void 0,e[0]]:x(e[1])&&e.length===2?e=[v(e[0],!1),void 0,e[1]]:e[0]=v(e[0],!1),e}registry(...e){return F("realdom.realtime",this.window,this.namespace,...e)}createSignalGenerator(){return{generate(){return this.lastController?.abort(),this.lastController=new AbortController,{signal:this.lastController.signal}},disconnect(){this.lastController?.abort()}}}forEachMatchingContext(e,n,t){let{window:i}=this,o=Array.isArray(n)?n:[n],s=new Set;for(let[l,d]of this.registry(e))for(let[m,f]of d){let c=o.filter(a=>m.contains(a.target)?l==="subtree"||a.target===m:!1);if(!!c.length){Array.isArray(n)||(c=c[0]);for(let a of f)s.add([a,c,m])}}for(let[l,d,m]of s)t.call(this,l,d,m)}disconnectables(e,...n){let t={disconnect(){n.forEach(i=>i&&_(i.disconnect)&&i.disconnect()||_(i)&&i()||x(i)&&(i.disconnected=!0))}};return e&&e.addEventListener("abort",()=>t.disconnect()),t}};var I=class extends H{constructor(e,...n){super(e,"attr",...n)}get(e,n=void 0,t={}){let i=typeof e=="string";[e=[],n=void 0,t={}]=this.resolveArgs(arguments);let{context:o}=this,s=we(o,e),l=i?s[0]:s;if(!n)return l;let d=n&&t.lifecycleSignals&&this.createSignalGenerator(),m=d?.generate()||{};if(n(l,m,o),t.live){d&&(t={...t,signalGenerator:d});let f=this.observe(i?e[0]:e,n,{newValue:!0,...t});return this.disconnectables(t.signal,f)}}observe(e,n,t={}){let i=typeof e=="string";if([e=[],n,t={}]=this.resolveArgs(arguments),["sync","intercept"].includes(t.timing))return this.observeSync(i?e[0]:e,n,t);if(t.timing&&t.timing!=="async")throw new Error(`Timing option "${t.timing}" invalid.`);let{context:o,window:s,webqit:l}=this;t.eventDetails&&!l.realdom.attrInterceptionHooks?.intercepting&&_e.call(s,"intercept",()=>{});let d=new s.MutationObserver(a=>{a=xe(a).map(y=>be.call(s,y)),ye.call(s,c,a,o)}),m={attributes:!0,attributeOldValue:t.oldValue,subtree:t.subtree};e.length&&(m.attributeFilter=e),d.observe(o,m);let f=t.signalGenerator||t.lifecycleSignals&&this.createSignalGenerator(),c={context:o,filter:e,callback:n,params:t,atomics:new Map,originalFilterIsString:i,signalGenerator:f,disconnectable:d};return this.disconnectables(t.signal,d,f)}observeSync(e,n,t={}){let i=typeof e=="string";[e,n,t={}]=this.resolveArgs(arguments);let{context:o,window:s}=this;if(t.timing&&!["sync","intercept"].includes(t.timing))throw new Error(`Timing option "${t.timing}" invalid.`);let l=t.timing==="intercept"?"intercept":"sync",d=t.subtree?"subtree":"children";this.registry(l).size||_e.call(s,l,w=>{this.forEachMatchingContext(l,w,ye)});let m={disconnect(){y.delete(c),y.size||a.delete(o)}},f=t.signalGenerator||t.lifecycleSignals&&this.createSignalGenerator(),c={context:o,filter:e,callback:n,params:t,atomics:new Map,originalFilterIsString:i,signalGenerator:f,disconnectable:m},a=this.registry(l,d);a.has(o)||a.set(o,new Set);let y=a.get(o);return y.add(c),this.disconnectables(t.signal,m,f)}};function xe(r){return r.reduce((e,n,t)=>e[t-1]?.attributeName===n.attributeName?e:e.concat(n),[])}function ye(r,e){let{context:n,filter:t,callback:i,params:o,atomics:s,originalFilterIsString:l,signalGenerator:d}=r;o.atomic&&!s.size&&(e=we(n,t,e)),o.newValue===null&&o.oldValue===null&&o.eventDetails||(e=e.map(c=>{let a;return o.eventDetails||({event:a,...c}=c),!o.oldValue&&"oldValue"in c&&({oldValue:a,...c}=c),!o.newValue&&"value"in c?{value:a,...c}=c:o.newValue&&typeof c.value>"u"&&(c={...c,value:c.target.getAttribute(c.name)}),c})),o.atomic&&(e.forEach(c=>s.set(c.name,c)),e=Array.from(s.entries()).map(([,c])=>c));let m=l?e[0]:e,f=d?.generate()||{};i(m,f,n)}function we(r,e,n=[]){let t={event:null,type:"attribute"};return e.length?e.map(o=>n.find(s=>s.name===o)||{target:r,name:o,value:r.getAttribute(o),...t}):Array.from(r.attributes).map(o=>n.find(s=>s.name===o.nodeName)||{target:r,name:o.nodeName,value:o.nodeValue,...t})}function be({target:r,attributeName:e,value:n,oldValue:t}){let s=(this.webqit.realdom.attrInterceptionRecords?.get(r)||{})[e]||"mutation";return{target:r,name:e,value:n,oldValue:t,type:"observation",event:s}}function _e(r,e){let n=this,{webqit:t,document:i,Element:o}=n;t.realdom.attrInterceptionHooks||Object.defineProperty(t.realdom,"attrInterceptionHooks",{value:new Map}),t.realdom.attrInterceptionHooks.has(r)||t.realdom.attrInterceptionHooks.set(r,new Set),t.realdom.attrInterceptionHooks.get(r).add(e);let s=()=>t.realdom.attrInterceptionHooks.get(r).delete(e);if(t.realdom.attrInterceptionHooks?.intercepting)return s;console.warn("Attr mutation APIs are now being intercepted."),t.realdom.attrInterceptionHooks.intercepting=!0,Object.defineProperty(t.realdom,"attrInterceptionRecords",{value:new Map});let l=(f,c)=>{t.realdom.attrInterceptionRecords.has(f.target)||t.realdom.attrInterceptionRecords.set(f.target,{});let a=t.realdom.attrInterceptionRecords.get(f.target);clearTimeout(a[f.name]?.timeout),a[f.name]=f.event;let y=setTimeout(()=>{delete a[f.name]},0);Object.defineProperty(f.event,"timeout",{value:y,configurable:!0}),t.realdom.attrInterceptionHooks.get("intercept")?.forEach(u=>u([f]));let w=c();return t.realdom.attrInterceptionHooks.get("sync")?.forEach(u=>u([f])),w};new n.MutationObserver(f=>{f=xe(f).map(c=>be.call(n,c)).filter((c,a)=>!Array.isArray(c.event)),f.length&&(t.realdom.attrInterceptionHooks.get("intercept")?.forEach(c=>c(f)),t.realdom.attrInterceptionHooks.get("sync")?.forEach(c=>c(f)))}).observe(i,{attributes:!0,subtree:!0,attributeOldValue:!0});let m=Object.create(null);return["setAttribute","removeAttribute","toggleAttribute"].forEach(f=>{m[f]=o.prototype[f],o.prototype[f]=function(...c){let a,y=this.getAttribute(c[0]);["setAttribute","toggleAttribute"].includes(f)&&(a=c[1]),f==="toggleAttribute"&&a===void 0&&(a=y===null);let w={target:this,name:c[0],value:a,oldValue:y,type:"interception",event:[this,f]};return l(w,()=>m[f].call(this,...c))}}),s}var W=class extends H{constructor(e,...n){super(e,"tree",...n)}attr(e,n=void 0,t={}){let{context:i,window:o}=this;return new I(i,o).get(...arguments)}query(e,n=void 0,t={}){[e,n=void 0,t={}]=this.resolveArgs(arguments);let{context:i}=this,o=new Map,s=m=>(o.has(m)||o.set(m,{target:m,entrants:[],exits:[],type:"query",event:null}),o.get(m));if((!t.generation||t.generation==="entrants")&&(e.length?e.every(m=>typeof m=="string")&&(e=e.join(","))&&(t.subtree?i.querySelectorAll(e):[...i.children].filter(f=>f.matches(e))).forEach(f=>s(f.parentNode||i).entrants.push(f)):[...i.children].forEach(m=>s(i).entrants.push(m))),!n)return o;let l={disconnected:!1},d=n&&t.lifecycleSignals&&this.createSignalGenerator();for(let[,m]of o){if(l.disconnected)break;let f=d?.generate()||{};n(m,f,i)}if(t.live){d&&(t={...t,signalGenerator:d});let m=this.observe(e,n,t);return this.disconnectables(t.signal,l,m)}return this.disconnectables(t.signal,l,d)}children(e,n=void 0,t={}){return[e,n=void 0,t={}]=this.resolveArgs(arguments),this.query(e,n,{...t,subtree:!1})}subtree(e,n=void 0,t={}){return[e,n=void 0,t={}]=this.resolveArgs(arguments),this.query(e,n,{...t,subtree:!0})}observe(e,n,t={}){if([e,n,t={}]=this.resolveArgs(arguments),["sync","intercept"].includes(t.timing))return this.observeSync(e,n,t);if(t.timing&&t.timing!=="async")throw new Error(`Timing option "${t.timing}" invalid.`);let{context:i,window:o,webqit:s,document:l}=this;t.eventDetails&&(s.realdom.domInterceptionRecordsAlwaysOn=!0),(l.readyState==="loading"||s.realdom.domInterceptionRecordsAlwaysOn)&&!s.realdom.domInterceptionHooks?.intercepting&&Ae.call(o,"sync",()=>{});let d=new o.MutationObserver(c=>c.forEach(a=>{se.call(o,f,Oe.call(o,a),i)}));d.observe(i,{childList:!0,subtree:t.subtree});let m=t.signalGenerator||t.lifecycleSignals&&this.createSignalGenerator(),f={context:i,selectors:e,callback:n,params:t,signalGenerator:m,disconnectable:d};if(t.staticSensitivity){let c=ve.call(o,f);return this.disconnectables(t.signal,d,m,c)}return this.disconnectables(t.signal,d,m)}observeSync(e,n,t={}){[e,n,t={}]=this.resolveArgs(arguments);let{context:i,window:o}=this;if(t.timing&&!["sync","intercept"].includes(t.timing))throw new Error(`Timing option "${t.timing}" invalid.`);let s=t.timing==="intercept"?"intercept":"sync",l=t.subtree?"subtree":"children";this.registry(s).size||Ae.call(o,s,w=>{this.forEachMatchingContext(s,w,se)});let d=new o.MutationObserver(w=>w.forEach(u=>{Array.isArray((u=Oe.call(o,u)).event)||se.call(o,c,u,i)}));d.observe(i,{childList:!0,subtree:t.subtree});let m={disconnect(){d.disconnect(),y.delete(c),y.size||a.delete(i)}},f=t.signalGenerator||t.lifecycleSignals&&this.createSignalGenerator(),c={context:i,selectors:e,callback:n,params:t,signalGenerator:f,disconnectable:m},a=this.registry(s,l);a.has(i)||a.set(i,new Set);let y=a.get(i);if(y.add(c),t.staticSensitivity){let w=ve.call(o,c);return this.disconnectables(t.signal,m,f,w)}return this.disconnectables(t.signal,m,f)}};function ve(r){let e=this,{context:n,selectors:t,callback:i,params:o,signalGenerator:s}=r,l=a=>a.match(/\.([\w-]+)/g)?.length?["class"]:[],d=a=>a.match(/#([\w-]+)/g)?.length?["id"]:[],m=a=>[...a.matchAll(/\[([^\=\]]+)(\=[^\]]+)?\]/g)].map(y=>y[1]).concat(l(a)).concat(d(a));if(!(r.$attrs=Array.from(new Set(t.filter(a=>typeof a=="string"&&a.includes("[")).reduce((a,y)=>a.concat(m(y)),[])))).length)return;let f=new Set,c=new Set;return f.push=a=>(c.delete(a),f.add(a)),c.push=a=>(f.delete(a),c.add(a)),r.$deliveryCache={entrants:f,exits:c},new I(n,e).observe(r.$attrs,a=>{let y=new Map,w=p=>(y.has(p)||y.set(p,{target:p,entrants:[],exits:[],type:"static",event:null}),y.get(p)),u=new WeakMap,O=p=>(u.has(p)||u.set(p,t.some(g=>p.matches(g))),u.get(p));for(let p of a)["entrants","exits"].forEach(g=>{o.generation&&g!==o.generation||r.$deliveryCache[g].has(p.target)||(g==="entrants"?!O(p.target):O(p.target))||(r.$deliveryCache[g].push(p.target),w(p.target)[g].push(p.target),w(p.target).event=p.event)});for(let[,p]of y){let g=s?.generate()||{};i(p,g,n)}},{subtree:o.subtree,timing:o.timing,eventDetails:o.eventDetails})}function se(r,e){let{context:n,selectors:t,callback:i,params:o,signalGenerator:s,$deliveryCache:l}=r,d={...e,entrants:[],exits:[]};if(o.eventDetails||delete d.event,["entrants","exits"].forEach(f=>{if(!(o.generation&&f!==o.generation)&&(t.length?d[f]=Ge(t,e[f],e.event!=="parse"):d[f]=[...e[f]],!!l))for(let c of d[f])l[f].push(c)}),!d.entrants.length&&!d.exits.length)return;let m=s?.generate()||{};i(d,m,n)}function Ge(r,e,n){e=Array.isArray(e)?e:[...e];let t=(i,o)=>{if(i=i.filter(s=>s.matches),typeof o=="string"){let s=i.filter(l=>l.matches(o));if(n&&(s=i.reduce((l,d)=>[...l,...d.querySelectorAll(o)],s)),s.length)return s}else if(i.includes(o)||n&&i.some(s=>s.contains(o)))return[o]};return e.$$searchCache||(e.$$searchCache=new Map),r.reduce((i,o)=>{let s;return e.$$searchCache.has(o)?s=e.$$searchCache.get(o):(s=t(e,o)||[],x(o)&&e.$$searchCache.set(o,s)),i.concat(s)},[])}function Oe({target:r,addedNodes:e,removedNodes:n}){let t=this,i;return i=v(e).reduce((o,s)=>o||t.webqit.realdom.domInterceptionRecords?.get(s),null),i=v(n).reduce((o,s)=>o||t.webqit.realdom.domInterceptionRecords?.get(s),i),i=i||t.document.readyState==="loading"&&"parse"||"mutation",{target:r,entrants:e,exits:n,type:"observation",event:i}}function Ae(r,e){let n=this,{webqit:t,document:i,Node:o,CharacterData:s,Element:l,HTMLElement:d,HTMLTemplateElement:m,DocumentFragment:f}=n;t.realdom.domInterceptionHooks||Object.defineProperty(t.realdom,"domInterceptionHooks",{value:new Map}),t.realdom.domInterceptionHooks.has(r)||t.realdom.domInterceptionHooks.set(r,new Set),t.realdom.domInterceptionHooks.get(r).add(e);let c=()=>t.realdom.domInterceptionHooks.get(r).delete(e);if(t.realdom.domInterceptionHooks?.intercepting)return c;console.warn("DOM mutation APIs are now being intercepted."),t.realdom.domInterceptionHooks.intercepting=!0,Object.defineProperty(t.realdom,"domInterceptionRecords",{value:new Map});let a=(u,O)=>{u.entrants.concat(u.exits).forEach(g=>{clearTimeout(t.realdom.domInterceptionRecords.get(g)?.timeout),t.realdom.domInterceptionRecords.set(g,u.event);let E=setTimeout(()=>{t.realdom.domInterceptionRecords.delete(g)},0);Object.defineProperty(u.event,"timeout",{value:E,configurable:!0})}),t.realdom.domInterceptionHooks.get("intercept")?.forEach(g=>g(u));let p=O();return t.realdom.domInterceptionHooks.get("sync")?.forEach(g=>g(u)),p},y={characterData:Object.create(null),other:Object.create(null)};["insertBefore","insertAdjacentElement","insertAdjacentHTML","setHTML","replaceChildren","replaceWith","remove","replaceChild","removeChild","before","after","append","prepend","appendChild"].forEach(u=>{function O(...p){let g=this instanceof s?y.characterData:y.other,E=()=>g[u].call(this,...p);if(!(this instanceof s||this instanceof l||this instanceof f))return E();let T=[],A=[],k=this;["insertBefore"].includes(u)?A=[p[0]]:["insertAdjacentElement","insertAdjacentHTML"].includes(u)?(A=[p[1]],["beforebegin","afterend"].includes(p[0])&&(k=this.parentNode)):["setHTML","replaceChildren"].includes(u)?(T=[...this.childNodes],A=u==="replaceChildren"?[...p]:[p[0]]):["replaceWith","remove"].includes(u)?(T=[this],A=u==="replaceWith"?[...p]:[],k=this.parentNode):["replaceChild"].includes(u)?(T=[p[1]],A=[p[0]]):["removeChild"].includes(u)?T=[...p]:(A=[...p],["before","after"].includes(u)&&(k=this.parentNode));let M=u;if(["insertAdjacentHTML","setHTML"].includes(u)){let ue=this.nodeName;if(u==="insertAdjacentHTML"&&["beforebegin","afterend"].includes(p[0])){if(!this.parentNode)return g[u].call(this,...p);ue=this.parentNode.nodeName}let z=i.createElement(ue);g.setHTML.call(z,A[0],u==="setHTML"?p[1]:{}),A=[...z.childNodes],u==="insertAdjacentHTML"?(M="insertAdjacentElement",p[1]=new f,p[1].______isTemp=!0,p[1].append(...z.childNodes)):(M="replaceChildren",p=[...z.childNodes])}return a({target:k,entrants:A,exits:T,type:"interception",event:[this,u]},()=>g[M].call(this,...p))}["insertBefore","replaceChild","removeChild","appendChild"].includes(u)?(y.other[u]=o.prototype[u],o.prototype[u]=O):(["after","before","remove","replaceWith"].includes(u)&&(y.characterData[u]=s.prototype[u],s.prototype[u]=O),l.prototype[u]&&(y.other[u]=l.prototype[u],l.prototype[u]=O))});let w=Object.create(null);return["outerHTML","outerText","innerHTML","innerText","textContent","nodeValue"].forEach(u=>{let O=["textContent","nodeValue"].includes(u)?o:["outerText","innerText"].includes(u)?d:l;w[u]=Object.getOwnPropertyDescriptor(O.prototype,u),Object.defineProperty(O.prototype,u,{...w[u],set:function(p){let g=()=>w[u].set.call(this,p);if(!(this instanceof l))return g();let E=[],T=[],A=this;if(["outerHTML","outerText"].includes(u)?(E=[this],A=this.parentNode):E=[...this.childNodes],["outerHTML","innerHTML"].includes(u)){let M=this.nodeName;if(u==="outerHTML"){if(!this.parentNode)return g();M=this.parentNode.nodeName}let L=i.createElement(M==="TEMPLATE"?"div":M);w[u].set.call(L,p),T=this instanceof m?[]:[...L.childNodes],u==="outerHTML"?(p=new f,p.______isTemp=!0,p.append(...L.childNodes),g=()=>w.replaceWith.call(this,p)):this instanceof m?g=()=>this.content.replaceChildren(...L.childNodes):g=()=>w.replaceChildren.call(this,...L.childNodes)}return a({target:A,entrants:T,exits:E,type:"interception",event:[this,u]},g)}})}),["append","prepend","replaceChildren"].forEach(u=>{[i,f.prototype].forEach(O=>{let p=O[u];O[u]=function(...g){if(this.______isTemp)return p.call(this,...g);let E=u==="replaceChildren"?[...this.childNodes]:[];return a({target:this,entrants:g,exits:E,type:"interception",event:[this,u]},()=>p.call(this,...g))}})}),c}function Ce(){Be.call(this),We.call(this),Ue.call(this)}function Be(){let r=this;r.CSS||(r.CSS={}),r.CSS.escape||(r.CSS.escape=e=>e.replace(/([\:@\~\$\&])/g,"\\$1"))}function We(){let r=this;"isConnected"in r.Node.prototype||Object.defineProperty(r.Node.prototype,"isConnected",{get:function(){return!this.ownerDocument||!(this.ownerDocument.compareDocumentPosition(this)&this.DOCUMENT_POSITION_DISCONNECTED)}})}function Ue(){let r=this;r.Element.prototype.matches||(r.Element.prototype.matches=r.Element.prototype.matchesSelector||r.Element.prototype.mozMatchesSelector||r.Element.prototype.msMatchesSelector||r.Element.prototype.oMatchesSelector||r.Element.prototype.webkitMatchesSelector||function(e){for(var n=(this.document||this.ownerDocument).querySelectorAll(e),t=n.length;--t>=0&&n.item(t)!==this;);return t>-1})}function Se(){let r=this;if(r.webqit||(r.webqit={}),r.webqit.realdom)return r.webqit.realdom;r.webqit.realdom={},Ce.call(r),r.webqit.realdom.meta=(...n)=>ze.call(r,...n),r.webqit.realdom.ready=(...n)=>fe.call(r,...n),r.webqit.realdom.realtime=(n,t="dom")=>{if(t==="dom")return new W(n,r);if(t==="attr")return new I(n,r)};let e=new B(r);return r.webqit.realdom.schedule=(n,...t)=>e[`on${n}`](...t),r.webqit.realdom}function fe(...r){let e="interactive",n;j(r[0])?(e=r[0],_(r[1])&&(n=r[1])):_(r[0])&&(n=r[0]);let t={interactive:["interactive","complete"],complete:["complete"]};if(!t[e])throw new Error(`Invalid ready-state timing: ${e}.`);let i=this;if(!n)return i.webqit.realdom.readyStatePromises||(i.webqit.realdom.readyStatePromises={interactive:new Promise(o=>fe.call(this,"interactive",o)),complete:new Promise(o=>fe.call(this,"complete",o))}),i.webqit.realdom.readyStatePromises[e];if(t[e].includes(i.document.readyState))return n(i);i.webqit.realdom.readyStateCallbacks||(i.webqit.realdom.readyStateCallbacks={interactive:[],complete:[]},i.document.addEventListener("readystatechange",()=>{let o=i.document.readyState;for(let s of i.webqit.realdom.readyStateCallbacks[o].splice(0))s(i)},!1)),i.webqit.realdom.readyStateCallbacks[e].push(n)}function ze(r){let e=this,n={},t;return(t=e.document.querySelector(`meta[name="${r}"]`))&&(n=(t.content||"").split(";").filter(i=>i).reduce((i,o)=>{let s=o.split("=").map(l=>l.trim());return ie(i,s[0].split("."),s[1]==="true"?!0:s[1]==="false"?!1:C(s[1])?parseInt(s[1]):s[1]),i},{})),{get name(){return r},get content(){return t.content},json(){return JSON.parse(JSON.stringify(n))}}}var Y=(...r)=>F("oohtml",...r);function qe(r,e,n){let t=r.toUpperCase().replace("-","_"),i=this,o=Se.call(i);return i.webqit||(i.webqit={}),i.webqit.oohtml||(i.webqit.oohtml={}),i.webqit.oohtml.configs||(i.webqit.oohtml.configs={}),i.webqit.oohtml.configs[t]||(i.webqit.oohtml.configs[t]={}),V(2,i.webqit.oohtml.configs[t],n,e,o.meta(r).json()),{config:i.webqit.oohtml.configs[t],realdom:o,window:i}}function ce(r,e,n=1,t=!1){if(n&&typeof r=="object"&&r&&typeof e=="object"&&e&&(!t||Object.keys(r).length===Object.keys(e).length)){for(let i in r)if(!ce(r[i],e[i],n-1,t))return!1;return!0}return Array.isArray(r)&&Array.isArray(e)&&r.length===e.length?(e=e.slice(0).sort())&&r.slice(0).sort().every((i,o)=>i===e[o]):r===e}function Ee(){let r=this;return class extends r.Event{constructor(n,t,{type:i="contextrequest",...o}={}){super(i,o),Object.defineProperty(this,"request",{get:()=>n}),Object.defineProperty(this,"callback",{get:()=>t})}respondWith(n,...t){if(this.request.diff){if("previousValue"in this&&this.previousValue===n)return;this.previousValue=n}return this.callback(n,...t)}}}var S=class{static instance(e){return Y(e).get("context::instance")||new this(e)}constructor(e){Y(e).get("context::instance")?.dispose(),Y(e).set("context::instance",this);let n={host:e,contexts:new Set};Object.defineProperty(this,"#",{get:()=>n});let t=Ee.call(e.ownerDocument?.defaultView||e.defaultView);Object.defineProperty(this,"ContextRequestEvent",{get:()=>t}),this[Symbol.iterator]=function*(){yield n.contexts[Symbol.iterator]().next().value}}get length(){this["#"].contexts.size}findProvider(e){return[...this["#"].contexts].find(e)}attachProvider(e){this["#"].contexts.add(e),e.initialize(this["#"].host)}detachProvider(e){e.dispose(this["#"].host),this["#"].contexts.delete(e)}request(e,n,t={}){return this["#"].host.dispatchEvent(new this.ContextRequestEvent(e,n,{bubbles:!0,...t}))}dispose(){}};var U=class{static get config(){return{}}static attachTo(e,n,t=!1){let i,o=S.instance(e);return!t&&(i=o.findProvider(s=>this.matchRequest(s.id,n,!0)))?i:o.attachProvider(new this(n))}static detachFrom(e,n,t=!1){let i,o=S.instance(e);for(i of o["#"].contexts)if(!(!this.matchRequest(i.id,n,!0)||typeof t=="function"&&!t(i))&&(o.detachProvider(i),typeof t!="function"&&!t))return i}static createId(e,n={}){let t={...n};return t.contextName||(e.getAttribute&&!(t.contextName=(e.getAttribute(this.config.context.attr.contextname)||"").trim())?delete t.contextName:e.ownerDocument||(t.contextName="root")),t}static createRequest(e={}){return{...e}}static matchRequest(e,n,t=!1){return t?ce(e,n,1,!0):n.type===e.type&&!n.contextName||n.contextName===e.contextName}constructor(e){Object.defineProperty(this,"id",{get:()=>e}),Object.defineProperty(this,"subscriptions",{value:new Set})}get length(){this.subscriptions.size}handle(e){}subscribe(e){this.subscriptions.add(e),e.request.signal&&e.request.signal.addEventListener("abort",()=>{this.unsubscribe(e)})}unsubscribe(e){this.subscriptions.delete(e),e.request.controller?.abort()}handleEvent(e){if(!(this.disposed||e.target===this.host&&e.request?.superContextOnly||!e.request||typeof e.callback!="function"||!this.constructor.matchRequest(this.id,e.request)))if(e.stopPropagation(),e.type==="contextclaim"){let n=new Set;this.subscriptions.forEach(t=>{!e.target.contains(t.request.superContextOnly?t.target.parentNode:t.target)||!this.constructor.matchRequest(e.request,t.request)||(this.subscriptions.delete(t),n.add(t))}),e.respondWith(n)}else e.type==="contextrequest"&&(e.request.live&&this.subscribe(e),this.handle(e))}initialize(e){return this.host=e,this.disposed=!1,e.addEventListener("contextrequest",this),e.addEventListener("contextclaim",this),S.instance(e).request({...this.id,superContextOnly:!0},n=>n.forEach(t=>{this.subscribe(t),this.handle(t)}),{type:"contextclaim"}),this}dispose(e){return this.disposed=!0,e.removeEventListener("contextrequest",this),e.removeEventListener("contextclaim",this),this.subscriptions.forEach(n=>{this.unsubscribe(n);let{target:t,request:i,callback:o,options:s}=n;S.instance(t).request(i,o,s)}),this}};function le(r={}){let{config:e,window:n}=qe.call(this,"context-api",r,{api:{context:"context"}});n.webqit.HTMLContextProvider=U,n.webqit.HTMLContext=S,Je.call(n,e)}function Je(r){let e=this;if(r.api.context in e.document)throw new Error(`document already has a "${r.api.context}" property!`);if(r.api.context in e.HTMLElement.prototype)throw new Error(`The "HTMLElement" class already has a "${r.api.context}" property!`);Object.defineProperty(e.document,r.api.context,{get:function(){return S.instance(e.document)}}),Object.defineProperty(e.HTMLElement.prototype,r.api.context,{get:function(){return S.instance(this)}})}le.call(window);})();
+(() => {
+  // node_modules/@webqit/util/js/isObject.js
+  function isObject_default(val) {
+    return !Array.isArray(val) && typeof val === "object" && val;
+  }
+
+  // node_modules/@webqit/util/js/isArray.js
+  function isArray_default(val) {
+    return Array.isArray(val);
+  }
+
+  // node_modules/@webqit/util/arr/intersect.js
+  function intersect_default(arr, arr2, callback = null) {
+    return !isArray_default(arr2) ? [] : arr.filter((val1) => callback ? arr2.filter((val2) => callback(val1, val2)).length : arr2.indexOf(val1) !== -1);
+  }
+
+  // node_modules/@webqit/util/js/internals.js
+  function internals(obj, ...namespaces) {
+    if (!globalThis.webqit) {
+      globalThis.webqit = {};
+    }
+    if (!globalThis.webqit.refs) {
+      Object.defineProperty(globalThis.webqit, "refs", { value: new ObservableMap() });
+    }
+    if (!arguments.length)
+      return globalThis.webqit.refs;
+    let itnls = globalThis.webqit.refs.get(obj);
+    if (!itnls) {
+      itnls = new ObservableMap();
+      globalThis.webqit.refs.set(obj, itnls);
+    }
+    let _ns, _itnls;
+    while (_ns = namespaces.shift()) {
+      if ((_itnls = itnls) && !(itnls = itnls.get(_ns))) {
+        itnls = new ObservableMap();
+        _itnls.set(_ns, itnls);
+      }
+    }
+    return itnls;
+  }
+  var ObservableMap = class extends Map {
+    constructor(...args) {
+      super(...args);
+      this.observers = /* @__PURE__ */ new Set();
+    }
+    set(key, value) {
+      let returnValue = super.set(key, value);
+      this.fire("set", key, value, key);
+      return returnValue;
+    }
+    delete(key) {
+      let returnValue = super.delete(key);
+      this.fire("delete", key);
+      return returnValue;
+    }
+    has(key) {
+      this.fire("has", key);
+      return super.has(key);
+    }
+    get(key) {
+      this.fire("get", key);
+      return super.get(key);
+    }
+    keyNames() {
+      return Array.from(super.keys());
+    }
+    observe(type, key, callback) {
+      const entry = { type, key, callback };
+      this.observers.add(entry);
+      return () => this.observers.delete(entry);
+    }
+    unobserve(type, key, callback) {
+      if (Array.isArray(type) || Array.isArray(key)) {
+        throw new Error(`The "type" and "key" arguments can only be strings.`);
+      }
+      for (let entry of this.observers) {
+        if (!(_intersection([type, "*"], entry.type) && _intersection([key, "*"], entry.key) && entry.callback === callback))
+          continue;
+        this.observers.delete(entry);
+      }
+    }
+    fire(type, key, ...args) {
+      for (let entry of this.observers) {
+        if (!(_intersection([type, "*"], entry.type) && _intersection([key, "*"], entry.key)))
+          continue;
+        entry.callback(...args);
+      }
+    }
+  };
+  var _intersection = (a, b) => {
+    if (Array.isArray(b))
+      return intersect_default(a, b).length;
+    return a.includes(b);
+  };
+
+  // node_modules/@webqit/util/js/isTypeFunction.js
+  function isTypeFunction_default(val) {
+    return typeof val === "function";
+  }
+
+  // node_modules/@webqit/util/js/isNull.js
+  function isNull_default(val) {
+    return val === null || val === "";
+  }
+
+  // node_modules/@webqit/util/js/isUndefined.js
+  function isUndefined_default(val) {
+    return arguments.length && (val === void 0 || typeof val === "undefined");
+  }
+
+  // node_modules/@webqit/util/js/isTypeObject.js
+  function isTypeObject_default(val) {
+    return Array.isArray(val) || typeof val === "object" && val || isTypeFunction_default(val);
+  }
+
+  // node_modules/@webqit/util/js/isEmpty.js
+  function isEmpty_default(val) {
+    return isNull_default(val) || isUndefined_default(val) || val === false || val === 0 || isTypeObject_default(val) && !Object.keys(val).length;
+  }
+
+  // node_modules/@webqit/util/js/isFunction.js
+  function isFunction_default(val) {
+    return isTypeFunction_default(val) || val && {}.toString.call(val) === "[object function]";
+  }
+
+  // node_modules/@webqit/util/js/isNumber.js
+  function isNumber_default(val) {
+    return val instanceof Number || typeof val === "number";
+  }
+
+  // node_modules/@webqit/util/js/isNumeric.js
+  function isNumeric_default(val) {
+    return isNumber_default(val) || val !== true && val !== false && val !== null && val !== "" && !isNaN(val * 1);
+  }
+
+  // node_modules/@webqit/util/js/isString.js
+  function isString_default(val) {
+    return val instanceof String || typeof val === "string" && val !== null;
+  }
+
+  // node_modules/@webqit/util/js/isTypeArray.js
+  function isTypeArray_default(val) {
+    return !isString_default(val) && !isUndefined_default(val.length);
+  }
+
+  // node_modules/@webqit/util/arr/pushUnique.js
+  function pushUnique_default(arr, ...items) {
+    items.forEach((itm) => {
+      if (arr.indexOf(itm) < 0) {
+        arr.push(itm);
+      }
+    });
+    return arr;
+  }
+
+  // node_modules/@webqit/util/obj/getPrototypeChain.js
+  function getPrototypeChain_default(obj, until) {
+    until = until || Object.prototype;
+    until = until && !isArray_default(until) ? [until] : until;
+    var prototypalChain = [];
+    var obj = obj;
+    while (obj && (!until || until.indexOf(obj) < 0) && obj.name !== "default") {
+      prototypalChain.push(obj);
+      obj = obj ? Object.getPrototypeOf(obj) : null;
+    }
+    return prototypalChain;
+  }
+
+  // node_modules/@webqit/util/obj/getAllPropertyNames.js
+  function getAllPropertyNames_default(obj, until) {
+    var keysAll = [];
+    getPrototypeChain_default(obj, until).forEach((obj2) => {
+      pushUnique_default(keysAll, ...Object.getOwnPropertyNames(obj2));
+    });
+    return keysAll;
+  }
+
+  // node_modules/@webqit/util/obj/mergeCallback.js
+  function mergeCallback(objs, callback, deepProps = false, isReplace = false, withSymbols = false) {
+    var depth = 0;
+    var obj1 = objs.shift();
+    if (isNumeric_default(obj1) || obj1 === true || obj1 === false) {
+      depth = obj1;
+      obj1 = objs.shift();
+    }
+    if (!objs.length) {
+      throw new Error("_merge() requires two or more array/objects.");
+    }
+    objs.forEach((obj2, i) => {
+      if (!isTypeObject_default(obj2) && !isFunction_default(obj2)) {
+        return;
+      }
+      (deepProps ? getAllPropertyNames_default(obj2) : Object.keys(obj2)).forEach((key) => {
+        if (!callback(key, obj1, obj2, i)) {
+          return;
+        }
+        var valAtObj1 = obj1[key];
+        var valAtObj2 = obj2[key];
+        if ((isArray_default(valAtObj1) && isArray_default(valAtObj2) || isObject_default(valAtObj1) && isObject_default(valAtObj2)) && (depth === true || depth > 0)) {
+          obj1[key] = isArray_default(valAtObj1) && isArray_default(valAtObj2) ? [] : {};
+          mergeCallback([isNumeric_default(depth) ? depth - 1 : depth, obj1[key], valAtObj1, valAtObj2], callback, deepProps, isReplace, withSymbols);
+        } else {
+          if (isArray_default(obj1) && isArray_default(obj2)) {
+            if (isReplace) {
+              obj1[key] = valAtObj2;
+            } else {
+              obj1.push(valAtObj2);
+            }
+          } else {
+            try {
+              if (withSymbols) {
+                Object.defineProperty(obj1, key, Object.getOwnPropertyDescriptor(obj2, key));
+              } else {
+                obj1[key] = obj2[key];
+              }
+            } catch (e) {
+            }
+          }
+        }
+      });
+    });
+    return obj1;
+  }
+
+  // node_modules/@webqit/util/obj/merge.js
+  function merge_default(...objs) {
+    return mergeCallback(objs, (k, obj1, obj2) => {
+      return true;
+    }, false, false, false);
+  }
+
+  // node_modules/@webqit/util/arr/from.js
+  function from_default(val, castObject = true) {
+    if (isArray_default(val)) {
+      return val;
+    }
+    ;
+    if (!castObject && isObject_default(val)) {
+      return [val];
+    }
+    ;
+    if (val !== false && val !== 0 && isEmpty_default(val)) {
+      return [];
+    }
+    ;
+    if (isTypeArray_default(val)) {
+      return Array.prototype.slice.call(val);
+    }
+    ;
+    if (isObject_default(val)) {
+      return Object.values(val);
+    }
+    ;
+    return [val];
+  }
+
+  // node_modules/@webqit/util/obj/get.js
+  function get_default(ctxt, path, trap = {}, reciever = {}) {
+    path = from_default(path).slice();
+    var _ctxt = ctxt;
+    while (!isUndefined_default(_ctxt) && !isNull_default(_ctxt) && path.length) {
+      var _key = path.shift();
+      if (!(trap.get ? trap.get(_ctxt, _key) : isTypeObject_default(_ctxt) ? _key in _ctxt : _ctxt[_key])) {
+        reciever.exists = false;
+        return;
+      }
+      _ctxt = trap.get ? trap.get(_ctxt, _key) : _ctxt[_key];
+    }
+    reciever.exists = true;
+    return _ctxt;
+  }
+
+  // node_modules/@webqit/util/obj/set.js
+  function set_default(obj, path, val, buildTree = {}, trap = {}) {
+    const _set = (target2, key, val2) => {
+      if (trap.set) {
+        return trap.set(target2, key, val2);
+      } else {
+        if (isNumeric_default(path[i]) && isArray_default(target2)) {
+          target2.push(val2);
+        } else {
+          target2[key] = val2;
+        }
+        return true;
+      }
+    };
+    path = from_default(path);
+    var target = obj;
+    for (var i = 0; i < path.length; i++) {
+      if (i < path.length - 1) {
+        if (!target || !isTypeObject_default(target) && !isFunction_default(target)) {
+          return false;
+        }
+        var branch = get_default(target, path[i], trap);
+        if (!isTypeObject_default(branch)) {
+          if (trap.buildTree === false) {
+            return false;
+          }
+          branch = isFunction_default(trap.buildTree) ? trap.buildTree(i) : isNumeric_default(path[i + 1]) ? [] : {};
+          var branchSuccess = _set(target, path[i], branch);
+          if (!branchSuccess) {
+            return false;
+          }
+        }
+        target = branch;
+      } else {
+        return _set(target, path[i], val);
+      }
+    }
+  }
+
+  // node_modules/@webqit/realdom/src/Scheduler.js
+  var Scheduler = class {
+    constructor(window2, asyncDOM = true) {
+      Object.defineProperty(this, "window", { value: window2 });
+      Object.defineProperty(this, "readCallbacks", { value: /* @__PURE__ */ new Set() });
+      Object.defineProperty(this, "writeCallbacks", { value: /* @__PURE__ */ new Set() });
+      this.async = asyncDOM;
+      if (this.window.requestAnimationFrame) {
+        this._run();
+      } else {
+        this.async = false;
+      }
+    }
+    _run() {
+      this.window.requestAnimationFrame(() => {
+        for (const callback of this.readCallbacks) {
+          callback();
+          this.readCallbacks.delete(callback);
+        }
+        for (const callback of this.writeCallbacks) {
+          callback();
+          this.writeCallbacks.delete(callback);
+        }
+        this._run();
+      });
+    }
+    onread(callback, withPromise = false) {
+      if (withPromise) {
+        return new Promise((resolve) => {
+          if (this.async === false) {
+            resolve(callback());
+          } else {
+            this.readCallbacks.add(() => {
+              resolve(callback());
+            });
+          }
+        });
+      }
+      if (this.async === false) {
+        callback();
+      } else {
+        this.readCallbacks.add(callback);
+      }
+    }
+    onwrite(callback, withPromise = false) {
+      if (withPromise) {
+        return new Promise((resolve) => {
+          if (this.async === false) {
+            resolve(callback());
+          } else {
+            this.writeCallbacks.add(() => {
+              resolve(callback());
+            });
+          }
+        });
+      }
+      if (this.async === false) {
+        callback();
+      } else {
+        this.writeCallbacks.add(callback);
+      }
+    }
+    cycle(onread, onwrite, prevTransaction) {
+      this.onread(() => {
+        const readReturn = onread(prevTransaction);
+        const callWrite = (readReturn2) => {
+          if (readReturn2 === void 0)
+            return;
+          this.onwrite(() => {
+            const writeReturn = onwrite(readReturn2, prevTransaction);
+            const repeatTransaction = (writeReturn2) => {
+              if (writeReturn2 === void 0)
+                return;
+              this.cycle(onread, onwrite, writeReturn2);
+            };
+            if (writeReturn instanceof Promise) {
+              writeReturn.then(repeatTransaction);
+            } else {
+              repeatTransaction(writeReturn);
+            }
+          });
+        };
+        if (readReturn instanceof Promise) {
+          readReturn.then(callWrite);
+        } else {
+          callWrite(readReturn);
+        }
+      });
+    }
+  };
+
+  // node_modules/@webqit/realdom/src/realtime/Realtime.js
+  var Realtime = class {
+    constructor(context, namespace, window2) {
+      this.context = context;
+      this.namespace = namespace;
+      this.window = context.defaultView || context.ownerDocument?.defaultView || window2;
+      this.document = this.window.document;
+      this.webqit = this.window.webqit;
+      Object.defineProperty(this, "#", { value: {} });
+    }
+    resolveArgs(args) {
+      if (isFunction_default(args[0])) {
+        args = [[], ...args];
+      } else if (isObject_default(args[0]) && args.length === 1) {
+        args = [[], void 0, args[0]];
+      } else if (isObject_default(args[1]) && args.length === 2) {
+        args = [from_default(args[0], false), void 0, args[1]];
+      } else {
+        args[0] = from_default(args[0], false);
+      }
+      return args;
+    }
+    registry(...args) {
+      return internals("realdom.realtime", this.window, this.namespace, ...args);
+    }
+    createSignalGenerator() {
+      return {
+        generate() {
+          this.lastController?.abort();
+          this.lastController = new AbortController();
+          const flags = { signal: this.lastController.signal };
+          return flags;
+        },
+        disconnect() {
+          this.lastController?.abort();
+        }
+      };
+    }
+    forEachMatchingContext(interceptionTiming, record_s, callback) {
+      const { window: window2 } = this, records = Array.isArray(record_s) ? record_s : [record_s];
+      let dispatchBatch = /* @__PURE__ */ new Set();
+      for (const [depth, registries] of this.registry(interceptionTiming)) {
+        for (const [context, registry] of registries) {
+          let matches = records.filter((record) => {
+            if (!context.contains(record.target))
+              return false;
+            return depth === "subtree" || record.target === context;
+          });
+          if (!matches.length)
+            continue;
+          if (!Array.isArray(record_s)) {
+            matches = matches[0];
+          }
+          for (const registration of registry) {
+            dispatchBatch.add([registration, matches, context]);
+          }
+        }
+      }
+      for (const [registration, record_s2, context] of dispatchBatch) {
+        callback.call(this, registration, record_s2, context);
+      }
+    }
+    disconnectables(signal, ...objects) {
+      const disconnectable = { disconnect() {
+        objects.forEach((d) => d && isFunction_default(d.disconnect) && d.disconnect() || isFunction_default(d) && d() || isObject_default(d) && (d.disconnected = true));
+      } };
+      if (signal)
+        signal.addEventListener("abort", () => disconnectable.disconnect());
+      return disconnectable;
+    }
+  };
+
+  // node_modules/@webqit/realdom/src/realtime/AttrRealtime.js
+  var AttrRealtime = class extends Realtime {
+    constructor(context, ...args) {
+      super(context, "attr", ...args);
+    }
+    get(filter, callback = void 0, params = {}) {
+      const originalFilterIsString = typeof filter === "string";
+      [filter = [], callback = void 0, params = {}] = this.resolveArgs(arguments);
+      const { context } = this;
+      const records = attrIntersection(context, filter);
+      const record_s = originalFilterIsString ? records[0] : records;
+      if (!callback)
+        return record_s;
+      const signalGenerator = callback && params.lifecycleSignals && this.createSignalGenerator();
+      const flags = signalGenerator?.generate() || {};
+      callback(record_s, flags, context);
+      if (params.live) {
+        if (signalGenerator) {
+          params = { ...params, signalGenerator };
+        }
+        const disconnectable_live = this.observe(originalFilterIsString ? filter[0] : filter, callback, { newValue: true, ...params });
+        return this.disconnectables(params.signal, disconnectable_live);
+      }
+    }
+    observe(filter, callback, params = {}) {
+      const originalFilterIsString = typeof filter === "string";
+      [filter = [], callback, params = {}] = this.resolveArgs(arguments);
+      if (["sync", "intercept"].includes(params.timing))
+        return this.observeSync(originalFilterIsString ? filter[0] : filter, callback, params);
+      if (params.timing && params.timing !== "async")
+        throw new Error(`Timing option "${params.timing}" invalid.`);
+      const { context, window: window2, webqit } = this;
+      if (params.eventDetails && !webqit.realdom.attrInterceptionHooks?.intercepting) {
+        attrInterception.call(window2, "intercept", () => {
+        });
+      }
+      const disconnectable = new window2.MutationObserver((records) => {
+        records = dedup(records).map((rcd) => withAttrEventDetails.call(window2, rcd));
+        dispatch.call(window2, registration, records, context);
+      });
+      const $params = { attributes: true, attributeOldValue: params.oldValue, subtree: params.subtree };
+      if (filter.length) {
+        $params.attributeFilter = filter;
+      }
+      disconnectable.observe(context, $params);
+      const signalGenerator = params.signalGenerator || params.lifecycleSignals && this.createSignalGenerator();
+      const registration = { context, filter, callback, params, atomics: /* @__PURE__ */ new Map(), originalFilterIsString, signalGenerator, disconnectable };
+      return this.disconnectables(params.signal, disconnectable, signalGenerator);
+    }
+    observeSync(filter, callback, params = {}) {
+      const originalFilterIsString = typeof filter === "string";
+      [filter, callback, params = {}] = this.resolveArgs(arguments);
+      const { context, window: window2 } = this;
+      if (params.timing && !["sync", "intercept"].includes(params.timing))
+        throw new Error(`Timing option "${params.timing}" invalid.`);
+      const interceptionTiming = params.timing === "intercept" ? "intercept" : "sync";
+      const intersectionDepth = params.subtree ? "subtree" : "children";
+      if (!this.registry(interceptionTiming).size) {
+        attrInterception.call(window2, interceptionTiming, (records) => {
+          this.forEachMatchingContext(interceptionTiming, records, dispatch);
+        });
+      }
+      const disconnectable = { disconnect() {
+        registry.delete(registration);
+        if (!registry.size) {
+          registries.delete(context);
+        }
+      } };
+      const signalGenerator = params.signalGenerator || params.lifecycleSignals && this.createSignalGenerator();
+      const registration = { context, filter, callback, params, atomics: /* @__PURE__ */ new Map(), originalFilterIsString, signalGenerator, disconnectable };
+      const registries = this.registry(interceptionTiming, intersectionDepth);
+      if (!registries.has(context)) {
+        registries.set(context, /* @__PURE__ */ new Set());
+      }
+      const registry = registries.get(context);
+      registry.add(registration);
+      return this.disconnectables(params.signal, disconnectable, signalGenerator);
+    }
+  };
+  function dedup(records) {
+    return records.reduce((rcds, rcd, i) => {
+      if (rcds[i - 1]?.attributeName === rcd.attributeName)
+        return rcds;
+      return rcds.concat(rcd);
+    }, []);
+  }
+  function dispatch(registration, records) {
+    const { context, filter, callback, params, atomics, originalFilterIsString, signalGenerator } = registration;
+    if (params.atomic && !atomics.size) {
+      records = attrIntersection(context, filter, records);
+    }
+    if (!(params.newValue === null && params.oldValue === null && params.eventDetails)) {
+      records = records.map((rcd) => {
+        let exclusion;
+        if (!params.eventDetails) {
+          ({ event: exclusion, ...rcd } = rcd);
+        }
+        if (!params.oldValue && "oldValue" in rcd) {
+          ({ oldValue: exclusion, ...rcd } = rcd);
+        }
+        if (!params.newValue && "value" in rcd) {
+          ({ value: exclusion, ...rcd } = rcd);
+        } else if (params.newValue && typeof rcd.value === "undefined") {
+          rcd = { ...rcd, value: rcd.target.getAttribute(rcd.name) };
+        }
+        return rcd;
+      });
+    }
+    if (params.atomic) {
+      records.forEach((record) => atomics.set(record.name, record));
+      records = Array.from(atomics.entries()).map(([, value]) => value);
+    }
+    const record_s = originalFilterIsString ? records[0] : records;
+    const flags = signalGenerator?.generate() || {};
+    callback(record_s, flags, context);
+  }
+  function attrIntersection(context, filter, records = []) {
+    const _type = { event: null, type: "attribute" };
+    if (filter.length) {
+      return filter.map((attrName) => {
+        return records.find((r) => r.name === attrName) || { target: context, name: attrName, value: context.getAttribute(attrName), ..._type };
+      });
+    }
+    const attrs = Array.from(context.attributes);
+    return attrs.map((attr) => {
+      return records.find((r) => r.name === attr.nodeName) || { target: context, name: attr.nodeName, value: attr.nodeValue, ..._type };
+    });
+  }
+  function withAttrEventDetails({ target, attributeName, value, oldValue }) {
+    const window2 = this, registry = window2.webqit.realdom.attrInterceptionRecords?.get(target) || {};
+    const event = registry[attributeName] || "mutation";
+    const record = { target, name: attributeName, value, oldValue, type: "observation", event };
+    return record;
+  }
+  function attrInterception(timing, callback) {
+    const window2 = this;
+    const { webqit, document, Element } = window2;
+    if (!webqit.realdom.attrInterceptionHooks) {
+      Object.defineProperty(webqit.realdom, "attrInterceptionHooks", { value: /* @__PURE__ */ new Map() });
+    }
+    if (!webqit.realdom.attrInterceptionHooks.has(timing)) {
+      webqit.realdom.attrInterceptionHooks.set(timing, /* @__PURE__ */ new Set());
+    }
+    webqit.realdom.attrInterceptionHooks.get(timing).add(callback);
+    const rm = () => webqit.realdom.attrInterceptionHooks.get(timing).delete(callback);
+    if (webqit.realdom.attrInterceptionHooks?.intercepting)
+      return rm;
+    console.warn(`Attr mutation APIs are now being intercepted.`);
+    webqit.realdom.attrInterceptionHooks.intercepting = true;
+    Object.defineProperty(webqit.realdom, "attrInterceptionRecords", { value: /* @__PURE__ */ new Map() });
+    const attrIntercept = (record, defaultAction) => {
+      if (!webqit.realdom.attrInterceptionRecords.has(record.target)) {
+        webqit.realdom.attrInterceptionRecords.set(record.target, {});
+      }
+      const registry = webqit.realdom.attrInterceptionRecords.get(record.target);
+      clearTimeout(registry[record.name]?.timeout);
+      registry[record.name] = record.event;
+      const timeout = setTimeout(() => {
+        delete registry[record.name];
+      }, 0);
+      Object.defineProperty(record.event, "timeout", { value: timeout, configurable: true });
+      webqit.realdom.attrInterceptionHooks.get("intercept")?.forEach((callback2) => callback2([record]));
+      const returnValue = defaultAction();
+      webqit.realdom.attrInterceptionHooks.get("sync")?.forEach((callback2) => callback2([record]));
+      return returnValue;
+    };
+    const mo = new window2.MutationObserver((records) => {
+      records = dedup(records).map((rcd) => withAttrEventDetails.call(window2, rcd)).filter((rcd, i) => {
+        return !Array.isArray(rcd.event);
+      });
+      if (!records.length)
+        return;
+      webqit.realdom.attrInterceptionHooks.get("intercept")?.forEach((callback2) => callback2(records));
+      webqit.realdom.attrInterceptionHooks.get("sync")?.forEach((callback2) => callback2(records));
+    });
+    mo.observe(document, { attributes: true, subtree: true, attributeOldValue: true });
+    const originalApis = /* @__PURE__ */ Object.create(null);
+    ["setAttribute", "removeAttribute", "toggleAttribute"].forEach((apiName) => {
+      originalApis[apiName] = Element.prototype[apiName];
+      Element.prototype[apiName] = function(...args) {
+        let value, oldValue = this.getAttribute(args[0]);
+        if (["setAttribute", "toggleAttribute"].includes(apiName)) {
+          value = args[1];
+        }
+        if (apiName === "toggleAttribute" && value === void 0) {
+          value = oldValue === null ? true : false;
+        }
+        const record = { target: this, name: args[0], value, oldValue, type: "interception", event: [this, apiName] };
+        const exec = () => originalApis[apiName].call(this, ...args);
+        return attrIntercept(record, exec);
+      };
+    });
+    return rm;
+  }
+
+  // node_modules/@webqit/realdom/src/realtime/DOMRealtime.js
+  var DOMRealtime = class extends Realtime {
+    constructor(context, ...args) {
+      super(context, "tree", ...args);
+    }
+    attr(filter, callback = void 0, params = {}) {
+      const { context, window: window2 } = this;
+      return new AttrRealtime(context, window2).get(...arguments);
+    }
+    query(selectors, callback = void 0, params = {}) {
+      [selectors, callback = void 0, params = {}] = this.resolveArgs(arguments);
+      const { context } = this;
+      const records = /* @__PURE__ */ new Map(), getRecord = (target) => {
+        if (!records.has(target)) {
+          records.set(target, { target, entrants: [], exits: [], type: "query", event: null });
+        }
+        return records.get(target);
+      };
+      if (!params.generation || params.generation === "entrants") {
+        if (!selectors.length) {
+          [...context.children].forEach((node) => getRecord(context).entrants.push(node));
+        } else if (selectors.every((selector) => typeof selector === "string") && (selectors = selectors.join(","))) {
+          const matches = params.subtree ? context.querySelectorAll(selectors) : [...context.children].filter((node) => node.matches(selectors));
+          matches.forEach((node) => getRecord(node.parentNode || context).entrants.push(node));
+        }
+      }
+      if (!callback)
+        return records;
+      const disconnectable = { disconnected: false };
+      const signalGenerator = callback && params.lifecycleSignals && this.createSignalGenerator();
+      for (const [, record] of records) {
+        if (disconnectable.disconnected)
+          break;
+        const flags = signalGenerator?.generate() || {};
+        callback(record, flags, context);
+      }
+      if (params.live) {
+        if (signalGenerator) {
+          params = { ...params, signalGenerator };
+        }
+        const disconnectable_live = this.observe(selectors, callback, params);
+        return this.disconnectables(params.signal, disconnectable, disconnectable_live);
+      }
+      return this.disconnectables(params.signal, disconnectable, signalGenerator);
+    }
+    children(selectors, callback = void 0, params = {}) {
+      [selectors, callback = void 0, params = {}] = this.resolveArgs(arguments);
+      return this.query(selectors, callback, { ...params, subtree: false });
+    }
+    subtree(selectors, callback = void 0, params = {}) {
+      [selectors, callback = void 0, params = {}] = this.resolveArgs(arguments);
+      return this.query(selectors, callback, { ...params, subtree: true });
+    }
+    observe(selectors, callback, params = {}) {
+      [selectors, callback, params = {}] = this.resolveArgs(arguments);
+      if (["sync", "intercept"].includes(params.timing))
+        return this.observeSync(selectors, callback, params);
+      if (params.timing && params.timing !== "async")
+        throw new Error(`Timing option "${params.timing}" invalid.`);
+      const { context, window: window2, webqit, document } = this;
+      if (params.eventDetails) {
+        webqit.realdom.domInterceptionRecordsAlwaysOn = true;
+      }
+      if ((document.readyState === "loading" || webqit.realdom.domInterceptionRecordsAlwaysOn) && !webqit.realdom.domInterceptionHooks?.intercepting) {
+        domInterception.call(window2, "sync", () => {
+        });
+      }
+      const disconnectable = new window2.MutationObserver((records) => records.forEach((record) => {
+        dispatch2.call(window2, registration, withEventDetails.call(window2, record), context);
+      }));
+      disconnectable.observe(context, { childList: true, subtree: params.subtree });
+      const signalGenerator = params.signalGenerator || params.lifecycleSignals && this.createSignalGenerator();
+      const registration = { context, selectors, callback, params, signalGenerator, disconnectable };
+      if (params.staticSensitivity) {
+        const disconnectable_attr = staticSensitivity.call(window2, registration);
+        return this.disconnectables(params.signal, disconnectable, signalGenerator, disconnectable_attr);
+      }
+      return this.disconnectables(params.signal, disconnectable, signalGenerator);
+    }
+    observeSync(selectors, callback, params = {}) {
+      [selectors, callback, params = {}] = this.resolveArgs(arguments);
+      const { context, window: window2 } = this;
+      if (params.timing && !["sync", "intercept"].includes(params.timing))
+        throw new Error(`Timing option "${params.timing}" invalid.`);
+      const interceptionTiming = params.timing === "intercept" ? "intercept" : "sync";
+      const intersectionDepth = params.subtree ? "subtree" : "children";
+      if (!this.registry(interceptionTiming).size) {
+        domInterception.call(window2, interceptionTiming, (record) => {
+          this.forEachMatchingContext(interceptionTiming, record, dispatch2);
+        });
+      }
+      const mo = new window2.MutationObserver((records) => records.forEach((record) => {
+        if (Array.isArray((record = withEventDetails.call(window2, record)).event))
+          return;
+        dispatch2.call(window2, registration, record, context);
+      }));
+      mo.observe(context, { childList: true, subtree: params.subtree });
+      const disconnectable = { disconnect() {
+        mo.disconnect();
+        registry.delete(registration);
+        if (!registry.size) {
+          registries.delete(context);
+        }
+      } };
+      const signalGenerator = params.signalGenerator || params.lifecycleSignals && this.createSignalGenerator();
+      const registration = { context, selectors, callback, params, signalGenerator, disconnectable };
+      const registries = this.registry(interceptionTiming, intersectionDepth);
+      if (!registries.has(context)) {
+        registries.set(context, /* @__PURE__ */ new Set());
+      }
+      const registry = registries.get(context);
+      registry.add(registration);
+      if (params.staticSensitivity) {
+        const disconnectable_attr = staticSensitivity.call(window2, registration);
+        return this.disconnectables(params.signal, disconnectable, signalGenerator, disconnectable_attr);
+      }
+      return this.disconnectables(params.signal, disconnectable, signalGenerator);
+    }
+  };
+  function staticSensitivity(registration) {
+    const window2 = this;
+    const { context, selectors, callback, params, signalGenerator } = registration;
+    const parseDot = (selector) => selector.match(/\.([\w-]+)/g)?.length ? ["class"] : [];
+    const parseHash = (selector) => selector.match(/#([\w-]+)/g)?.length ? ["id"] : [];
+    const parse = (selector) => [...selector.matchAll(/\[([^\=\]]+)(\=[^\]]+)?\]/g)].map((x) => x[1]).concat(parseDot(selector)).concat(parseHash(selector));
+    if (!(registration.$attrs = Array.from(new Set(selectors.filter((s) => typeof s === "string" && s.includes("[")).reduce((attrs, selector) => attrs.concat(parse(selector)), [])))).length)
+      return;
+    const entrants = /* @__PURE__ */ new Set(), exits = /* @__PURE__ */ new Set();
+    entrants.push = (val) => (exits.delete(val), entrants.add(val));
+    exits.push = (val) => (entrants.delete(val), exits.add(val));
+    registration.$deliveryCache = { entrants, exits };
+    return new AttrRealtime(context, window2).observe(registration.$attrs, (_records) => {
+      const records = /* @__PURE__ */ new Map(), getRecord = (target) => {
+        if (!records.has(target)) {
+          records.set(target, { target, entrants: [], exits: [], type: "static", event: null });
+        }
+        return records.get(target);
+      };
+      const matchesCache = /* @__PURE__ */ new WeakMap();
+      const matches = (node) => {
+        if (!matchesCache.has(node)) {
+          matchesCache.set(node, selectors.some((selector) => node.matches(selector)));
+        }
+        return matchesCache.get(node);
+      };
+      for (const _record of _records) {
+        ["entrants", "exits"].forEach((generation) => {
+          if (params.generation && generation !== params.generation)
+            return;
+          if (registration.$deliveryCache[generation].has(_record.target) || (generation === "entrants" ? !matches(_record.target) : matches(_record.target)))
+            return;
+          registration.$deliveryCache[generation].push(_record.target);
+          getRecord(_record.target)[generation].push(_record.target);
+          getRecord(_record.target).event = _record.event;
+        });
+      }
+      for (const [, record] of records) {
+        const flags = signalGenerator?.generate() || {};
+        callback(record, flags, context);
+      }
+    }, { subtree: params.subtree, timing: params.timing, eventDetails: params.eventDetails });
+  }
+  function dispatch2(registration, _record) {
+    const { context, selectors, callback, params, signalGenerator, $deliveryCache } = registration;
+    const record = { ..._record, entrants: [], exits: [] };
+    if (!params.eventDetails) {
+      delete record.event;
+    }
+    ["entrants", "exits"].forEach((generation) => {
+      if (params.generation && generation !== params.generation)
+        return;
+      if (selectors.length) {
+        record[generation] = nodesIntersection(selectors, _record[generation], _record.event !== "parse");
+      } else {
+        record[generation] = [..._record[generation]];
+      }
+      if (!$deliveryCache)
+        return;
+      for (const node of record[generation]) {
+        $deliveryCache[generation].push(node);
+      }
+    });
+    if (!record.entrants.length && !record.exits.length)
+      return;
+    const flags = signalGenerator?.generate() || {};
+    callback(record, flags, context);
+  }
+  function nodesIntersection(targets, sources, deepIntersect) {
+    sources = Array.isArray(sources) ? sources : [...sources];
+    const match = (sources2, target) => {
+      sources2 = sources2.filter((source) => source.matches);
+      if (typeof target === "string") {
+        let matches = sources2.filter((source) => source.matches(target));
+        if (deepIntersect) {
+          matches = sources2.reduce((collection, source) => {
+            return [...collection, ...source.querySelectorAll(target)];
+          }, matches);
+        }
+        if (matches.length)
+          return matches;
+      } else {
+        if (sources2.includes(target) || deepIntersect && sources2.some((source) => source.contains(target))) {
+          return [target];
+        }
+      }
+    };
+    if (!sources.$$searchCache) {
+      sources.$$searchCache = /* @__PURE__ */ new Map();
+    }
+    return targets.reduce((matches, target) => {
+      let _matches;
+      if (sources.$$searchCache.has(target)) {
+        _matches = sources.$$searchCache.get(target);
+      } else {
+        _matches = match(sources, target) || [];
+        if (isObject_default(target)) {
+          sources.$$searchCache.set(target, _matches);
+        }
+      }
+      return matches.concat(_matches);
+    }, []);
+  }
+  function withEventDetails({ target, addedNodes, removedNodes }) {
+    let window2 = this, event;
+    event = from_default(addedNodes).reduce((prev, node) => prev || window2.webqit.realdom.domInterceptionRecords?.get(node), null);
+    event = from_default(removedNodes).reduce((prev, node) => prev || window2.webqit.realdom.domInterceptionRecords?.get(node), event);
+    event = event || window2.document.readyState === "loading" && "parse" || "mutation";
+    return { target, entrants: addedNodes, exits: removedNodes, type: "observation", event };
+  }
+  function domInterception(timing, callback) {
+    const window2 = this;
+    const { webqit, document, Node, CharacterData, Element, HTMLElement, HTMLTemplateElement, DocumentFragment } = window2;
+    if (!webqit.realdom.domInterceptionHooks) {
+      Object.defineProperty(webqit.realdom, "domInterceptionHooks", { value: /* @__PURE__ */ new Map() });
+    }
+    if (!webqit.realdom.domInterceptionHooks.has(timing)) {
+      webqit.realdom.domInterceptionHooks.set(timing, /* @__PURE__ */ new Set());
+    }
+    webqit.realdom.domInterceptionHooks.get(timing).add(callback);
+    const rm = () => webqit.realdom.domInterceptionHooks.get(timing).delete(callback);
+    if (webqit.realdom.domInterceptionHooks?.intercepting)
+      return rm;
+    console.warn(`DOM mutation APIs are now being intercepted.`);
+    webqit.realdom.domInterceptionHooks.intercepting = true;
+    Object.defineProperty(webqit.realdom, "domInterceptionRecords", { value: /* @__PURE__ */ new Map() });
+    const intercept = (record, defaultAction) => {
+      record.entrants.concat(record.exits).forEach((node) => {
+        clearTimeout(webqit.realdom.domInterceptionRecords.get(node)?.timeout);
+        webqit.realdom.domInterceptionRecords.set(node, record.event);
+        const timeout = setTimeout(() => {
+          webqit.realdom.domInterceptionRecords.delete(node);
+        }, 0);
+        Object.defineProperty(record.event, "timeout", { value: timeout, configurable: true });
+      });
+      webqit.realdom.domInterceptionHooks.get("intercept")?.forEach((callback2) => callback2(record));
+      const returnValue = defaultAction();
+      webqit.realdom.domInterceptionHooks.get("sync")?.forEach((callback2) => callback2(record));
+      return returnValue;
+    };
+    const _originalApis = { characterData: /* @__PURE__ */ Object.create(null), other: /* @__PURE__ */ Object.create(null) };
+    [
+      "insertBefore",
+      "insertAdjacentElement",
+      "insertAdjacentHTML",
+      "setHTML",
+      "replaceChildren",
+      "replaceWith",
+      "remove",
+      "replaceChild",
+      "removeChild",
+      "before",
+      "after",
+      "append",
+      "prepend",
+      "appendChild"
+    ].forEach((apiName) => {
+      function method(...args) {
+        const originalApis2 = this instanceof CharacterData ? _originalApis.characterData : _originalApis.other;
+        const exec = () => originalApis2[apiName].call(this, ...args);
+        if (!(this instanceof CharacterData || this instanceof Element || this instanceof DocumentFragment))
+          return exec();
+        let exits = [], entrants = [], target = this;
+        if (["insertBefore"].includes(apiName)) {
+          entrants = [args[0]];
+        } else if (["insertAdjacentElement", "insertAdjacentHTML"].includes(apiName)) {
+          entrants = [args[1]];
+          if (["beforebegin", "afterend"].includes(args[0])) {
+            target = this.parentNode;
+          }
+        } else if (["setHTML", "replaceChildren"].includes(apiName)) {
+          exits = [...this.childNodes];
+          entrants = apiName === "replaceChildren" ? [...args] : [args[0]];
+        } else if (["replaceWith", "remove"].includes(apiName)) {
+          exits = [this];
+          entrants = apiName === "replaceWith" ? [...args] : [];
+          target = this.parentNode;
+        } else if (["replaceChild"].includes(apiName)) {
+          exits = [args[1]];
+          entrants = [args[0]];
+        } else if (["removeChild"].includes(apiName)) {
+          exits = [...args];
+        } else {
+          entrants = [...args];
+          if (["before", "after"].includes(apiName)) {
+            target = this.parentNode;
+          }
+        }
+        let apiNameFinal = apiName;
+        if (["insertAdjacentHTML", "setHTML"].includes(apiName)) {
+          let tempNodeName = this.nodeName;
+          if (apiName === "insertAdjacentHTML" && ["beforebegin", "afterend"].includes(args[0])) {
+            if (!this.parentNode)
+              return originalApis2[apiName].call(this, ...args);
+            tempNodeName = this.parentNode.nodeName;
+          }
+          const temp = document.createElement(tempNodeName);
+          originalApis2.setHTML.call(temp, entrants[0], apiName === "setHTML" ? args[1] : {});
+          entrants = [...temp.childNodes];
+          if (apiName === "insertAdjacentHTML") {
+            apiNameFinal = "insertAdjacentElement";
+            args[1] = new DocumentFragment();
+            args[1].______isTemp = true;
+            args[1].append(...temp.childNodes);
+          } else {
+            apiNameFinal = "replaceChildren";
+            args = [...temp.childNodes];
+          }
+        }
+        const record = { target, entrants, exits, type: "interception", event: [this, apiName] };
+        return intercept(record, () => {
+          return originalApis2[apiNameFinal].call(this, ...args);
+        });
+      }
+      if (["insertBefore", "replaceChild", "removeChild", "appendChild"].includes(apiName)) {
+        _originalApis.other[apiName] = Node.prototype[apiName];
+        Node.prototype[apiName] = method;
+      } else {
+        if (["after", "before", "remove", "replaceWith"].includes(apiName)) {
+          _originalApis.characterData[apiName] = CharacterData.prototype[apiName];
+          CharacterData.prototype[apiName] = method;
+        }
+        if (Element.prototype[apiName]) {
+          _originalApis.other[apiName] = Element.prototype[apiName];
+          Element.prototype[apiName] = method;
+        }
+      }
+    });
+    const originalApis = /* @__PURE__ */ Object.create(null);
+    [
+      "outerHTML",
+      "outerText",
+      "innerHTML",
+      "innerText",
+      "textContent",
+      "nodeValue"
+    ].forEach((apiName) => {
+      const Interface = ["textContent", "nodeValue"].includes(apiName) ? Node : ["outerText", "innerText"].includes(apiName) ? HTMLElement : Element;
+      originalApis[apiName] = Object.getOwnPropertyDescriptor(Interface.prototype, apiName);
+      Object.defineProperty(Interface.prototype, apiName, { ...originalApis[apiName], set: function(value) {
+        let exec = () => originalApis[apiName].set.call(this, value);
+        if (!(this instanceof Element))
+          return exec();
+        let exits = [], entrants = [], target = this;
+        if (["outerHTML", "outerText"].includes(apiName)) {
+          exits = [this];
+          target = this.parentNode;
+        } else {
+          exits = [...this.childNodes];
+        }
+        if (["outerHTML", "innerHTML"].includes(apiName)) {
+          let tempNodeName = this.nodeName;
+          if (apiName === "outerHTML") {
+            if (!this.parentNode)
+              return exec();
+            tempNodeName = this.parentNode.nodeName;
+          }
+          const temp = document.createElement(tempNodeName === "TEMPLATE" ? "div" : tempNodeName);
+          originalApis[apiName].set.call(temp, value);
+          entrants = this instanceof HTMLTemplateElement ? [] : [...temp.childNodes];
+          if (apiName === "outerHTML") {
+            value = new DocumentFragment();
+            value.______isTemp = true;
+            value.append(...temp.childNodes);
+            exec = () => Element.prototype.replaceWith.call(this, value);
+          } else {
+            if (this instanceof HTMLTemplateElement) {
+              exec = () => this.content.replaceChildren(...temp.childNodes);
+            } else {
+              exec = () => Element.prototype.replaceChildren.call(this, ...temp.childNodes);
+            }
+          }
+        }
+        const record = { target, entrants, exits, type: "interception", event: [this, apiName] };
+        return intercept(record, exec);
+      } });
+    });
+    ["append", "prepend", "replaceChildren"].forEach((apiName) => {
+      [document, DocumentFragment.prototype].forEach((target) => {
+        const originalApi = target[apiName];
+        target[apiName] = function(...args) {
+          if (this.______isTemp)
+            return originalApi.call(this, ...args);
+          const exits = apiName === "replaceChildren" ? [...this.childNodes] : [];
+          const record = {
+            target: this,
+            entrants: args,
+            exits,
+            type: "interception",
+            event: [this, apiName]
+          };
+          return intercept(record, () => {
+            return originalApi.call(this, ...args);
+          });
+        };
+      });
+    });
+    return rm;
+  }
+
+  // node_modules/@webqit/realdom/src/polyfills.js
+  function polyfills_default() {
+    CSS_escape.call(this);
+    Node_isConnected.call(this);
+    Element_matches.call(this);
+  }
+  function CSS_escape() {
+    const window2 = this;
+    if (!window2.CSS) {
+      window2.CSS = {};
+    }
+    if (!window2.CSS.escape) {
+      window2.CSS.escape = (str) => str.replace(/([\:@\~\$\&])/g, "\\$1");
+    }
+  }
+  function Node_isConnected() {
+    const window2 = this;
+    if (!("isConnected" in window2.Node.prototype)) {
+      Object.defineProperty(window2.Node.prototype, "isConnected", { get: function() {
+        return !this.ownerDocument || !(this.ownerDocument.compareDocumentPosition(this) & this.DOCUMENT_POSITION_DISCONNECTED);
+      } });
+    }
+  }
+  function Element_matches() {
+    const window2 = this;
+    if (!window2.Element.prototype.matches) {
+      window2.Element.prototype.matches = window2.Element.prototype.matchesSelector || window2.Element.prototype.mozMatchesSelector || window2.Element.prototype.msMatchesSelector || window2.Element.prototype.oMatchesSelector || window2.Element.prototype.webkitMatchesSelector || function(s) {
+        var matches = (this.document || this.ownerDocument).querySelectorAll(s), i = matches.length;
+        while (--i >= 0 && matches.item(i) !== this) {
+        }
+        return i > -1;
+      };
+    }
+  }
+
+  // node_modules/@webqit/realdom/src/index.js
+  function src_default() {
+    const window2 = this;
+    if (!window2.webqit)
+      window2.webqit = {};
+    if (window2.webqit.realdom)
+      return window2.webqit.realdom;
+    window2.webqit.realdom = {};
+    polyfills_default.call(window2);
+    window2.webqit.realdom.meta = (...args) => meta.call(window2, ...args);
+    window2.webqit.realdom.ready = (...args) => ready.call(window2, ...args);
+    window2.webqit.realdom.realtime = (context, namespace = "dom") => {
+      if (namespace === "dom")
+        return new DOMRealtime(context, window2);
+      if (namespace === "attr")
+        return new AttrRealtime(context, window2);
+    };
+    const scheduler = new Scheduler(window2);
+    window2.webqit.realdom.schedule = (type, ...args) => {
+      return scheduler[`on${type}`](...args);
+    };
+    return window2.webqit.realdom;
+  }
+  function ready(...args) {
+    let timing = "interactive", callback;
+    if (isString_default(args[0])) {
+      timing = args[0];
+      if (isFunction_default(args[1])) {
+        callback = args[1];
+      }
+    } else if (isFunction_default(args[0])) {
+      callback = args[0];
+    }
+    const timings = { interactive: ["interactive", "complete"], complete: ["complete"] };
+    if (!timings[timing])
+      throw new Error(`Invalid ready-state timing: ${timing}.`);
+    const window2 = this;
+    if (!callback) {
+      if (!window2.webqit.realdom.readyStatePromises) {
+        window2.webqit.realdom.readyStatePromises = {
+          interactive: new Promise((res) => ready.call(this, "interactive", res)),
+          complete: new Promise((res) => ready.call(this, "complete", res))
+        };
+      }
+      return window2.webqit.realdom.readyStatePromises[timing];
+    }
+    if (timings[timing].includes(window2.document.readyState))
+      return callback(window2);
+    if (!window2.webqit.realdom.readyStateCallbacks) {
+      window2.webqit.realdom.readyStateCallbacks = { interactive: [], complete: [] };
+      window2.document.addEventListener("readystatechange", () => {
+        const state = window2.document.readyState;
+        for (const callback2 of window2.webqit.realdom.readyStateCallbacks[state].splice(0)) {
+          callback2(window2);
+        }
+      }, false);
+    }
+    window2.webqit.realdom.readyStateCallbacks[timing].push(callback);
+  }
+  function meta(name) {
+    const window2 = this;
+    let _content = {}, _el;
+    if (_el = window2.document.querySelector(`meta[name="${name}"]`)) {
+      _content = (_el.content || "").split(";").filter((v) => v).reduce((_metaVars, directive) => {
+        const directiveSplit = directive.split("=").map((d) => d.trim());
+        set_default(_metaVars, directiveSplit[0].split("."), directiveSplit[1] === "true" ? true : directiveSplit[1] === "false" ? false : isNumeric_default(directiveSplit[1]) ? parseInt(directiveSplit[1]) : directiveSplit[1]);
+        return _metaVars;
+      }, {});
+    }
+    return { get name() {
+      return name;
+    }, get content() {
+      return _el.content;
+    }, json() {
+      return JSON.parse(JSON.stringify(_content));
+    } };
+  }
+
+  // src/util.js
+  var _ = (...args) => internals("oohtml", ...args);
+  function _init(name, $config, $defaults) {
+    const _name = name.toUpperCase().replace("-", "_");
+    const window2 = this, realdom = src_default.call(window2);
+    window2.webqit || (window2.webqit = {});
+    window2.webqit.oohtml || (window2.webqit.oohtml = {});
+    window2.webqit.oohtml.configs || (window2.webqit.oohtml.configs = {});
+    window2.webqit.oohtml.configs[_name] || (window2.webqit.oohtml.configs[_name] = {});
+    merge_default(2, window2.webqit.oohtml.configs[_name], $defaults, $config, realdom.meta(name).json());
+    return { config: window2.webqit.oohtml.configs[_name], realdom, window: window2 };
+  }
+  function _compare(a, b, depth = 1, objectSizing = false) {
+    if (depth && typeof a === "object" && a && typeof b === "object" && b && (!objectSizing || Object.keys(a).length === Object.keys(b).length)) {
+      for (let key in a) {
+        if (!_compare(a[key], b[key], depth - 1, objectSizing))
+          return false;
+      }
+      return true;
+    }
+    if (Array.isArray(a) && Array.isArray(b) && a.length === b.length) {
+      return (b = b.slice(0).sort()) && a.slice(0).sort().every((valueA, i) => valueA === b[i]);
+    }
+    return a === b;
+  }
+
+  // src/context-api/_ContextRequestEvent.js
+  function ContextRequestEvent_default() {
+    const window2 = this;
+    return class ContextRequestEvent extends window2.Event {
+      constructor(request, callback, { type = "contextrequest", ...options } = {}) {
+        super(type, options);
+        Object.defineProperty(this, "request", { get: () => request });
+        Object.defineProperty(this, "callback", { get: () => callback });
+      }
+      respondWith(response, ...rest) {
+        if (this.request.diff) {
+          if ("previousValue" in this && this.previousValue === response)
+            return;
+          this.previousValue = response;
+        }
+        return this.callback(response, ...rest);
+      }
+    };
+  }
+
+  // src/context-api/HTMLContext.js
+  var HTMLContext = class {
+    static instance(host) {
+      return _(host).get("context::instance") || new this(host);
+      ;
+    }
+    constructor(host) {
+      _(host).get(`context::instance`)?.dispose();
+      _(host).set(`context::instance`, this);
+      const priv = { host, contexts: /* @__PURE__ */ new Set() };
+      Object.defineProperty(this, "#", { get: () => priv });
+      const ContextRequestEvent = ContextRequestEvent_default.call(host.ownerDocument?.defaultView || host.defaultView);
+      Object.defineProperty(this, "ContextRequestEvent", { get: () => ContextRequestEvent });
+      this[Symbol.iterator] = function* () {
+        const it = priv.contexts[Symbol.iterator]();
+        yield it.next().value;
+      };
+    }
+    get length() {
+      this["#"].contexts.size;
+    }
+    findProvider(callback) {
+      return [...this["#"].contexts].find(callback);
+    }
+    attachProvider(context) {
+      this["#"].contexts.add(context);
+      context.initialize(this["#"].host);
+    }
+    detachProvider(context) {
+      context.dispose(this["#"].host);
+      this["#"].contexts.delete(context);
+    }
+    request(request, callback, options = {}) {
+      return this["#"].host.dispatchEvent(new this.ContextRequestEvent(request, callback, { bubbles: true, ...options }));
+    }
+    dispose() {
+    }
+  };
+
+  // src/context-api/HTMLContextProvider.js
+  var HTMLContextProvider = class {
+    static get config() {
+      return {};
+    }
+    static attachTo(host, Id, multiple = false) {
+      let provider, contextMgr = HTMLContext.instance(host);
+      if (!multiple && (provider = contextMgr.findProvider((cx) => this.matchRequest(cx.id, Id, true))))
+        return provider;
+      return contextMgr.attachProvider(new this(Id));
+    }
+    static detachFrom(host, Id, multiple = false) {
+      let provider, contextMgr = HTMLContext.instance(host);
+      for (provider of contextMgr["#"].contexts) {
+        if (!this.matchRequest(provider.id, Id, true) || typeof multiple === "function" && !multiple(provider))
+          continue;
+        contextMgr.detachProvider(provider);
+        if (typeof multiple !== "function" && !multiple)
+          return provider;
+      }
+    }
+    static createId(host, fields = {}) {
+      const id = { ...fields };
+      if (id.contextName)
+        return id;
+      if (host.getAttribute && !(id.contextName = (host.getAttribute(this.config.context.attr.contextname) || "").trim())) {
+        delete id.contextName;
+      } else if (!host.ownerDocument) {
+        id.contextName = "root";
+      }
+      return id;
+    }
+    static createRequest(fields = {}) {
+      return { ...fields };
+    }
+    static matchRequest(id, request, strict = false) {
+      if (strict)
+        return _compare(id, request, 1, true);
+      return request.type === id.type && !request.contextName || request.contextName === id.contextName;
+    }
+    constructor(id) {
+      Object.defineProperty(this, "id", { get: () => id });
+      Object.defineProperty(this, "subscriptions", { value: /* @__PURE__ */ new Set() });
+    }
+    get length() {
+      this.subscriptions.size;
+    }
+    handle(event) {
+    }
+    subscribe(event) {
+      this.subscriptions.add(event);
+      if (!event.request.signal)
+        return;
+      event.request.signal.addEventListener("abort", () => {
+        this.unsubscribe(event);
+      });
+    }
+    unsubscribe(event) {
+      this.subscriptions.delete(event);
+      event.request.controller?.abort();
+    }
+    handleEvent(event) {
+      if (this.disposed || event.target === this.host && event.request?.superContextOnly || !event.request || typeof event.callback !== "function" || !this.constructor.matchRequest(this.id, event.request))
+        return;
+      event.stopPropagation();
+      if (event.type === "contextclaim") {
+        const claims = /* @__PURE__ */ new Set();
+        this.subscriptions.forEach((subscriptionEvent) => {
+          if (!event.target.contains(subscriptionEvent.request.superContextOnly ? subscriptionEvent.target.parentNode : subscriptionEvent.target) || !this.constructor.matchRequest(event.request, subscriptionEvent.request))
+            return;
+          this.subscriptions.delete(subscriptionEvent);
+          claims.add(subscriptionEvent);
+        });
+        event.respondWith(claims);
+      } else if (event.type === "contextrequest") {
+        if (event.request.live) {
+          this.subscribe(event);
+        }
+        this.handle(event);
+      }
+    }
+    initialize(host) {
+      this.host = host;
+      this.disposed = false;
+      host.addEventListener("contextrequest", this);
+      host.addEventListener("contextclaim", this);
+      HTMLContext.instance(host).request({ ...this.id, superContextOnly: true }, (claims) => claims.forEach((subscriptionEvent) => {
+        this.subscribe(subscriptionEvent);
+        this.handle(subscriptionEvent);
+      }), { type: "contextclaim" });
+      return this;
+    }
+    dispose(host) {
+      this.disposed = true;
+      host.removeEventListener("contextrequest", this);
+      host.removeEventListener("contextclaim", this);
+      this.subscriptions.forEach((subscriptionEvent) => {
+        this.unsubscribe(subscriptionEvent);
+        const { target, request, callback, options } = subscriptionEvent;
+        HTMLContext.instance(target).request(request, callback, options);
+      });
+      return this;
+    }
+  };
+
+  // src/context-api/index.js
+  function init($config = {}) {
+    const { config, window: window2 } = _init.call(this, "context-api", $config, {
+      api: { context: "context" }
+    });
+    window2.webqit.HTMLContextProvider = HTMLContextProvider;
+    window2.webqit.HTMLContext = HTMLContext;
+    exposeModulesObjects.call(window2, config);
+  }
+  function exposeModulesObjects(config) {
+    const window2 = this;
+    if (config.api.context in window2.document) {
+      throw new Error(`document already has a "${config.api.context}" property!`);
+    }
+    if (config.api.context in window2.HTMLElement.prototype) {
+      throw new Error(`The "HTMLElement" class already has a "${config.api.context}" property!`);
+    }
+    Object.defineProperty(window2.document, config.api.context, { get: function() {
+      return HTMLContext.instance(window2.document);
+    } });
+    Object.defineProperty(window2.HTMLElement.prototype, config.api.context, { get: function() {
+      return HTMLContext.instance(this);
+    } });
+  }
+
+  // src/context-api/targets.browser.js
+  init.call(window);
+})();
 //# sourceMappingURL=context-api.js.map

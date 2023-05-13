@@ -10,7 +10,7 @@ describe(`Test: Scoped CSS`, function() {
     describe(`Styles`, function() {
 
         it(`Should do basic rewrite`, async function() {
-            const head = '', body = `
+            const head = '<meta name="scoped-css" content="style.strategy=@scope">', body = `
             <div>
               <h1>Hello World!</h1>
               <style scoped>
