@@ -51,29 +51,28 @@ export function execute( compiledScript, thisContext, script ) {
         // Rerending processes,,,
         Object.defineProperty( script, 'rerender', { value: ( ...args ) => _await( returnValue, ( [ , rerender ] ) => rerender( ...args ) ) } );
         _await( script.properties, properties => {
+            const _env = { 'this': thisContext };
+            const getPaths = ( base, record_s ) => ( Array.isArray( record_s ) ? record_s : [ record_s ] ).map( record => [ ...base, ...( record.path || [ record.key ] ) ] );
             properties.processes = properties.dependencies.map( path => {
-                const _env = { 'this': thisContext, 'globalThis': globalThis, 'window': globalThis.window, 'self': globalThis.self };
-                const getPaths = ( base, record_s ) => ( Array.isArray( record_s ) ? record_s : [ record_s ] ).map( record => [ ...base, ...( record.path || [ record.key ] ) ] );
-                properties.processes = properties.dependencies.map( path => {
-                    if ( _isTypeObject( _env[ path[ 0 ] ] ) ) {
-                        if ( path.length === 1 ) return;
-                        return Observer.deep( _env[ path[ 0 ] ], path.slice( 1 ), Observer.observe, record_s => {
-                            script.rerender( ...getPaths( [ path[ 0 ] ], record_s ) );
-                        } );
-                    }
-                    return Observer.deep( globalThis, path, Observer.observe, record_s => {
-                        script.rerender( ...getPaths( [], record_s ) );
+                if ( _isTypeObject( _env[ path[ 0 ] ] ) ) {
+                    if ( path.length === 1 ) return;
+                    return Observer.deep( _env[ path[ 0 ] ], path.slice( 1 ), Observer.observe, record_s => {
+                        script.rerender( ...getPaths( [ path[ 0 ] ], record_s ) );
                     } );
+                }
+                return Observer.deep( globalThis, path, Observer.observe, record_s => {
+                    script.rerender( ...getPaths( [], record_s ) );
                 } );
             } );
         } );
     }
     const window = this, { realdom } = window.webqit;
+    if ( !( thisContext instanceof window.Node ) ) return script;
     realdom.realtime( window.document ).observe( thisContext, () => {
         if ( script.contract ) {
             // Rerending processes,,,
             _await( script.properties, properties => {
-                properties.processes.forEach( process => process.abort() );
+                properties.processes.forEach( process => process?.abort() );
             } );
         }
         thisContext.dispatchEvent( new window.CustomEvent( 'remove' ) );

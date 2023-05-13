@@ -39,8 +39,8 @@
   },
   "dependencies": {
     "@webqit/observer": "^2.1.4",
-    "@webqit/realdom": "^2.1.11",
-    "@webqit/subscript": "^2.1.40",
+    "@webqit/realdom": "^2.1.12",
+    "@webqit/subscript": "^2.1.41",
     "@webqit/util": "^0.8.11"
   },
   "devDependencies": {
