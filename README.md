@@ -367,7 +367,7 @@ document.querySelector('div').import('#fragment2', divElement => {
 
 The last set of features covers the concept of "state", "bindings", and "reactivity" for those objects at the DOM level - in the most exciting form of the terms and as an upgrade path! This comes factored into the design as something intrinsic to the problem.
 
-└ *The Observer API for general-purpose object observability*:
+└ *The [Observer API](https://github.com/webqit/observer) for general-purpose object observability*:
 
 ```js
 function changeCallback(changes) {
