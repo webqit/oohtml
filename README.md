@@ -6,7 +6,7 @@
 
 <!-- /BADGES --> 
 
-**[Motivation](#motivation) • [Overview](#an-overview) • [Polyfill](#the-polyfill) • [Documentation](#documentation) • [Getting Involved](#getting-involved) • [License](#license)**
+**[Motivation](#motivation) • [Overview](#an-overview) • [Polyfill](#the-polyfill) • [Design Discussion](#design-discussion) • [Getting Involved](#getting-involved) • [License](#license)**
 
 Object-Oriented HTML (OOHTML) is a set of language features for authoring modular, reusable markup, and translating that to functional DOM-level objects! Everything comes together as a delightful holistic component architecture for the modern UI!
 
@@ -14,22 +14,25 @@ OOHTML is an upcoming proposal!
 
 ## Motivation
 
-The web has generally outgrown HTML's idea of a monolith architecture which has held to the document as the unit of abstraction for scripts, style sheets, and element identifiers (the `id` attribute, and in some scenarios, the `name` attribute). You realize that while you're trying to *model things* in markup and are thinking in objects, components, logical building blocks, reusable units of abstraction - as we have of things like [Vue's SFC](https://vuejs.org/api/sfc-spec.html), [Svelte component format](https://svelte.dev/docs#component-format-script), [11ty's WebC](https://www.11ty.dev/docs/languages/webc/#css-and-js-(bundler-mode)) - the language for the job is posing a "per document" constraint!
+The web has generally outgrown HTML's idea of a monolith architecture which has held to the document as the unit of abstraction for scripts, style sheets, and element identifiers (the `id` attribute, and in some scenarios, the `name` attribute). Whereas you're trying to *model things* in markup and are thinking in objects, components, logical building blocks, reusable units of abstraction - as we have of things like [Vue's SFC](https://vuejs.org/api/sfc-spec.html), [Svelte component format](https://svelte.dev/docs#component-format-script), [11ty's WebC](https://www.11ty.dev/docs/languages/webc/#css-and-js-(bundler-mode)) - the language for the job is imposing a global namespace constraint!
 
-As a consequence, much of this oldish monolith-oriented language by design don't come any useful beyond the global scope in the modern application architecture; **scripts, style sheets and standard identifiers just don't participate in UI modular architectures**! But they're also not harmless! In fact, **it is the sheer global forces that these things constitute that makes it extremely difficult to write even basic modular, reusable markup**! Until we move away from the global scope, **the amount of precision and coordination that must happen at the global level in the typical web page is just too unrealistic without tooling**! UI development may forever invite undue tooling!
+With all of scripts, style sheets and standard identifiers being "unuseable" beyond the global scope, and in fact, tied to the global scope, **the amount of precision and coordination that must happen at the global level in the typical web page is just too unrealistic to go by hand**! This is one more thing that retains unecessary tooling in the modern application development story!
 
-We need a new standards work that will coexist with seemingly related efforts like Web Components to address the language-level problems that cause all the community-based wizardry around *naming things*, *containing styles*, *containing scripts*, and *reusing things* to proliferate! HTML's vocabulary will need to be extended, and much of its "per document" constraints will need to be relaxed! New APIs that provide an upgrade path from markup to JavaScript will need to be factored in!
+This project is a proposal for a new standards work that revisits much of the oldish monolith-oriented constraints in HTML that cause all the community-based wizardry around a *component* architecture to proliferate!
 
 └ [See more in the introductory blog post](https://dev.to/oxharris/the-web-native-equations-1fragment1p-temp-slug-6661657?preview=ba70ad2c17f05b5761bc74516dbde8c9eff8b581a0420d87334fd9ef6bab9d6e6d3ab6aaf3fe02542bb9e7250d0a88a6df91dae40919aabcc9a07320)<sup>draft</sup>
 
 ## An Overview
 
-OOHTML comes in three sets of features. (You may jump to sections.)
+OOHTML comes in three sets of features, and the following is an overview. A more detailed documentation for OOHTML is underway in the [project wiki](https://github.com/webqit/oohtml/wiki).
 
 + [Modular HTML](#modular-html)
 + [HTML Imports](#html-imports)
 + [Reactive HTML](#reactive-html)
 + [Put Together](#put-together)
+
+> **Note**
+> <br>This is documentation for `OOHTML@2.x`. (Looking for [`OOHTML@1.x`](https://github.com/webqit/oohtml/tree/v1.10.4)?)
 
 ### Modular HTML
 
@@ -76,16 +79,16 @@ let { url, name, email } = user.namespace;
 ```
 
 ```js
-let { styleSheets, scripts } = user; // Analogous to the document.styleSheets, document.scripts properties
+let { styleSheets, scripts } = user; // APIs that are analogous to the document.styleSheets, document.scripts properties
 ```
 
 └ [Modular HTML concepts](#)
 
 ### HTML Imports
 
-The next set of features covers *templating and reusing objects* - in both *declarative* and *programmatic* terms! It extends the language with the *module identifier* attribute `def`, and introduces a complementary new `<import>` element; and everything fits together as a real-time module system.
+The next set of features covers *templating and reusing objects* - in both *declarative* and *programmatic* terms! It extends the language with the *module identifier* attribute `def`, and introduces a complementary new `<import>` element, and has everything working together as a real-time module system.
 
-└ *The `def` attribute for defining access to reusable modules*:
+└ *The `def` attribute for reusable "module" and "fragment" definitions*:
 
 ```html
 <head>
@@ -364,7 +367,7 @@ document.querySelector('div').import('#fragment2', divElement => {
 
 The last set of features covers the concept of "state", "bindings", and "reactivity" for those objects at the DOM level - in the most exciting form of the terms and as an upgrade path! This comes factored into the design as something intrinsic to the problem.
 
-└ *The Observer API for general-purpose object observability*:
+└ *The [Observer API](https://github.com/webqit/observer) for general-purpose object observability*:
 
 ```js
 function changeCallback(changes) {
@@ -690,7 +693,7 @@ The polyfill can be loaded from the `unpkg.com` CDN, and should be placed early 
 </head>
 ```
 
-> 22.75KB min+gzipped | 76.53KB min
+> 23.54 KB min+compressed | 76.53KB min
 
 <details><summary>
 Extended usage concepts
@@ -736,7 +739,7 @@ import init from '@webqit/oohtml';
 init.call( window[, options = {} ]);
 ```
 
-But all things "SSR" for OOHTML is best left to the [`@webqit/oohtml-ssr`](https://github.com/webqit/oohtml-ssr) package!
+But all things "SSR" for OOHTML are best left to the [`@webqit/oohtml-ssr`](https://github.com/webqit/oohtml-ssr) package!
 
 Also, if you'll be going ahead to build a real world app to see OOHTML in action, you may want to consider also using:
 
@@ -752,7 +755,7 @@ Implementation Notes
 
 Here are some performance-specific notes for this polyfill:
 
-+ By default, the Contract Functions compiler (43.15KB min+gzipped | 157KB min) is excluded from the polyfill build and fetched separately on demand - on the first encounter with a Contract Script. This is loaded into a [Web Worker](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers) and all compilations are able to happen off the main thread! This ensures near-zero cost to your application loading and runtime performance!
++ By default, the Contract Functions compiler (44.31 KB min+compressed | 157KB min) is excluded from the polyfill build and fetched separately on demand - on the first encounter with a Contract Script. This is loaded into a [Web Worker](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers) and all compilations are able to happen off the main thread! This ensures near-zero cost to your application loading and runtime performance!
 
     Note that this lazy-loading approach means that all Contract Scripts will behave "async" just like module scripts; i.e. scripts are defered until the compiler has been loaded. In other words, the following two scripts will have the same timing semantics:
 
@@ -770,7 +773,7 @@ Here are some performance-specific notes for this polyfill:
     </head>
     ```
 
-+ Whether loaded lazily or eaderly, the compiler also factors in additional optimizations. For example, identical scripts are handled only first time, and only ever have once Contract Function instance!
++ Whether loaded lazily or eagerly, the compiler also factors in additional optimizations. For example, identical scripts are handled only first time, and only ever have once Contract Function instance!
 
 Here are other notes:
 
@@ -816,25 +819,9 @@ Here are other notes:
  
 </details>
 
-## Documentation
+## Design Discussion
 
-A more detailed documentation for OOHTML is underway in the [project wiki](https://github.com/webqit/oohtml/wiki).
-
-> **Note**
-> <br>This is documentation for `OOHTML@2.x`. (Looking for [`OOHTML@1.x`](https://github.com/webqit/oohtml/tree/v1.10.4)?)
-
-<details>
-<summary>Changes in v2:</summary>
-
-> + HTML Modules <sup>(overhauled)</sup>
-> + HTML Imports <sup>(overhauled)</sup>
-> + Namespace API <sup>(overhauled)</sup>
-> + Context API <sup>(new)</sup>
-> + <ins>Bindings API</ins> <del>The State API</del>
-> + <ins>Scoped JS</ins> <del>Subscript</del>
-> + Scoped CSS <sup>new</sup>
-
-</details>
+*[TODO]*
 
 ## Getting Involved
 
