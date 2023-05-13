@@ -693,7 +693,7 @@ The polyfill can be loaded from the `unpkg.com` CDN, and should be placed early 
 </head>
 ```
 
-> 22.75KB min+gzipped | 76.53KB min
+> 23.54 KB min+compressed | 76.53KB min
 
 <details><summary>
 Extended usage concepts
@@ -755,7 +755,7 @@ Implementation Notes
 
 Here are some performance-specific notes for this polyfill:
 
-+ By default, the Contract Functions compiler (43.15KB min+gzipped | 157KB min) is excluded from the polyfill build and fetched separately on demand - on the first encounter with a Contract Script. This is loaded into a [Web Worker](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers) and all compilations are able to happen off the main thread! This ensures near-zero cost to your application loading and runtime performance!
++ By default, the Contract Functions compiler (44.31 KB min+compressed | 157KB min) is excluded from the polyfill build and fetched separately on demand - on the first encounter with a Contract Script. This is loaded into a [Web Worker](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers) and all compilations are able to happen off the main thread! This ensures near-zero cost to your application loading and runtime performance!
 
     Note that this lazy-loading approach means that all Contract Scripts will behave "async" just like module scripts; i.e. scripts are defered until the compiler has been loaded. In other words, the following two scripts will have the same timing semantics:
 
