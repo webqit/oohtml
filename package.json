@@ -33,7 +33,7 @@
     "test": "mocha --extension .test.js --exit",
     "test:coverage": "c8 --reporter=text-lcov npm run test | coveralls",
     "build": "esbuild main=src/targets.browser.js bindings-api=src/bindings-api/targets.browser.js context-api=src/context-api/targets.browser.js namespace-api=src/namespace-api/targets.browser.js html-imports=src/html-imports/targets.browser.js scoped-js=src/scoped-js/targets.browser.js scoped-css=src/scoped-css/targets.browser.js --bundle --minify --sourcemap --outdir=dist",
-    "preversion": "npm run build && git add -A dist",
+    "preversion": "npm run test && npm run build && git add -A dist",
     "postversion": "npm publish",
     "postpublish": "git push && git push --tags"
   },
