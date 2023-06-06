@@ -8,7 +8,7 @@
 
 **[Motivation](#motivation) • [Overview](#an-overview) • [Polyfill](#the-polyfill) • [Design Discussion](#design-discussion) • [Getting Involved](#getting-involved) • [License](#license)**
 
-Object-Oriented HTML (OOHTML) is a set of language features for authoring modular, reusable markup, and translating that to functional DOM-level objects! Everything comes together as a delightful holistic component architecture for the modern UI!
+Object-Oriented HTML (OOHTML) is a set of language features for authoring modular, reusable markup, and for translating that to functional DOM-level objects! Everything comes together as a delightful holistic component architecture for the modern UI!
 
 OOHTML is an upcoming proposal!
 
@@ -522,9 +522,9 @@ All of OOHTML brings to the platform much of the modern UI development paradigms
 ```html
 <body importscontext="/pages/home">
 
-  <import module="#header"></import>
-  <import module="#main"></import>
-  <import module="#footer"></import>
+  <import ref="#header"></import>
+  <import ref="#main"></import>
+  <import ref="#footer"></import>
   
   <script>
   const route = () => { document.body.setAttribute('importscontext', '/pages' + location.hash.substring(1)); };
