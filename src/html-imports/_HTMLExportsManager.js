@@ -175,7 +175,7 @@ export default class _HTMLExportsManager {
         const realtimes = [];
         const parentExportsObj = getModulesObject( this.parent );
         if ( extendedId ) {
-            realtimes.push( Observer.deep( parentExportsObj, [ extendedId, this.config.template.api.modules, Infinity ], Observer.get, handleInherited, { live: true } ) );
+            realtimes.push( Observer.reduce( parentExportsObj, [ extendedId, this.config.template.api.modules, Infinity ], Observer.get, handleInherited, { live: true } ) );
         }
         if ( ( inheritedIds = inheritedIds.split( ' ' ).map( id => id.trim() ).filter( x => x ) ).length ) {
             realtimes.push( Observer.get( parentExportsObj, inheritedIds, handleInherited, { live: true } ) );

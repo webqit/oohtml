@@ -693,7 +693,7 @@ The polyfill can be loaded from the `unpkg.com` CDN, and should be placed early 
 </head>
 ```
 
-> 23.54 KB min+compressed | 76.53KB min
+> 22.5 kB min + gz | 77.5 KB min [↗](https://bundlephobia.com/package/@webqit/oohtml@2.1.45)
 
 <details><summary>
 Extended usage concepts

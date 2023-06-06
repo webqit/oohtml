@@ -57,14 +57,14 @@ describe(`HTML Modules`, function() {
             document.import( 'temp0', temp0 => {
                 expect( temp0 ).to.have.property( 'modules' );
                 expect( temp0.modules[ '#' ] ).to.have.length( 2 );
-                const temp2 = Observer.deep( temp0.modules, getQueryPath( 'temp2' ), Observer.get );
+                const temp2 = Observer.reduce( temp0.modules, getQueryPath( 'temp2' ), Observer.get );
                 expect( temp2 ).to.have.property( 'modules' );
                 // -------
-                const temp1Inherited = Observer.deep( temp0.modules, getQueryPath( 'temp2/temp1' ), Observer.get );
+                const temp1Inherited = Observer.reduce( temp0.modules, getQueryPath( 'temp2/temp1' ), Observer.get );
                 expect( temp1Inherited ).to.have.property( 'modules' );
                 // -------
                 const temp3Observed = [];
-                Observer.deep( temp0.modules, getQueryPath( 'temp2/temp3' ), Observer.observe, record => {
+                Observer.reduce( temp0.modules, getQueryPath( 'temp2/temp3' ), Observer.observe, record => {
                     temp3Observed.push( record.value );
                 } );
                 // -------
@@ -75,7 +75,7 @@ describe(`HTML Modules`, function() {
                 expect( temp3Observed ).to.be.an( 'array' ).with.length( 1 );
                 expect( temp3Observed[ 0 ] ).to.have.property( 'modules' );
                 // -------
-                const temp3Inherited = Observer.deep( temp0.modules, getQueryPath( 'temp2/temp3' ), Observer.get );
+                const temp3Inherited = Observer.reduce( temp0.modules, getQueryPath( 'temp2/temp3' ), Observer.get );
                 expect( temp3Inherited ).to.have.property( 'modules' );
                 // -------
             } );
@@ -117,15 +117,15 @@ describe(`HTML Modules`, function() {
                 expect( temp0 ).to.have.property( 'modules' );
                 await delay( 2100 );
                 // temp1 shouldn't have been automatically loaded still
-                const hasTemp1 = Observer.deep( temp0.modules, getQueryPath( 'temp1' ), Observer.has );
+                const hasTemp1 = Observer.reduce( temp0.modules, getQueryPath( 'temp1' ), Observer.has );
                 expect( hasTemp1 ).to.be.false;
                 // Try access temp1 to trigger loading and await
-                const _temp1 = await Observer.deep( temp0.modules, getQueryPath( 'temp1' ), Observer.get );
+                const _temp1 = await Observer.reduce( temp0.modules, getQueryPath( 'temp1' ), Observer.get );
                 expect( _temp1 ).to.have.property( 'modules' );
                 // -------
                 // Receive updates
                 const temp3Observed = [];
-                Observer.deep( temp0.modules, getQueryPath( 'temp1/temp2/temp3' ), Observer.observe, ( record, lifecycle ) => {
+                Observer.reduce( temp0.modules, getQueryPath( 'temp1/temp2/temp3' ), Observer.observe, ( record, lifecycle ) => {
                     temp3Observed.push( record.value );
                 } );
                 await delay( 2100 );
