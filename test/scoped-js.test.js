@@ -19,7 +19,7 @@ describe(`Test: Scoped JS`, function() {
 
             const window = createDocument( head, body );
             window.testRecords = [];
-            await delay( 160 ); // Takes time to dynamically load Subscript compiler
+            await delay( 160 ); // Takes time to dynamically load Contract compiler
 
             expect( window.testRecords ).to.have.length( 1 );
             expect( window.testRecords[ 0 ] ).to.eql( window.document.body );
