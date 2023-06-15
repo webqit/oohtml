@@ -38,9 +38,9 @@
     "postpublish": "git push && git push --tags"
   },
   "dependencies": {
+    "@webqit/contract": "^2.1.48",
     "@webqit/observer": "^2.1.5",
     "@webqit/realdom": "^2.1.12",
-    "@webqit/subscript": "^2.1.41",
     "@webqit/util": "^0.8.11"
   },
   "devDependencies": {

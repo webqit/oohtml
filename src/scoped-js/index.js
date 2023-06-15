@@ -3,8 +3,8 @@
  * @imports
  */
 import { _isTypeObject } from '@webqit/util/js/index.js';
-import { resolveParams } from '@webqit/subscript/src/params.js';
-import SubscriptFunction from '@webqit/subscript/src/SubscriptFunctionLite.js';
+import { resolveParams } from '@webqit/contract/src/params.js';
+import ContractFunction from '@webqit/contract/src/ContractFunctionLite.js';
 import Observer from '@webqit/observer';
 import Compiler from './Compiler.js';
 import { _init } from '../util.js';
@@ -28,13 +28,13 @@ export default function init( { advanced = {}, ...$config } ) {
         return selector.concat( `script${ qualifier }[scoped],script${ qualifier }[contract]` );
     }, [] ).join( ',' );
     window.webqit.oohtml.Script = { compileCache: [ new Map, new Map, ] };
-    window.webqit.SubscriptFunction = SubscriptFunction;
+    window.webqit.ContractFunction = ContractFunction;
     window.webqit.Observer = Observer;
     realtime.call( window, config );
 }
 
 export {
-    SubscriptFunction,
+    ContractFunction,
     Observer,
 }
 

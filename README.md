@@ -768,7 +768,7 @@ Here are some performance-specific notes for this polyfill:
 
     ```html
     <head>
-      <script src="https://unpkg.com/@webqit/subscript@next/dist/compiler.js"></script> <!-- Must come before the polyfil -->
+      <script src="https://unpkg.com/@webqit/contract/dist/compiler.js"></script> <!-- Must come before the polyfil -->
       <script src="https://unpkg.com/@webqit/oohtml/dist/main.js"></script>
     </head>
     ```
