@@ -12,7 +12,7 @@ describe(`Test: Scoped JS`, function() {
         it(`Should do basic observe`, async function() {
             const head = '', body = `            
             <h1>Hello World!</h1>
-            <script scoped contract>
+            <script scoped reflex>
                 testRecords.push( this );
                 console.log('-------scoped JS here.');
             </script>`;

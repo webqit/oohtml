@@ -55,7 +55,7 @@ export default class Compiler {
     compile( script, thisContext ) {
         const _static = this.constructor;
         const { webqit: { oohtml, ContractFunction } } = this.window;
-        const cache = oohtml.Script.compileCache[ script.contract ? 0 : 1 ];
+        const cache = oohtml.Script.compileCache[ script.reflex ? 0 : 1 ];
         const sourceHash = _static.toHash( script.textContent );
         // Script instances are parsed only once
         let source = script.textContent, compiledScript;
@@ -64,7 +64,7 @@ export default class Compiler {
             let imports = [], meta = {};
             let targetKeywords = [];
             if ( script.type === 'module' ) targetKeywords.push( 'import ' );
-            if ( script.type === 'module' && !script.contract ) targetKeywords.push( 'await ' );
+            if ( script.type === 'module' && !script.reflex ) targetKeywords.push( 'await ' );
             if ( targetKeywords.length && ( new RegExp( targetKeywords.join( '|' ) ) ).test( source ) ) {
                 [ imports, source, meta ] = this.parse( source );
                 if ( imports.length ) {
@@ -73,7 +73,7 @@ export default class Compiler {
             }
             // Let's obtain a material functions
             let _Function, { parserParams, compilerParams, runtimeParams } = this.config.advanced;
-            if ( script.contract ) {
+            if ( script.reflex ) {
                 parserParams = { ...parserParams, allowAwaitOutsideFunction: script.type === 'module' };
                 runtimeParams = { ...runtimeParams, async: script.type === 'module' };
                 _Function = ContractFunction( source, { compilerParams, parserParams, runtimeParams, } );
@@ -89,7 +89,7 @@ export default class Compiler {
             // Save material function to compile cache
             compiledScript = Object.defineProperty( script.cloneNode(), 'function', { value: _Function } );
             script.scoped && Object.defineProperty( compiledScript, 'scoped', Object.getOwnPropertyDescriptor( script, 'scoped') );
-            script.contract && Object.defineProperty( compiledScript, 'contract', Object.getOwnPropertyDescriptor( script, 'contract') );
+            script.reflex && Object.defineProperty( compiledScript, 'reflex', Object.getOwnPropertyDescriptor( script, 'reflex') );
             cache.set( sourceHash, compiledScript );
         }
         const execHash = _static.toHash( { script, compiledScript, thisContext } );

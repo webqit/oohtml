@@ -21,7 +21,7 @@ export function createDocument( head = '', body = '', callback = null, ) {
     <!DOCTYPE html>
     <html>
         <head>
-        <meta name="contract-compiler-url" content="../contract/dist/compiler.js">
+        <meta name="reflex-compiler-url" content="../reflex-functions/dist/compiler.js">
         <script ssr src="/dist/main.js"></script>
         ${ head }
         </head>

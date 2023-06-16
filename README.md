@@ -435,10 +435,10 @@ element.bindings.data = { prop1: 'value1' };
 Observer.set(element.bindings.data, 'prop2', 'value2');
 ```
 
-└ *"Contract Scripts" for reactive scripting*:
+└ *"Reflex Scripts" for reactive scripting*:
 
 ```html
-<script contract>
+<script reflex>
   console.log(this) // window
 
   console.log(window.liveProperty) // live expression
@@ -457,7 +457,7 @@ Observer.set(window, 'liveProperty'); // Live expressions rerun
 
 ```html
 <div>
-  <script contract scoped>
+  <script reflex scoped>
     console.log(this) // div
 
     console.log(this.liveProperty) // live expression
@@ -699,7 +699,7 @@ The polyfill can be loaded from the `unpkg.com` CDN, and should be placed early 
 Extended usage concepts
 </summary>
 
-If you must load the script "async", one little trade-off has to be made for `<script scoped>` and `<script contract>` elements to have them ignored by the browser until the polyfill comes picking them up: *employing a custom MIME type in place of the standard `text/javascript` and `module` types*, in which case, a `<meta name="scoped-js">` element is used to configure the polyfill to honor the custom MIME type:
+If you must load the script "async", one little trade-off has to be made for `<script scoped>` and `<script reflex>` elements to have them ignored by the browser until the polyfill comes picking them up: *employing a custom MIME type in place of the standard `text/javascript` and `module` types*, in which case, a `<meta name="scoped-js">` element is used to configure the polyfill to honor the custom MIME type:
 
 ```html
 <head>
@@ -713,7 +713,7 @@ If you must load the script "async", one little trade-off has to be made for `<s
 </body>
 ```
 
-The custom MIME type strategy also comes in as a "fix" for when in a browser or other runtime where the polyfill is not able to intercept `<script scoped>` and `<script contract>` elements ahead of the runtime - e.g. where...
+The custom MIME type strategy also comes in as a "fix" for when in a browser or other runtime where the polyfill is not able to intercept `<script scoped>` and `<script reflex>` elements ahead of the runtime - e.g. where...
 
 ```html
 <body>
@@ -755,25 +755,25 @@ Implementation Notes
 
 Here are some performance-specific notes for this polyfill:
 
-+ By default, the Contract Functions compiler (44.31 KB min+compressed | 157KB min) is excluded from the polyfill build and fetched separately on demand - on the first encounter with a Contract Script. This is loaded into a [Web Worker](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers) and all compilations are able to happen off the main thread! This ensures near-zero cost to your application loading and runtime performance!
++ By default, the Reflex Functions compiler (44.31 KB min+compressed | 157KB min) is excluded from the polyfill build and fetched separately on demand - on the first encounter with a Reflex Script. This is loaded into a [Web Worker](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers) and all compilations are able to happen off the main thread! This ensures near-zero cost to your application loading and runtime performance!
 
-    Note that this lazy-loading approach means that all Contract Scripts will behave "async" just like module scripts; i.e. scripts are defered until the compiler has been loaded. In other words, the following two scripts will have the same timing semantics:
+    Note that this lazy-loading approach means that all Reflex Scripts will behave "async" just like module scripts; i.e. scripts are defered until the compiler has been loaded. In other words, the following two scripts will have the same timing semantics:
 
     ```html
-    <script contract></script>
-    <script type="module" contract></script>
+    <script reflex></script>
+    <script type="module" reflex></script>
     ```
 
-    This isn't necessarily bad unless there is a requirment to have classic scripts follow their [native synchronous timing](https://html.spec.whatwg.org/multipage/parsing.html#scripts-that-modify-the-page-as-it-is-being-parsed), in which case the Contract Functions compiler will need to be explicitly and synchronously loaded ahead of any encounter with classic Contract Scripts:
+    This isn't necessarily bad unless there is a requirment to have classic scripts follow their [native synchronous timing](https://html.spec.whatwg.org/multipage/parsing.html#scripts-that-modify-the-page-as-it-is-being-parsed), in which case the Reflex Functions compiler will need to be explicitly and synchronously loaded ahead of any encounter with classic Reflex Scripts:
 
     ```html
     <head>
-      <script src="https://unpkg.com/@webqit/contract/dist/compiler.js"></script> <!-- Must come before the polyfil -->
+      <script src="https://unpkg.com/@webqit/reflex-functions/dist/compiler.js"></script> <!-- Must come before the polyfil -->
       <script src="https://unpkg.com/@webqit/oohtml/dist/main.js"></script>
     </head>
     ```
 
-+ Whether loaded lazily or eagerly, the compiler also factors in additional optimizations. For example, identical scripts are handled only first time, and only ever have once Contract Function instance!
++ Whether loaded lazily or eagerly, the compiler also factors in additional optimizations. For example, identical scripts are handled only first time, and only ever have once Reflex Function instance!
 
 Here are other notes:
 

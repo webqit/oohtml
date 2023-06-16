@@ -38,13 +38,13 @@
     "postpublish": "git push && git push --tags"
   },
   "dependencies": {
-    "@webqit/contract": "^2.1.48",
     "@webqit/observer": "^2.1.5",
     "@webqit/realdom": "^2.1.12",
+    "@webqit/reflex-functions": "^2.1.49",
     "@webqit/util": "^0.8.11"
   },
   "devDependencies": {
-    "@webqit/oohtml-ssr": "^1.2.13",
+    "@webqit/oohtml-ssr": "^1.2.14",
     "chai": "^4.3.4",
     "coveralls": "^3.1.1",
     "esbuild": "^0.14.43",

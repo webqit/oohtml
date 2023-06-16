@@ -3,8 +3,8 @@
  * @imports
  */
 import { _isTypeObject } from '@webqit/util/js/index.js';
-import { resolveParams } from '@webqit/contract/src/params.js';
-import ContractFunction from '@webqit/contract/src/ContractFunctionLite.js';
+import { resolveParams } from '@webqit/reflex-functions/src/params.js';
+import ContractFunction from '@webqit/reflex-functions/src/ContractFunctionLite.js';
 import Observer from '@webqit/observer';
 import Compiler from './Compiler.js';
 import { _init } from '../util.js';
@@ -25,7 +25,7 @@ export default function init( { advanced = {}, ...$config } ) {
     } );
 	config.scriptSelector = ( Array.isArray( config.script.mimeType ) ? config.script.mimeType : [ config.script.mimeType ] ).reduce( ( selector, mm ) => {
         const qualifier = mm ? `[type=${ window.CSS.escape( mm ) }]` : '';
-        return selector.concat( `script${ qualifier }[scoped],script${ qualifier }[contract]` );
+        return selector.concat( `script${ qualifier }[scoped],script${ qualifier }[reflex]` );
     }, [] ).join( ',' );
     window.webqit.oohtml.Script = { compileCache: [ new Map, new Map, ] };
     window.webqit.ContractFunction = ContractFunction;
@@ -47,7 +47,7 @@ export function execute( compiledScript, thisContext, script ) {
     };
     // Execute...
     const returnValue = compiledScript.function.call( thisContext );
-    if ( script.contract ) {
+    if ( script.reflex ) {
         // Rerending processes,,,
         Object.defineProperty( script, 'rerender', { value: ( ...args ) => _await( returnValue, ( [ , rerender ] ) => rerender( ...args ) ) } );
         _await( script.properties, properties => {
@@ -69,7 +69,7 @@ export function execute( compiledScript, thisContext, script ) {
     const window = this, { realdom } = window.webqit;
     if ( !( thisContext instanceof window.Node ) ) return script;
     realdom.realtime( window.document ).observe( thisContext, () => {
-        if ( script.contract ) {
+        if ( script.reflex ) {
             // Rerending processes,,,
             _await( script.properties, properties => {
                 properties.processes.forEach( process => process?.abort() );
@@ -95,8 +95,8 @@ function realtime( config ) {
     const compiler = new Compiler( window, config, execute ), handled = () => {};
 	realdom.realtime( window.document ).subtree/*instead of observe(); reason: jsdom timing*/( config.scriptSelector, record => {
         record.entrants.forEach( script => {
-            if ( 'contract' in script ) return handled( script );
-            Object.defineProperty( script, 'contract', { value: script.hasAttribute( 'contract' ) } ); 
+            if ( 'reflex' in script ) return handled( script );
+            Object.defineProperty( script, 'reflex', { value: script.hasAttribute( 'reflex' ) } ); 
             if ( 'scoped' in script ) return handled( script );
             Object.defineProperty( script, 'scoped', { value: script.hasAttribute( 'scoped' ) } ); 
             if ( record.type === 'query' || ( potentialManualTypes.includes( script.type ) && !window.HTMLScriptElement.supports( script.type ) ) ) {

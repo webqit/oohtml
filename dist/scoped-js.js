@@ -3,7 +3,7 @@
 `);u.graph.originalSource=`${a}(${t.join(", ")}) {
 ${p}
 }`,u.graph.originalSourceModified=!0}return e&&Object.defineProperty(u.callee,"name",{configurable:!0,value:e}),u},l=this.prototype.createFunction(c,o);return X(l,"locations",S(r,u=>({locations:u.locations}))),l}};function ge(...n){if(typeof window!="object")throw new Error("No window in context.");let e=he(typeof n[n.length-1]=="object"?n.pop():{}),r=nt(n.pop()||""),t=n,i=o=>oe.createFunction(void 0,o,t,e.runtimeParams,this,r);if(window.webqit?.ContractCompiler&&!e.runtimeParams.async){let{parse:o,compile:s}=window.webqit.ContractCompiler,c=o(r,e.parserParams);return i(s(c,e.compilerParams))}if(window.webqit=window.webqit||{},!window.webqit.ContractCompilerWorker){let c=`
-        const compilerUrls = [ '${(document.querySelector('meta[name="contract-compiler-url"]')?.content.split(",")||[]).concat("https://unpkg.com/@webqit/contract/dist/compiler.js").join("','")}' ];
+        const compilerUrls = [ '${(document.querySelector('meta[name="contract-compiler-url"]')?.content.split(",")||[]).concat("https://unpkg.com/@webqit/reflex-functions/dist/compiler.js").join("','")}' ];
         ( function importScript() {
             try { importScripts( compilerUrls.shift().trim() ) } catch( e ) { if ( compilerUrls.length ) { importScript(); } }
         } )();
