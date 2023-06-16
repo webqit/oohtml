@@ -21,7 +21,7 @@ describe(`Test: Scoped CSS`, function() {
             </div>`;
 
             const window = createDocument( head, body );
-            await delay( 160 ); // Takes time to dynamically load Contract compiler
+            await delay( 160 ); // Takes time to dynamically load Reflex compiler
             const styleElement = window.document.querySelector( 'style' );
 
             expect( styleElement.textContent.substring( 0, 13 ) ).to.eq( '@scope from (' );

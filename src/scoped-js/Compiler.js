@@ -54,7 +54,7 @@ export default class Compiler {
     // Compile scipt
     compile( script, thisContext ) {
         const _static = this.constructor;
-        const { webqit: { oohtml, ContractFunction } } = this.window;
+        const { webqit: { oohtml, ReflexFunction } } = this.window;
         const cache = oohtml.Script.compileCache[ script.reflex ? 0 : 1 ];
         const sourceHash = _static.toHash( script.textContent );
         // Script instances are parsed only once
@@ -76,8 +76,8 @@ export default class Compiler {
             if ( script.reflex ) {
                 parserParams = { ...parserParams, allowAwaitOutsideFunction: script.type === 'module' };
                 runtimeParams = { ...runtimeParams, async: script.type === 'module' };
-                _Function = ContractFunction( source, { compilerParams, parserParams, runtimeParams, } );
-                Object.defineProperty( script, 'properties', { configurable: true, value: ContractFunction.inspect( _Function, 'properties' ) } );
+                _Function = ReflexFunction( source, { compilerParams, parserParams, runtimeParams, } );
+                Object.defineProperty( script, 'properties', { configurable: true, value: ReflexFunction.inspect( _Function ) } );
             } else {
                 const isAsync = script.type === 'module'//meta.topLevelAwait || imports.length;
                 const _FunctionConstructor = isAsync ? Object.getPrototypeOf( async function() {} ).constructor : Function;

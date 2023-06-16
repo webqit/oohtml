@@ -4,7 +4,7 @@
  */
 import { _isTypeObject } from '@webqit/util/js/index.js';
 import { resolveParams } from '@webqit/reflex-functions/src/params.js';
-import ContractFunction from '@webqit/reflex-functions/src/ContractFunctionLite.js';
+import ReflexFunction from '@webqit/reflex-functions/src/ReflexFunctionLite.js';
 import Observer from '@webqit/observer';
 import Compiler from './Compiler.js';
 import { _init } from '../util.js';
@@ -28,13 +28,13 @@ export default function init( { advanced = {}, ...$config } ) {
         return selector.concat( `script${ qualifier }[scoped],script${ qualifier }[reflex]` );
     }, [] ).join( ',' );
     window.webqit.oohtml.Script = { compileCache: [ new Map, new Map, ] };
-    window.webqit.ContractFunction = ContractFunction;
+    window.webqit.ReflexFunction = ReflexFunction;
     window.webqit.Observer = Observer;
     realtime.call( window, config );
 }
 
 export {
-    ContractFunction,
+    ReflexFunction,
     Observer,
 }
 
@@ -49,7 +49,7 @@ export function execute( compiledScript, thisContext, script ) {
     const returnValue = compiledScript.function.call( thisContext );
     if ( script.reflex ) {
         // Rerending processes,,,
-        Object.defineProperty( script, 'rerender', { value: ( ...args ) => _await( returnValue, ( [ , rerender ] ) => rerender( ...args ) ) } );
+        Object.defineProperty( script, 'reflect', { value: ( ...args ) => _await( returnValue, ( [ , reflect ] ) => reflect( ...args ) ) } );
         _await( script.properties, properties => {
             const _env = { 'this': thisContext };
             const getPaths = ( base, record_s ) => ( Array.isArray( record_s ) ? record_s : [ record_s ] ).map( record => [ ...base, ...( record.path || [ record.key ] ) ] );
@@ -57,11 +57,11 @@ export function execute( compiledScript, thisContext, script ) {
                 if ( _isTypeObject( _env[ path[ 0 ] ] ) ) {
                     if ( path.length === 1 ) return;
                     return Observer.reduce( _env[ path[ 0 ] ], path.slice( 1 ), Observer.observe, record_s => {
-                        script.rerender( ...getPaths( [ path[ 0 ] ], record_s ) );
+                        script.reflect( ...getPaths( [ path[ 0 ] ], record_s ) );
                     } );
                 }
                 return Observer.reduce( globalThis, path, Observer.observe, record_s => {
-                    script.rerender( ...getPaths( [], record_s ) );
+                    script.reflect( ...getPaths( [], record_s ) );
                 } );
             } );
         } );
