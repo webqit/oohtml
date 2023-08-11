@@ -534,7 +534,7 @@ All of OOHTML brings to the platform much of the modern UI development paradigms
 </body>
 ```
 
-**--> Example 2:** The following is a Listbox component lifted directively from [ARIA Authoring Practices Guide (APG)](https://www.w3.org/WAI/ARIA/apg/patterns/listbox/examples/listbox-grouped/#sc_label) but with IDs effectively "contained" at different levels within the component using the `namespace` attribute.
+**--> Example 2:** The following is a Listbox component lifted directly from the [ARIA Authoring Practices Guide (APG)](https://www.w3.org/WAI/ARIA/apg/patterns/listbox/examples/listbox-grouped/#sc_label) but with IDs effectively "contained" at different levels within the component using the `namespace` attribute.
 
 └ *A Listbox with namespaced IDs*:
 
