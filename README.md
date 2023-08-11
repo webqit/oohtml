@@ -20,7 +20,7 @@ With all of scripts, style sheets and standard identifiers being "unuseable" bey
 
 This project is a proposal for a new standards work that revisits much of the oldish monolith-oriented constraints in HTML that cause all the community-based wizardry around a *component* architecture to proliferate!
 
-└ [See more in the introductory blog post](https://dev.to/oxharris/the-web-native-equations-1fragment1p-temp-slug-6661657?preview=ba70ad2c17f05b5761bc74516dbde8c9eff8b581a0420d87334fd9ef6bab9d6e6d3ab6aaf3fe02542bb9e7250d0a88a6df91dae40919aabcc9a07320)<sup>draft</sup>
+└ [See more in the introductory blog post](https://dev.to/oxharris/html-bmo-temp-slug-6744225?preview=065ed74e3971baef5ddc59438403d900d31f1f6bdbabf03ad1fc884720ab2ebc1e5d27a9bc64481c3354e39109dc7ba94f5fe64c06efd61725d4d68f)<sup>draft</sup>
 
 ## An Overview
 
