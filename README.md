@@ -32,7 +32,7 @@ OOHTML comes in three sets of features, and the following is an overview. A more
 + [Put Together](#put-together)
 
 > **Note**
-> <br>This is documentation for `OOHTML@2.x`. (Looking for [`OOHTML@1.x`](https://github.com/webqit/oohtml/tree/v1.10.4)?)
+> This is documentation for `OOHTML@2.x`. (Looking for [`OOHTML@1.x`](https://github.com/webqit/oohtml/tree/v1.10.4)?)
 
 ### Modular HTML
 
