@@ -14,11 +14,11 @@ OOHTML is an upcoming proposal!
 
 ## Motivation
 
-The web has generally outgrown HTML's idea of a monolith architecture which has held to the document as the unit of abstraction for scripts, style sheets, and element identifiers (the `id` attribute, and in some scenarios, the `name` attribute). Whereas you're trying to *model things* in markup and are thinking in objects, components, logical building blocks, reusable units of abstraction - as we have of things like [Vue's SFC](https://vuejs.org/api/sfc-spec.html), [Svelte component format](https://svelte.dev/docs#component-format-script), [11ty's WebC](https://www.11ty.dev/docs/languages/webc/#css-and-js-(bundler-mode)) - the language for the job is imposing a global namespace constraint!
+The web has generally outgrown the idea of a monolith architecture on the UI! But enter HTML; the current authoring experience is one where an author is trying to think out one thing but forced to work out everything, in how the language for the job poses one global scope as the unit of abstraction for styles, scripts and element identifiers — enforcing many global dependencies; inflicting much global thinking!
 
-With all of scripts, style sheets and standard identifiers being "unuseable" beyond the global scope, and in fact, tied to the global scope, **the amount of precision and coordination that must happen at the global level in the typical web page is just too unrealistic to go by hand**! This is one more thing that retains unecessary tooling in the modern application development story!
+Think too of how authors often have to do half of the work in HTML and half in JS just to have reusable markup!
 
-This project is a proposal for a new standards work that revisits much of the oldish monolith-oriented constraints in HTML that cause all the community-based wizardry around a *component* architecture to proliferate!
+This project is a proposal for a new standards work that revisits much of the oldish monolith-oriented constraints in HTML that inhibit the idea of a *component* architecture in HTML! The name Object-Oriented HMTL turns out to be more descriptive of the idea than the "component" paradigm!
 
 └ [See more in the introductory blog post](https://dev.to/oxharris/html-bmo-temp-slug-6744225?preview=065ed74e3971baef5ddc59438403d900d31f1f6bdbabf03ad1fc884720ab2ebc1e5d27a9bc64481c3354e39109dc7ba94f5fe64c06efd61725d4d68f)<sup>draft</sup>
 
