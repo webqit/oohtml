@@ -153,7 +153,7 @@ describe(`HTML Modules`, function() {
             const body = `
             <div></div>`;
             const { document, window } = createDocument( head, body );
-            await delay( 20 );
+            await delay( 50 );
 
             // -------
             const addScopedModules = () => {
