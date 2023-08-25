@@ -70,7 +70,7 @@ export default class _HTMLExportsManager {
      * @returns Void
      */
     export( entries, isConnected ) {
-        let dirty, allFragments = Observer.get( this.modules, '#' ) || [];
+        let dirty, allFragments = this.modules[ '#' ] || [];
         Observer.batch( this.modules, () => {
             entries.forEach( entry => {
                 if ( entry.nodeType !== 1 ) return;
@@ -139,7 +139,7 @@ export default class _HTMLExportsManager {
         const fire = ( type, detail ) => this.host.dispatchEvent( new this.window.CustomEvent( type, { detail } ) );
         const request = this.window.fetch( src, { signal: controller.signal, element: this.host } ).then( response => {
             return response.ok ? response.text() : Promise.reject( response.statusText );
-        }).then( content => {
+        } ).then( content => {
             this.host.innerHTML = content.trim(); // IMPORTANT: .trim()
             fire( 'load' );
             return this.host;
