@@ -102,7 +102,7 @@ describe(`HTML Modules`, function() {
                 const timeout = 1000;
                 mockRemoteFetch( window, { '/temp0.html': contents0, '/temp1.html': contents1, '/temp2.html': contents2 }, timeout );
             } );
-            await delay( 20 );
+            await delay( 50 );
             const { webqit: { Observer } } = window;
             // -------
             // Add a remote module
