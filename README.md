@@ -14,13 +14,13 @@ OOHTML is an upcoming proposal!
 
 ## Motivation
 
-The web has generally outgrown HTML's idea of a monolith architecture which has held to the document as the unit of abstraction for scripts, style sheets, and element identifiers (the `id` attribute, and in some scenarios, the `name` attribute). Whereas you're trying to *model things* in markup and are thinking in objects, components, logical building blocks, reusable units of abstraction - as we have of things like [Vue's SFC](https://vuejs.org/api/sfc-spec.html), [Svelte component format](https://svelte.dev/docs#component-format-script), [11ty's WebC](https://www.11ty.dev/docs/languages/webc/#css-and-js-(bundler-mode)) - the language for the job is imposing a global namespace constraint!
+The web has generally outgrown the idea of a monolith architecture on the UI! But enter HTML; the current authoring experience is one where an author is trying to think out one thing but forced to work out everything, in how the language for the job poses one global scope as the unit of abstraction for styles, scripts and element identifiers — enforcing many global dependencies; inflicting much global thinking!
 
-With all of scripts, style sheets and standard identifiers being "unuseable" beyond the global scope, and in fact, tied to the global scope, **the amount of precision and coordination that must happen at the global level in the typical web page is just too unrealistic to go by hand**! This is one more thing that retains unecessary tooling in the modern application development story!
+Think too of how authors often have to do half of the work in HTML and half in JS just to have reusable markup!
 
-This project is a proposal for a new standards work that revisits much of the oldish monolith-oriented constraints in HTML that cause all the community-based wizardry around a *component* architecture to proliferate!
+This project is a proposal for a new standards work that revisits much of the oldish monolith-oriented constraints in HTML that inhibit the idea of a *component* architecture in HTML! The name Object-Oriented HMTL turns out to be more descriptive of the idea than the "component" paradigm!
 
-└ [See more in the introductory blog post](https://dev.to/oxharris/the-web-native-equations-1fragment1p-temp-slug-6661657?preview=ba70ad2c17f05b5761bc74516dbde8c9eff8b581a0420d87334fd9ef6bab9d6e6d3ab6aaf3fe02542bb9e7250d0a88a6df91dae40919aabcc9a07320)<sup>draft</sup>
+└ [See more in the introductory blog post](https://dev.to/oxharris/the-web-native-equations-1m1p-temp-slug-6661657?preview=ba70ad2c17f05b5761bc74516dbde8c9eff8b581a0420d87334fd9ef6bab9d6e6d3ab6aaf3fe02542bb9e7250d0a88a6df91dae40919aabcc9a07320)<sup>draft</sup>
 
 ## An Overview
 
@@ -31,8 +31,7 @@ OOHTML comes in three sets of features, and the following is an overview. A more
 + [Reactive HTML](#reactive-html)
 + [Put Together](#put-together)
 
-> **Note**
-> <br>This is documentation for `OOHTML@2.x`. (Looking for [`OOHTML@1.x`](https://github.com/webqit/oohtml/tree/v1.10.4)?)
+> **Note**  This is documentation for `OOHTML@2.x`. (Looking for [`OOHTML@1.x`](https://github.com/webqit/oohtml/tree/v1.10.4)?)
 
 ### Modular HTML
 
@@ -534,7 +533,7 @@ All of OOHTML brings to the platform much of the modern UI development paradigms
 </body>
 ```
 
-**--> Example 2:** The following is a Listbox component lifted directively from [ARIA Authoring Practices Guide (APG)](https://www.w3.org/WAI/ARIA/apg/patterns/listbox/examples/listbox-grouped/#sc_label) but with IDs effectively "contained" at different levels within the component using the `namespace` attribute.
+**--> Example 2:** The following is a Listbox component lifted directly from the [ARIA Authoring Practices Guide (APG)](https://www.w3.org/WAI/ARIA/apg/patterns/listbox/examples/listbox-grouped/#sc_label) but with IDs effectively "contained" at different levels within the component using the `namespace` attribute.
 
 └ *A Listbox with namespaced IDs*:
 
