@@ -45,10 +45,7 @@ export default class Compiler {
                     script.textContent = `"source hidden"`;
                     break;
                 default:
-                    script.textContent = ' ';
-                    setTimeout( () => {
-                        //script.textContent = compiledScript.function.originalSource;
-                    }, 10 );
+                    script.textContent = compiledScript.function.originalSource;
             }
             return executeCallback.call( window, compiledScript, thisContext, script );
         };    

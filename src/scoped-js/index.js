@@ -100,7 +100,7 @@ function realtime( config ) {
             Object.defineProperty( script, 'reflex', { value: script.hasAttribute( 'reflex' ) } ); 
             if ( 'scoped' in script ) return handled( script );
             Object.defineProperty( script, 'scoped', { value: script.hasAttribute( 'scoped' ) } ); 
-            if ( record.type === 'query' || ( potentialManualTypes.includes( script.type ) && !window.HTMLScriptElement.supports( script.type ) ) ) {
+            if ( /*record.type === 'query' ||*/ ( potentialManualTypes.includes( script.type ) && !window.HTMLScriptElement.supports( script.type ) ) ) {
                 Object.defineProperty( script, 'handling', { value: 'manual' } ); 
             }
             const thisContext = script.scoped ? script.parentNode || record.target : ( script.type === 'module' ? undefined : window );
