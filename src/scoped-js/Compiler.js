@@ -45,7 +45,10 @@ export default class Compiler {
                     script.textContent = `"source hidden"`;
                     break;
                 default:
-                    script.textContent = compiledScript.function.originalSource;
+                    script.textContent = ' ';
+                    setTimeout( () => {
+                        //script.textContent = compiledScript.function.originalSource;
+                    }, 10 );
             }
             return executeCallback.call( window, compiledScript, thisContext, script );
         };    
@@ -56,9 +59,10 @@ export default class Compiler {
         const _static = this.constructor;
         const { webqit: { oohtml, ReflexFunction } } = this.window;
         const cache = oohtml.Script.compileCache[ script.reflex ? 0 : 1 ];
-        const sourceHash = _static.toHash( script.textContent );
+        const textContent = ( script._ = script.textContent.trim() ) && script._.startsWith( '/*@oohtml*/if(false){' ) && script._.endsWith( '}/*@oohtml*/' ) ? script._.slice( 21, -12 ) : script.textContent;
+        const sourceHash = _static.toHash( textContent );
         // Script instances are parsed only once
-        let source = script.textContent, compiledScript;
+        let source = textContent, compiledScript;
         if ( !( compiledScript = cache.get( sourceHash ) ) ) {
             // Are there "import" (and "await") statements? Then, we need to rewrite that
             let imports = [], meta = {};
@@ -85,7 +89,7 @@ export default class Compiler {
                     ? runtimeParams.compileFunction( source )
                     : new _FunctionConstructor( source );
             }
-            Object.defineProperty( _Function, 'originalSource', { configurable: true, value: script.textContent } );
+            Object.defineProperty( _Function, 'originalSource', { configurable: true, value: textContent } );
             // Save material function to compile cache
             compiledScript = Object.defineProperty( script.cloneNode(), 'function', { value: _Function } );
             script.scoped && Object.defineProperty( compiledScript, 'scoped', Object.getOwnPropertyDescriptor( script, 'scoped') );

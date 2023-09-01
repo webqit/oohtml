@@ -16,7 +16,7 @@ import { _ } from '../util.js';
 export default function( config ) {
     const window = this, { realdom } = window.webqit;
     const BaseElement = config.import.tagName.includes( '-' ) ? window.HTMLElement : class {};
-    return class HTMLImportElement extends BaseElement {
+    class HTMLImportElement extends BaseElement {
         
         /**
          * @instance
@@ -27,7 +27,7 @@ export default function( config ) {
          */
         static instance( node ) {
             if ( config.import.tagName.includes( '-' ) && ( node instanceof this ) )  return node;
-            return _( node ).get( 'import::instance' ) || new this( node );;
+            return _( node ).get( 'import::instance' ) || new this( node );
         }
 
         /**
@@ -211,4 +211,8 @@ export default function( config ) {
          */
         get slottedElements() { return this[ '#' ].slottedElements; }
     }
+    if ( config.import.tagName.includes( '-' ) ) {
+        customElements.define( config.import.tagName, HTMLImportElement );
+    }
+    return HTMLImportElement;
 }

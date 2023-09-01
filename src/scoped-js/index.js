@@ -95,6 +95,7 @@ function realtime( config ) {
     const compiler = new Compiler( window, config, execute ), handled = () => {};
 	realdom.realtime( window.document ).subtree/*instead of observe(); reason: jsdom timing*/( config.scriptSelector, record => {
         record.entrants.forEach( script => {
+            if ( script.cloned ) return;
             if ( 'reflex' in script ) return handled( script );
             Object.defineProperty( script, 'reflex', { value: script.hasAttribute( 'reflex' ) } ); 
             if ( 'scoped' in script ) return handled( script );
