@@ -108,7 +108,7 @@ function realtime( config ) {
 	}, { live: true, timing: 'sync', staticSensitivity: config.staticsensitivity } );
 	// ----------------
 	if ( config.staticsensitivity ) {
-		realdom.realtime( window.document, 'attr' ).observe( config.namespaceSelector, record => {
+		realdom.realtime( window.document, 'attr' ).observe( config.namespace.attr, record => {
 			const ownerRoot = record.target.parentNode?.closest( config.namespaceSelector ) || _( record.target ).get( 'ownerNamespace' ) || window.document;
 			const ownerRootNamespaceObj = getNamespaceObject.call( window, ownerRoot, config );
 			const namespaceObj = getNamespaceObject.call( window, record.target, config );
