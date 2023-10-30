@@ -32,7 +32,7 @@ export default function init( $config = {} ) {
         static get config() { return config; }
     };
     window.webqit.Observer = Observer;
-    exposeModulesObjects.call( window, config );
+    exposeAPIs.call( window, config );
     realdom.ready( () => hydration.call( window, config ) );
     realtime.call( window, config );
 }
@@ -62,7 +62,7 @@ export function getModulesObject( node, autoCreate = true ) {
  *
  * @return Void
  */
-function exposeModulesObjects( config ) {
+function exposeAPIs( config ) {
     const window = this;
     // Assertions
     if ( config.template.api.modules in window.HTMLTemplateElement.prototype ) { throw new Error( `The "HTMLTemplateElement" class already has a "${ config.template.api.modules }" property!` ); }
@@ -76,14 +76,14 @@ function exposeModulesObjects( config ) {
     Object.defineProperty( window.HTMLTemplateElement.prototype, config.template.api.moduledef, { get: function() {
         return this.getAttribute( config.template.attr.moduledef );
     } } );
-    Object.defineProperty( window.document, config.context.api.import, { value: function( ref, callback, options = {} ) {
-        return importRequest( window.document, ref, callback, options );
+    Object.defineProperty( window.document, config.context.api.import, { value: function( ref, callback = null ) {
+        return importRequest( window.document, ...arguments );
     } } );
-    Object.defineProperty( window.HTMLElement.prototype, config.context.api.import, { value: function( ref, callback, options = {} ) {
-        return importRequest( this, ref, callback, options );
+    Object.defineProperty( window.HTMLElement.prototype, config.context.api.import, { value: function( ref, callback = null ) {
+        return importRequest( this, ...arguments );
     } } );
-    function importRequest( context, ref, callback, options ) {
-        const request = _HTMLImportsProvider.createRequest( { detail: ref, ...options } );
+    function importRequest( context, ref, callback = null ) {
+        const request = _HTMLImportsProvider.createRequest( { detail: ref } );
         return HTMLContext.instance( context ).request( request, callback );
     }
 }

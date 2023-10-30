@@ -166,7 +166,7 @@ describe(`HTML Modules`, function() {
             };
             // -------
             const contextRequest = ( el, params, callback ) => {
-                const request = { type: 'htmlimports', live: true, ...params };
+                const request = { type: 'html-imports', live: true, ...params };
                 const event = new document.context.ContextRequestEvent( request, callback, {
                     bubbles: true,
                 } );

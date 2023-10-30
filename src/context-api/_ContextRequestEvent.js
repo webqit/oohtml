@@ -17,8 +17,8 @@ export default function() {
          */
         respondWith( response, ...rest ) {
             if ( this.request.diff ) {
-                if ( 'previousValue' in this && this.previousValue === response ) return;
-                this.previousValue = response;
+                if ( 'prevValue' in this && this.prevValue === response ) return;
+                Object.defineProperty( this, 'prevValue', { value: response, configurable: true } );
             }
             return this.callback( response, ...rest );
         }

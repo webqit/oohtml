@@ -1,17 +1,12 @@
 # OOHTML
 
-<!-- BADGES/ -->
-
-<span class="badge-npmversion"><a href="https://npmjs.org/package/@webqit/oohtml" title="View this project on NPM"><img src="https://img.shields.io/npm/v/@webqit/oohtml.svg" alt="NPM version" /></a></span> <span class="badge-npmdownloads"><a href="https://npmjs.org/package/@webqit/oohtml" title="View this project on NPM"><img src="https://img.shields.io/npm/dm/@webqit/oohtml.svg" alt="NPM downloads" /></a></span>
-
-<!-- /BADGES --> 
-
 **[Motivation](#motivation) • [Overview](#an-overview) • [Polyfill](#the-polyfill) • [Design Discussion](#design-discussion) • [Getting Involved](#getting-involved) • [License](#license)**
 
 Object-Oriented HTML (OOHTML) is a set of language features for authoring modular, reusable markup, and for translating that to functional DOM-level objects! Everything comes together as a delightful holistic component architecture for the modern UI!
 
 OOHTML is an upcoming proposal!
 
+<!--
 ## Motivation
 
 The web has generally outgrown the idea of a monolith architecture on the UI! But enter HTML; the current authoring experience is one where an author is trying to think out one thing but forced to work out everything, in how the language for the job poses one global scope as the unit of abstraction for styles, scripts and element identifiers — enforcing many global dependencies; inflicting much global thinking!
@@ -21,6 +16,7 @@ Think too of how authors often have to do half of the work in HTML and half in J
 This project is a proposal for a new standards work that revisits much of the oldish monolith-oriented constraints in HTML that inhibit the idea of a *component* architecture in HTML! The name Object-Oriented HMTL turns out to be more descriptive of the idea than the "component" paradigm!
 
 └ [See more in the introductory blog post](https://dev.to/oxharris/the-web-native-equations-1m1p-temp-slug-6661657?preview=ba70ad2c17f05b5761bc74516dbde8c9eff8b581a0420d87334fd9ef6bab9d6e6d3ab6aaf3fe02542bb9e7250d0a88a6df91dae40919aabcc9a07320)<sup>draft</sup>
+-->
 
 ## An Overview
 
@@ -434,10 +430,10 @@ element.bindings.data = { prop1: 'value1' };
 Observer.set(element.bindings.data, 'prop2', 'value2');
 ```
 
-└ *"Reflex Scripts" for reactive scripting*:
+└ *"Stateful Scripts" for reactive scripting*:
 
 ```html
-<script reflex>
+<script stateful>
   console.log(this) // window
 
   console.log(window.liveProperty) // live expression
@@ -456,7 +452,7 @@ Observer.set(window, 'liveProperty'); // Live expressions rerun
 
 ```html
 <div>
-  <script reflex scoped>
+  <script stateful scoped>
     console.log(this) // div
 
     console.log(this.liveProperty) // live expression
@@ -698,7 +694,7 @@ The polyfill can be loaded from the `unpkg.com` CDN, and should be placed early 
 Extended usage concepts
 </summary>
 
-If you must load the script "async", one little trade-off has to be made for `<script scoped>` and `<script reflex>` elements to have them ignored by the browser until the polyfill comes picking them up: *employing a custom MIME type in place of the standard `text/javascript` and `module` types*, in which case, a `<meta name="scoped-js">` element is used to configure the polyfill to honor the custom MIME type:
+If you must load the script "async", one little trade-off has to be made for `<script scoped>` and `<script stateful>` elements to have them ignored by the browser until the polyfill comes picking them up: *employing a custom MIME type in place of the standard `text/javascript` and `module` types*, in which case, a `<meta name="scoped-js">` element is used to configure the polyfill to honor the custom MIME type:
 
 ```html
 <head>
@@ -712,7 +708,7 @@ If you must load the script "async", one little trade-off has to be made for `<s
 </body>
 ```
 
-The custom MIME type strategy also comes in as a "fix" for when in a browser or other runtime where the polyfill is not able to intercept `<script scoped>` and `<script reflex>` elements ahead of the runtime - e.g. where...
+The custom MIME type strategy also comes in as a "fix" for when in a browser or other runtime where the polyfill is not able to intercept `<script scoped>` and `<script stateful>` elements ahead of the runtime - e.g. where...
 
 ```html
 <body>
@@ -754,25 +750,25 @@ Implementation Notes
 
 Here are some performance-specific notes for this polyfill:
 
-+ By default, the Reflex Functions compiler (44.31 KB min+compressed | 157KB min) is excluded from the polyfill build and fetched separately on demand - on the first encounter with a Reflex Script. This is loaded into a [Web Worker](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers) and all compilations are able to happen off the main thread! This ensures near-zero cost to your application loading and runtime performance!
++ By default, the Stateful JS compiler (44.31 KB min+compressed | 157KB min) is excluded from the polyfill build and fetched separately on demand - on the first encounter with a Stateful Script. This is loaded into a [Web Worker](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers) and all compilations are able to happen off the main thread! This ensures near-zero cost to your application loading and runtime performance!
 
-    Note that this lazy-loading approach means that all Reflex Scripts will behave "async" just like module scripts; i.e. scripts are defered until the compiler has been loaded. In other words, the following two scripts will have the same timing semantics:
+    Note that this lazy-loading approach means that all Stateful Scripts will behave "async" just like module scripts; i.e. scripts are defered until the compiler has been loaded. In other words, the following two scripts will have the same timing semantics:
 
     ```html
-    <script reflex></script>
-    <script type="module" reflex></script>
+    <script stateful></script>
+    <script type="module" stateful></script>
     ```
 
-    This isn't necessarily bad unless there is a requirment to have classic scripts follow their [native synchronous timing](https://html.spec.whatwg.org/multipage/parsing.html#scripts-that-modify-the-page-as-it-is-being-parsed), in which case the Reflex Functions compiler will need to be explicitly and synchronously loaded ahead of any encounter with classic Reflex Scripts:
+    This isn't necessarily bad unless there is a requirment to have classic scripts follow their [native synchronous timing](https://html.spec.whatwg.org/multipage/parsing.html#scripts-that-modify-the-page-as-it-is-being-parsed), in which case the Stateful JS compiler will need to be explicitly and synchronously loaded ahead of any encounter with classic Stateful Scripts:
 
     ```html
     <head>
-      <script src="https://unpkg.com/@webqit/reflex-functions/dist/compiler.js"></script> <!-- Must come before the polyfil -->
+      <script src="https://unpkg.com/@webqit/stateful-js/dist/compiler.js"></script> <!-- Must come before the polyfil -->
       <script src="https://unpkg.com/@webqit/oohtml/dist/main.js"></script>
     </head>
     ```
 
-+ Whether loaded lazily or eagerly, the compiler also factors in additional optimizations. For example, identical scripts are handled only first time, and only ever have once Reflex Function instance!
++ Whether loaded lazily or eagerly, the compiler also factors in additional optimizations. For example, identical scripts are handled only first time, and only ever have one Stateful JS instance!
 
 Here are other notes:
 

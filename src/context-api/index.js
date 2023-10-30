@@ -7,6 +7,14 @@ import HTMLContext from './HTMLContext.js';
 import HTMLContextProvider from './HTMLContextProvider.js';
 
 /**
+ * @exports
+ */
+export {
+    HTMLContextProvider,
+    HTMLContext,
+}
+
+/**
  * Initializes HTML Modules.
  * 
  * @param $config  Object
@@ -19,7 +27,7 @@ export default function init( $config = {} ) {
     } );
     window.webqit.HTMLContextProvider = HTMLContextProvider;
     window.webqit.HTMLContext = HTMLContext;
-    exposeModulesObjects.call( window, config );
+    exposeAPIs.call( window, config );
 }
 
 /**
@@ -29,7 +37,7 @@ export default function init( $config = {} ) {
  *
  * @return Void
  */
-function exposeModulesObjects( config ) {
+function exposeAPIs( config ) {
     const window = this;
     // Assertions
     if ( config.api.context in window.document ) { throw new Error( `document already has a "${ config.api.context }" property!` ); }
@@ -41,12 +49,20 @@ function exposeModulesObjects( config ) {
     Object.defineProperty( window.HTMLElement.prototype, config.api.context, { get: function() {
         return HTMLContext.instance( this );
     } } );
-}
-
-/**
- * @exports
- */
-export {
-    HTMLContextProvider,
-    HTMLContext,
+    const waitlist = new Set;
+    window.addEventListener( 'contextrequest', event => {
+        if ( !( typeof event.request === 'object' && event.request ) || typeof event.respondWith !== 'function' ) return;
+        waitlist.add( event );
+        event.respondWith();
+    } );
+    window.addEventListener( 'contextclaim', event => {
+        if ( !( typeof event.request === 'object' && event.request ) || typeof event.respondWith !== 'function' ) return;
+        const claims = new Set;
+        waitlist.forEach( subscriptionEvent => {
+            if ( !HTMLContextProvider.providers.get( event.request.type ).matchRequest( event.request/*provider ID*/, subscriptionEvent.request/*request ID*/ ) ) return;
+            waitlist.delete( subscriptionEvent );
+            claims.add( subscriptionEvent );
+        } );
+        event.respondWith( claims );
+    } );
 }

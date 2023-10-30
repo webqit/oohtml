@@ -32,19 +32,19 @@
   "scripts": {
     "test": "mocha --extension .test.js --exit",
     "test:coverage": "c8 --reporter=text-lcov npm run test | coveralls",
-    "build": "esbuild main=src/targets.browser.js bindings-api=src/bindings-api/targets.browser.js context-api=src/context-api/targets.browser.js namespace-api=src/namespace-api/targets.browser.js html-imports=src/html-imports/targets.browser.js scoped-js=src/scoped-js/targets.browser.js scoped-css=src/scoped-css/targets.browser.js --bundle --minify --sourcemap --outdir=dist",
-    "preversion": "npm run test && npm run build && git add -A dist",
+    "build": "esbuild main=src/targets.browser.js context-api=src/context-api/targets.browser.js bindings-api=src/bindings-api/targets.browser.js html-bracelets=src/html-bracelets/targets.browser.js html-namespaces=src/html-namespaces/targets.browser.js html-imports=src/html-imports/targets.browser.js scoped-js=src/scoped-js/targets.browser.js scoped-css=src/scoped-css/targets.browser.js --bundle --minify --sourcemap --outdir=dist",
+    "preversion": "npm run build && git add -A dist",
     "postversion": "npm publish",
     "postpublish": "git push && git push --tags"
   },
   "dependencies": {
-    "@webqit/observer": "^2.1.5",
-    "@webqit/realdom": "^2.1.13",
-    "@webqit/reflex-functions": "^2.1.50",
+    "@webqit/observer": "^2.2.9",
+    "@webqit/realdom": "^2.1.17-0",
+    "@webqit/stateful-js": "^3.0.14-0",
     "@webqit/util": "^0.8.11"
   },
   "devDependencies": {
-    "@webqit/oohtml-ssr": "^1.2.15",
+    "@webqit/oohtml-ssr": "^1.2.16",
     "chai": "^4.3.4",
     "coveralls": "^3.1.1",
     "esbuild": "^0.14.43",

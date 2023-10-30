@@ -2,12 +2,19 @@
 /**
  * @imports
  */
-import { _isTypeObject } from '@webqit/util/js/index.js';
-import { resolveParams } from '@webqit/reflex-functions/src/params.js';
-import ReflexFunction from '@webqit/reflex-functions/src/ReflexFunctionLite.js';
+import { resolveParams } from '@webqit/stateful-js/src/params.js';
+import { StatefulAsyncFunction, StatefulAsyncScript, StatefulModule, State } from '@webqit/stateful-js/src/index.async.js';
 import Observer from '@webqit/observer';
-import Compiler from './Compiler.js';
+import Hash from './Hash.js';
 import { _init } from '../util.js';
+
+export {
+    StatefulAsyncFunction,
+    StatefulAsyncScript,
+    StatefulModule,
+    State,
+    Observer,
+}
 
 /**
  * @init
@@ -17,68 +24,47 @@ import { _init } from '../util.js';
 export default function init( { advanced = {}, ...$config } ) {
     const { config, window } = _init.call( this, 'scoped-js', $config, {
         script: { retention: 'retain', mimeType: '' },
-        advanced: resolveParams( advanced, {
-            parserParams: { allowReturnOutsideFunction: false, allowSuperOutsideMethod: false },
-            compilerParams: { globalsNoObserve: [ 'alert' ] },
-            runtimeParams: { apiVersion: 2 },
-        } ),
+        advanced: resolveParams( advanced ),
     } );
 	config.scriptSelector = ( Array.isArray( config.script.mimeType ) ? config.script.mimeType : [ config.script.mimeType ] ).reduce( ( selector, mm ) => {
         const qualifier = mm ? `[type=${ window.CSS.escape( mm ) }]` : '';
-        return selector.concat( `script${ qualifier }[scoped],script${ qualifier }[reflex]` );
+        return selector.concat( `script${ qualifier }[scoped],script${ qualifier }[stateful]` );
     }, [] ).join( ',' );
-    window.webqit.oohtml.Script = { compileCache: [ new Map, new Map, ] };
-    window.webqit.ReflexFunction = ReflexFunction;
-    window.webqit.Observer = Observer;
+    Object.assign( window.webqit, { StatefulAsyncFunction, StatefulAsyncScript, StatefulModule, State, Observer } );
+    window.webqit.oohtml.Script = {
+        compileCache: [ new Map, new Map, ],
+        execute: execute.bind( window, config ),
+    };
     realtime.call( window, config );
 }
 
-export {
-    ReflexFunction,
-    Observer,
-}
-
-// ------------------
 // Script runner
-export function execute( compiledScript, thisContext, script ) {
-    if ( !compiledScript.function ) throw new Error( `Input script must already be compiled!` );
-    const _try = ( callback, isRerender = false ) => {
-        return callback();
-    };
-    // Execute...
-    const returnValue = compiledScript.function.call( thisContext );
-    if ( script.reflex ) {
-        // Rerending processes,,,
-        Object.defineProperty( script, 'reflect', { value: ( ...args ) => _await( returnValue, ( [ , reflect ] ) => reflect( ...args ) ) } );
-        _await( script.properties, properties => {
-            const _env = { 'this': thisContext };
-            const getPaths = ( base, record_s ) => ( Array.isArray( record_s ) ? record_s : [ record_s ] ).map( record => [ ...base, ...( record.path || [ record.key ] ) ] );
-            properties.processes = properties.dependencies.map( path => {
-                if ( _isTypeObject( _env[ path[ 0 ] ] ) ) {
-                    if ( path.length === 1 ) return;
-                    return Observer.reduce( _env[ path[ 0 ] ], path.slice( 1 ), Observer.observe, record_s => {
-                        script.reflect( ...getPaths( [ path[ 0 ] ], record_s ) );
-                    } );
-                }
-                return Observer.reduce( globalThis, path, Observer.observe, record_s => {
-                    script.reflect( ...getPaths( [], record_s ) );
-                } );
-            } );
-        } );
-    }
+async function execute( config, execHash ) {
     const window = this, { realdom } = window.webqit;
+    const exec = Hash.fromHash( execHash );
+    if ( !exec ) throw new Error( `Argument must be a valid exec hash.` );
+    const { script, compiledScript, thisContext } = exec;
+    // Honour retention flag
+    if ( config.script.retention === 'dispose' ) {
+        script.remove();
+    } else if ( config.script.retention === 'dispose' ) {
+        script.textContent = `"source hidden"`;
+    } else {
+        script.textContent = await compiledScript.toString();
+    }
+    // Execute and save state
+    const state = ( await compiledScript.bind( thisContext ) ).execute();
+    if ( thisContext instanceof window.Element && script.scoped ) {
+        if ( !thisContext.scripts ) { Object.defineProperty( thisContext, 'scripts', { value: [] } ); }
+        thisContext.scripts.push( state );
+    }
+    // Observe DOM removal
     if ( !( thisContext instanceof window.Node ) ) return script;
     realdom.realtime( window.document ).observe( thisContext, () => {
-        if ( script.reflex ) {
-            // Rerending processes,,,
-            _await( script.properties, properties => {
-                properties.processes.forEach( process => process?.abort() );
-            } );
-        }
         thisContext.dispatchEvent( new window.CustomEvent( 'remove' ) );
-        thisContext.scripts.delete( script );
+        state.dispose();
+        thisContext.scripts.splice( thisContext.scripts.indexOf( state, 1 ) );
     }, { subtree: true, timing: 'sync', generation: 'exits' } );
-    return script;
 }
 
 /**
@@ -89,25 +75,39 @@ export function execute( compiledScript, thisContext, script ) {
  * @return Void
  */
 function realtime( config ) {
-	const window = this, { realdom } = window.webqit;
+	const window = this, { oohtml, realdom } = window.webqit;
     if ( !window.HTMLScriptElement.supports ) { window.HTMLScriptElement.supports = () => false; }
     const potentialManualTypes = [ 'module' ].concat( config.script.mimeType || [] );
-    const compiler = new Compiler( window, config, execute ), handled = () => {};
 	realdom.realtime( window.document ).subtree/*instead of observe(); reason: jsdom timing*/( config.scriptSelector, record => {
         record.entrants.forEach( script => {
             if ( script.cloned ) return;
-            if ( 'reflex' in script ) return handled( script );
-            Object.defineProperty( script, 'reflex', { value: script.hasAttribute( 'reflex' ) } ); 
+            if ( 'stateful' in script ) return handled( script );
+            Object.defineProperty( script, 'stateful', { value: script.hasAttribute( 'stateful' ) } ); 
             if ( 'scoped' in script ) return handled( script );
             Object.defineProperty( script, 'scoped', { value: script.hasAttribute( 'scoped' ) } ); 
-            if ( /*record.type === 'query' ||*/ ( potentialManualTypes.includes( script.type ) && !window.HTMLScriptElement.supports( script.type ) ) ) {
-                Object.defineProperty( script, 'handling', { value: 'manual' } ); 
+            // Do compilation
+            const textContent = ( script._ = script.textContent.trim() ) && script._.startsWith( '/*@oohtml*/if(false){' ) && script._.endsWith( '}/*@oohtml*/' ) ? script._.slice( 21, -12 ) : script.textContent;
+            const sourceHash = Hash.toHash( textContent );
+            const compileCache = oohtml.Script.compileCache[ script.stateful ? 0 : 1 ];
+            let compiledScript;
+            if ( !( compiledScript = compileCache.get( sourceHash ) ) ) {
+                const { parserParams, compilerParams, runtimeParams } = config.advanced;
+                compiledScript = new ( script.type === 'module' ? StatefulModule : StatefulAsyncScript )( textContent, {
+                    packageName: script.id,
+                    parserParams,
+                    compilerParams: { ...compilerParams, startStatic: !script.stateful },
+                    runtimeParams,
+                } );
+                compileCache.set( sourceHash, compiledScript );
             }
+            // Run now!!!
             const thisContext = script.scoped ? script.parentNode || record.target : ( script.type === 'module' ? undefined : window );
-            compiler.compile( script, thisContext );
+            const execHash = Hash.toHash( { script, compiledScript, thisContext } );
+            const manualHandling = record.type === 'query' || ( potentialManualTypes.includes( script.type ) && !window.HTMLScriptElement.supports( script.type ) );
+            if ( manualHandling ) { oohtml.Script.execute( execHash ); } else {
+                script.textContent = `webqit.oohtml.Script.execute( '${ execHash }' );`;
+            }
         } );
 	}, { live: true, timing: 'intercept', generation: 'entrants', eventDetails: true } );
     // ---
 }
-
-const _await = ( value, callback ) => value instanceof Promise ? value.then( callback ) : callback( value );

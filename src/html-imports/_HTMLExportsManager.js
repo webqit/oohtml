@@ -165,9 +165,9 @@ export default class _HTMLExportsManager {
         const handleInherited = records => {
             records.forEach( record => {
                 if ( Observer.get( this.modules, record.key ) !== record.oldValue ) return;
-                if ( [ 'get'/*initial get*/, 'set', 'defineProperty' ].includes( record.type ) ) {
+                if ( [ 'get'/*initial get*/, 'set', 'def' ].includes( record.type ) ) {
                     Observer[ record.type.replace( 'get', 'set' ) ]( this.modules, record.key, record.value );
-                } else if ( record.type === 'deleteProperty' ) {
+                } else if ( record.type === 'delete' ) {
                     Observer.deleteProperty( this.modules, record.key );
                 }
             } );

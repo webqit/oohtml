@@ -5,13 +5,15 @@
 import Observer from '@webqit/observer';
 import { _, _init } from '../util.js';
 
+export { Observer }
+
 /**
  * @init
  * 
  * @param Object $config
  */
 export default function init( $config = {} ) {
-    const { config, window } = _init.call( this, 'namespace-api', $config, {
+    const { config, window } = _init.call( this, 'html-namespaces', $config, {
 		id: { attr: 'id' },
 		namespace: { attr: 'namespace',  api: 'namespace', },
 		target: { attr: ':target', event: ':target', scrolling: true },
@@ -21,31 +23,8 @@ export default function init( $config = {} ) {
 	config.idSelector = `[${ window.CSS.escape( config.id.attr ) }]`;
 	config.namespaceSelector = `[${ window.CSS.escape( config.namespace.attr ) }]`;
     window.webqit.Observer = Observer;
-    exposeNamespaceObjects.call( window, config );
+    exposeAPIs.call( window, config );
     realtime.call( window, config );
-}
-
-export { Observer }
-
-/**
- * Exposes Namespaced HTML with native APIs.
- *
- * @param Object config
- *
- * @return Void
- */
-function exposeNamespaceObjects( config ) {
-	const window = this;
-    // Assertions
-    if ( config.namespace.api in window.document ) { throw new Error( `document already has a "${ config.namespace.api }" property!` ); }
-    if ( config.namespace.api in window.Element.prototype ) { throw new Error( `The "Element" class already has a "${ config.namespace.api }" property!` ); }
-    // Definitions
-    Object.defineProperty( window.document, config.namespace.api, { get: function() {
-        return Observer.proxy( getNamespaceObject.call( window, window.document, config ) );
-    } });
-    Object.defineProperty( window.Element.prototype, config.namespace.api, { get: function() {
-        return Observer.proxy( getNamespaceObject.call( window, this, config ) );
-    } } );
 }
 
 /**
@@ -76,6 +55,27 @@ function getNamespaceObject( node, config ) {
 		_( node ).set( 'namespace', namespaceObj );
 	}
 	return _( node ).get( 'namespace' );
+}
+
+/**
+ * Exposes Namespaced HTML with native APIs.
+ *
+ * @param Object config
+ *
+ * @return Void
+ */
+function exposeAPIs( config ) {
+	const window = this;
+    // Assertions
+    if ( config.namespace.api in window.document ) { throw new Error( `document already has a "${ config.namespace.api }" property!` ); }
+    if ( config.namespace.api in window.Element.prototype ) { throw new Error( `The "Element" class already has a "${ config.namespace.api }" property!` ); }
+    // Definitions
+    Object.defineProperty( window.document, config.namespace.api, { get: function() {
+        return Observer.proxy( getNamespaceObject.call( window, window.document, config ) );
+    } });
+    Object.defineProperty( window.Element.prototype, config.namespace.api, { get: function() {
+        return Observer.proxy( getNamespaceObject.call( window, this, config ) );
+    } } );
 }
 
 /**

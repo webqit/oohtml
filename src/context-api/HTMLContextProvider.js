@@ -8,6 +8,16 @@ import HTMLContext from './HTMLContext.js';
 export default class HTMLContextProvider {
 
     /**
+     * For reference purposes
+     */
+    static providers = new Map;
+
+    /**
+     * To be implemented by subclasses
+     */
+    static type;
+
+    /**
      * @config
      */
     static get config() {
@@ -18,20 +28,21 @@ export default class HTMLContextProvider {
      * @attachTo
      */
     static attachTo( host, Id, multiple = false ) {
+        this.providers.set( this.type, this );
         let provider, contextMgr = HTMLContext.instance( host );
-        if ( !multiple && ( provider = contextMgr.findProvider( cx => this.matchRequest( cx.id, Id, true ) ) ) ) return provider;
+        if ( !multiple && ( provider = contextMgr.findProvider( provider => this.matchId( provider.id, Id ) ) ) ) return provider;
         return contextMgr.attachProvider( new this( Id ) );
     }
 
     /**
      * @detachFrom
      */
-    static detachFrom( host, Id, multiple = false ) {
+    static detachFrom( host, Id, multipleOrFilter = false ) {
         let provider, contextMgr = HTMLContext.instance( host );
         for ( provider of contextMgr[ '#' ].contexts ) {
-            if ( !this.matchRequest( provider.id, Id, true ) || ( typeof multiple === 'function' && !multiple( provider ) ) ) continue;
+            if ( !this.matchId( provider.id, Id ) || ( typeof multipleOrFilter === 'function' && !multipleOrFilter( provider ) ) ) continue;
             contextMgr.detachProvider( provider );
-            if ( typeof multiple !== 'function' && !multiple ) return provider;
+            if ( typeof multiple !== 'function' && !multipleOrFilter ) return provider;
         }
     }
  
@@ -39,7 +50,7 @@ export default class HTMLContextProvider {
      * @createId
      */
     static createId( host, fields = {} ) {
-        const id = { ...fields };
+        const id = { type: this.type, ...fields };
         if ( id.contextName ) return id;
         if ( host.getAttribute && !( id.contextName = ( host.getAttribute( this.config.context.attr.contextname ) || '' ).trim() ) ) {
             delete id.contextName;
@@ -48,20 +59,26 @@ export default class HTMLContextProvider {
         }
         return id;
     }
+
+    /**
+     * @matchId
+     */
+    static matchId( a, b ) {
+        return _compare( a, b, 1, true );
+    }
  
     /**
      * @createRequest
      */
     static createRequest( fields = {} ) {
-        return { ...fields };
+        return { type: this.type, ...fields };
     }
 
     /**
      * @matchesRequest
      */
-    static matchRequest( id, request, strict = false ) {
-        if ( strict ) return _compare( id, request, 1, true );
-        return request.type === id.type && !request.contextName || request.contextName === id.contextName;
+    static matchRequest( id, request ) {
+        return request.type === id.type && ( !request.contextName || request.contextName === id.contextName );
     }
 
     /**
@@ -108,7 +125,7 @@ export default class HTMLContextProvider {
      */
     handleEvent( event ) {
         if ( this.disposed || ( event.target === this.host && event.request?.superContextOnly )
-        || !event.request || typeof event.callback !== 'function' || !this.constructor.matchRequest( this.id, event.request ) ) return;
+        || !( typeof event.request === 'object' && event.request ) || typeof event.respondWith !== 'function' || !this.constructor.matchRequest( this.id, event.request ) ) return;
         event.stopPropagation();
         if ( event.type === 'contextclaim' ) {
             const claims = new Set;

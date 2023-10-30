@@ -2,6 +2,7 @@
 /**
  * @imports
  */
+import ContextReturnValue from './ContextReturnValue.js';
 import _ContextRequestEvent from './_ContextRequestEvent.js';
 import { _ } from '../util.js';
 
@@ -25,8 +26,7 @@ export default class HTMLContext {
         const ContextRequestEvent = _ContextRequestEvent.call( host.ownerDocument?.defaultView || host.defaultView );
         Object.defineProperty( this, 'ContextRequestEvent', { get: () => ContextRequestEvent } );
         this[ Symbol.iterator ] = function*() {
-            const it = priv.contexts[ Symbol.iterator ]();
-            yield it.next().value;
+            yield* priv.contexts;
         }
     }
 
@@ -63,10 +63,18 @@ export default class HTMLContext {
     /**
      * @request()
      */
-    request( request, callback, options = {} ) {
-        return this[ '#' ].host.dispatchEvent(
-            new this.ContextRequestEvent( request, callback, { bubbles: true, ...options } )
-        );
+    request( request, callback = null, options = {} ) {
+        if ( typeof callback === 'object' ) {
+            options = callback;
+            callback = null;
+        }
+        let contextReturnValue;
+        if ( !callback ) {
+            contextReturnValue = new ContextReturnValue( request, this[ '#' ].host );
+            callback = contextReturnValue.callback.bind( contextReturnValue );
+        }
+        const returnValue = this[ '#' ].host.dispatchEvent( new this.ContextRequestEvent( request, callback, { bubbles: true, ...options } ) );
+        return contextReturnValue ?? returnValue;
     }
 
     /**

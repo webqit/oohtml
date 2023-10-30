@@ -9,19 +9,13 @@ import { _ } from '../util.js';
 
 export default class _HTMLImportsProvider extends HTMLContextProvider {
 
-    /**
-     * @createId
-     */
-    static createId( host, fields = {} ) {
-        if ( !( 'type' in fields ) ) fields = { type: 'htmlimports', ...fields };
-        return super.createId( host, fields );
-    }
+    static type = 'html-imports';
 
     /**
      * @createRequest
      */
     static createRequest( fields = {} ) {
-        const request = { type: 'htmlimports', ...fields };
+        const request = super.createRequest( fields );
         if ( !request.contextName && request.detail?.startsWith( '/' ) ) { request.contextName = 'root'; }
         else if ( request.detail?.startsWith( '@' ) ) {
             const [ contextName, ...detail ] = request.detail.slice( 1 ).split( /(?<=\w)(?=\/|#)/ ).map( s => s.trim() );
@@ -65,7 +59,7 @@ export default class _HTMLImportsProvider extends HTMLContextProvider {
             return Observer.reduce( this.contextModules, path, Observer.get, result => {
                 return event.respondWith( Array.isArray( result ) ? result : result.value );
             }, { signal, ...options } );
-        }, options );
+        }, { lifecycleSignals: true, ...options } );
     }
 
     /**
