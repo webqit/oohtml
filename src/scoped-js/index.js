@@ -2,8 +2,8 @@
 /**
  * @imports
  */
-import { resolveParams } from '@webqit/stateful-js/src/params.js';
-import { StatefulAsyncFunction, StatefulAsyncScript, StatefulModule, State } from '@webqit/stateful-js/src/index.async.js';
+import { resolveParams } from '@webqit/stateful-js/params';
+import { StatefulAsyncFunction, StatefulAsyncScript, StatefulModule, State } from '@webqit/stateful-js/async';
 import Observer from '@webqit/observer';
 import Hash from './Hash.js';
 import { _init } from '../util.js';
@@ -54,16 +54,10 @@ async function execute( config, execHash ) {
     }
     // Execute and save state
     const state = ( await compiledScript.bind( thisContext ) ).execute();
-    if ( thisContext instanceof window.Element && script.scoped ) {
-        if ( !thisContext.scripts ) { Object.defineProperty( thisContext, 'scripts', { value: [] } ); }
-        thisContext.scripts.push( state );
-    }
-    // Observe DOM removal
-    if ( !( thisContext instanceof window.Node ) ) return script;
-    realdom.realtime( window.document ).observe( thisContext, () => {
-        thisContext.dispatchEvent( new window.CustomEvent( 'remove' ) );
-        state.dispose();
-        thisContext.scripts.splice( thisContext.scripts.indexOf( state, 1 ) );
+    if ( script.stateful ) { Object.defineProperty( script, 'state', { value: state } ); }
+    realdom.realtime( window.document ).observe( script, () => {
+        if ( script.stateful ) { state.dispose(); }
+        if ( script.scoped ) { thisContext.scripts.splice( thisContext.scripts.indexOf( script, 1 ) ); }
     }, { subtree: true, timing: 'sync', generation: 'exits' } );
 }
 
@@ -102,6 +96,10 @@ function realtime( config ) {
             }
             // Run now!!!
             const thisContext = script.scoped ? script.parentNode || record.target : ( script.type === 'module' ? undefined : window );
+            if ( script.scoped ) {
+                if ( !thisContext.scripts ) { Object.defineProperty( thisContext, 'scripts', { value: [] } ); }
+                thisContext.scripts.push( script );
+            }
             const execHash = Hash.toHash( { script, compiledScript, thisContext } );
             const manualHandling = record.type === 'query' || ( potentialManualTypes.includes( script.type ) && !window.HTMLScriptElement.supports( script.type ) );
             if ( manualHandling ) { oohtml.Script.execute( execHash ); } else {

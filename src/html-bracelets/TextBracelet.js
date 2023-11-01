@@ -7,7 +7,7 @@ import Bracelet from './Bracelet.js';
 import { _ } from '../util.js';
 
 export default class TextBracelet extends Bracelet {
-    static get query() { return `text()[not(ancestor::script) and ${ this.tokens.contains }]`; }
+    static get query() { return `text()[not(ancestor::script) and not(ancestor::style) and ${ this.tokens.contains }]`; }
     
     static parse( ...nodes ) {
         return nodes.reduce( ( nodes, node ) => {

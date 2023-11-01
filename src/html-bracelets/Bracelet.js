@@ -65,13 +65,17 @@ export default class Bracelet {
     }
 
     render( bindings ) {
-        const value = this.renderExpr( this.expr, bindings );
+        let value = this.renderExpr( this.expr, bindings );
         if ( typeof value === 'undefined' ) {
-            if ( !this.dirty ) return;
-            this.value = this.originalValue;
+            value = this.originalValue;
+            if ( !this.dirty ) {
+                if ( this._booleanAble ) { value = false; }
+                else return;
+            }
+            this.value = value;
             return;
         }
-        this.value = value + '';
+        this.value = value;
     }
 
     disconnect() { this.disconnected = true; }

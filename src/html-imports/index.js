@@ -76,14 +76,18 @@ function exposeAPIs( config ) {
     Object.defineProperty( window.HTMLTemplateElement.prototype, config.template.api.moduledef, { get: function() {
         return this.getAttribute( config.template.attr.moduledef );
     } } );
-    Object.defineProperty( window.document, config.context.api.import, { value: function( ref, callback = null ) {
+    Object.defineProperty( window.document, config.context.api.import, { value: function( ref, live = false, callback = null ) {
         return importRequest( window.document, ...arguments );
     } } );
-    Object.defineProperty( window.HTMLElement.prototype, config.context.api.import, { value: function( ref, callback = null ) {
+    Object.defineProperty( window.HTMLElement.prototype, config.context.api.import, { value: function( ref, live = false, callback = null ) {
         return importRequest( this, ...arguments );
     } } );
-    function importRequest( context, ref, callback = null ) {
-        const request = _HTMLImportsProvider.createRequest( { detail: ref } );
+    function importRequest( context, ref, live = false, callback = null ) {
+        if ( typeof live === 'function' ) {
+            callback = live;
+            live = false;
+        }
+        const request = _HTMLImportsProvider.createRequest( { detail: ref, live } );
         return HTMLContext.instance( context ).request( request, callback );
     }
 }

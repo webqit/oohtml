@@ -7,12 +7,12 @@ import Bracelet from './Bracelet.js';
 import { _ } from '../util.js';
 
 export default class AttrBracelet extends Bracelet {
-    static get query() { return `*[@*[${ this.tokens.contains }]]`; }
+    static get query() { return `@*[${ this.tokens.contains }]`; }
     
     static parse( ...attrs ) {
         return attrs.reduce( ( attrs, attr ) => {
             return attrs.concat( [ ...attr.nodeValue.matchAll( new RegExp( this.tokens.regex, 'g' ) ) ].reduce( ( bracelets, match ) => {
-                const bracelet = new this( attr, match[ 0 ], match.index, match[ 1 ].trim() );
+                const bracelet = new this( attr, match[ 0 ], match.index, match[ 1 ].trim(), attr.nodeName === 'class' || match[ 0 ] === attr.nodeValue.trim() );
                 const prev = bracelets.slice( -1 )[ 0 ];
                 if ( prev ) { prev._nextSibling = bracelet; }
                 return bracelets.concat( bracelet );
@@ -55,25 +55,31 @@ export default class AttrBracelet extends Bracelet {
         }
     }
 
-    constructor( attr, _value, startIndex, expr ) {
+    constructor( attr, _value, startIndex, expr, booleanAble ) {
         super();
         const $refs = [], $expr = this.parseExpr( expr, $refs );
+        const ownerElement = attr.ownerElement; // Hard save. Deleted attributes don't retain .ownerElement
         Object.defineProperties( this, {
             type: { get: () => 'attr' },
             expr: { get: () => $expr },
             refs: { get: () => $refs },
             attr: { get: () => attr },
-            ownerElement: { get: () => attr.ownerElement },
+            ownerElement: { get: () => ownerElement },
             originalValue: { value: _value },
             _value: { value: _value, writable: true },
             _dirty: { value: false, writable: true },
             _startIndex: { value: undefined, writable: true },
             _endIndex: { value: undefined, writable: true },
             _nextSibling: { value: undefined, writable: true },
+            _booleanAble: { value: booleanAble, writable: true },
             _nested: { value: new Set },
         } );
+        if ( this.attr.nodeName === 'class' && ( this.expr.length !== 1 || this.expr[ 0 ].type !== 'ref' ) ) {
+            throw new Error( `Invalid bracelet for the class attribute: "${ this.originalValue }"` );
+        }
         this.startIndex = startIndex;
     }
+    get isBoolean() { return this._booleanAble && typeof this._value === 'boolean'; }
 
     get startIndex() { return this._startIndex; }
     set startIndex( value ) {
@@ -97,7 +103,14 @@ export default class AttrBracelet extends Bracelet {
         this._nested.forEach( p => p.disconnect() );
         const attrBraceletsRegistry = _( this.ownerElement ).get( 'attr-bracelets' );
         attrBraceletsRegistry.active.unshift( this );
-        this.ownerElement.setAttribute( this.attr.nodeName, this.attr.nodeValue.substring( 0, this.startIndex ) + value + this.attr.nodeValue.substring( this.endIndex ) );
+        if ( this.isBoolean && this.attr.nodeName !== 'class' ) {
+            this.ownerElement.toggleAttribute( this.attr.nodeName, value );
+        } else {
+            if ( this.isBoolean && this.attr.nodeName === 'class' ) {
+                value = value ? this.expr[ 0 ].value.join( '' ) : '';
+            }
+            this.ownerElement.setAttribute( this.attr.nodeName, this.attr.nodeValue.substring( 0, this.startIndex ) + value + this.attr.nodeValue.substring( this.endIndex ) );
+        }
         attrBraceletsRegistry.active.shift();
         // Reindex
         const newEndIndex = this.startIndex + value.length;

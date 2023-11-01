@@ -6,8 +6,8 @@ import Observer from "@webqit/observer";
 
 export default class ContextReturnValue {
     constructor( request, hostElement ) {
-        this.request = request;
-        this.hostElement = hostElement;
+        Object.defineProperty( this, 'request', { value: request } );
+        Object.defineProperty( this, 'hostElement', { value: hostElement } );
         if ( request.live && !request.signal ) {
             Object.defineProperty( this, 'abortController', { value: new AbortController } );
             request.signal = this.abortController.signal;

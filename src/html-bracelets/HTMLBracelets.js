@@ -31,17 +31,17 @@ export default class HTMLBracelets extends Set {
         if ( !( bracelet instanceof Bracelet ) ) throw new Error( `Argument must be instance of Bracelet.` );
         const returnValue = super.add( bracelet );
         const bindings = this[ '#' ].bindings;
-        bracelet.refs.forEach( ref => {
-            const $ref = ref.join( '.' );
-            if ( !( $ref in bindings ) ) {
-                bindings[ $ref ] = { subs: new Set, controller: new AbortController };
-               const request = _HTMLBindingsProvider.createRequest( { detail: ref, live: true, signal: bindings[ $ref ].signal } );
+        bracelet.refs.forEach( path => {
+            const $path = path.join( '.' );
+            if ( !( $path in bindings ) ) {
+                bindings[ $path ] = { subs: new Set, controller: new AbortController };
+               const request = _HTMLBindingsProvider.createRequest( { detail: path, live: true, signal: bindings[ $path ].signal } );
                 HTMLContext.instance( this[ '#' ].host ).request( request, value => {
-                    bindings[ $ref ].value = value;
-                    bindings[ $ref ].subs.forEach( bracelet => bracelet.render( bindings ) );
+                    bindings[ $path ].value = value;
+                    bindings[ $path ].subs.forEach( bracelet => bracelet.render( bindings ) );
                 } );
             }
-            bindings[ $ref ].subs.add( bracelet );
+            bindings[ $path ].subs.add( bracelet );
         } );
         bracelet.render( bindings );
         return returnValue;
@@ -51,11 +51,12 @@ export default class HTMLBracelets extends Set {
         if ( !( bracelet instanceof Bracelet ) ) throw new Error( `Argument must be instance of Bracelet.` );
         const returnValue = super.delete( bracelet );
         const bindings = this[ '#' ].bindings;
-        bracelet.refs.forEach( ref => {
-            bindings[ ref ].subs.delete( bracelet );
-            if ( !bindings[ ref ].subs.size ) {
-                bindings[ ref ].controller.abort();
-                delete bindings[ ref ];
+        bracelet.refs.forEach( path => {
+            const $path = path.join( '.' );
+            bindings[ $path ].subs.delete( bracelet );
+            if ( !bindings[ $path ].subs.size ) {
+                bindings[ $path ].controller.abort();
+                delete bindings[ $path ];
             }
         } );
         return returnValue;

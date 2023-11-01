@@ -53,19 +53,20 @@ function exposeAPIs( config ) {
  */
 function realtime( config ) {
     const window = this, { realdom } = window.webqit;
-    realdom.realtime( window.document ).observe( `(${ TextBracelet.query })`, record => {
+    realdom.realtime( window.document ).subtree( `(${ TextBracelet.query })`, record => {
         TextBracelet.cleanup( ...record.exits );
         TextBracelet.mount( ...TextBracelet.parse( ...record.entrants.filter( node => !_( node ).has( 'text-bracelet' )/** generated text nodes during parse() */ ) ) );                
-    }, { subtree: true } );
+    }, { live: true } );
+    realdom.realtime( window.document ).subtree( `(${ AttrBracelet.query })`, record => {
+        AttrBracelet.cleanup( ...record.exits );
+        AttrBracelet.mount( ...AttrBracelet.parse( ...record.entrants ) );
+    }, { live: true } );
     realdom.realtime( window.document, 'attr' ).observe( records => {
         for ( const record of records ) {
             if ( _( record.target ).get( 'attr-bracelets' )?.active.some( p => p.attr.nodeName === record.name ) ) continue;
+            if ( [ ...( _( record.target ).get( 'attr-bracelets' )?.get( record.name ) || [] ) ].some( p => p.isBoolean ) ) continue;
             if ( record.oldValue ) { AttrBracelet.cleanup( record.value ? record.target.attributes[ record.name ] : { ownerElement: record.target, nodeName: record.name } ); }
             if ( record.value ) { AttrBracelet.mount( ...AttrBracelet.parse( record.target.attributes[ record.name ] ) ); }
         }
     }, { subtree: true, newValue: true, oldValue: true, timing: 'sync' } );
-    realdom.realtime( window.document ).observe( `(${ AttrBracelet.query })`, record => {
-        AttrBracelet.cleanup( ...record.exits.reduce( ( attrs, node ) => [ ...attrs, ...node.attributes ], [] ) );
-        AttrBracelet.mount( ...AttrBracelet.parse( ...record.entrants.reduce( ( attrs, node ) => [ ...attrs, ...node.attributes ], [] ) ) );
-    }, { subtree: true } );
 }
