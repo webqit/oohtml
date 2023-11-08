@@ -24,7 +24,7 @@
     "url": "https://github.com/webqit/oohtml/issues"
   },
   "type": "module",
-  "sideEffects": false,
+  "sideEffects": true,
   "main": "./src/index.js",
   "scripts": {
     "test": "mocha --extension .test.js --exit",
@@ -37,7 +37,7 @@
   "dependencies": {
     "@webqit/observer": "^2.2.9",
     "@webqit/realdom": "^2.1.17",
-    "@webqit/stateful-js": "^3.0.15",
+    "@webqit/stateful-js": "file:../stateful-js",
     "@webqit/util": "^0.8.11"
   },
   "devDependencies": {

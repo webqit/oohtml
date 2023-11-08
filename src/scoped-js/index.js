@@ -87,7 +87,8 @@ function realtime( config ) {
             if ( !( compiledScript = compileCache.get( sourceHash ) ) ) {
                 const { parserParams, compilerParams, runtimeParams } = config.advanced;
                 compiledScript = new ( script.type === 'module' ? StatefulModule : StatefulAsyncScript )( textContent, {
-                    packageName: script.id,
+                    exportNamespace: `#${ script.id }`,
+                    fileName: window.document.url,
                     parserParams,
                     compilerParams: { ...compilerParams, startStatic: !script.stateful },
                     runtimeParams,

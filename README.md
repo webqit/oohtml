@@ -11,17 +11,19 @@ Object-Oriented HTML (OOHTML) is a set of language features for authoring modula
 
 OOHTML is an upcoming proposal!
 
-<!--
 ## Motivation
+
+<details><summary>Show</summary>
 
 The web has generally outgrown the idea of a monolith architecture on the UI! But enter HTML; the current authoring experience is one where an author is trying to think out one thing but forced to work out everything, in how the language for the job poses one global scope as the unit of abstraction for styles, scripts and element identifiers — enforcing many global dependencies; inflicting much global thinking!
 
 Think too of how authors often have to do half of the work in HTML and half in JS just to have reusable markup!
 
-This project is a proposal for a new standards work that revisits much of the oldish monolith-oriented constraints in HTML that inhibit the idea of a *component* architecture in HTML! The name Object-Oriented HMTL turns out to be more descriptive of the idea than the "component" paradigm!
+This project is a proposal for a new standards work that revisits much of the oldish monolith-oriented constraints in HTML that inhibit the idea of a *component* architecture in HTML!
 
 └ [See more in the introductory blog post](https://dev.to/oxharris/the-web-native-equations-1m1p-temp-slug-6661657?preview=ba70ad2c17f05b5761bc74516dbde8c9eff8b581a0420d87334fd9ef6bab9d6e6d3ab6aaf3fe02542bb9e7250d0a88a6df91dae40919aabcc9a07320)<sup>draft</sup>
--->
+
+</details>
 
 ## An Overview
 
