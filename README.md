@@ -161,18 +161,17 @@ foo.addEventListener('load', loadedCallback);
 └ *The HTMLImports API  for programmatic module import*:
 
 ```js
-document.import('/foo#fragment1', divElement => {
-    console.log(divElement); // module:/foo#fragment2, received synchronously
-});
+const import1 = document.import('/foo#fragment1');
+console.log(import1); // { value: div }
 ```
 
 ```js
-document.import('/foo/nested#fragment2', divElement => {
-    console.log(divElement); // module:/foo/nested#fragment2;
-});
+const import2 = document.import('/foo/nested#fragment2');
+console.log(import2); // { value: div }
 ```
 
 └ *Scoped templates for object-scoped module system*:
+> With an equivalent `Element.prototype.import()` API for accessing scoped modules
 
 ```html
 <section> <!-- object with own modules -->
@@ -191,16 +190,16 @@ document.import('/foo/nested#fragment2', divElement => {
 
 ```js
 // Using the HTMLImports API
-document.querySelector('div').import('foo#fragment1', divElement => {
-    console.log(divElement); // the local module: foo#fragment1
-});
+const moduleHost = document.querySelector('div');
+const localImport1 = moduleHost.import('foo#fragment1'); // the local module: foo#fragment1
+console.log(localImport1); // { value: div }
 ```
 
 ```js
 // Using the HTMLImports API
-document.querySelector('div').import('/foo#fragment1', divElement => {
-    console.log(divElement); // the global module: foo#fragment1
-});
+const moduleHost = document.querySelector('div');
+const globalImport1 = moduleHost.import('/foo#fragment1'); // the global module: foo#fragment1
+console.log(globalImport1); // { value: div }
 ```
 
 <details><summary>
@@ -270,6 +269,14 @@ document.import('/foo#fragment1', divElement => {
 });
 ```
 
+```js
+const import1 = document.import('/foo#fragment1', true);
+console.log(import1); // { value: undefined }
+Observer.observe(import1, 'value', divElement => {
+    console.log(divElement); // To be received after remote module has been loaded
+});
+```
+
 └ *"Imports Contexts" for context-based imports resolution*:
 
 ```html
@@ -290,9 +297,9 @@ document.import('/foo#fragment1', divElement => {
 
 ```js
 // Using the HTMLImports API
-document.querySelector('section').import('#fragment2', divElement => {
-    console.log(divElement); // module:/foo/nested#fragment2
-});
+const moduleHost = document.querySelector('section');
+const globalImport2 = moduleHost.import('#fragment2'); // module:/foo/nested#fragment2
+console.log(globalImport2); // { value: div }
 ```
 
 └ *"Imports Contexts" with named contexts*:
@@ -314,9 +321,9 @@ document.querySelector('section').import('#fragment2', divElement => {
 
 ```js
 // Using the HTMLImports API
-document.querySelector('div').import('@context1#fragment2', divElement => {
-    console.log(divElement); // module:/foo/nested#fragment2
-});
+const moduleHost = document.querySelector('div');
+const globalImport2 = moduleHost.import('@context1#fragment2'); // module:/foo/nested#fragment2
+console.log(globalImport2); // { value: div }
 ```
 
 └ *"Imports Contexts" with context inheritance*:
@@ -356,9 +363,9 @@ document.querySelector('div').import('@context1#fragment2', divElement => {
 
 ```js
 // Using the HTMLImports API
-document.querySelector('div').import('#fragment2', divElement => {
-    console.log(divElement); // the local module: foo#fragment2, and if not found, resolves from context to the module: /bar/nested#fragment2
-});
+const moduleHost = document.querySelector('div');
+const localOrGlobalImport2 = moduleHost.import('#fragment2'); // the local module: foo#fragment2, and if not found, resolves from context to the module: /bar/nested#fragment2
+console.log(localOrGlobalImport2); // { value: div }
 ```
 
 </details>
