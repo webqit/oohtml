@@ -621,6 +621,7 @@ Here are a few examples in the wide range of use cases these features cover.
 + [Example 2: *Multi-Level Namespacing*](#example-2-multi-level-namespacing)
 + [Example 3: *Dynamic Shadow DOM*](#example-3-dynamic-shadow-dom)
 + [Example 4: *List Items*](#example-4-list-items)
++ [Example 5: *Live List*](#example-4-live-list)
 
 ### Example 1: *Single Page Application*
 
@@ -829,25 +830,71 @@ The following is a "component" that derives its list items and other reusable sn
 ```html
 <div namespace>
 
-  <import ref="other"></import>
   <ul id="list"></ul>
-  <import ref="other"></import>
 
   <template def="item" scoped>
-    <li>
-      <a></a>
-    </li>
-  </template>
-
-  <template def="other" scoped>
-    <button>Call to Action >><button>
+    <li><a>Item</a></li>
   </template>
 
   <script scoped>
-    this.import('item', template => {
-      const clone = template.content.cloneNode(true);
-      this.namespace.list.appendChild(clone);
+    // Import item template
+    let itemImport = this.import('item');
+    let itemTemplate = itemImport.value;
+
+    // Iterate
+    [ 'Item 1', 'Item 2', 'Item 3' ].forEach(entry => {
+      const currentItem = itemTemplate.content.cloneNode(true);
+      // Add to DOM
+      this.namespace.list.appendChild(currentItem);
+      // Render
+      currentItem.innerHTML = entry;
     });
+  </script>
+
+</div>
+```
+
+</details>
+
+### Example 4: *Live List*
+
+The following is the same list as above but implemented as a live list! Here, we make a few changes: the script element is Stateful; the loop itself now uses the literal `for ... of` construct, [which is capable of rendering live lists](https://github.com/webqit/stateful-js/wiki#with-control-structures), so that any additions and removals on the original list is statically reflected!
+
+<details><summary>Code</summary>
+
+```html
+<div namespace>
+
+  <ul id="list"></ul>
+
+  <template def="item" scoped>
+    <li><a>Item</a></li>
+  </template>
+
+  <script scoped>
+    // Import item template
+    let itemImport = this.import('item');
+    let itemTemplate = itemImport.value;
+
+    // Iterate
+    let items = [ 'Item 1', 'Item 2', 'Item 3' ];
+    for (let entry of items) {
+      const currentItem = itemTemplate.content.cloneNode(true);
+      // Add to DOM
+      this.namespace.list.appendChild(currentItem);
+      // Remove from DOM whenever corresponding entry is removed
+      if (typeof entry === 'undefined') {
+        currentItem.remove();
+        continue;
+      }
+      // Render
+      currentItem.innerHTML = entry;
+    }
+
+    // Add a new entry
+    setTimeout(() => items.push('Item 4'), 1000);
+    // Remove an new entry
+    setTimeout(() => items.pop(), 2000);
   </script>
 
 </div>
