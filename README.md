@@ -5,7 +5,7 @@
 [![bundle][bundle-src]][bundle-href]
 [![License][license-src]][license-href]
 
-**[Overview](#an-overview) • [Polyfill](#the-polyfill) • [Design Discussion](#design-discussion) • [Getting Involved](#getting-involved) • [License](#license)**
+**[Overview](#overview) • [Modular HTML](#modular-html) • [HTML Imports](#html-imports) • [Reactive HTML](#reactive-html) • [Polyfill](#polyfill) • [Examples](#examples) • [License](#license)**
 
 Object-Oriented HTML (OOHTML) is a set of language features for authoring modular, reusable markup, and for translating that to functional DOM-level objects! Everything comes together as a delightful holistic component architecture for the modern UI!
 
@@ -25,7 +25,7 @@ This project is a proposal for a new standards work that revisits much of the ol
 
 </details>
 
-## An Overview
+## Overview
 
 OOHTML comes in three sets of features, and the following is an overview. A more detailed documentation for OOHTML is underway in the [project wiki](https://github.com/webqit/oohtml/wiki).
 
@@ -36,7 +36,7 @@ OOHTML comes in three sets of features, and the following is an overview. A more
 
 > **Note**  This is documentation for `OOHTML@2.x`. (Looking for [`OOHTML@1.x`](https://github.com/webqit/oohtml/tree/v1.10.4)?)
 
-### Modular HTML
+## Modular HTML
 
 The first set of features covers authoring objects with self-contained structure, styling and *scripting*! This simply gets identifiers, style sheets and scripts to serve *at the object level* exactly as they do *at the document (object) level*.
 
@@ -86,7 +86,7 @@ let { styleSheets, scripts } = user; // APIs that are analogous to the document.
 
 └ [Modular HTML concepts](#)
 
-### HTML Imports
+## HTML Imports
 
 The next set of features covers *templating and reusing objects* - in both *declarative* and *programmatic* terms! It extends the language with the *module identifier* attribute `def`, and introduces a complementary new `<import>` element, and has everything working together as a real-time module system.
 
@@ -365,7 +365,7 @@ document.querySelector('div').import('#fragment2', divElement => {
 
 └ [HTML Imports concepts](#)
 
-### Reactive HTML
+## Reactive HTML
 
 The last set of features covers the concept of "state", "bindings", and "reactivity" for those objects at the DOM level - in the most exciting form of the terms and as an upgrade path! This comes factored into the design as something intrinsic to the problem.
 
@@ -478,13 +478,159 @@ Observer.set(element, 'liveProperty'); // Live expressions rerun
 
 └ [Reactive HTML concepts](#)
 
-### Put Together
+## Polyfill
 
-All of OOHTML brings to the platform much of the modern UI development paradigms that community-based tools have long encoded, and that just opens up new ways to leverage the web platform and bank less on abstractions! Here are a few examples in the wide range of use cases these features cover.
+OOHTML is being developed as something to be used today - via a polyfill.
 
-**--> Example 1:** The following is how something you could call a Single Page Application ([SPA](https://en.wikipedia.org/wiki/Single-page_application)) could be made - with zero tooling:
+<details><summary>Load from a CDN<br>
+└───────── <a href="https://bundlephobia.com/result?p=@webqit/oohtml"><img align="right" src="https://img.shields.io/bundlephobia/minzip/@webqit/oohtml?label=&style=flat&colorB=black"></a></summary>
+
+```html
+<script src="https://unpkg.com/@webqit/oohtml/dist/main.js"></script>
+```
+
+└ This is to be placed early on in the document and should be a classic script without any `defer` or `async` directives!
+
+<details><summary>Want Async Loading?</summary>
+
+If you must load the script "async", one little trade-off has to be made for `<script scoped>` and `<script stateful>` elements to have them ignored by the browser until the polyfill comes picking them up: *employing a custom MIME type in place of the standard `text/javascript` and `module` types*, in which case, a `<meta name="scoped-js">` element is used to configure the polyfill to honor the custom MIME type:
+
+```html
+<head>
+  <meta name="scoped-js" content="script.mimeType=some-mime">
+  <script async src="https://unpkg.com/@webqit/oohtml/dist/main.js"></script>
+</head>
+<body>
+  <script type="some-mime" scoped>
+    console.log(this); // body
+  </script>
+</body>
+```
+
+The custom MIME type strategy also comes in as a "fix" for when in a browser or other runtime where the polyfill is not able to intercept `<script scoped>` and `<script stateful>` elements ahead of the runtime - e.g. where...
+
+```html
+<body>
+  <script scoped>
+    console.log(this); // body
+  </script>
+</body>
+```
+
+...still gives the `window` object in the console.
+
+</details>
+
+For the Scoped Styles feature, you'd also need something like the [samthor/scoped](https://github.com/samthor/scoped) polyfill (more details below):
+
+```html
+<head>
+  <script src="https://unpkg.com/style-scoped/scoped.min.js"></script>
+</head>
+```
+
+</details>
+
+<details><summary>Extended usage concepts</summary>
+
+To use the polyfill on server-side DOM instances as made possible by libraries like [jsdom](https://github.com/jsdom/jsdom), simply install and initialize the library `@webqit/oohtml` with the DOM instance:
+
+```bash
+npm i @webqit/oohtml
+```
+
+```js
+// Import
+import init from '@webqit/oohtml';
+
+// Initialize the lib
+init.call( window[, options = {} ]);
+```
+
+But all things "SSR" for OOHTML are best left to the [`@webqit/oohtml-ssr`](https://github.com/webqit/oohtml-ssr) package!
+
+Also, if you'll be going ahead to build a real app to see OOHTML in action, you may want to consider also using:
+
++ the [`@webqit/oohtml-cli`](https://github.com/webqit/oohtml-cli) package for operating a file-based templating system.
+
++ the modest, OOHTML-based [Webflo](https://github.com/webqit/webflo) framework to greatly streamline your application development process!
+
+</details>
+
+<details><summary>Implementation Notes</summary>
+
++ **Scoped/Stateful Scripts**. This feature is an extension of [Stateful JS](https://github.com/webqit/stateful-js). The default OOHTML build is based on the [Stateful JS Lite APIs](https://github.com/webqit/stateful-js#stateful-js-lite) and this means that `<script stateful></script>` and `<script scoped></script>` elements are parsed "asynchronously", in the same timing as `<script type="module"></script>`!
+
+    This timing works perfectly generally, but if you have a requirment to have classic scripts follow their [native synchronous timing](https://html.spec.whatwg.org/multipage/parsing.html#scripts-that-modify-the-page-as-it-is-being-parsed), then you need to the *realtime* OOHTML build:
+
+    ```html
+    <head>
+      <script src="https://unpkg.com/@webqit/oohtml/dist/main.realtime.js"></script>
+    </head>
+    ```
+
++ **Scoped CSS**. This feature is only in "concept" implementation and doesn't work right now as is. The current implementation simply wraps `<style scoped>` blocks in an `@scope {}` block - which itself isn't supported in any browser. To try this "concept" implementation, set the `style.strategy` config to `@scope`:
+
+    ```html
+    <head>
+      <meta name="scoped-css" content="style.strategy=@scope"> <!-- Must come before the polyfil -->
+      <script src="https://unpkg.com/@webqit/oohtml/dist/main.js"></script>
+    <head>
+    ```
+
+    Now the following `<style scoped>`...
+
+    ```html
+    <style scoped>
+      h2 { color: red; }
+    </style>
+    ```
+    
+    ...will be wrapped to something like:
+
+    ```html
+    <style ref="scoped8eff" scoped>
+      @scope from (:has(> style[ref="scoped8eff"])) {
+        h2 { color: red; }
+      }
+    </style>
+    ```
+
+    A working implementation may be coming soon, but in the meantime, you could try one of the polyfills for `<style scoped>` out there; e.g. [samthor/scoped](https://github.com/samthor/scoped):
+
+    ```html
+    <script src="https://unpkg.com/style-scoped/scoped.min.js"></script>
+    ```
+
++ **HTML Imports**. The attribute names for exposing reusable modules and for referencing them - the `def` and `ref` keywords, respectively - aren't finalized. While the principle of operation remains, these attributes may be renamed in subsequent iterations. But the polyfill is designed to always defer to any syntax that has been explicitly specified using a meta tag. Here's an example:
+
+    ```html
+    <head>
+      <meta name="html-imports" content="template.attr.moduledef=def; template.attr.fragmentdef=def; import.attr.moduleref=ref;"> <!-- Must come before the polyfil -->
+      <script src="https://unpkg.com/@webqit/oohtml/dist/main.js"></script>
+    <head>
+    ```
+
+    Now, even when the default attribute names change, your `def` and `ref` implementation will still work:
+ 
+</details>
+
+## Examples
+
+Here are a few examples in the wide range of use cases these features cover.
+
++ [Example 1: *Single Page Application*](#example-1-single-page-application)
++ [Example 2: *Multi-Level Namespacing*](#example-2-multi-level-namespacing)
++ [Example 3: *Dynamic Shadow DOM*](#example-3-dynamic-shadow-dom)
++ [Example 4: *List Items*](#example-4-list-items)
+
+### Example 1: *Single Page Application*
+
+The following is how something you could call a Single Page Application ([SPA](https://en.wikipedia.org/wiki/Single-page_application)) could be made - with zero tooling:
 
 └ *First, two components that are themselves analogous to a Single File Component ([SFC](https://vuejs.org/guide/scaling-up/sfc.html))*:
+
+<details><summary>Code</summary>
 
 ```html
 <template def="pages">
@@ -519,7 +665,11 @@ All of OOHTML brings to the platform much of the modern UI development paradigms
 </template>
 ```
 
+</details>
+
 └ *Then a 2-line router that alternates the view based on the URL hash*:
+
+<details><summary>Code</summary>
 
 ```html
 <body importscontext="/pages/home">
@@ -536,9 +686,13 @@ All of OOHTML brings to the platform much of the modern UI development paradigms
 </body>
 ```
 
-**--> Example 2:** The following is a Listbox component lifted directly from the [ARIA Authoring Practices Guide (APG)](https://www.w3.org/WAI/ARIA/apg/patterns/listbox/examples/listbox-grouped/#sc_label) but with IDs effectively "contained" at different levels within the component using the `namespace` attribute.
+</details>
 
-└ *A Listbox with namespaced IDs*:
+### Example 2: *Multi-Level Namespacing*
+
+The following is a Listbox component lifted directly from the [ARIA Authoring Practices Guide (APG)](https://www.w3.org/WAI/ARIA/apg/patterns/listbox/examples/listbox-grouped/#sc_label) but with IDs effectively "contained" at different levels within the component using the `namespace` attribute.
+
+<details><summary>Code</summary>
 
 ```html
 <div namespace class="listbox-area">
@@ -603,9 +757,15 @@ All of OOHTML brings to the platform much of the modern UI development paradigms
 </div>
 ```
 
-**--> Example 3:** The following is a custom element that derives its Shadow DOM from an imported `<tenplate>` element. The idea is to have different Shadow DOM layouts defined and let the "usage" context decide which variant is imported!
+</details>
+
+### Example 3: *Dynamic Shadow DOM*
+
+The following is a custom element that derives its Shadow DOM from an imported `<tenplate>` element. The idea is to have different Shadow DOM layouts defined and let the "usage" context decide which variant is imported!
 
 └ *First, two layout options defined for the Shadow DOM*:
+
+<details><summary>Code</summary>
 
 ```html
 <template def="vendor1">
@@ -625,7 +785,11 @@ All of OOHTML brings to the platform much of the modern UI development paradigms
 </template>
 ```
 
+</details>
+
 └ *Next, the Shadow DOM creation that imports its layout from context*:
+
+<details><summary>Code</summary>
 
 ```js
 customElements.define('magic-button', class extends HTMLElement {
@@ -638,7 +802,11 @@ customElements.define('magic-button', class extends HTMLElement {
 });
 ```
 
+</details>
+
 └ *Then, the part where we just drop the component in "layout" contexts*:
+
+<details><summary>Code</summary>
 
 ```html
 <div contextname="vendor1" importscontext="/vendor1/components-layout1">
@@ -652,9 +820,13 @@ customElements.define('magic-button', class extends HTMLElement {
 </div>
 ```
 
-**--> Example 4:** The following is a "component" that derives its list items and other reusable snippets from "scoped" `<tenplate>` elements. The idea is to have a "self-contained" component that's all markup-based, not class-based!
+</details>
 
-└ *A list component with scoped module system*:
+### Example 4: *List Items*
+
+The following is a "component" that derives its list items and other reusable snippets from "scoped" `<tenplate>` elements. The idea is to have a "self-contained" component that's all markup-based, not class-based!
+
+<details><summary>Code</summary>
 
 ```html
 <div namespace>
@@ -683,147 +855,7 @@ customElements.define('magic-button', class extends HTMLElement {
 </div>
 ```
 
-## The Polyfill
-
-OOHTML is being developed as something to be used today - via a polyfill. This has been helping to facilitate the "release - iterations" loop and its overall evolution.
-
-The polyfill can be loaded from the `unpkg.com` CDN, and should be placed early on in the document - before any OOHTML-specific features are used - and should be a classic script without any `defer` or `async` directives:
-
-```html
-<head>
-  <script src="https://unpkg.com/@webqit/oohtml/dist/main.js"></script>
-</head>
-```
-
-> 22.5 kB min + gz | 77.5 KB min [↗](https://bundlephobia.com/package/@webqit/oohtml@2.1.45)
-
-<details><summary>
-Extended usage concepts
-</summary>
-
-If you must load the script "async", one little trade-off has to be made for `<script scoped>` and `<script stateful>` elements to have them ignored by the browser until the polyfill comes picking them up: *employing a custom MIME type in place of the standard `text/javascript` and `module` types*, in which case, a `<meta name="scoped-js">` element is used to configure the polyfill to honor the custom MIME type:
-
-```html
-<head>
-  <meta name="scoped-js" content="script.mimeType=some-mime">
-  <script async src="https://unpkg.com/@webqit/oohtml/dist/main.js"></script>
-</head>
-<body>
-  <script type="some-mime" scoped>
-    console.log(this); // body
-  </script>
-</body>
-```
-
-The custom MIME type strategy also comes in as a "fix" for when in a browser or other runtime where the polyfill is not able to intercept `<script scoped>` and `<script stateful>` elements ahead of the runtime - e.g. where...
-
-```html
-<body>
-  <script scoped>
-    console.log(this); // body
-  </script>
-</body>
-```
-
-...still gives the `window` object in the console.
-
-To use the polyfill on server-side DOM instances as made possible by libraries like [jsdom](https://github.com/jsdom/jsdom), simply install and initialize the library `@webqit/oohtml` with the DOM instance:
-
-```bash
-npm i @webqit/oohtml
-```
-
-```js
-// Import
-import init from '@webqit/oohtml';
-
-// Initialize the lib
-init.call( window[, options = {} ]);
-```
-
-But all things "SSR" for OOHTML are best left to the [`@webqit/oohtml-ssr`](https://github.com/webqit/oohtml-ssr) package!
-
-Also, if you'll be going ahead to build a real world app to see OOHTML in action, you may want to consider also using:
-
-+ the [`@webqit/oohtml-cli`](https://github.com/webqit/oohtml-cli) package for operating a file-based templating system.
-
-+ the modest, OOHTML-based [Webflo](https://github.com/webqit/webflo) framework to greatly streamline your application development process!
-
 </details>
-
-<details><summary>
-Implementation Notes
-</summary>
-
-Here are some performance-specific notes for this polyfill:
-
-+ By default, the Stateful JS compiler (44.31 KB min+compressed | 157KB min) is excluded from the polyfill build and fetched separately on demand - on the first encounter with a Stateful Script. This is loaded into a [Web Worker](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers) and all compilations are able to happen off the main thread! This ensures near-zero cost to your application loading and runtime performance!
-
-    Note that this lazy-loading approach means that all Stateful Scripts will behave "async" just like module scripts; i.e. scripts are defered until the compiler has been loaded. In other words, the following two scripts will have the same timing semantics:
-
-    ```html
-    <script stateful></script>
-    <script type="module" stateful></script>
-    ```
-
-    This isn't necessarily bad unless there is a requirment to have classic scripts follow their [native synchronous timing](https://html.spec.whatwg.org/multipage/parsing.html#scripts-that-modify-the-page-as-it-is-being-parsed), in which case the Stateful JS compiler will need to be explicitly and synchronously loaded ahead of any encounter with classic Stateful Scripts:
-
-    ```html
-    <head>
-      <script src="https://unpkg.com/@webqit/stateful-js/dist/compiler.js"></script> <!-- Must come before the polyfil -->
-      <script src="https://unpkg.com/@webqit/oohtml/dist/main.js"></script>
-    </head>
-    ```
-
-+ Whether loaded lazily or eagerly, the compiler also factors in additional optimizations. For example, identical scripts are handled only first time, and only ever have one Stateful JS instance!
-
-Here are other notes:
-
-+ **Scoped CSS**. This feature is only in "concept" implementation and doesn't work right now as is. The current implementation simply wraps `<style scoped>` blocks in an `@scope {}` block - which itself isn't supported in any browser. To try this "concept" implementation, set the `style.strategy` config to `@scope`:
-
-    ```html
-    <head>
-      <meta name="scoped-css" content="style.strategy=@scope"> <!-- Must come before the polyfil -->
-      <script src="https://unpkg.com/@webqit/oohtml/dist/main.js"></script>
-    <head>
-    ```
-
-    Now the following `<style scoped>`...
-
-    ```html
-    <style scoped>
-      h2 { color: red; }
-    </style>
-    ```
-    
-    ...will be wrapped to something like:
-
-    ```html
-    <style ref="scoped8eff" scoped>
-      @scope from (:has(> style[ref="scoped8eff"])) {
-        h2 { color: red; }
-      }
-    </style>
-    ```
-
-    A working implementation may be coming soon, but in the meantime, you could try one of the polyfills for `<style scoped>` out there; e.g. [samthor/scoped](https://github.com/samthor/scoped).
-
-+ **HTML Imports**. The attribute names for exposing reusable modules and for referencing them - the `def` and `ref` keywords, respectively - aren't finalized. While the principle of operation remains, these attributes may be renamed in subsequent iterations. But the polyfill is designed to always defer to any syntax that has been explicitly specified using a meta tag. Here's an example:
-
-    ```html
-    <head>
-      <meta name="html-imports" content="template.attr.moduledef=def; template.attr.fragmentdef=def; import.attr.moduleref=ref;"> <!-- Must come before the polyfil -->
-      <script src="https://unpkg.com/@webqit/oohtml/dist/main.js"></script>
-    <head>
-    ```
-
-    Now, even when the default attribute names change, your `def` and `ref` implementation will still work:
- 
-</details>
-
-## Design Discussion
-
-*[TODO]*
 
 ## Getting Involved
 
