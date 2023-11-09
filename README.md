@@ -491,37 +491,7 @@ OOHTML is being developed as something to be used today - via a polyfill.
 
 └ This is to be placed early on in the document and should be a classic script without any `defer` or `async` directives!
 
-<details><summary>Want Async Loading?</summary>
-
-If you must load the script "async", one little trade-off has to be made for `<script scoped>` and `<script stateful>` elements to have them ignored by the browser until the polyfill comes picking them up: *employing a custom MIME type in place of the standard `text/javascript` and `module` types*, in which case, a `<meta name="scoped-js">` element is used to configure the polyfill to honor the custom MIME type:
-
-```html
-<head>
-  <meta name="scoped-js" content="script.mimeType=some-mime">
-  <script async src="https://unpkg.com/@webqit/oohtml/dist/main.js"></script>
-</head>
-<body>
-  <script type="some-mime" scoped>
-    console.log(this); // body
-  </script>
-</body>
-```
-
-The custom MIME type strategy also comes in as a "fix" for when in a browser or other runtime where the polyfill is not able to intercept `<script scoped>` and `<script stateful>` elements ahead of the runtime - e.g. where...
-
-```html
-<body>
-  <script scoped>
-    console.log(this); // body
-  </script>
-</body>
-```
-
-...still gives the `window` object in the console.
-
-</details>
-
-For the Scoped Styles feature, you'd also need something like the [samthor/scoped](https://github.com/samthor/scoped) polyfill (more details below):
+└ For the Scoped Styles feature, you'd also need something like the [samthor/scoped](https://github.com/samthor/scoped) polyfill (more details below):
 
 ```html
 <head>
@@ -558,6 +528,34 @@ Also, if you'll be going ahead to build a real app to see OOHTML in action, you 
 </details>
 
 <details><summary>Implementation Notes</summary>
+
++ **Loading Requirements**. As specified above, the OOHTML script tag is to be placed early on in the document and should be a classic script without any `defer` or `async` directives!
+    
+    If you must load the script "async", one little trade-off has to be made for `<script scoped>` and `<script stateful>` elements to have them ignored by the browser until the polyfill comes picking them up: *employing a custom MIME type in place of the standard `text/javascript` and `module` types*, in which case, a `<meta name="scoped-js">` element is used to configure the polyfill to honor the custom MIME type:
+
+    ```html
+    <head>
+      <meta name="scoped-js" content="script.mimeType=some-mime">
+      <script async src="https://unpkg.com/@webqit/oohtml/dist/main.js"></script>
+    </head>
+    <body>
+      <script type="some-mime" scoped>
+        console.log(this); // body
+      </script>
+    </body>
+    ```
+
+    The custom MIME type strategy also comes in as a "fix" for when in a browser or other runtime where the polyfill is not able to intercept `<script scoped>` and `<script stateful>` elements ahead of the runtime - e.g. where...
+
+    ```html
+    <body>
+      <script scoped>
+        console.log(this); // body
+      </script>
+    </body>
+    ```
+
+    ...still gives the `window` object in the console.
 
 + **Scoped/Stateful Scripts**. This feature is an extension of [Stateful JS](https://github.com/webqit/stateful-js). The default OOHTML build is based on the [Stateful JS Lite APIs](https://github.com/webqit/stateful-js#stateful-js-lite) and this means that `<script stateful></script>` and `<script scoped></script>` elements are parsed "asynchronously", in the same timing as `<script type="module"></script>`!
 
@@ -628,65 +626,65 @@ Here are a few examples in the wide range of use cases these features cover.
 
 The following is how something you could call a Single Page Application ([SPA](https://en.wikipedia.org/wiki/Single-page_application)) could be made - with zero tooling:
 
-└ *First, two components that are themselves analogous to a Single File Component ([SFC](https://vuejs.org/guide/scaling-up/sfc.html))*:
++ *First, two components that are themselves analogous to a Single File Component ([SFC](https://vuejs.org/guide/scaling-up/sfc.html))*:
 
-<details><summary>Code</summary>
+    <details><summary>Code</summary>
 
-```html
-<template def="pages">
+    ```html
+    <template def="pages">
 
-  <template def="layout">
-    <header def="header"></header>
-    <footer def="footer"></footer>
-  </template>
+      <template def="layout">
+        <header def="header"></header>
+        <footer def="footer"></footer>
+      </template>
 
-  <!-- Home Page -->
-  <template def="home" extends="layout">
-    <main def="main" namespace>
-      <h1 id="banner">Home Page</h1>
-      <a id="cta" href="#/products">Go to Products</a>
-      <template scoped></template>
-      <style scoped></style>
-      <script scoped></script>
-    </main>
-  </template>
+      <!-- Home Page -->
+      <template def="home" extends="layout">
+        <main def="main" namespace>
+          <h1 id="banner">Home Page</h1>
+          <a id="cta" href="#/products">Go to Products</a>
+          <template scoped></template>
+          <style scoped></style>
+          <script scoped></script>
+        </main>
+      </template>
 
-  <!-- Products Page -->
-  <template def="products" extends="layout">
-    <main def="main" namespace>
-      <h1 id="banner">Products Page</h1>
-      <a id="cta" href="#/home">Go to Home</a>
-      <template scoped></template>
-      <style scoped></style>
-      <script scoped></script>
-    </main>
-  </template>
+      <!-- Products Page -->
+      <template def="products" extends="layout">
+        <main def="main" namespace>
+          <h1 id="banner">Products Page</h1>
+          <a id="cta" href="#/home">Go to Home</a>
+          <template scoped></template>
+          <style scoped></style>
+          <script scoped></script>
+        </main>
+      </template>
 
-</template>
-```
+    </template>
+    ```
 
-</details>
+    </details>
 
-└ *Then a 2-line router that alternates the view based on the URL hash*:
++ *Then a 2-line router that alternates the view based on the URL hash*:
 
-<details><summary>Code</summary>
+    <details><summary>Code</summary>
 
-```html
-<body importscontext="/pages/home">
+    ```html
+    <body importscontext="/pages/home">
 
-  <import ref="#header"></import>
-  <import ref="#main"></import>
-  <import ref="#footer"></import>
-  
-  <script>
-  const route = () => { document.body.setAttribute('importscontext', '/pages' + location.hash.substring(1)); };
-  window.addEventListener('hashchange', route);
-  </script>
-  
-</body>
-```
+      <import ref="#header"></import>
+      <import ref="#main"></import>
+      <import ref="#footer"></import>
+      
+      <script>
+      const route = () => { document.body.setAttribute('importscontext', '/pages' + location.hash.substring(1)); };
+      window.addEventListener('hashchange', route);
+      </script>
+      
+    </body>
+    ```
 
-</details>
+    </details>
 
 ### Example 2: *Multi-Level Namespacing*
 
@@ -763,64 +761,64 @@ The following is a Listbox component lifted directly from the [ARIA Authoring Pr
 
 The following is a custom element that derives its Shadow DOM from an imported `<tenplate>` element. The idea is to have different Shadow DOM layouts defined and let the "usage" context decide which variant is imported!
 
-└ *First, two layout options defined for the Shadow DOM*:
++ *First, two layout options defined for the Shadow DOM*:
 
-<details><summary>Code</summary>
+    <details><summary>Code</summary>
 
-```html
-<template def="vendor1">
+    ```html
+    <template def="vendor1">
 
-  <template def="components-layout1">
-    <template def="magic-button">
-      <span id="icon"></span> <span id="text"></span>
+      <template def="components-layout1">
+        <template def="magic-button">
+          <span id="icon"></span> <span id="text"></span>
+        </template>
+      </template>
+
+      <template def="components-layout2">
+        <template def="magic-button">
+          <span id="text"></span> <span id="icon"></span>
+        </template>
+      </template>
+
     </template>
-  </template>
+    ```
 
-  <template def="components-layout2">
-    <template def="magic-button">
-      <span id="text"></span> <span id="icon"></span>
-    </template>
-  </template>
+    </details>
 
-</template>
-```
++ *Next, the Shadow DOM creation that imports its layout from context*:
 
-</details>
+    <details><summary>Code</summary>
 
-└ *Next, the Shadow DOM creation that imports its layout from context*:
-
-<details><summary>Code</summary>
-
-```js
-customElements.define('magic-button', class extends HTMLElement {
-  connectedCallback() {
-    const shadowRoot = this.attachShadow({ mode: 'open' });
-    this.import('@vendor1/magic-button', template => {
-      shadowRoot.appendChild( template.content.cloneNode(true) );
+    ```js
+    customElements.define('magic-button', class extends HTMLElement {
+      connectedCallback() {
+        const shadowRoot = this.attachShadow({ mode: 'open' });
+        this.import('@vendor1/magic-button', template => {
+          shadowRoot.appendChild( template.content.cloneNode(true) );
+        });
+      }
     });
-  }
-});
-```
+    ```
 
-</details>
+    </details>
 
-└ *Then, the part where we just drop the component in "layout" contexts*:
++ *Then, the part where we just drop the component in "layout" contexts*:
 
-<details><summary>Code</summary>
+    <details><summary>Code</summary>
 
-```html
-<div contextname="vendor1" importscontext="/vendor1/components-layout1">
+    ```html
+    <div contextname="vendor1" importscontext="/vendor1/components-layout1">
 
-  <magic-button></magic-button>
+      <magic-button></magic-button>
 
-  <aside contextname="vendor1" importscontext="/vendor1/components-layout2">
-    <magic-button></magic-button>
-  </aside>
+      <aside contextname="vendor1" importscontext="/vendor1/components-layout2">
+        <magic-button></magic-button>
+      </aside>
 
-</div>
-```
+    </div>
+    ```
 
-</details>
+    </details>
 
 ### Example 4: *List Items*
 
