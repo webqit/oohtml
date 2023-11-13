@@ -10,6 +10,19 @@ export default class _HTMLBindingsProvider extends HTMLContextProvider {
     static type = 'bindings';
 
     /**
+     * @createRequest
+     */
+    static createRequest( fields = {} ) {
+        const request = super.createRequest( fields );
+        if ( request.detail?.startsWith( '@' ) ) {
+            const [ contextName, ...detail ] = request.detail.slice( 1 ).split( '.' ).map( s => s.trim() );
+            request.contextName = contextName;
+            request.detail = detail.join( '.' );
+        }
+        return request;
+    }
+
+    /**
      * @matchesRequest
      */
     static matchRequest( id, request ) {

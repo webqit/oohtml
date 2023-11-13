@@ -87,7 +87,7 @@ export default function( config ) {
                 priv.autoRestoreRealtime?.disconnect();
                 if ( callback ) callback();
                 const restore = () => {
-                    priv.anchorNode.replaceWith( this.el );
+                    priv.anchorNode?.replaceWith( this.el );
                     priv.anchorNode = null;
                     this.el.setAttribute( 'data-nodecount', 0 );
                 };

@@ -162,9 +162,9 @@ describe(`HTML Imports`, function() {
             const body = `
             <div importscontext="temp0/temp1">
                 <textarea def="input"></textarea>
-                <!--<import ref="#input"></import>-->
+                <!--&lt;import ref="#input" data-nodecount="1"&gt;&lt;/import&gt;-->
             </div>`;
-            const { document } = createDocument( head, body );
+            const { document } = createDocument( head, body, window => window.webqit.env = 'client' );
             await delay( 20 );
 
             const routingElement = document.body.firstElementChild;
@@ -195,10 +195,12 @@ describe(`HTML Imports`, function() {
             const body = `
             <div importscontext="temp0/temp1">
                 <textarea def="input"></textarea>
-                <!--<import ref="#input"></import>-->
+                <!--&lt;import ref="#input" data-nodecount="1"&gt;&lt;/import&gt;-->
             </div>`;
-            const { document } = createDocument( head, body );
+            const { document } = createDocument( head, body, window => window.webqit.env = 'client' );
+            console.log('-----------1');
             await delay( 20 );
+            console.log('-----------2');
 
             const routingElement = document.body.firstElementChild;
             expect( routingElement.firstElementChild.nodeName ).to.eq( 'TEXTAREA' );

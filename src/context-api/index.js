@@ -23,6 +23,7 @@ export {
  */
 export default function init( $config = {} ) {
     const { config, window } = _init.call( this, 'context-api', $config, {
+        attr: { contextname: 'contextname', },
         api: { context: 'context', },
     } );
     window.webqit.HTMLContextProvider = HTMLContextProvider;

@@ -13,7 +13,7 @@ export { Observer }
  * @param Object $config
  */
 export default function init( $config = {} ) {
-    const { config, window } = _init.call( this, 'html-namespaces', $config, {
+    const { config, window } = _init.call( this, 'namespaced-html', $config, {
 		id: { attr: 'id' },
 		namespace: { attr: 'namespace',  api: 'namespace', },
 		target: { attr: ':target', event: ':target', scrolling: true },

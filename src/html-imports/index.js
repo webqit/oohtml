@@ -18,12 +18,13 @@ import { _, _init } from '../util.js';
 export default function init( $config = {} ) {
     const { config, realdom, window } = _init.call( this, 'html-imports', $config, {
         template: { attr: { moduledef: 'def', fragmentdef: 'def', extends: 'extends', inherits: 'inherits' }, api: { modules: 'modules', moduledef: 'def' }, },
-        context: { attr: { importscontext: 'importscontext', contextname: 'contextname' }, api: { import: 'import' }, },
+        context: { attr: { importscontext: 'importscontext', }, api: { import: 'import' }, },
         import: { tagName: 'import', attr: { moduleref: 'ref' }, },
         staticsensitivity: true,
         isomorphic: true,
     } );
     config.CONTEXT_API = window.webqit.oohtml.configs.CONTEXT_API;
+    config.context.attr.contextname = config.CONTEXT_API.attr.contextname; // Inherit this
     config.templateSelector = `template[${ window.CSS.escape( config.template.attr.moduledef ) }]`;
     config.ownerContextSelector = [ config.context.attr.contextname, config.context.attr.importscontext ].map( a => `[${ window.CSS.escape( a ) }]` ).join( ',' );
     config.slottedElementsSelector = `[${ window.CSS.escape( config.template.attr.fragmentdef ) }]`;

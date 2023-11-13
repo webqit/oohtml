@@ -14,12 +14,12 @@ describe(`Test: Scoped JS`, function() {
             <h1>Hello World!</h1>
             <script scoped stateful>
                 testRecords.push( this );
-                console.log('-------scoped JS here.');
+                console.log('-------scoped JS here.', this);
             </script>`;
 
             const window = createDocument( head, body );
             window.testRecords = [];
-            await delay( 160 ); // Takes time to dynamically load Reflex compiler
+            await delay( 300 ); // Takes time to dynamically load Reflex compiler
 
             expect( window.testRecords ).to.have.length( 1 );
             expect( window.testRecords[ 0 ] ).to.eql( window.document.body );

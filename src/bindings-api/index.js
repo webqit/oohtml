@@ -15,9 +15,11 @@ export { Observer }
  */
 export default function init( $config = {} ) {
     const { config, window } = _init.call( this, 'bindings-api', $config, {
-        context: { attr: { contextname: 'contextname' }, },
+        context: { attr: { bindingscontext: 'bindings' }, },
         api: { bind: 'bind', bindings: 'bindings', },
     } );
+    config.CONTEXT_API = window.webqit.oohtml.configs.CONTEXT_API;
+    config.context.attr.contextname = config.CONTEXT_API.attr.contextname; // Inherit this
     window.webqit.HTMLBindingsProvider = class extends _HTMLBindingsProvider {
         static get config() { return config; }
     };
@@ -31,7 +33,8 @@ export default function init( $config = {} ) {
  * The internal bindings object
  * within elements and the document object.
  */
-function getBindingsObject( node ) {
+function getBindingsObject( config, node ) {
+    const window = this;
 	if ( !_( node ).has( 'bindings' ) ) {
 		const bindingsObj = Object.create( null );
 		_( node ).set( 'bindings', bindingsObj );
@@ -40,6 +43,13 @@ function getBindingsObject( node ) {
                 if ( mutation.type === 'delete' ) {
                     detachBindingsContext.call( this, node, mutation.key );
                 } else { attachBindingsContext.call( this, node, mutation.key ); }
+            }
+            const props = Object.keys( bindingsObj );
+            const targetNode = node === window.document ? window.document.documentElement : node;
+            if ( props.length ) {
+                targetNode.setAttribute( config.context.attr.bindingscontext, props.join( ' ') );
+            } else {
+                targetNode.toggleAttribute( config.context.attr.bindingscontext, false );
             }
         } );
 	}
@@ -61,14 +71,15 @@ function detachBindingsContext( host, key ) {
 /**
  * Exposes Bindings with native APIs.
  *
+ * @param Object            config
  * @param document|Element  target
  * @param Object            bindings
  * @param Object            params
  *
  * @return Void
  */
-function applyBindings( target, bindings, { merge, diff, namespace } = {} ) {
-    const bindingsObj = getBindingsObject.call( this, target );
+function applyBindings( config, target, bindings, { merge, diff, namespace } = {} ) {
+    const bindingsObj = getBindingsObject.call( this, config, target );
     const $params = { diff, namespace };
     const exitingKeys = merge ? [] : Observer.ownKeys( bindingsObj, $params ).filter( key => !( key in bindings ) );
     return Observer.batch( bindingsObj, () => {
@@ -93,15 +104,15 @@ function exposeAPIs( config ) {
     if ( config.api.bindings in window.Element.prototype ) { throw new Error( `The "Element" class already has a "${ config.api.bindings }" property!` ); }
     // Definitions
     Object.defineProperty( window.document, config.api.bind, { value: function( bindings, config = {} ) {
-        return applyBindings.call( window, window.document, bindings, config );
+        return applyBindings.call( window, config, window.document, bindings );
     } });
     Object.defineProperty( window.document, config.api.bindings, { get: function() {
-        return Observer.proxy( getBindingsObject.call( window, window.document ) );
+        return Observer.proxy( getBindingsObject.call( window, config, window.document ) );
     } });
     Object.defineProperty( window.Element.prototype, config.api.bind, { value: function( bindings, config = {} ) {
-        return applyBindings.call( window, this, bindings, config );
+        return applyBindings.call( window, config, this, bindings );
     } });
     Object.defineProperty( window.Element.prototype, config.api.bindings, { get: function() {
-        return Observer.proxy( getBindingsObject.call( window, this ) );
+        return Observer.proxy( getBindingsObject.call( window, config, this ) );
     } } );
 }

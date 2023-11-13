@@ -16,7 +16,7 @@ import { _, _init } from '../util.js';
  */
 export default function init( $config = {} ) {
     const { config, window } = _init.call( this, 'html-bindings', $config, {
-        attr: { bindings: 'bindings', itemIndex: 'data-index' },
+        attr: { binding: 'binding', itemIndex: 'data-index' },
         tokens: { nodeType: 'processing-instruction', tagStart: '?{', tagEnd: '}?', stateStart: '; [=', stateEnd: ']' },
         staticsensitivity: true,
         isomorphic: true,
@@ -24,7 +24,7 @@ export default function init( $config = {} ) {
     config.CONTEXT_API = window.webqit.oohtml.configs.CONTEXT_API;
     config.BINDINGS_API = window.webqit.oohtml.configs.BINDINGS_API;
     config.HTML_IMPORTS = window.webqit.oohtml.configs.HTML_IMPORTS;
-    config.attrSelector = `[${ window.CSS.escape( config.attr.bindings ) }]`;
+    config.attrSelector = `[${ window.CSS.escape( config.attr.binding ) }]`;
     const discreteBindingsMatch = ( start, end ) => {
         const starting = `starts-with(., "${ start }")`;
         const ending = `substring(., string-length(.) - string-length("${ end }") + 1) = "${ end }"`;
@@ -56,7 +56,7 @@ function realtime( config ) {
 }
 
 function createDynamicScope( config, root ) {
-    if ( _( root ).has( 'htBindings' ) ) return _( root ).get( 'htBindings' );
+    if ( _( root ).has( 'data-binding' ) ) return _( root ).get( 'data-binding' );
     const scope = {}, abortController = new AbortController;
     scope.$set__ = function( node, prop, val ) {
         node && ( node[ prop ] = val );
@@ -73,22 +73,22 @@ function createDynamicScope( config, root ) {
         },
         has: ( e, recieved, next ) => { return next( true ); }
     } );
-    const instance = { scope, abortController, htBindings: new Map };
-    _( root ).set( 'htBindings', instance );
+    const instance = { scope, abortController, bindings: new Map };
+    _( root ).set( 'data-binding', instance );
     return instance;
 }
 
 function cleanup( ...entries ) {
     for ( const node of entries ) {
         const root = node.nodeName  === '#text' ? node.parentNode : node;
-        const { htBindings, abortController } = _( root ).get( 'htBindings' ) || {};
-        if ( !htBindings?.has( node ) ) return;
-        htBindings.get( node ).state.dispose();
-        htBindings.get( node ).signals.forEach( s => s.abort() );
-        htBindings.delete( node );
-        if ( !htBindings.size ) {
+        const { bindings, abortController } = _( root ).get( 'data-binding' ) || {};
+        if ( !bindings?.has( node ) ) return;
+        bindings.get( node ).state.dispose();
+        bindings.get( node ).signals.forEach( s => s.abort() );
+        bindings.delete( node );
+        if ( !bindings.size ) {
             abortController.abort();
-            _( root ).delete( 'htBindings' );
+            _( root ).delete( 'data-binding' );
         }
     }
 }
@@ -127,24 +127,24 @@ async function mountDiscreteBindings( config, ...entries ) {
     }, [] );
 
     for ( const { textNode, template, anchorNode } of instances ) {
-        const { scope: env, htBindings } = createDynamicScope( config, textNode.parentNode );
+        const { scope: env, bindings } = createDynamicScope( config, textNode.parentNode );
         let source = '';
         source += `let content = ((${ template.expr }) ?? '') + '';`;
         source += `$set__(this, 'nodeValue', content);`;
         if ( anchorNode ) { source += `$set__($anchorNode__, 'nodeValue', \`${ config.tokens.tagStart }${ template.expr }${ config.tokens.stateStart }\` + content.length + \`${ config.tokens.stateEnd } ${ config.tokens.tagEnd }\`);`; }
         const compiled = new StatefulAsyncFunction( '$signals__', `$anchorNode__`, source, { env } );
         const signals = [];
-        htBindings.set( textNode, { compiled, signals, state: await compiled.call( textNode, signals, anchorNode ), } );
+        bindings.set( textNode, { compiled, signals, state: await compiled.call( textNode, signals, anchorNode ), } );
     }
 }
 
 async function mountInlineBindings( config, ...entries ) {
     for ( const node of entries ) {
-        const source = parseInlineBindings( config, node.getAttribute( config.attr.bindings ) );
-        const { scope: env, htBindings } = createDynamicScope( config, node );
+        const source = parseInlineBindings( config, node.getAttribute( config.attr.binding ) );
+        const { scope: env, bindings } = createDynamicScope( config, node );
         const compiled = new StatefulAsyncFunction( '$signals__', source, { env } );
         const signals = [];
-        htBindings.set( node, { compiled, signals, state: await compiled.call( node, signals ), } );
+        bindings.set( node, { compiled, signals, state: await compiled.call( node, signals ), } );
     }
 }
 

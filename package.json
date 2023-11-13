@@ -29,8 +29,8 @@
   "scripts": {
     "test": "mocha --extension .test.js --exit",
     "test:coverage": "c8 --reporter=text-lcov npm run test | coveralls",
-    "build": "esbuild main=src/targets.browser.js context-api=src/context-api/targets.browser.js bindings-api=src/bindings-api/targets.browser.js html-imports=src/html-imports/targets.browser.js html-bindings=src/html-bindings/targets.browser.js html-namespaces=src/html-namespaces/targets.browser.js scoped-js=src/scoped-js/targets.browser.js scoped-css=src/scoped-css/targets.browser.js --bundle --minify --sourcemap --outdir=dist",
-    "preversion": "npm run build && git add -A dist",
+    "build": "esbuild main=src/targets.browser.js namespaced-html=src/namespaced-html/targets.browser.js scoped-css=src/scoped-css/targets.browser.js scoped-js=src/scoped-js/targets.browser.js context-api=src/context-api/targets.browser.js bindings-api=src/bindings-api/targets.browser.js html-imports=src/html-imports/targets.browser.js data-binding=src/data-binding/targets.browser.js --bundle --minify --sourcemap --outdir=dist",
+    "preversion": "npm run test && npm run build && git add -A dist",
     "postversion": "npm publish",
     "postpublish": "git push && git push --tags"
   },
@@ -41,7 +41,7 @@
     "@webqit/util": "^0.8.11"
   },
   "devDependencies": {
-    "@webqit/oohtml-ssr": "^1.2.17",
+    "@webqit/oohtml-ssr": "^1.2.19",
     "chai": "^4.3.4",
     "coveralls": "^3.1.1",
     "esbuild": "^0.14.43",
