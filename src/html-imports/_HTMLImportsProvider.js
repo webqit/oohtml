@@ -3,7 +3,7 @@
  * @imports
  */
 import Observer from '@webqit/observer';
-import { HTMLContext, HTMLContextProvider } from '../context-api/index.js';
+import { HTMLContextProvider } from '../context-api/index.js';
 import { getModulesObject } from './index.js';
 import { _ } from '../util.js';
 
@@ -87,7 +87,7 @@ export default class _HTMLImportsProvider extends HTMLContextProvider {
             }
             // This superModules contextrequest is automatically aborted by the injected signal below
             const request = this.constructor.createRequest( { detail: record.value.trim(), live: true, signal, superContextOnly: true } );
-            HTMLContext.instance( this.host ).request( request, response => {
+            this.host[ $config.CONTEXT_API.api.context ].request( request, response => {
                 this.contextModules = !( response && Object.getPrototypeOf( response ) ) ? response : getModulesObject( response );
                 update();
             } );

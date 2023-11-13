@@ -2,11 +2,11 @@
 /**
  * @imports
  */
+import Observer from '@webqit/observer';
 import { resolveParams } from '@webqit/stateful-js/params';
 import { StatefulAsyncFunction, StatefulAsyncScript, StatefulModule, State } from '@webqit/stateful-js/async';
-import Observer from '@webqit/observer';
-import Hash from './Hash.js';
 import { _init } from '../util.js';
+import Hash from './Hash.js';
 
 export {
     StatefulAsyncFunction,

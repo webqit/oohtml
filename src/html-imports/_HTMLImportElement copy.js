@@ -45,7 +45,7 @@ export default function( config ) {
 
             priv.setAnchorNode = anchorNode => {
                 priv.anchorNode = anchorNode;
-                return anchorNode;
+                _( anchorNode ).set( 'anchoredNode@imports', this.el );
             };
 
             priv.importRequest = ( callback, signal = null ) => {
@@ -60,7 +60,7 @@ export default function( config ) {
             priv.hydrate = ( anchorNode, slottedElements ) => {
                 // ----------------
                 priv.moduleRef = ( this.el.getAttribute( config.import.attr.moduleref ) || '' ).trim();
-                anchorNode.replaceWith( priv.setAnchorNode( this.createAnchorNode() ) );
+                priv.setAnchorNode( anchorNode );
                 priv.autoRestore( () => {
                     slottedElements.forEach( slottedElement => {
                         priv.slottedElements.add( slottedElement );
@@ -71,13 +71,12 @@ export default function( config ) {
                 priv.hydrationImportRequest = new AbortController;
                 priv.importRequest( fragments => {
                     if ( priv.originalsRemapped ) { return this.fill( fragments ); }
-                    const identifiersMap = fragments.map( ( fragment, i ) => ( { el: fragment, fragmentDef: fragment.getAttribute( config.template.attr.fragmentdef ) || '', tagName: fragment.tagName, i } ) );
-                    let i = -1;
+                    const identifiersMap = fragments.map( fragment => ( { el: fragment, fragmentDef: fragment.getAttribute( config.template.attr.fragmentdef ) || '', tagName: fragment.tagName, } ) );
                     slottedElements.forEach( slottedElement => {
                         const tagName = slottedElement.tagName, fragmentDef = slottedElement.getAttribute( config.template.attr.fragmentdef ) || '';
-                        const originalsMatch = ( i ++, identifiersMap.find( fragmentIdentifiers => fragmentIdentifiers.tagName === tagName && fragmentIdentifiers.fragmentDef === fragmentDef && fragmentIdentifiers.i === i ) );
-                        if ( !originalsMatch ) return; // Or should we throw integrity error?
-                        _( slottedElement ).set( 'original@imports', originalsMatch.el );
+                        const originalsMatch = identifiersMap.filter( fragmentIdentifiers => tagName === fragmentIdentifiers.tagName && fragmentDef === fragmentIdentifiers.fragmentDef );
+                        if ( originalsMatch.length !== 1 ) return;
+                        _( slottedElement ).set( 'original@imports', originalsMatch[ 0 ].el );
                     } );
                     priv.originalsRemapped = true;
                 }, priv.hydrationImportRequest.signal );
@@ -86,12 +85,10 @@ export default function( config ) {
             priv.autoRestore = ( callback = null ) => {
                 priv.autoRestoreRealtime?.disconnect();
                 if ( callback ) callback();
-                const restore = () => {
+                if ( !priv.slottedElements.size ) {
                     priv.anchorNode.replaceWith( this.el );
-                    priv.anchorNode = null;
-                    this.el.setAttribute( 'data-nodecount', 0 );
-                };
-                if ( !priv.slottedElements.size ) return restore();
+                    return;
+                }
                 const autoRestoreRealtime = realdom.realtime( window.document ).observe( [ ...priv.slottedElements ], record => {
                     record.exits.forEach( outgoingNode => {
                         _( outgoingNode ).delete( 'slot@imports' );
@@ -101,7 +98,7 @@ export default function( config ) {
                         autoRestoreRealtime.disconnect();
                         // At this point, ignore if this is a removal involving the whole parent node
                         if ( !record.target.isConnected ) return;
-                        restore();
+                        priv.anchorNode.replaceWith( this.el );
                     }
                 }, { subtree: true, timing: 'sync', generation: 'exits' } );
                 priv.autoRestoreRealtime = autoRestoreRealtime;
@@ -111,6 +108,7 @@ export default function( config ) {
                 // In case this is DOM node relocation or induced reinsertion into the DOM
                 if ( priv.slottedElements.size ) throw new Error( `Illegal reinsertion into the DOM; import slot is not empty!` );
                 // Totally initialize this instance?
+                if ( !priv.anchorNode ) { priv.setAnchorNode( this.createAnchorNode() ); }
                 if ( priv.moduleRefRealtime ) return;
                 priv.moduleRefRealtime = realdom.realtime( this.el ).attr( config.import.attr.moduleref, ( record, { signal } ) => {
                     priv.moduleRef = record.value;
@@ -137,12 +135,8 @@ export default function( config ) {
          * @return Element
          */
         createAnchorNode() {
-            if ( window.webqit.env !== 'server' ) { return window.document.createTextNode( '' ) }
-            const escapeElement = window.document.createElement( 'div' );
-            escapeElement.textContent = this.el.outerHTML;
-            const anchorNode = window.document.createComment( escapeElement.innerHTML );
-            _( anchorNode ).set( 'isAnchorNode', true );
-            return anchorNode;
+            if ( !config.isomorphic ) { return window.document.createTextNode( '' ) }
+            return window.document.createComment( this.el.outerHTML );
         }
 
         /**
@@ -154,8 +148,6 @@ export default function( config ) {
          */
         fill( slottableElements ) {
             if ( Array.isArray( slottableElements ) ) { slottableElements = new Set( slottableElements ) }
-            // This state must be set before the diffing below and the serialization done at createAnchorNode()
-            this.el.setAttribute( 'data-nodecount', slottableElements.size );
             this[ '#' ].autoRestore( () => {              
                 this[ '#' ].slottedElements.forEach( slottedElement => {
                     const slottedElementOriginal = _( slottedElement ).get( 'original@imports' );
@@ -171,10 +163,8 @@ export default function( config ) {
                 } );
                 // Make sure anchor node is what's in place...
                 // not the import element itslef - but all only when we have slottableElements.size
-                if ( slottableElements.size ) {
-                    const currentAnchorNode = this[ '#' ].anchorNode;
-                    const anchorNode = this[ '#' ].setAnchorNode( this.createAnchorNode() );
-                    ( this.el.isConnected ? this.el : currentAnchorNode ).replaceWith( anchorNode );
+                if ( this.el.isConnected && slottableElements.size ) {
+                    this.el.replaceWith( this[ '#' ].anchorNode );
                 }
                 // Insert slottables now
                 slottableElements.forEach( slottableElement => {

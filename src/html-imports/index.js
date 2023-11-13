@@ -3,7 +3,6 @@
  * @imports
  */
 import Observer from '@webqit/observer';
-import { HTMLContext } from '../context-api/index.js';
 import _HTMLExportsManager from './_HTMLExportsManager.js';
 import _HTMLImportElement from './_HTMLImportElement.js';
 import _HTMLImportsProvider from './_HTMLImportsProvider.js';
@@ -24,16 +23,22 @@ export default function init( $config = {} ) {
         staticsensitivity: true,
         isomorphic: true,
     } );
+    config.CONTEXT_API = window.webqit.oohtml.configs.CONTEXT_API;
     config.templateSelector = `template[${ window.CSS.escape( config.template.attr.moduledef ) }]`;
     config.ownerContextSelector = [ config.context.attr.contextname, config.context.attr.importscontext ].map( a => `[${ window.CSS.escape( a ) }]` ).join( ',' );
     config.slottedElementsSelector = `[${ window.CSS.escape( config.template.attr.fragmentdef ) }]`;
+    const anchorNodeMatch = ( start, end ) => {
+        const starting = `starts-with(., "${ start }")`;
+        const ending = `substring(., string-length(.) - string-length("${ end }") + 1) = "${ end }"`;
+        return `${ starting } and ${ ending }`;
+    }
+    config.anchorNodeSelector = `comment()[${ anchorNodeMatch( `&lt;${ config.import.tagName }`, `&lt;/${ config.import.tagName }&gt;` ) }]`;
     window.webqit.HTMLImportElement = _HTMLImportElement.call( window, config );
     window.webqit.HTMLImportsProvider = class extends _HTMLImportsProvider {
         static get config() { return config; }
     };
     window.webqit.Observer = Observer;
     exposeAPIs.call( window, config );
-    realdom.ready( () => hydration.call( window, config ) );
     realtime.call( window, config );
 }
 
@@ -88,7 +93,7 @@ function exposeAPIs( config ) {
             live = false;
         }
         const request = _HTMLImportsProvider.createRequest( { detail: ref, live } );
-        return HTMLContext.instance( context ).request( request, callback );
+        return context[ config.CONTEXT_API.api.context ].request( request, callback );
     }
 }
 
@@ -155,46 +160,22 @@ function realtime( config ) {
         if ( connectedState ) { elInstance[ '#' ].connectedCallback(); }
         else { elInstance[ '#' ].disconnectedCallback(); }
     }
-}
-
-/**
- * Performs hydration for server-slotted elements.
- *
- * @param Object config
- *
- * @return Void
- */
-function hydration( config ) {
-    const window = this, { HTMLImportElement } = window.webqit;
-    function scan( context ) {
-        const slottedElements = new Set;
-        context.childNodes.forEach( node => {
-            if ( node.nodeType === 1/** ELEMENT_NODE */ ) {
-                if ( !node.matches( config.slottedElementsSelector ) ) return;
-                if ( _( node ).get( 'slot@imports' ) ) return;
-                slottedElements.add( node );
-            } else if ( node.nodeType === 8/** COMMENT_NODE */ ) {
-                const nodeValue = node.nodeValue.trim();
-                if ( !nodeValue.startsWith( '<' + config.import.tagName ) ) return;
-                if ( !nodeValue.endsWith( '</' + config.import.tagName + '>' ) ) return;
-                const reviver = window.document.createElement( 'div' );
-                reviver.innerHTML = nodeValue;
-                const importEl = reviver.firstChild;
-                if ( !importEl.matches( config.import.tagName ) ) return;
-                HTMLImportElement.instance( importEl )[ '#' ].hydrate(
-                    node/* the comment node */, slottedElements
-                );
-                slottedElements.clear();
+    // Hydration
+    if ( window.webqit.env === 'server' ) return;
+    realdom.realtime( window.document ).subtree( `(${ config.anchorNodeSelector })`, record => {
+        record.entrants.forEach( anchorNode => {
+            if ( _( anchorNode ).get( 'isAnchorNode' ) ) return; // Doubling up on the early return above! Ignoring every just created anchorNode
+            const reviver = window.document.createElement( 'div' );
+            reviver.innerHTML = anchorNode.nodeValue;
+            reviver.innerHTML = reviver.firstChild.textContent;
+            const importEl = reviver.firstChild;
+            let nodecount = parseInt( importEl.getAttribute( 'data-nodecount' ) );
+            const slottedElements = new Set;
+            let slottedElement = anchorNode;
+            while ( ( slottedElement = slottedElement.previousElementSibling ) && slottedElement.matches( config.slottedElementsSelector ) && nodecount -- ) {
+                slottedElements.add( slottedElement );
             }
+            HTMLImportElement.instance( importEl )[ '#' ].hydrate( anchorNode, slottedElements );
         } );
-    }
-    Array.from( window.document.querySelectorAll( config.slottedElementsSelector ) ).forEach( slottedElement => {
-        // hydration() might be running AFTER certain <slots> have resolved
-        // and slottedElement might be a just-resolved node
-        if ( _( slottedElement ).get( 'slot@imports' ) ) return;
-        if ( _( slottedElement.parentNode ).get( 'alreadyscanned@imports' ) ) return;
-        scan( slottedElement.parentNode );
-        // Scanning is once for every parent
-        _( slottedElement.parentNode ).set( 'alreadyscanned@imports', true );
-    } );
+    }, { live: true } );
 }

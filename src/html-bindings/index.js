@@ -3,7 +3,6 @@
  * @imports
  */
 import Observer from '@webqit/observer';
-import { HTMLContext } from '../context-api/index.js';
 import _HTMLBindingsProvider from '../bindings-api/_HTMLBindingsProvider.js';
 import { StatefulAsyncFunction } from '@webqit/stateful-js/async';
 import { _, _init } from '../util.js';
@@ -17,22 +16,21 @@ import { _, _init } from '../util.js';
  */
 export default function init( $config = {} ) {
     const { config, window } = _init.call( this, 'html-bindings', $config, {
-        attr: { bind: 'bind', itemIndex: 'data-index' },
+        attr: { bindings: 'bindings', itemIndex: 'data-index' },
         tokens: { nodeType: 'processing-instruction', tagStart: '?{', tagEnd: '}?', stateStart: '; [=', stateEnd: ']' },
         staticsensitivity: true,
         isomorphic: true,
     } );
-    config.api = {
-        bind: window.webqit.oohtml.configs.BINDINGS_API.api.bind,
-        import: window.webqit.oohtml.configs.HTML_IMPORTS.context.api.import,
-    };
-    config.attrSelector = `[${ window.CSS.escape( config.attr.bind ) }]`;
-    const braceletMatch = ( start, end ) => {
+    config.CONTEXT_API = window.webqit.oohtml.configs.CONTEXT_API;
+    config.BINDINGS_API = window.webqit.oohtml.configs.BINDINGS_API;
+    config.HTML_IMPORTS = window.webqit.oohtml.configs.HTML_IMPORTS;
+    config.attrSelector = `[${ window.CSS.escape( config.attr.bindings ) }]`;
+    const discreteBindingsMatch = ( start, end ) => {
         const starting = `starts-with(., "${ start }")`;
         const ending = `substring(., string-length(.) - string-length("${ end }") + 1) = "${ end }"`;
         return `${ starting } and ${ ending }`;
     }
-    config.braceletSelector = `comment()[${ braceletMatch( config.tokens.tagStart, config.tokens.tagEnd ) }]`;
+    config.discreteBindingsSelector = `comment()[${ discreteBindingsMatch( config.tokens.tagStart, config.tokens.tagEnd ) }]`;
     window.webqit.Observer = Observer;
     realtime.call( window, config );
 }
@@ -47,27 +45,27 @@ export default function init( $config = {} ) {
 function realtime( config ) {
     const window = this, { realdom } = window.webqit;
 	// ----------------
-    realdom.realtime( window.document ).subtree( `(${ config.braceletSelector })`, record => {
+    realdom.realtime( window.document ).subtree( `(${ config.discreteBindingsSelector })`, record => {
         cleanup.call( this, ...record.exits );  
-        mountBracelets.call( this, config, ...record.entrants );  
+        mountDiscreteBindings.call( this, config, ...record.entrants );  
     }, { live: true } );
     realdom.realtime( window.document ).subtree( config.attrSelector, record => {
         cleanup.call( this, ...record.exits );  
-        mountInlineSubscript.call( this, config, ...record.entrants );  
+        mountInlineBindings.call( this, config, ...record.entrants );  
     }, { live: true, timing: 'sync', staticSensitivity: config.staticsensitivity } );
 }
 
-function createDynamicScope( root ) {
-    if ( _( root ).has( 'subscripts' ) ) return _( root ).get( 'subscripts' );
+function createDynamicScope( config, root ) {
+    if ( _( root ).has( 'htBindings' ) ) return _( root ).get( 'htBindings' );
     const scope = {}, abortController = new AbortController;
-    scope.$set = function( node, prop, val ) {
+    scope.$set__ = function( node, prop, val ) {
         node && ( node[ prop ] = val );
     }
     Observer.intercept( scope, {
         get: ( e, recieved, next ) => {
             if ( !( e.key in scope ) ) {
                 const request = _HTMLBindingsProvider.createRequest( { detail: e.key, live: true, signal: abortController.signal } );
-                HTMLContext.instance( root ).request( request, value => {
+                root[ config.CONTEXT_API.api.context ].request( request, value => {
                     Observer.set( scope, e.key, value );
                 } );
             }
@@ -75,27 +73,27 @@ function createDynamicScope( root ) {
         },
         has: ( e, recieved, next ) => { return next( true ); }
     } );
-    const instance = { scope, abortController, subscripts: new Map };
-    _( root ).set( 'subscripts', instance );
+    const instance = { scope, abortController, htBindings: new Map };
+    _( root ).set( 'htBindings', instance );
     return instance;
 }
 
 function cleanup( ...entries ) {
     for ( const node of entries ) {
         const root = node.nodeName  === '#text' ? node.parentNode : node;
-        const { subscripts, abortController } = _( root ).get( 'subscripts' ) || {};
-        if ( !subscripts?.has( node ) ) return;
-        subscripts.get( node ).state.dispose();
-        subscripts.get( node ).signals.forEach( s => s.abort() );
-        subscripts.delete( node );
-        if ( !subscripts.size ) {
+        const { htBindings, abortController } = _( root ).get( 'htBindings' ) || {};
+        if ( !htBindings?.has( node ) ) return;
+        htBindings.get( node ).state.dispose();
+        htBindings.get( node ).signals.forEach( s => s.abort() );
+        htBindings.delete( node );
+        if ( !htBindings.size ) {
             abortController.abort();
-            _( root ).delete( 'subscripts' );
+            _( root ).delete( 'htBindings' );
         }
     }
 }
 
-async function mountBracelets( config, ...entries ) {
+async function mountDiscreteBindings( config, ...entries ) {
     const window = this;
     const patternMatch = str => {
         const tagStart = config.tokens.tagStart.split( '' ).map( x => `\\${ x }` ).join( '' );
@@ -108,44 +106,45 @@ async function mountBracelets( config, ...entries ) {
     };
 
     const instances = entries.reduce( ( instances, node ) => {
-        if ( node.isBracelet ) return instances;
+        if ( node.isBound ) return instances;
         const template = patternMatch( node.nodeValue );
         let textNode = node;
         if ( template.span ) {
             textNode = node.nextSibling;
             if ( textNode?.nodeName !== '#text' || textNode.nodeValue.length < template.span ) return instances;
             if ( textNode.nodeValue.length > template.span ) { textNode.splitText( template.span ); }
-        } else if ( node.nextSibling ) {
-            textNode = node.parentNode.insertBefore( node.ownerDocument.createTextNode( '' ), node.nextSibling );
-        } else { textNode = node.parentNode.appendChild( node.ownerDocument.createTextNode( '' ) ); }
-        textNode.isBracelet = true;
-        let stateNode = node;
-        if ( window.webqit.env !== 'server' ) {
-            stateNode.remove();
-            stateNode = null;
+        } else {
+            textNode = node.ownerDocument.createTextNode( '' );
+            node.after( textNode );
         }
-        return instances.concat( { textNode, template, stateNode } );
+        textNode.isBound = true;
+        let anchorNode = node;
+        if ( window.webqit.env !== 'server' ) {
+            anchorNode.remove();
+            anchorNode = null;
+        }
+        return instances.concat( { textNode, template, anchorNode } );
     }, [] );
 
-    for ( const { textNode, template, stateNode } of instances ) {
-        const { scope: env, subscripts } = createDynamicScope( textNode.parentNode );
+    for ( const { textNode, template, anchorNode } of instances ) {
+        const { scope: env, htBindings } = createDynamicScope( config, textNode.parentNode );
         let source = '';
         source += `let content = ((${ template.expr }) ?? '') + '';`;
-        source += `$set(this, 'nodeValue', content);`;
-        if ( stateNode ) { source += `$set($stateNode__, 'nodeValue', \`${ config.tokens.tagStart }${ template.expr }${ config.tokens.stateStart }\` + content.length + \`${ config.tokens.stateEnd } ${ config.tokens.tagEnd }\`);`; }
-        const compiled = new StatefulAsyncFunction( '$signals__', `$stateNode__`, source, { env } );
+        source += `$set__(this, 'nodeValue', content);`;
+        if ( anchorNode ) { source += `$set__($anchorNode__, 'nodeValue', \`${ config.tokens.tagStart }${ template.expr }${ config.tokens.stateStart }\` + content.length + \`${ config.tokens.stateEnd } ${ config.tokens.tagEnd }\`);`; }
+        const compiled = new StatefulAsyncFunction( '$signals__', `$anchorNode__`, source, { env } );
         const signals = [];
-        subscripts.set( textNode, { compiled, signals, state: await compiled.call( textNode, signals, stateNode ), } );
+        htBindings.set( textNode, { compiled, signals, state: await compiled.call( textNode, signals, anchorNode ), } );
     }
 }
 
-async function mountInlineSubscript( config, ...entries ) {
+async function mountInlineBindings( config, ...entries ) {
     for ( const node of entries ) {
-        const source = parseInlineBindings( config, node.getAttribute( config.attr.bind ) );
-        const { scope: env, subscripts } = createDynamicScope( node );
+        const source = parseInlineBindings( config, node.getAttribute( config.attr.bindings ) );
+        const { scope: env, htBindings } = createDynamicScope( config, node );
         const compiled = new StatefulAsyncFunction( '$signals__', source, { env } );
         const signals = [];
-        subscripts.set( node, { compiled, signals, state: await compiled.call( node, signals ), } );
+        htBindings.set( node, { compiled, signals, state: await compiled.call( node, signals ), } );
     }
 }
 
@@ -159,17 +158,18 @@ function parseInlineBindings( config, str ) {
         const $expr = `(${ right })`, $$expr = `(${ $expr } ?? '')`;
         if ( token === '&' ) return `this.style[\`${ param }\`] = ${ $$expr };`;
         if ( token === '%' ) return `this.classList.toggle(\`${ param }\`, !!${ $expr });`;
-        if ( token === '@' ) {
+        if ( token === '~' ) {
             if ( param.endsWith( '?' ) ) return `this.toggleAttribute(\`${ param.substring( 0, -1 ).trim() }\`, !!${ $expr });`;
             return `this.setAttribute(\`${ param }\`, ${ $$expr });`;
         }
-        if ( token === '~' ) {
+        if ( token === '@' ) {
             if ( validation[ param ] ) throw new Error( `Duplicate binding: ${ left }.` );
             validation[ param ] = true;
-            if ( param === 'text' ) return `$set(this, 'textContent', ${ $$expr });`;
+            if ( param === 'text' ) return `$set__(this, 'textContent', ${ $$expr });`;
             if ( param === 'html' ) return `this.setHTML(${ $$expr });`;
             if ( param === 'items' ) {
                 const [ iterationSpec, importSpec ] = splitOuter( right, '/' );
+                if ( !importSpec ) throw new Error( `Invalid ${ token }items spec: ${ str }; no import specifier.` );
                 let [ raw, production, kind, iteratee ] = iterationSpec.trim().match( /(.*?[\)\s+])(of|in)([\(\{\[\s+].*)/i ) || [];
                 if ( !raw ) throw new Error( `Invalid ${ token }items spec: ${ str }.` );
                 if ( production.startsWith( '(' ) ) {
@@ -179,7 +179,7 @@ function parseInlineBindings( config, str ) {
                 const indices = kind === 'in' ? production[ 2 ] : ( production[ 1 ] || '$index__' );
                 return `
                 let $iteratee__ = ${ iteratee };
-                let $import__ = this.${ config.api.import }( ${ importSpec.trim() }, true );
+                let $import__ = this.${ config.HTML_IMPORTS.context.api.import }( ${ importSpec.trim() }, true );
                 $signals__.push( $import__ );
 
                 if ( $import__.value && $iteratee__ ) {
@@ -198,12 +198,12 @@ function parseInlineBindings( config, str ) {
                         if ( $itemNode__ ) {
                             $existing__.delete( $key___ );
                         } else {
-                            $itemNode__ = ( Array.isArray( $import__.value ) ? $import__.value[ 0 ] : ( $import__.value.content ? $import__.value.content.firstElementChild : $import__.value ) ).cloneNode( true );
+                            $itemNode__ = ( Array.isArray( $import__.value ) ? $import__.value[ 0 ] : ( $import__.value instanceof window.HTMLTemplateElement ? $import__.value.content.firstElementChild : $import__.value ) ).cloneNode( true );
                             $itemNode__.setAttribute( "${ config.attr.itemIndex }", $key___ );
                             this.appendChild( $itemNode__ );
                         }
-                        
-                        $itemNode__.${ config.api.bind }( $itemBinding__ );
+
+                        $itemNode__.${ config.BINDINGS_API.api.bind }( $itemBinding__ );
                         if ( ${ kind === 'in' ? `!( ${ production[ 0 ] } in $iteratee__ )` : `typeof ${ production[ 0 ] } === 'undefined'` } ) { $itemNode__.remove(); }
                     }
                     $existing__.forEach( x => x.remove() );

@@ -5,9 +5,9 @@
 import Observer from '@webqit/observer';
 import ContextAPI from './context-api/index.js';
 import BindingsAPI from './bindings-api/index.js';
+import HTMLImports from './html-imports/index.js';
 import HTMLBindings from './html-bindings/index.js';
 import HTMLNamespaces from './html-namespaces/index.js';
-import HTMLImports from './html-imports/index.js';
 import ScopedCSS from './scoped-css/index.js';
 import ScopedJS from './scoped-js/index.js';
 
