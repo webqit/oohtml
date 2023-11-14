@@ -669,19 +669,7 @@ Here, we get the `binding` attribute for a declarative and neat, key/value data-
 
 </details>
 
-<details><summary>All in Realtime</summary>
-
-Lists are rendered in realtime, which means that in-place mutations - additions and removals - on the *iteratee* will be automatically reflected on the UI!
-
-</details>
-
-<details><summary>With SSR Support</summary>
-
-Generated item elements are automatically assigned a corresponding index with a `data-index` attribute! This helps in remapping generated item nodes to their respective entry in *iteratee* - universally.
-
-</details>
-
-<details><summary>Example</summary>
+**-->** *all of which could be seen below*:
 
 ```html
 <section>
@@ -696,6 +684,16 @@ Generated item elements are automatically assigned a corresponding index with a 
 
 </section>
 ```
+
+<details><summary>All in Realtime</summary>
+
+Lists are rendered in realtime, which means that in-place mutations - additions and removals - on the *iteratee* will be automatically reflected on the UI!
+
+</details>
+
+<details><summary>With SSR Support</summary>
+
+Generated item elements are automatically assigned a corresponding index with a `data-index` attribute! This helps in remapping generated item nodes to their respective entry in *iteratee* - universally.
 
 </details>
 
