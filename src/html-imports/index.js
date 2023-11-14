@@ -89,11 +89,14 @@ function exposeAPIs( config ) {
         return importRequest( this, ...arguments );
     } } );
     function importRequest( context, ref, live = false, callback = null ) {
+        let options = { detail: ref };
         if ( typeof live === 'function' ) {
             callback = live;
             live = false;
+        } else if ( typeof live === 'object' && live ) {
+            options = { ...live, ...options };
         }
-        const request = _HTMLImportsProvider.createRequest( { detail: ref, live } );
+        const request = _HTMLImportsProvider.createRequest( options );
         return context[ config.CONTEXT_API.api.context ].request( request, callback );
     }
 }

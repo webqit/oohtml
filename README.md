@@ -7,19 +7,15 @@
 
 **[Overview](#overview) • [Modular HTML](#modular-html) • [HTML Imports](#html-imports) • [Reactive HTML](#reactive-html) • [Polyfill](#polyfill) • [Examples](#examples) • [License](#license)**
 
-Object-Oriented HTML (OOHTML) is a set of language features for authoring modular, reusable markup, and for translating that to functional DOM-level objects! Everything comes together as a delightful holistic component architecture for the modern UI!
-
-OOHTML is an upcoming proposal!
+Object-Oriented HTML (OOHTML) is a set of language features for authoring modular, reusable and reactive markup which brings us to a whole new authoring experience on the modern UI!
 
 ## Motivation
 
 <details><summary>Show</summary>
 
-The web has generally outgrown the idea of a monolith architecture on the UI! But enter HTML; the current authoring experience is one where an author is trying to think out one thing but forced to work out everything, in how the language for the job poses one global scope as the unit of abstraction for styles, scripts and element identifiers — enforcing many global dependencies; inflicting much global thinking!
+Vanilla HTML is increasingly becoming a more attractive option for web developers! But the current authoring experience still leaves much to be desired in how the language lacks modularity, reusability, and data binding! Authors still have to rely on tools - or, to say the least, do half of the work in HTML and half in JS - to get even basic things working!
 
-Think too of how authors often have to do half of the work in HTML and half in JS just to have reusable markup!
-
-This project is a proposal for a new standards work that revisits much of the oldish monolith-oriented constraints in HTML that inhibit the idea of a *component* architecture in HTML!
+This project pursues an object-oriented approach to HTML and implicitly revisits much of what inhibits the idea of a *component* architecture for HTML!
 
 └ [See more in the introductory blog post](https://dev.to/oxharris/the-web-native-equations-1m1p-temp-slug-6661657?preview=ba70ad2c17f05b5761bc74516dbde8c9eff8b581a0420d87334fd9ef6bab9d6e6d3ab6aaf3fe02542bb9e7250d0a88a6df91dae40919aabcc9a07320)<sup>draft</sup>
 
@@ -27,20 +23,27 @@ This project is a proposal for a new standards work that revisits much of the ol
 
 ## Overview
 
-OOHTML comes in three sets of features, and the following is an overview. A more detailed documentation for OOHTML is underway in the [project wiki](https://github.com/webqit/oohtml/wiki).
+Here we extend standard HTML and the DOM to normalise certain fundamental concepts and paradigms that the ecosystem has explored over the years!
+
+We go in three main focus areas:
 
 + [Modular HTML](#modular-html)
 + [HTML Imports](#html-imports)
-+ [Reactive HTML](#reactive-html)
++ [Data Binding](#data-binding)
++ [Data Binding](#data-binding)
 + [Put Together](#put-together)
 
 > **Note**  This is documentation for `OOHTML@2.x`. (Looking for [`OOHTML@1.x`](https://github.com/webqit/oohtml/tree/v1.10.4)?)
 
 ## Modular HTML
 
-The first set of features covers authoring objects with self-contained structure, styling and *scripting*! This simply gets identifiers, style sheets and scripts to serve *at the object level* exactly as they do *at the document (object) level*.
+Modular HTML is a markup pattern that lets us write markup as self-contained objects - with each *encapsulating* its own structure, styling and logic - as against the regular idea of having everything converge and conflict on one global scope!
 
-└ *Namespaced IDs for modelling structure*:
+OOHTML makes this possible in just simple conventions - via two new attributes: `namespace` and `scoped`!
+
+### Namespacing
+
+└ The `namespace` attribute for designating an element as own naming context for identifiers - i.e. the `id` and `name` attributes:
 
 ```html
 <div id="user" namespace>
@@ -51,6 +54,8 @@ The first set of features covers authoring objects with self-contained structure
 </div>
 ```
  
+*which translates really well to an object model*:
+
 ```html
 user
  ├── url
@@ -58,16 +63,58 @@ user
  └── email
 ```
 
+*with a corresponding API that exposes said structure to JavaScript applications*:
+
 ```js
-// The namespace API
+// The document.namespace API
 let { user } = document.namespace;
+// The Element.prototype.namespace API
 let { url, name, email } = user.namespace;
 ```
 
-└ *Scoped styles and scripts for styling and functionality*:
+<details><summary>Learn more</summary>
+
+You want to see how IDs are otherwise exposed as global variables:
 
 ```html
-<div id="user">
+<div id="foo"><div>
+```
+
+```js
+console.log(window.foo); // div
+```
+
+[Read more](https://stackoverflow.com/questions/6381425/is-there-a-spec-that-the-id-of-elements-should-be-made-global-variable)
+
+</details>
+
+└ *A Namespace API that reflects the real-DOM&trade; in real-time*:
+
+```js
+// Observing the addition or removal of elements with an ID
+Observer.observe(document.namespace, changeCallback);
+
+const paragraph = document.createElement('p');
+paragraph.setAttribute('id', 'bar');
+document.body.appendChild(paragraph); // Reported synchronously
+```
+
+```js
+// Observing the addition or removal of elements with an ID
+paragraph.toggleAttribute('namespace', true);
+Observer.observe(paragraph.namespace, changeCallback);
+
+const span = document.createElement('span');
+span.setAttribute('id', 'baz');
+paragraph.appendChild(span); // Reported synchronously
+```
+
+### Style and Script Scoping
+
+└ The `scoped` attribute for *scoping* element-specific stylesheets and scripts:
+
+```html
+<div>
 
   <style scoped>
     :scope { color: red }
@@ -80,17 +127,23 @@ let { url, name, email } = user.namespace;
 </div>
 ```
 
+*with a corresponding API that exposes said assets to JavaScript applications*:
+
 ```js
 let { styleSheets, scripts } = user; // APIs that are analogous to the document.styleSheets, document.scripts properties
 ```
 
-└ [Modular HTML concepts](#)
+└ [Modular HTML examples](#modular-html-examples)
 
 ## HTML Imports
 
-The next set of features covers *templating and reusing objects* - in both *declarative* and *programmatic* terms! It extends the language with the *module identifier* attribute `def`, and introduces a complementary new `<import>` element, and has everything working together as a real-time module system.
+HTML Imports is a realtime module system for *templating and reusing* HTML in HTML, and optionally in JavaScript! Something like it is the [`<defs>`](https://developer.mozilla.org/en-US/docs/Web/SVG/Element/defs) and [`<use>`](https://developer.mozilla.org/en-US/docs/Web/SVG/Element/use) system in SVG.
 
-└ *The `def` attribute for reusable "module" and "fragment" definitions*:
+OOHTML makes this possible in just simple conventions - via a new `def` attribute and a complementary new `<import>` element!
+
+### Module Definition
+
+└ The `def` attribute for defining reusable markup - either as whole *module* or as *fragment*:
 
 ```html
 <head>
@@ -104,7 +157,7 @@ The next set of features covers *templating and reusing objects* - in both *decl
 </head>
 ```
 
-└ *Module nesting for code organization*:
+└ Module nesting for code organization:
 
 ```html
 <head>
@@ -120,16 +173,20 @@ The next set of features covers *templating and reusing objects* - in both *decl
 </head>
 ```
 
-└ *The `<template src>` element for remote modules*:
+### Remote Modules
+
+└ The `<template src>` element for remote modules:
 
 ```html
 <template def="foo" src="/foo.html"></template>
+<!-- which links to the file below -->
 ```
 
 ```html
 -- file: /foo.html --
 <div def="fragment1"></div>
 <template def="nested" src="/nested.html"></template>
+<!-- which itself links to the file below -->
 ```
 
 ```html
@@ -138,11 +195,16 @@ The next set of features covers *templating and reusing objects* - in both *decl
 --
 ```
 
+*which extends how elements like images already work; terminating with either a `load` or an `error` event*:
+
 ```js
-foo.addEventListener('load', loadedCallback);
+foo.addEventListener('load', loadCallback);
+foo.addEventListener('error', errorCallback);
 ```
 
-└ *The `<import>` element for declarative module import*:
+### Declarative Module Imports
+
+└ The `<import>` element for declarative module import:
 
 ```html
 <body>
@@ -158,20 +220,140 @@ foo.addEventListener('load', loadedCallback);
 </body>
 ```
 
-└ *The HTMLImports API  for programmatic module import*:
+<details><summary>All in Realtime</summary>
+
+As a realtime module system, `<import> `elements maintain a live relationship with given module definition `<template def>` elements and are resolved again in the event that:
++ the `<import>` element points to another module — either by `ref` change or by a change in `importscontext` (below).
++ the module definition `<template def>` element has had its contents updated, either programmatically or automatically from having loaded.
+
+Conversely, an `<import>` element that has been resolved will self-restore in the event that:
++ the `<import>` element no longer points to a module; or the module has been emptied or removed.
++ the previously slotted contents have been programmatically removed and slot is empty.
+
+</details>
+
+<details><summary>With SSR Support</summary>
+
+On the server, these `<import>` elements would retain their place in the DOM, but this time, serialized into comment nodes, while having their output rendered just above them as siblings.
+
+The above resolved imports would thus give us something like:
+
+```html
+<body>
+  <div def="fragment1"></div>
+  <!--&lt;import ref="/foo#fragment1"&gt;&lt;/import&gt;-->
+  <div def="fragment2"></div>
+  <!--&lt;import ref="/foo/nested#fragment2"&gt;&lt;/import&gt;-->
+</body>
+```
+
+But they also have to remember the exact imported nodes that they manage so as to be able to re-establish that relationship on getting to the client. This information is automatically encoded as part of the serialised element itself, in something like:
+
+```html
+<!--&lt;import ref="/foo/nested#fragment2" nodecount="1"&gt;&lt;/import&gt;-->
+```
+
+Now that extra bit of information gets decoded and original relationships are formed again on getting to the client and "hydrating" the `<import>` element. But, the `<import>` element itself stays invisible in the DOM while still continuing to kick as above!
+
+> Note: We know we're on the server when `window.webqit.env === 'server'`. This flag is automatically set by OOHTML's current SSR engine: [OOHTML-SSR](https://github.com/webqit/oohtml-ssr)
+
+</details>
+
+### Programmatic Module Imports
+
+└ The *HTMLImports* API for programmatic module import:
 
 ```js
-const import1 = document.import('/foo#fragment1');
-console.log(import1); // { value: div }
+const moduleObject1 = document.import('/foo#fragment1');
+console.log(moduleObject1.value); // divElement
 ```
 
 ```js
-const import2 = document.import('/foo/nested#fragment2');
-console.log(import2); // { value: div }
+const moduleObject2 = document.import('/foo/nested#fragment2');
+console.log(moduleObject2.value); // divElement
 ```
 
-└ *Scoped templates for object-scoped module system*:
-> With an equivalent `Element.prototype.import()` API for accessing scoped modules
+*with an observable `moduleObject.value` property for working asynchronously; e.g. awaiting and handling remote modules*:
+
+```js
+Observer.observe(moduleObject2, 'value', e => {
+    console.log(e.value); // divElement
+});
+```
+
+*with an equivalent `callback` option on the `import()` method itself*:
+
+```js
+document.import('/foo#fragment1', divElement => {
+    console.log(divElement);
+});
+```
+
+└ An optional `live` parameter for staying subscribed to any mutations made to source module elements:
+
+```js
+const moduleObject2 = document.import('/foo/nested#fragment2', true/*live*/);
+console.log(moduleObject2.value);
+Observer.observe(moduleObject2, 'value', e => {
+    console.log(e.value);
+});
+```
+
+```js
+document.import('/foo#fragment1', true/*live*/, divElement => {
+    console.log(divElement); // To be received after remote module has been loaded
+});
+```
+
+*both of which would get notified on doing the below*:
+
+```js
+document.querySelector('template[def="foo"]').content.firstElementChild.remove();
+```
+
+└ An optional `AbortSignal` parameter for aborting module mutation events:
+
+```js
+const abortController = new AbortController;
+```
+
+```js
+const moduleObject2 = document.import('/foo/nested#fragment2', { live: true, signal: abortController.signal });
+```
+
+```js
+document.import('/foo#fragment1', { live: true, signal: abortController.signal }, divElement => {
+    console.log(divElement); // To be received after remote module has been loaded
+});
+```
+
+```js
+setTimeout(() => abortController.abort(), 1000);
+```
+
+<details><summary>Extended Imports concepts</summary>
+
+### Lazy-Loading Modules
+
+└ Remote modules with lazy-loading - which has modules loading on first time access:
+
+```html
+<!-- Loading doesn't happen until the first time this is being accessed -->
+<template def="foo" src="/foo.html" loading="lazy"></template>
+```
+
+```html
+<body>
+  <import ref="/foo#fragment1"></import> <!-- Triggers module loading and resolves on load success -->
+</body>
+```
+```js
+const moduleObject2 = document.import('/foo#fragment1'); // Triggers module loading and resolves at moduleObject2.value on load success
+```
+
+### Scoped Modules
+
+└ The `scoped` attribute for an *object-scoped* module system:
 
 ```html
 <section> <!-- object with own modules -->
@@ -188,6 +370,8 @@ console.log(import2); // { value: div }
 </section>
 ```
 
+*with an equivalent `Element.prototype.import()` API for accessing said scoped modules*:
+
 ```js
 // Using the HTMLImports API
 const moduleHost = document.querySelector('div');
@@ -202,11 +386,9 @@ const globalImport1 = moduleHost.import('/foo#fragment1'); // the global module:
 console.log(globalImport1); // { value: div }
 ```
 
-<details><summary>
-Extended Imports concepts
-</summary>
+### Module Inheritance
 
-└ *Module nesting with inheritance*:
+└ Module nesting with inheritance:
 
 ```html
 <template def="foo">
@@ -250,34 +432,9 @@ Extended Imports concepts
 </body>
 ```
 
-└ *Remote modules with lazy-loading*:
+### Imports Contexts
 
-```html
-<!-- Loading doesn't happen until the first time this is being accessed -->
-<template def="foo" src="/foo.html" loading="lazy"></template>
-```
-
-```html
-<body>
-  <import ref="/foo#fragment1"></import> <!-- To be resolved after remote module has been loaded -->
-</body>
-```
-
-```js
-document.import('/foo#fragment1', divElement => {
-    console.log(divElement); // To be received after remote module has been loaded
-});
-```
-
-```js
-const import1 = document.import('/foo#fragment1', true);
-console.log(import1); // { value: undefined }
-Observer.observe(import1, 'value', divElement => {
-    console.log(divElement); // To be received after remote module has been loaded
-});
-```
-
-└ *"Imports Contexts" for context-based imports resolution*:
+└ "Imports Contexts" for context-based *import resolution*:
 
 ```html
 <body importscontext="/foo">
@@ -302,7 +459,7 @@ const globalImport2 = moduleHost.import('#fragment2'); // module:/foo/nested#fra
 console.log(globalImport2); // { value: div }
 ```
 
-└ *"Imports Contexts" with named contexts*:
+└ "Imports Contexts" with named contexts:
 
 ```html
 <body contextname="context1" importscontext="/foo/nested">
@@ -326,7 +483,7 @@ const globalImport2 = moduleHost.import('@context1#fragment2'); // module:/foo/n
 console.log(globalImport2); // { value: div }
 ```
 
-└ *"Imports Contexts" with context inheritance*:
+└ "Imports Contexts" with context inheritance:
 
 ```html
 <body importscontext="/foo">
@@ -340,7 +497,9 @@ console.log(globalImport2); // { value: div }
 </body>
 ```
 
-└ *Object-scoped module system with context inheritance*:
+### Scoped Modules and Imports Contexts
+
+└ Object-scoped module system with context inheritance:
 
 ```html
 <body contextname="context1" importscontext="/bar">
@@ -370,10 +529,148 @@ console.log(localOrGlobalImport2); // { value: div }
 
 </details>
 
-└ [HTML Imports concepts](#)
+└ [HTML Imports examples](#html-imports-examples)
 
-## Reactive HTML
+## Data Binding
 
+Data binding is the concept of declaratively driving the UI with application-level data. It comes as mechanism that sits between the UI and the application itself, ensuring that the relevant parts of the UI are *automatically* updated as application state changes.
+
+OOHTML makes this possible in just simple conventions - via a new comment-based data-binding syntax `<?{ }?>` and a complementary new `binding` attribute!
+
+### Comment-Based Data-Binding
+
+└ A web-native, comment-based data-binding syntax `<?{ }?>` which works like regular comment but stay "data-charged":
+
+```js
+<html>
+  <head>
+    <title><?{ app.title }?></title>
+  </head>
+  <body>
+    Hi, I'm <?{ app.name ?? 'Default name' }?>!
+    and here's another way to write the same comment: <!--?{ app.cool }?-->
+  </body>
+</html>
+```
+
+<details><summary>With SSR Support</summary>
+
+On the server, these data-binding tags would retain their place in the DOM while having their output rendered to their right in a text node.
+
+The following: `<?{ 'Hello World' }?>` would thus give us: `<?{ 'Hello World' }?>Hello World`.
+
+But they also have to remember the exact text node that they manage, so as to be able to re-establish that relationship on getting to the client. That information is automatically encoded as part of the declaration itself, and that brings us to having a typical server-rendered binding look like this:
+
+```html
+<?{ 'Hello World'; [=11] }?>Hello World
+```
+
+Now that extra bit of information gets decoded and original relationships are forned again on getting to the client. But the binding tag itself graciously disappears from the DOM, while the now "hydrated" text node continues to kick!
+
+> Note: We know we're on the server when `window.webqit.env === 'server'`. This flag is automatically set by OOHTML's current SSR engine: [OOHTML-SSR](https://github.com/webqit/oohtml-ssr)
+
+</details>
+
+### Directives-Based Data-Binding
+
+└ The `binding` attribute for a declarative and neat, key/value data-binding syntax:
+
+```html
+<div binding="<type><parameter>: <argument>;"></div>
+```
+
+*where*:
+
++ *`<type>` is the binding type, which is always a symbol*
++ *`<directive>` is the binding directive, which could be any of CSS property, class name, attribute name, Structural Directive*
++ *`<argument>` is the bound value or expression*
+
+*which would give us the following for a CSS property*:
+
+```html
+<div binding="&color: someColor; &backgroundColor: 'red'"></div>
+```
+
+*with enough liberty to separate the binding type from the directive itself*:
+
+```html
+<div binding="& color: someColor; & backgroundColor: 'red'"></div>
+```
+
+*all of which can be seen here*:
+
+| Symbol | Meaning | Usage |
+| :---- | :---- | :---- |
+| `&`  | CSS Property | `<div binding="&color: someColor;"></div>` |
+| `%`  | Class Name | `<div binding="%active: app.isActive;"></div>` |
+| `~`  | Attribute Name | `<a binding="~href: person.profileUrl + '#bio';"></a>` |
+| `@`  | Structural Directive: | *See next table* |
+
+<details><summary>Structural Directives</summary>
+
+| Directive | Meaning | Usage |
+| :---- | :---- | :---- |
+| `@text`   | For rendering plain text content | `<span binding="@text: firstName + ' ' + lastName;"></span>` |
+| `@html`   | For rendering markup content | `<span binding="@html: '<i>' + firstName + '</i>';"></span>` |
+|  `@items`  | For rendering a list, with argument in the following format:<br>`<declaration> <of\|in> <iterable> / <importRef>` | *See next two tables* |
+
+<details><summary>"For ... Of" Loops</summary>
+
+|  Idea | Usage |
+| :---- | :---- |
+| Loop over an array/iterable | `<ul binding="@items: value of [1,2,3] / 'foo#fragment';"></ul>` |
+| Same as above but with a `key` declaration  | `<ul binding="@items: (value, key) of [1,2,3] / 'foo#fragment';"></ul>` |
+| Same as above but with different variable names  | `<ul binding="@items: (product, id) of store.products / 'foo#fragment';"></ul>` |
+| Same as above but with a dynamic `importRef`  | `<ul binding="@items: (product, id) of store.products / store.importRef;"></ul>` |
+
+</details>
+
+<details><summary>"For ... In" Loops</summary>
+
+| Idea | Usage |
+| :---- | :---- |
+| Loop over an object | `<ul binding="@items: key in { a: 1, b: 2 } / 'foo#fragment';"></ul>` |
+| Same as above but with a `value` and `index` declaration | `<ul binding="@items: (key, value, index) in { a: 1, b: 2 } / 'foo#fragment';"></ul>` |
+
+</details>
+
+</details>
+
+<details><summary>Example</summary>
+
+```html
+<section>
+
+  <!-- The "items" template -->
+  <template def="item" scoped>
+    <li binding="@text: key + ': ' + name;"></li>
+  </template>
+
+  <!-- The loop -->
+  <ul binding="@items: (name, key) of ['dog','cat','ram'] / 'item';"></ul>
+
+</section>
+```
+
+</details>
+
+<details><summary>All in Realtime</summary>
+
+Lists are rendered in realtime, which means that in-place mutations - additions and removals - on the *iteratee* will be automatically reflected on the UI!
+
+</details>
+
+<details><summary>With SSR Support</summary>
+
+Generated item elements are automatically assigned a corresponding index with a `data-index` attribute! This helps in remapping generated item nodes to their respective entry in *iteratee* - universally.
+
+</details>
+
+## Component Plumbing
+
+*[TODO]: The Context API and Bindings API*
+
+<!--
 The last set of features covers the concept of "state", "bindings", and "reactivity" for those objects at the DOM level - in the most exciting form of the terms and as an upgrade path! This comes factored into the design as something intrinsic to the problem.
 
 └ *The [Observer API](https://github.com/webqit/observer) for general-purpose object observability*:
@@ -395,27 +692,6 @@ Observer.set(obj, 'prop1', 'value1'); // Reported synchronously
 
 ```js
 Observer.deleteProperty(obj, 'prop1'); // Reported synchronously
-```
-
-└ *A Namespace API that reflects the real-DOM&trade; in real-time*:
-
-```js
-// Observing the addition or removal of elements with an ID
-Observer.observe(document.namespace, changeCallback);
-
-const paragraph = document.createElement('p');
-paragraph.setAttribute('id', 'bar');
-document.body.appendChild(paragraph); // Reported synchronously
-```
-
-```js
-// Observing the addition or removal of elements with an ID
-paragraph.toggleAttribute('namespace', true);
-Observer.observe(paragraph.namespace, changeCallback);
-
-const span = document.createElement('span');
-span.setAttribute('id', 'baz');
-paragraph.appendChild(span); // Reported synchronously
 ```
 
 └ *A Bindings API for binding application-level state to an object*:
@@ -484,6 +760,8 @@ Observer.set(element, 'liveProperty'); // Live expressions rerun
 ```
 
 └ [Reactive HTML concepts](#)
+
+-->
 
 ## Polyfill
 
