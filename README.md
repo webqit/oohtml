@@ -653,7 +653,7 @@ Here, we get the `binding` attribute for a declarative and neat, key/value data-
 
 |  Idea | Usage |
 | :---- | :---- |
-| Loop over an array/iterable | `<ul binding="@items: value of [1,2,3] / 'foo#fragment';"></ul>` |
+| A `for...of` loop over an array/iterable | `<ul binding="@items: value of [1,2,3] / 'foo#fragment';"></ul>` |
 | Same as above but with a `key` declaration  | `<ul binding="@items: (value, key) of [1,2,3] / 'foo#fragment';"></ul>` |
 | Same as above but with different variable names  | `<ul binding="@items: (product, id) of store.products / 'foo#fragment';"></ul>` |
 | Same as above but with a dynamic `importRef`  | `<ul binding="@items: (product, id) of store.products / store.importRef;"></ul>` |
@@ -664,7 +664,7 @@ Here, we get the `binding` attribute for a declarative and neat, key/value data-
 
 | Idea | Usage |
 | :---- | :---- |
-| Loop over an object | `<ul binding="@items: key in { a: 1, b: 2 } / 'foo#fragment';"></ul>` |
+| A `for...in` loop over an object | `<ul binding="@items: key in { a: 1, b: 2 } / 'foo#fragment';"></ul>` |
 | Same as above but with a `value` and `index` declaration | `<ul binding="@items: (key, value, index) in { a: 1, b: 2 } / 'foo#fragment';"></ul>` |
 
 </details>
