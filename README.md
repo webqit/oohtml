@@ -40,7 +40,9 @@ OOHTML makes this possible in just simple conventions - via two new attributes: 
 
 ### Namespacing
 
-The `namespace` attribute for designating an element as own naming context for identifiers - i.e. the `id` and `name` attributes:
+Naming things is hard! That's especially so where there's one global namespace and a miriad of potential conflicts - as is the case with HTML!
+
+Here, we get the `namespace` attribute for designating an element as own naming context for identifiers instead of the global namespace:
 
 ```html
 <div id="user" namespace>
@@ -51,7 +53,7 @@ The `namespace` attribute for designating an element as own naming context for i
 </div>
 ```
  
-*which translates really well to an object model*:
+**-->** *and this translates really well to an object model*:
 
 ```html
 user
@@ -60,7 +62,7 @@ user
  └── email
 ```
 
-*with a corresponding API that exposes said structure to JavaScript applications*:
+**-->** *with a corresponding API that exposes said structure to JavaScript applications*:
 
 ```js
 // The document.namespace API
@@ -85,7 +87,9 @@ console.log(window.foo); // div
 
 </details>
 
-└ A Namespace API that reflects the real-DOM&trade; in real-time, in conjunction with the general-purpose object observability API - [Observer API](https://github.com/webqit/observer):
+<details><summary>All in Realtime</summary>
+
+The Namespace API is designed to always reflect the DOM in real-time. This may be observed using the general-purpose object observability API - [Observer API](https://github.com/webqit/observer):
 
 ```js
 // Observing the addition or removal of elements with an ID
@@ -112,9 +116,13 @@ function changeCallback(changes) {
 }
 ```
 
-### Style and Script Scoping
+<details>
 
-The `scoped` attribute for *scoping* element-specific stylesheets and scripts:
+### Scoping
+
+We often need a way to keep things like styles and scripts [scoped to a component](https://vuejs.org/guide/scaling-up/sfc.html).
+
+Here, we get the `scoped` attribute for *scoping* said element-specific stylesheets and scripts:
 
 ```html
 <div>
@@ -130,7 +138,7 @@ The `scoped` attribute for *scoping* element-specific stylesheets and scripts:
 </div>
 ```
 
-*with a corresponding API that exposes said assets to JavaScript applications*:
+**-->** *with a corresponding API that exposes said assets to JavaScript applications*:
 
 ```js
 let { styleSheets, scripts } = user; // APIs that are analogous to the document.styleSheets, document.scripts properties
@@ -140,13 +148,15 @@ let { styleSheets, scripts } = user; // APIs that are analogous to the document.
 
 ## HTML Imports
 
-HTML Imports is a realtime module system for *templating and reusing* HTML in HTML, and optionally in JavaScript! Something like it is the [`<defs>`](https://developer.mozilla.org/en-US/docs/Web/SVG/Element/defs) and [`<use>`](https://developer.mozilla.org/en-US/docs/Web/SVG/Element/use) system in SVG.
+HTML Imports is a realtime module system for HTML written in HTML! Something like it is the [`<defs>`](https://developer.mozilla.org/en-US/docs/Web/SVG/Element/defs) and [`<use>`](https://developer.mozilla.org/en-US/docs/Web/SVG/Element/use) system in SVG.
 
 OOHTML makes this possible in just simple conventions - via a new `def` attribute and a complementary new `<import>` element!
 
 ### Module Definition
 
-The `def` attribute for defining reusable markup - either as whole *module* or as *fragment*:
+A module here is any piece of markup that will be reused.
+
+Here, we get the `def` attribute for defining those - either as whole *module* or as *fragment*:
 
 ```html
 <head>
@@ -160,7 +170,7 @@ The `def` attribute for defining reusable markup - either as whole *module* or a
 </head>
 ```
 
-└ Module nesting for code organization:
+**-->** *with module nesting for code organization*:
 
 ```html
 <head>
@@ -178,7 +188,9 @@ The `def` attribute for defining reusable markup - either as whole *module* or a
 
 ### Remote Modules
 
-The `<template src>` element for remote modules:
+We shouldn't need a different mechanism to work with remote content.
+
+Here, we get the `<template src>` element for that:
 
 ```html
 <template def="foo" src="/foo.html"></template>
@@ -198,7 +210,7 @@ The `<template src>` element for remote modules:
 --
 ```
 
-*which extends how elements like images already work; terminating with either a `load` or an `error` event*:
+**-->** *which extends how elements like images already work; terminating with either a `load` or an `error` event*:
 
 ```js
 foo.addEventListener('load', loadCallback);
@@ -207,7 +219,9 @@ foo.addEventListener('error', errorCallback);
 
 ### Declarative Module Imports
 
-The `<import>` element for declarative module import:
+The essence of a module is for reuse.
+
+Here, we get an `<import>` element that lets us do that declaratively:
 
 ```html
 <body>
@@ -264,7 +278,9 @@ Now that extra bit of information gets decoded and original relationships are fo
 
 ### Programmatic Module Imports
 
-The *HTMLImports* API for programmatic module import:
+JavaScript applications will need more than a declarative import mechanism.
+
+Here, we get an *HTMLImports* API for programmatic module import:
 
 ```js
 const moduleObject1 = document.import('/foo#fragment1');
@@ -276,7 +292,7 @@ const moduleObject2 = document.import('/foo/nested#fragment2');
 console.log(moduleObject2.value); // divElement
 ```
 
-*with an observable `moduleObject.value` property for working asynchronously; e.g. awaiting and handling remote modules*:
+**-->** *with an observable `moduleObject.value` property for working asynchronously; e.g. awaiting and handling remote modules*:
 
 ```js
 Observer.observe(moduleObject2, 'value', e => {
@@ -284,7 +300,7 @@ Observer.observe(moduleObject2, 'value', e => {
 });
 ```
 
-*with an equivalent `callback` option on the `import()` method itself*:
+**-->** *with an equivalent `callback` option on the `import()` method itself*:
 
 ```js
 document.import('/foo#fragment1', divElement => {
@@ -292,7 +308,7 @@ document.import('/foo#fragment1', divElement => {
 });
 ```
 
-└ An optional `live` parameter for staying subscribed to any mutations made to source module elements:
+**-->** *with an optional `live` parameter for staying subscribed to any mutations made to source module elements*:
 
 ```js
 const moduleObject2 = document.import('/foo/nested#fragment2', true/*live*/);
@@ -308,13 +324,13 @@ document.import('/foo#fragment1', true/*live*/, divElement => {
 });
 ```
 
-*both of which would get notified on doing the below*:
+*...both of which would get notified on doing the below*:
 
 ```js
 document.querySelector('template[def="foo"]').content.firstElementChild.remove();
 ```
 
-└ An optional `AbortSignal` parameter for aborting module mutation events:
+**-->** *with an optional `AbortSignal` parameter for aborting module mutation events*:
 
 ```js
 const abortController = new AbortController;
@@ -323,6 +339,14 @@ const abortController = new AbortController;
 ```js
 const moduleObject2 = document.import('/foo/nested#fragment2', { live: true, signal: abortController.signal });
 ```
+
+*...in the absence of which an `AbortSignal` instance is automatically created internally for the same purpose, such that we're always able to do*:
+
+```js
+moduleObject2.abort();
+```
+
+*...whereas in the `callback` approach, no automatic `AbortSignals` are created*:
 
 ```js
 document.import('/foo#fragment1', { live: true, signal: abortController.signal }, divElement => {
@@ -338,7 +362,9 @@ setTimeout(() => abortController.abort(), 1000);
 
 ### Lazy-Loading Modules
 
-Remote modules with lazy-loading - which has modules loading on first time access:
+We can defer module loading until we really need them.
+
+Here, we get the `loading="lazy"` directive for that:
 
 ```html
 <!-- Loading doesn't happen until the first time this is being accessed -->
@@ -356,7 +382,9 @@ const moduleObject2 = document.import('/foo#fragment1'); // Triggers module load
 
 ### Scoped Modules
 
-The `scoped` attribute for an *object-scoped* module system:
+Some modules will only be relevant within a specific context in the page.
+
+Here, we get the `scoped` attribute for scoping those to their respective contexts, and thus, implicitly have an *object-scoped* module system:
 
 ```html
 <section> <!-- object with own modules -->
@@ -373,7 +401,7 @@ The `scoped` attribute for an *object-scoped* module system:
 </section>
 ```
 
-*with an equivalent `Element.prototype.import()` API for accessing said scoped modules*:
+**-->** *with an equivalent `Element.prototype.import()` API for accessing said scoped modules*:
 
 ```js
 // Using the HTMLImports API
@@ -391,7 +419,9 @@ console.log(globalImport1); // { value: div }
 
 ### Module Inheritance
 
-Module nesting with inheritance:
+We'll often have repeating markup structures.
+
+Here, we get module nesting with inheritance to simplify that:
 
 ```html
 <template def="foo">
@@ -437,7 +467,9 @@ Module nesting with inheritance:
 
 ### Imports Contexts
 
-"Imports Contexts" for context-based *import resolution*:
+We should be able to define a base path at arbitrary levels in the page against which to resolve import *refs* in subtree.
+
+Here, we get "Imports Contexts" for that:
 
 ```html
 <body importscontext="/foo">
@@ -462,7 +494,7 @@ const globalImport2 = moduleHost.import('#fragment2'); // module:/foo/nested#fra
 console.log(globalImport2); // { value: div }
 ```
 
-└ "Imports Contexts" with named contexts:
+**-->** *with said "Imports Contexts" optionally having a name*:
 
 ```html
 <body contextname="context1" importscontext="/foo/nested">
@@ -486,7 +518,7 @@ const globalImport2 = moduleHost.import('@context1#fragment2'); // module:/foo/n
 console.log(globalImport2); // { value: div }
 ```
 
-└ "Imports Contexts" with context inheritance:
+**-->** *with said "Imports Contexts" being able to "nest" nicely*:
 
 ```html
 <body importscontext="/foo">
@@ -502,7 +534,9 @@ console.log(globalImport2); // { value: div }
 
 ### Scoped Modules and Imports Contexts
 
-Object-scoped module system with context inheritance:
+Scoped modules and Import Contexts shouldn't be mutually exclusive.
+
+Here, we're able to have *one* element implement *both* at the same time - with scoped modules inheriting Import Contexts:
 
 ```html
 <body contextname="context1" importscontext="/bar">
