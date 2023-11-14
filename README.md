@@ -645,9 +645,9 @@ Here, we get the `binding` attribute for a declarative and neat, key/value data-
 
 | Directive | Meaning | Usage |
 | :---- | :---- | :---- |
-| `@text`   | For rendering plain text content | `<span binding="@text: firstName + ' ' + lastName;"></span>` |
-| `@html`   | For rendering markup content | `<span binding="@html: '<i>' + firstName + '</i>';"></span>` |
-|  `@items`  | For rendering a list, with argument in the following format:<br>`<declaration> <of\|in> <iterable> / <importRef>` | *See next two tables* |
+| `@text`   | Plain text content | `<span binding="@text: firstName + ' ' + lastName;"></span>` |
+| `@html`   | Markup content | `<span binding="@html: '<i>' + firstName + '</i>';"></span>` |
+|  `@items`  | A list, with argument in the following format:<br>`<declaration> <of\|in> <iterable> / <importRef>` | *See next two tables* |
 
 <details><summary>"For ... Of" Loops</summary>
 
