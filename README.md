@@ -688,11 +688,11 @@ Generated item elements are automatically assigned a corresponding index with a 
 
   <!-- The "items" template -->
   <template def="item" scoped>
-    <li binding="@text: key + ': ' + name;"></li>
+    <li binding="@text: index + ': ' + name;"></li>
   </template>
 
   <!-- The loop -->
-  <ul binding="@items: (name, key) of ['dog','cat','ram'] / 'item';"></ul>
+  <ul binding="@items: (name, index) of ['dog','cat','ram'] / 'item';"></ul>
 
 </section>
 ```
