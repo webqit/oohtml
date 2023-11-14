@@ -13,7 +13,7 @@ Building Single Page Applications? OOHTML is a special love letter!
 
 ## Motivation
 
-Vanilla HTML is surprisingly becoming a compelling option for an increasing number of web developers! But the current authoring experience still leaves much to be desired in how the language lacks modularity, reusability, and data binding! Authors still have to rely on tools - or, to say the least, do half of the work in HTML and half in JS - to get even basic things working!
+Vanilla HTML is surprisingly becoming a compelling option for an increasing number of developers! But the current authoring experience still leaves much to be desired in how the language lacks modularity, reusability, and other fundamental capabilities like data binding! Authors still have to rely on tools - or, to say the least, do half of the work in HTML and half in JS - to get even basic things working!
 
 This project pursues an object-oriented approach to HTML and implicitly revisits much of what inhibits the idea of a *component* architecture for HTML!
 
