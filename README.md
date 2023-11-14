@@ -570,13 +570,13 @@ console.log(localOrGlobalImport2); // { value: div }
 
 ## Data Binding
 
-Data binding is the concept of declaratively driving the UI with application-level data. It comes as mechanism that sits between the UI and the application itself, ensuring that the relevant parts of the UI are *automatically* updated as application state changes.
+Data binding is the concept of having a mechanism that declaratively drives the UI from application data, ensuring that the relevant parts of the UI are *automatically* updated as application state changes.
 
 OOHTML makes this possible in just simple conventions - via a new comment-based data-binding syntax `<?{ }?>` and a complementary new `binding` attribute!
 
 ### Comment-Based Data-Binding
 
-A web-native, comment-based data-binding syntax `<?{ }?>` which works like regular comment but stay "data-charged":
+Here, we get a comment-based data-binding syntax `<?{ }?>` which works like regular comment but stay "data-charged":
 
 ```js
 <html>
@@ -610,31 +610,31 @@ Now that extra bit of information gets decoded and original relationships are fo
 
 ### Directives-Based Data-Binding
 
-The `binding` attribute for a declarative and neat, key/value data-binding syntax:
+Here, we get the `binding` attribute for a declarative and neat, key/value data-binding syntax:
 
 ```html
 <div binding="<type><parameter>: <argument>;"></div>
 ```
 
-*where*:
+**-->** *where*:
 
 + *`<type>` is the binding type, which is always a symbol*
 + *`<directive>` is the binding directive, which could be any of CSS property, class name, attribute name, Structural Directive*
 + *`<argument>` is the bound value or expression*
 
-*which would give us the following for a CSS property*:
+**-->** *which would give us the following for a CSS property*:
 
 ```html
 <div binding="&color: someColor; &backgroundColor: 'red'"></div>
 ```
 
-*with enough liberty to separate the binding type from the directive itself*:
+**-->** *with enough liberty to separate the binding type from the directive itself*:
 
 ```html
 <div binding="& color: someColor; & backgroundColor: 'red'"></div>
 ```
 
-*all of which can be seen here*:
+**-->** *the rest of which can be seen below*:
 
 | Symbol | Meaning | Usage |
 | :---- | :---- | :---- |
@@ -642,8 +642,6 @@ The `binding` attribute for a declarative and neat, key/value data-binding synta
 | `%`  | Class Name | `<div binding="%active: app.isActive;"></div>` |
 | `~`  | Attribute Name | `<a binding="~href: person.profileUrl + '#bio';"></a>` |
 | `@`  | Structural Directive: | *See next table* |
-
-<details><summary>Structural Directives</summary>
 
 | Directive | Meaning | Usage |
 | :---- | :---- | :---- |
@@ -671,6 +669,16 @@ The `binding` attribute for a declarative and neat, key/value data-binding synta
 
 </details>
 
+<details><summary>All in Realtime</summary>
+
+Lists are rendered in realtime, which means that in-place mutations - additions and removals - on the *iteratee* will be automatically reflected on the UI!
+
+</details>
+
+<details><summary>With SSR Support</summary>
+
+Generated item elements are automatically assigned a corresponding index with a `data-index` attribute! This helps in remapping generated item nodes to their respective entry in *iteratee* - universally.
+
 </details>
 
 <details><summary>Example</summary>
@@ -688,18 +696,6 @@ The `binding` attribute for a declarative and neat, key/value data-binding synta
 
 </section>
 ```
-
-</details>
-
-<details><summary>All in Realtime</summary>
-
-Lists are rendered in realtime, which means that in-place mutations - additions and removals - on the *iteratee* will be automatically reflected on the UI!
-
-</details>
-
-<details><summary>With SSR Support</summary>
-
-Generated item elements are automatically assigned a corresponding index with a `data-index` attribute! This helps in remapping generated item nodes to their respective entry in *iteratee* - universally.
 
 </details>
 
