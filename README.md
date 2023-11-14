@@ -640,13 +640,14 @@ Here, we get the `binding` attribute for a declarative and neat, key/value data-
 | :---- | :---- | :---- |
 | `&`  | CSS Property | `<div binding="&color: someColor;"></div>` |
 | `%`  | Class Name | `<div binding="%active: app.isActive;"></div>` |
-| `~`  | Attribute Name | `<a binding="~href: person.profileUrl + '#bio';"></a>` |
+| `~`  | Attribute Name | `<a binding="~href: person.profileUrl+'#bio';"></a>` |
+|   | A Toggled Attribute | `<a binding="~required?: formField.required;"></a>` |
 | `@`  | Structural Directive: | *See next table* |
 
 | Directive | Meaning | Usage |
 | :---- | :---- | :---- |
-| `@text`   | Plain text content | `<span binding="@text: firstName + ' ' + lastName;"></span>` |
-| `@html`   | Markup content | `<span binding="@html: '<i>' + firstName + '</i>';"></span>` |
+| `@text`   | Plain text content | `<span binding="@text: firstName+' '+lastName;"></span>` |
+| `@html`   | Markup content | `<span binding="@html: '<i>'+firstName+'</i>';"></span>` |
 |  `@items`  | A list, with argument in the following format:<br>`<declaration> <of\|in> <iterable> / <importRef>` | *See next two tables* |
 
 <details><summary>About <code>For ... Of</code> Loops</summary>
@@ -654,9 +655,9 @@ Here, we get the `binding` attribute for a declarative and neat, key/value data-
 |  Idea | Usage |
 | :---- | :---- |
 | A `for...of` loop over an array/iterable | `<ul binding="@items: value of [1,2,3] / 'foo#fragment';"></ul>` |
-| Same as above but with a `key` declaration  | `<ul binding="@items: (value, key) of [1,2,3] / 'foo#fragment';"></ul>` |
-| Same as above but with different variable names  | `<ul binding="@items: (product, id) of store.products / 'foo#fragment';"></ul>` |
-| Same as above but with a dynamic `importRef`  | `<ul binding="@items: (product, id) of store.products / store.importRef;"></ul>` |
+| Same as above but with a `key` declaration  | `<ul binding="@items: (value,key) of [1,2,3] / 'foo#fragment';"></ul>` |
+| Same as above but with different variable names  | `<ul binding="@items: (product,id) of store.products / 'foo#fragment';"></ul>` |
+| Same as above but with a dynamic `importRef`  | `<ul binding="@items: (product,id) of store.products / store.importRef;"></ul>` |
 
 </details>
 
@@ -664,26 +665,10 @@ Here, we get the `binding` attribute for a declarative and neat, key/value data-
 
 | Idea | Usage |
 | :---- | :---- |
-| A `for...in` loop over an object | `<ul binding="@items: key in { a: 1, b: 2 } / 'foo#fragment';"></ul>` |
-| Same as above but with a `value` and `index` declaration | `<ul binding="@items: (key, value, index) in { a: 1, b: 2 } / 'foo#fragment';"></ul>` |
+| A `for...in` loop over an object | `<ul binding="@items: key in {a:1,b:2} / 'foo#fragment';"></ul>` |
+| Same as above but with a `value` and `index` declaration | `<ul binding="@items: (key,value,index) in {a:1, b:2} / 'foo#fragment';"></ul>` |
 
 </details>
-
-**-->** *all of which would give us*:
-
-```html
-<section>
-
-  <!-- The "items" template -->
-  <template def="item" scoped>
-    <li binding="@text: index + ': ' + name;"></li>
-  </template>
-
-  <!-- The loop -->
-  <ul binding="@items: (name, index) of ['dog','cat','ram'] / 'item';"></ul>
-
-</section>
-```
 
 <details><summary>All in Realtime</summary>
 
@@ -696,6 +681,22 @@ Lists are rendered in realtime, which means that in-place mutations - additions 
 Generated item elements are automatically assigned a corresponding index with a `data-index` attribute! This helps in remapping generated item nodes to their respective entry in *iteratee* - universally.
 
 </details>
+
+**-->** *all of which could be seen below*:
+
+```html
+<section>
+
+  <!-- The "items" template -->
+  <template def="item" scoped>
+    <li><a binding="~href: '/animals#'+name;"><?{ index+': '+name }?></a></li>
+  </template>
+
+  <!-- The loop -->
+  <ul binding="@items: (name,index) of ['dog','cat','ram'] / 'item';"></ul>
+
+</section>
+```
 
 ## Data Plumbing
 
