@@ -572,9 +572,9 @@ console.log(localOrGlobalImport2); // { value: div }
 
 Data binding is the concept of having a mechanism that declaratively drives the UI from application data, ensuring that the relevant parts of the UI are *automatically* updated as application state changes.
 
-OOHTML makes this possible in just simple conventions - via a new comment-based data-binding syntax `<?{ }?>` and a complementary new `binding` attribute!
+OOHTML makes this possible in just simple conventions - via a new comment-based data-binding syntax `<?{ }?>` and a complementary new `binding` attribute! And there's one more: Stateful Scripts which brings the most advanced form of reactivity to HTML!
 
-### Comment-Based Data-Binding
+### Discrete Data-Binding
 
 Here, we get a comment-based data-binding syntax `<?{ }?>` which works like regular comment but stay "data-charged":
 
@@ -608,7 +608,7 @@ Now that extra bit of information gets decoded and original relationships are fo
 
 </details>
 
-### Directives-Based Data-Binding
+### Inline Data-Binding
 
 Here, we get the `binding` attribute for a declarative and neat, key/value data-binding syntax:
 
@@ -682,23 +682,13 @@ Generated item elements are automatically assigned a corresponding index with a 
 
 </details>
 
-```html
-<section>
+### Stateful Scripts
 
-  <!-- The "items" template -->
-  <template def="item" scoped>
-    <li><a binding="~href: '/animals#'+name;"><?{ index+': '+name }?></a></li>
-  </template>
-
-  <!-- The loop -->
-  <ul binding="@items: (name,index) of ['dog','cat','ram'] / 'item';"></ul>
-
-</section>
-```
+*[TODO]*
 
 ## Data Plumbing
 
-*[TODO]: The Context API and Bindings API*
+*[TODO]: Bindings API & The Context API*
 
 <!--
 The last set of features covers the concept of "state", "bindings", and "reactivity" for those objects at the DOM level - in the most exciting form of the terms and as an upgrade path! This comes factored into the design as something intrinsic to the problem.
@@ -935,8 +925,8 @@ Here are a few examples in the wide range of use cases these features cover.
 + [Example 1: *Single Page Application*](#example-1-single-page-application)
 + [Example 2: *Multi-Level Namespacing*](#example-2-multi-level-namespacing)
 + [Example 3: *Dynamic Shadow DOM*](#example-3-dynamic-shadow-dom)
-+ [Example 4: *List Items*](#example-4-list-items)
-+ [Example 5: *Live List*](#example-4-live-list)
++ [Example 4: *Declarative Lists*](#example-4-declarative-lists)
++ [Example 5: *Imperative Lists*](#example-4-imperative-lists)
 
 ### Example 1: *Single Page Application*
 
@@ -1136,55 +1126,44 @@ The following is a custom element that derives its Shadow DOM from an imported `
 
     </details>
 
-### Example 4: *List Items*
+### Example 4: *Declarative Lists*
 
-The following is a "component" that derives its list items and other reusable snippets from "scoped" `<tenplate>` elements. The idea is to have a "self-contained" component that's all markup-based, not class-based!
+The following is a hypothetical list page!
 
 <details><summary>Code</summary>
 
 ```html
-<div namespace>
+<section>
 
-  <ul id="list"></ul>
-
+  <!-- The "items" template -->
   <template def="item" scoped>
-    <li><a>Item</a></li>
+    <li><a binding="~href: '/animals#'+name;"><?{ index+': '+name }?></a></li>
   </template>
 
-  <script scoped>
-    // Import item template
-    let itemImport = this.import('item');
-    let itemTemplate = itemImport.value;
+  <!-- The loop -->
+  <ul binding="@items: (name,index) of ['dog','cat','ram'] / 'item';"></ul>
 
-    // Iterate
-    [ 'Item 1', 'Item 2', 'Item 3' ].forEach(entry => {
-      const currentItem = itemTemplate.content.cloneNode(true);
-      // Add to DOM
-      this.namespace.list.appendChild(currentItem);
-      // Render
-      currentItem.innerHTML = entry;
-    });
-  </script>
-
-</div>
+</section>
 ```
 
 </details>
 
-### Example 4: *Live List*
+### Example 4: *Imperative Lists*
 
-The following is the same list as above but implemented as a live list! Here, we make a few changes: the script element is Stateful; the loop itself now uses the literal `for ... of` construct, [which is capable of rendering live lists](https://github.com/webqit/stateful-js/wiki#with-control-structures), so that any additions and removals on the original list is statically reflected!
+The following is much like the above, but imperative. Additions and removals on the data items are also statically reflected!
 
 <details><summary>Code</summary>
 
 ```html
-<div namespace>
+<section namespace>
 
-  <ul id="list"></ul>
-
+  <!-- The "items" template -->
   <template def="item" scoped>
     <li><a>Item</a></li>
   </template>
+
+  <!-- The loop -->
+  <ul id="list"></ul>
 
   <script scoped>
     // Import item template
@@ -1212,7 +1191,7 @@ The following is the same list as above but implemented as a live list! Here, we
     setTimeout(() => items.pop(), 2000);
   </script>
 
-</div>
+</section>
 ```
 
 </details>
