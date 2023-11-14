@@ -7,31 +7,24 @@
 
 **[Overview](#overview) • [Modular HTML](#modular-html) • [HTML Imports](#html-imports) • [Reactive HTML](#reactive-html) • [Polyfill](#polyfill) • [Examples](#examples) • [License](#license)**
 
-Object-Oriented HTML (OOHTML) is a set of language features for authoring modular, reusable and reactive markup which brings us to a whole new authoring experience on the modern UI!
+Object-Oriented HTML (OOHTML) is a set of features that extend standard HTML and the DOM to enable authoring modular, reusable and reactive markup - with a "buildless", web-native workflow as design goal! This project presents what "modern" HTML could look like!
 
 ## Motivation
 
-<details><summary>Show</summary>
-
-Vanilla HTML is increasingly becoming a more attractive option for web developers! But the current authoring experience still leaves much to be desired in how the language lacks modularity, reusability, and data binding! Authors still have to rely on tools - or, to say the least, do half of the work in HTML and half in JS - to get even basic things working!
+Vanilla HTML is increasingly becoming the compelling option for web developers! But the current authoring experience still leaves much to be desired in how the language lacks modularity, reusability, and data binding! Authors still have to rely on tools - or, to say the least, do half of the work in HTML and half in JS - to get even basic things working!
 
 This project pursues an object-oriented approach to HTML and implicitly revisits much of what inhibits the idea of a *component* architecture for HTML!
 
 └ [See more in the introductory blog post](https://dev.to/oxharris/the-web-native-equations-1m1p-temp-slug-6661657?preview=ba70ad2c17f05b5761bc74516dbde8c9eff8b581a0420d87334fd9ef6bab9d6e6d3ab6aaf3fe02542bb9e7250d0a88a6df91dae40919aabcc9a07320)<sup>draft</sup>
 
-</details>
-
 ## Overview
 
-Here we extend standard HTML and the DOM to normalise certain fundamental concepts and paradigms that the ecosystem has explored over the years!
-
-We go in three main focus areas:
+On the agenda is a set of features that normalises how the modern UI lends itself to be built! And all of it comes as a special love letter to Single Page Applications!
 
 + [Modular HTML](#modular-html)
 + [HTML Imports](#html-imports)
 + [Data Binding](#data-binding)
-+ [Data Binding](#data-binding)
-+ [Put Together](#put-together)
++ [Data Plumbing](#data-plumbing)
 
 > **Note**  This is documentation for `OOHTML@2.x`. (Looking for [`OOHTML@1.x`](https://github.com/webqit/oohtml/tree/v1.10.4)?)
 
@@ -43,7 +36,7 @@ OOHTML makes this possible in just simple conventions - via two new attributes: 
 
 ### Namespacing
 
-└ The `namespace` attribute for designating an element as own naming context for identifiers - i.e. the `id` and `name` attributes:
+The `namespace` attribute for designating an element as own naming context for identifiers - i.e. the `id` and `name` attributes:
 
 ```html
 <div id="user" namespace>
@@ -88,7 +81,7 @@ console.log(window.foo); // div
 
 </details>
 
-└ *A Namespace API that reflects the real-DOM&trade; in real-time*:
+└ A Namespace API that reflects the real-DOM&trade; in real-time, in conjunction with the general-purpose object observability API - [Observer API](https://github.com/webqit/observer):
 
 ```js
 // Observing the addition or removal of elements with an ID
@@ -109,9 +102,15 @@ span.setAttribute('id', 'baz');
 paragraph.appendChild(span); // Reported synchronously
 ```
 
+```js
+function changeCallback(changes) {
+    console.log(changes[0].type, changes[0].key, changes[0].value, changes[0].oldValue);
+}
+```
+
 ### Style and Script Scoping
 
-└ The `scoped` attribute for *scoping* element-specific stylesheets and scripts:
+The `scoped` attribute for *scoping* element-specific stylesheets and scripts:
 
 ```html
 <div>
@@ -143,7 +142,7 @@ OOHTML makes this possible in just simple conventions - via a new `def` attribut
 
 ### Module Definition
 
-└ The `def` attribute for defining reusable markup - either as whole *module* or as *fragment*:
+The `def` attribute for defining reusable markup - either as whole *module* or as *fragment*:
 
 ```html
 <head>
@@ -175,7 +174,7 @@ OOHTML makes this possible in just simple conventions - via a new `def` attribut
 
 ### Remote Modules
 
-└ The `<template src>` element for remote modules:
+The `<template src>` element for remote modules:
 
 ```html
 <template def="foo" src="/foo.html"></template>
@@ -204,7 +203,7 @@ foo.addEventListener('error', errorCallback);
 
 ### Declarative Module Imports
 
-└ The `<import>` element for declarative module import:
+The `<import>` element for declarative module import:
 
 ```html
 <body>
@@ -261,7 +260,7 @@ Now that extra bit of information gets decoded and original relationships are fo
 
 ### Programmatic Module Imports
 
-└ The *HTMLImports* API for programmatic module import:
+The *HTMLImports* API for programmatic module import:
 
 ```js
 const moduleObject1 = document.import('/foo#fragment1');
@@ -335,7 +334,7 @@ setTimeout(() => abortController.abort(), 1000);
 
 ### Lazy-Loading Modules
 
-└ Remote modules with lazy-loading - which has modules loading on first time access:
+Remote modules with lazy-loading - which has modules loading on first time access:
 
 ```html
 <!-- Loading doesn't happen until the first time this is being accessed -->
@@ -353,7 +352,7 @@ const moduleObject2 = document.import('/foo#fragment1'); // Triggers module load
 
 ### Scoped Modules
 
-└ The `scoped` attribute for an *object-scoped* module system:
+The `scoped` attribute for an *object-scoped* module system:
 
 ```html
 <section> <!-- object with own modules -->
@@ -388,7 +387,7 @@ console.log(globalImport1); // { value: div }
 
 ### Module Inheritance
 
-└ Module nesting with inheritance:
+Module nesting with inheritance:
 
 ```html
 <template def="foo">
@@ -434,7 +433,7 @@ console.log(globalImport1); // { value: div }
 
 ### Imports Contexts
 
-└ "Imports Contexts" for context-based *import resolution*:
+"Imports Contexts" for context-based *import resolution*:
 
 ```html
 <body importscontext="/foo">
@@ -499,7 +498,7 @@ console.log(globalImport2); // { value: div }
 
 ### Scoped Modules and Imports Contexts
 
-└ Object-scoped module system with context inheritance:
+Object-scoped module system with context inheritance:
 
 ```html
 <body contextname="context1" importscontext="/bar">
@@ -539,7 +538,7 @@ OOHTML makes this possible in just simple conventions - via a new comment-based 
 
 ### Comment-Based Data-Binding
 
-└ A web-native, comment-based data-binding syntax `<?{ }?>` which works like regular comment but stay "data-charged":
+A web-native, comment-based data-binding syntax `<?{ }?>` which works like regular comment but stay "data-charged":
 
 ```js
 <html>
@@ -573,7 +572,7 @@ Now that extra bit of information gets decoded and original relationships are fo
 
 ### Directives-Based Data-Binding
 
-└ The `binding` attribute for a declarative and neat, key/value data-binding syntax:
+The `binding` attribute for a declarative and neat, key/value data-binding syntax:
 
 ```html
 <div binding="<type><parameter>: <argument>;"></div>
@@ -666,7 +665,7 @@ Generated item elements are automatically assigned a corresponding index with a 
 
 </details>
 
-## Component Plumbing
+## Data Plumbing
 
 *[TODO]: The Context API and Bindings API*
 
