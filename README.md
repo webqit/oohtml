@@ -649,7 +649,7 @@ Here, we get the `binding` attribute for a declarative and neat, key/value data-
 | `@html`   | Markup content | `<span binding="@html: '<i>' + firstName + '</i>';"></span>` |
 |  `@items`  | A list, with argument in the following format:<br>`<declaration> <of\|in> <iterable> / <importRef>` | *See next two tables* |
 
-<details><summary>"For ... Of" Loops</summary>
+<details><summary>About <code>For ... Of</code> Loops</summary>
 
 |  Idea | Usage |
 | :---- | :---- |
@@ -660,7 +660,7 @@ Here, we get the `binding` attribute for a declarative and neat, key/value data-
 
 </details>
 
-<details><summary>"For ... In" Loops</summary>
+<details><summary>About <code>For ... In</code> Loops</summary>
 
 | Idea | Usage |
 | :---- | :---- |
