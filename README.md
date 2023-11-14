@@ -5,11 +5,17 @@
 [![bundle][bundle-src]][bundle-href]
 [![License][license-src]][license-href]
 
-**[Overview](#overview) • [Modular HTML](#modular-html) • [HTML Imports](#html-imports) • [Data Binding](#data-binding) • [Data Plumbing](#data-plumbing) • [Polyfill](#polyfill) • [Examples](#examples) • [License](#license)**
+**[On the Agenda](#on-the-agenda) • [Modular HTML](#modular-html) • [HTML Imports](#html-imports) • [Data Binding](#data-binding) • [Data Plumbing](#data-plumbing) • [Polyfill](#polyfill) • [Examples](#examples) • [License](#license)**
 
-Object-Oriented HTML (OOHTML) is a set of features that extend standard HTML and the DOM to enable authoring modular, reusable and reactive markup - with a "buildless", web-native workflow as design goal! This project presents what "modern" HTML could look like at its best!
+Object-Oriented HTML (OOHTML) is a set of features that extend standard HTML and the DOM to enable authoring modular, reusable and reactive markup - with a "buildless", web-native workflow as design goal! This project presents what "modern HTML" could look like at its best!
 
 Building Single Page Applications? OOHTML is a special love letter!
+
+<details><summary>Versions</summary>
+
+*This is documentation for `OOHTML@2.x`. (Looking for [`OOHTML@1.x`](https://github.com/webqit/oohtml/tree/v1.10.4)?)*
+
+</details>
 
 ## Motivation
 
@@ -19,24 +25,16 @@ This project pursues an object-oriented approach to HTML and implicitly revisits
 
 └ [See more in the introductory blog post](https://dev.to/oxharris/the-web-native-equations-1m1p-temp-slug-6661657?preview=ba70ad2c17f05b5761bc74516dbde8c9eff8b581a0420d87334fd9ef6bab9d6e6d3ab6aaf3fe02542bb9e7250d0a88a6df91dae40919aabcc9a07320)<sup>draft</sup>
 
-## Overview
-
-On the agenda:
+## On the Agenda
 
 + [Modular HTML](#modular-html)
 + [HTML Imports](#html-imports)
 + [Data Binding](#data-binding)
 + [Data Plumbing](#data-plumbing)
 
-<details><summary>Version <code>v2.x</code></summary>
-
-*This is documentation for `OOHTML@2.x`. (Looking for [`OOHTML@1.x`](https://github.com/webqit/oohtml/tree/v1.10.4)?)*
-
-</details>
-
 ## Modular HTML
 
-Modular HTML is a markup pattern that lets us write markup as self-contained objects - with each *encapsulating* its own structure, styling and logic - as against the regular idea of having everything converge and conflict on one global scope!
+Modular HTML is a markup pattern that lets us write arbitrary markup as self-contained objects - with each *encapsulating* its own structure, styling and logic - as against the regular idea of having everything converge and conflict on one global scope!
 
 OOHTML makes this possible in just simple conventions - via two new attributes: `namespace` and `scoped`!
 
