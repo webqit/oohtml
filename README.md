@@ -7,11 +7,13 @@
 
 **[Overview](#overview) • [Modular HTML](#modular-html) • [HTML Imports](#html-imports) • [Data Binding](#data-binding) • [Data Plumbing](#data-plumbing) • [Polyfill](#polyfill) • [Examples](#examples) • [License](#license)**
 
-Object-Oriented HTML (OOHTML) is a set of features that extend standard HTML and the DOM to enable authoring modular, reusable and reactive markup - with a "buildless", web-native workflow as design goal! This project presents what "modern" HTML could look like!
+Object-Oriented HTML (OOHTML) is a set of features that extend standard HTML and the DOM to enable authoring modular, reusable and reactive markup - with a "buildless", web-native workflow as design goal! This project presents what "modern" HTML could look like at its best!
+
+Building Single Page Applications? OOHTML is a special love letter!
 
 ## Motivation
 
-Vanilla HTML is increasingly becoming the compelling option for web developers! But the current authoring experience still leaves much to be desired in how the language lacks modularity, reusability, and data binding! Authors still have to rely on tools - or, to say the least, do half of the work in HTML and half in JS - to get even basic things working!
+Vanilla HTML is surprisingly becoming a compelling option for an increasing number of web developers! But the current authoring experience still leaves much to be desired in how the language lacks modularity, reusability, and data binding! Authors still have to rely on tools - or, to say the least, do half of the work in HTML and half in JS - to get even basic things working!
 
 This project pursues an object-oriented approach to HTML and implicitly revisits much of what inhibits the idea of a *component* architecture for HTML!
 
@@ -19,14 +21,18 @@ This project pursues an object-oriented approach to HTML and implicitly revisits
 
 ## Overview
 
-On the agenda is a set of features that normalises how the modern UI lends itself to be built! And all of it comes as a special love letter to Single Page Applications!
+On the agenda:
 
 + [Modular HTML](#modular-html)
 + [HTML Imports](#html-imports)
 + [Data Binding](#data-binding)
 + [Data Plumbing](#data-plumbing)
 
-> **Note**  This is documentation for `OOHTML@2.x`. (Looking for [`OOHTML@1.x`](https://github.com/webqit/oohtml/tree/v1.10.4)?)
+<details><summary>Version <code>v2.x</code></summary>
+
+*This is documentation for `OOHTML@2.x`. (Looking for [`OOHTML@1.x`](https://github.com/webqit/oohtml/tree/v1.10.4)?)*
+
+</details>
 
 ## Modular HTML
 
