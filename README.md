@@ -5,7 +5,7 @@
 [![bundle][bundle-src]][bundle-href]
 [![License][license-src]][license-href]
 
-**[Overview](#overview) • [Modular HTML](#modular-html) • [HTML Imports](#html-imports) • [Reactive HTML](#reactive-html) • [Polyfill](#polyfill) • [Examples](#examples) • [License](#license)**
+**[Overview](#overview) • [Modular HTML](#modular-html) • [HTML Imports](#html-imports) • [Data Binding](#data-binding) • [Data Plumbing](#data-plumbing) • [Polyfill](#polyfill) • [Examples](#examples) • [License](#license)**
 
 Object-Oriented HTML (OOHTML) is a set of features that extend standard HTML and the DOM to enable authoring modular, reusable and reactive markup - with a "buildless", web-native workflow as design goal! This project presents what "modern" HTML could look like!
 
