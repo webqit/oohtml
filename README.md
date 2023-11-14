@@ -71,22 +71,6 @@ let { user } = document.namespace;
 let { url, name, email } = user.namespace;
 ```
 
-<details><summary>Learn more</summary>
-
-You want to see how IDs are otherwise exposed as global variables:
-
-```html
-<div id="foo"><div>
-```
-
-```js
-console.log(window.foo); // div
-```
-
-[Read more](https://stackoverflow.com/questions/6381425/is-there-a-spec-that-the-id-of-elements-should-be-made-global-variable)
-
-</details>
-
 <details><summary>All in Realtime</summary>
 
 The Namespace API is designed to always reflect the DOM in real-time. This may be observed using the general-purpose object observability API - [Observer API](https://github.com/webqit/observer):
@@ -118,6 +102,22 @@ function changeCallback(changes) {
 
 </details>
 
+<details><summary>Learn more</summary>
+
+You want to see how IDs are otherwise exposed as global variables:
+
+```html
+<div id="foo"><div>
+```
+
+```js
+console.log(window.foo); // div
+```
+
+[Read more](https://stackoverflow.com/questions/6381425/is-there-a-spec-that-the-id-of-elements-should-be-made-global-variable)
+
+</details>
+
 ### Scoping
 
 We often need a way to keep things like styles and scripts [scoped to a component](https://vuejs.org/guide/scaling-up/sfc.html).
@@ -144,8 +144,6 @@ Here, we get the `scoped` attribute for *scoping* said element-specific styleshe
 let { styleSheets, scripts } = user; // APIs that are analogous to the document.styleSheets, document.scripts properties
 ```
 
-└ [Modular HTML examples](#modular-html-examples)
-
 ## HTML Imports
 
 HTML Imports is a realtime module system for HTML written in HTML! Something like it is the [`<defs>`](https://developer.mozilla.org/en-US/docs/Web/SVG/Element/defs) and [`<use>`](https://developer.mozilla.org/en-US/docs/Web/SVG/Element/use) system in SVG.
@@ -154,7 +152,7 @@ OOHTML makes this possible in just simple conventions - via a new `def` attribut
 
 ### Module Definition
 
-A module here is any piece of markup that will be reused.
+A module here is any piece of markup that can be reused.
 
 Here, we get the `def` attribute for defining those - either as whole *module* or as *fragment*:
 
@@ -565,8 +563,6 @@ console.log(localOrGlobalImport2); // { value: div }
 ```
 
 </details>
-
-└ [HTML Imports examples](#html-imports-examples)
 
 ## Data Binding
 
