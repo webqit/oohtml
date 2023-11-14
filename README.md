@@ -116,7 +116,7 @@ function changeCallback(changes) {
 }
 ```
 
-<details>
+</details>
 
 ### Scoping
 
