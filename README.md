@@ -650,7 +650,7 @@ Here, we get the `binding` attribute for a declarative and neat, key/value data-
 | `@html`   | Markup content | `<span binding="@html: '<i>'+firstName+'</i>';"></span>` |
 |  `@items`  | A list, with argument in the following format:<br>`<declaration> <of\|in> <iterable> / <importRef>` | *See next two tables* |
 
-<details><summary>About <code>For ... Of</code> Loops</summary>
+<details><summary><code>For ... Of</code> Loops</summary>
 
 |  Idea | Usage |
 | :---- | :---- |
@@ -661,7 +661,7 @@ Here, we get the `binding` attribute for a declarative and neat, key/value data-
 
 </details>
 
-<details><summary>About <code>For ... In</code> Loops</summary>
+<details><summary><code>For ... In</code> Loops</summary>
 
 | Idea | Usage |
 | :---- | :---- |
@@ -681,8 +681,6 @@ Lists are rendered in realtime, which means that in-place mutations - additions 
 Generated item elements are automatically assigned a corresponding index with a `data-index` attribute! This helps in remapping generated item nodes to their respective entry in *iteratee* - universally.
 
 </details>
-
-**-->** *all of which could be seen below*:
 
 ```html
 <section>
