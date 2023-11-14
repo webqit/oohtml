@@ -669,7 +669,7 @@ Here, we get the `binding` attribute for a declarative and neat, key/value data-
 
 </details>
 
-**-->** *all of which could be seen below*:
+**-->** *all of which would give us*:
 
 ```html
 <section>
