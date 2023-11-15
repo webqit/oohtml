@@ -627,7 +627,7 @@ While the `cool` reference remains bound to the `cool` *binding* on the `documen
 document.body.bindings.cool = '200%';
 ```
 
-<details>
+</details>
 
 <details><summary>With SSR Support</summary>
 
@@ -734,7 +734,7 @@ While the `someColor` reference remains bound to the `someColor` *binding* on th
 document.body.bindings.someColor = 'brown';
 ```
 
-<details>
+</details>
 
 <details><summary>All in realtime</summary>
 
