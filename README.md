@@ -900,7 +900,7 @@ Observer.set(element, 'liveProperty'); // Live expressions rerun
 
 ## Polyfill
 
-OOHTML is being developed as something to be used today - via a polyfill.
+OOHTML is being developed as something to be used today—via a polyfill. This is an active and intentional effort that continues to ensure that the project evolves through a practice-driven process.
 
 <details><summary>Load from a CDN<br>
 └───────── <a href="https://bundlephobia.com/result?p=@webqit/oohtml"><img align="right" src="https://img.shields.io/bundlephobia/minzip/@webqit/oohtml?label=&style=flat&colorB=black"></a></summary>
@@ -1040,7 +1040,7 @@ If you'll be going ahead to build a real app to see OOHTML in action, you may wa
 
 ## Examples
 
-Here are a few examples in the wide range of use cases these features cover.
+Here are a few examples in the wide range of use cases these features cover. While we'll demonstrate the most basic forms of these scenarios, it takes roughly the same principles to build an intricate form and a highly interactive UI.
 
 <details><summary>Example 1: <i>Single Page Application</i><br>
 └───────── </summary>
@@ -1082,7 +1082,7 @@ The following is how something you could call a Single Page Application ([SPA](h
 </template>
 ```
 
-**-->**  *Then a 2-line router that alternates the view based on the URL hash*:
+**-->** *Then a 2-line router that alternates the view based on the URL hash*:
 
 ```html
 <body importscontext="/pages/home">
@@ -1103,7 +1103,6 @@ The following is how something you could call a Single Page Application ([SPA](h
 
 <details><summary>Example 2: <i>Multi-Level Namespacing</i><br>
 └───────── </summary>
-
 
 The following is a Listbox component lifted directly from the [ARIA Authoring Practices Guide (APG)](https://www.w3.org/WAI/ARIA/apg/patterns/listbox/examples/listbox-grouped/#sc_label) but with IDs effectively "contained" at different levels within the component using the `namespace` attribute.
 
