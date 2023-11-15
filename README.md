@@ -690,9 +690,9 @@ Generated item elements are automatically assigned a corresponding index with a 
 
 ### Quantum Scripts
 
-We often still need to write more serious reactive logic on the UI than a declarative data-binding language can provide. But we shouldn't need to reach for special tooling or some "serious" programming paradigm on top of JavaScript.
+We often still need to write more serious reactive logic on the UI than a declarative data-binding language can provide for. But we shouldn't need to reach for special tooling or some "serious" programming paradigm on top of JavaScript.
 
-Here, from the same `<script>` element we write everyday, we get a direct upgrade path to reactive programming in just an attribute: `quantum`:
+Here, from the same `<script>` element we already write, we get a direct upgrade path to reactive programming in just an attribute: `quantum`:
 
 ```html
 <script quantum>
@@ -791,7 +791,7 @@ Here, the runtime executes your code in a special execution mode that gets liter
 
 Now, in each case above, reactivity terminates on script's removal from the DOM. But of course, DOM event handlers bound via `addEventListener()` would still need to be terminated in their own way.
 
-<details>
+</details>
 
 ## Data Plumbing
 
