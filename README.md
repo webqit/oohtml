@@ -651,7 +651,7 @@ Here, we get the `binding` attribute for a declarative and neat, key/value data-
 | `%`  | Class Name | `<div binding="% active:app.isActive; % expanded:app.isExpanded;"></div>` |
 | `~`  | Attribute Name | `<a binding="~ href:person.profileUrl+'#bio'; ~ title:'Click me';"></a>` |
 |   | Boolean Attribute | `<a binding="~ ?required:formField.required; ~ ?aria-checked: formField.checked"></a>` |
-| `@`  | Structural Directive: | *See next table* |
+| `@`  | Structural Directive: | *See below* |
 | `@text`   | Plain text content | `<span binding="@text:firstName+' '+lastName;"></span>` |
 | `@html`   | Markup content | `<span binding="@html: '<i>'+firstName+'</i>';"></span>` |
 |  `@items`  | A list, with argument in the following format:<br>`<declaration> <of\|in> <iterable> / <importRef>` | *See next two tables* |
@@ -732,7 +732,7 @@ Here, from the same `<script>` element we write everyday, we get a direct upgrad
 </main>
 ```
 
-**-->** *with content being whatever you normally would write in a `<script>` element*:
+**-->** *with content being whatever you normally would write in a `<script>` element, but without the "manual" work for reactivity*:
 
 ```html
 <main>
@@ -750,13 +750,46 @@ Here, from the same `<script>` element we write everyday, we get a direct upgrad
 </main>
 ```
 
+**-->** *within which other "live" APIs, like the Namespace API above, fit seamlessly*:
+
+```html
+<main namespace>
+
+  <script scoped quantum>
+    if (this.namespace.specialButton) {
+      console.log('specialButton present!');
+    } else {
+      console.log('specialButton not present!');
+    }
+    let specialButton = this.namespace.specialButton;
+    console.log(specialButton);
+  </script>
+
+</main>
+```
+
+```js
+const main = document.querySelector('main');
+const button = document.createElement('button');
+button.id = 'specialButton';
+
+const addButton = () => {
+  main.appendChild(button);
+  setTimeout(removeButton, 5000);
+};
+const removeButton = () => {
+  button.remove();
+  setTimeout(addButton, 5000);
+};
+```
+
 <details><summary>Details</summary>
 
 It's Imperative Reactive Programming ([IRP](https://en.wikipedia.org/wiki/Reactive_programming#Imperative)) right there and it's the [Quantum](https://github.com/webqit/quantum-js) runtime extension to JavaScript!
 
 Here, the runtime executes your code in a special execution mode that gets literal JavaScript expressions to statically reflect changes. This makes a lot of things possible on the UI! The [Quantum JS](https://github.com/webqit/quantum-js) documentation has a detailed run down.
 
-Now, in each case above, reactivity is stopped on script's removal from the DOM.
+Now, in each case above, reactivity terminates on script's removal from the DOM. But of course, DOM event handlers bound via `addEventListener()` would still need to be terminated in their own way.
 
 <details>
 
