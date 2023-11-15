@@ -44,9 +44,9 @@ OOHTML makes this possible in just simple conventions - via two new attributes: 
 
 ### Namespacing
 
-Naming things is hard! That's especially so where you have one global namespace and a miriad of potentially conflicting name to coordinate!
+Naming things is hard! That's especially so when you have one global namespace and a miriad of potentially conflicting names to coordinate! (Looking at you: HTML!)
 
-This time, we get the `namespace` attribute for designating an element as own naming context for identifiers instead of the global namespace:
+Well, here, we get the `namespace` attribute for designating an element as own naming context for identifiers instead of the global namespace:
 
 ```html
 <div id="user" namespace>
