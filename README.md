@@ -21,7 +21,7 @@ Building Single Page Applications? OOHTML is a special love letter!
 
 <details><summary>Show</summary>
 
-Vanilla HTML is unsurprisingly becoming a compelling option for an increasing number of developers! But the current authoring experience still leaves much to be desired in how the language lacks modularity, reusability, and other fundamental capabilities like data binding! Authors still have to rely on tools - or, to say the least, do half of the work in HTML and half in JS - to get even basic things working!
+Vanilla HTML is unsurprisingly becoming a compelling option for an increasing number of developers! But the current authoring experience still leaves much to be desired in how the language lacks modularity, reusability, and other fundamental capabilities like data binding! Authors still have to rely on tools - or, to say the least, have to do half of the work in HTML and half in JS - to get even basic things working!
 
 This project pursues an object-oriented approach to HTML and implicitly revisits much of what inhibits the idea of a *component* architecture for HTML!
 
@@ -75,7 +75,7 @@ let { user } = document.namespace;
 let { url, name, email } = user.namespace;
 ```
 
-<details><summary>All in Realtime</summary>
+<details><summary>All in realtime</summary>
 
 The Namespace API is designed to always reflect the DOM in real-time. This may be observed using the general-purpose object observability API - [Observer API](https://github.com/webqit/observer):
 
@@ -239,7 +239,7 @@ Here, we get an `<import>` element that lets us do that declaratively:
 </body>
 ```
 
-<details><summary>All in Realtime</summary>
+<details><summary>All in realtime</summary>
 
 As a realtime module system, `<import> `elements maintain a live relationship with given module definition elements (`<template def>`) and are resolved again in the event that:
 + the `<import>` element points to another module — either by `ref` change or by a change in `importscontext` (below).
@@ -572,7 +572,7 @@ console.log(localOrGlobalImport2); // { value: div }
 
 Data binding is the concept of having a mechanism that declaratively drives the UI from application data, ensuring that the relevant parts of the UI are *automatically* updated as application state changes.
 
-OOHTML makes this possible in just simple conventions - via a new comment-based data-binding syntax `<?{ }?>` and a complementary new `binding` attribute! And there's one more: Stateful Scripts which brings the most advanced form of reactivity to HTML!
+OOHTML makes this possible in just simple conventions - via a new comment-based data-binding syntax `<?{ }?>` and a complementary new `binding` attribute! And there's one more: Quantum Scripts which brings the most advanced form of reactivity to HTML!
 
 ### Discrete Data-Binding
 
@@ -613,40 +613,37 @@ Now that extra bit of information gets decoded and original relationships are fo
 Here, we get the `binding` attribute for a declarative and neat, key/value data-binding syntax:
 
 ```html
-<div binding="<type><parameter>: <argument>;"></div>
+<div binding="<directive> <param>: <arg>;"></div>
 ```
 
 **-->** *where*:
 
-+ *`<type>` is the binding type, which is always a symbol*
-+ *`<directive>` is the binding directive, which could be any of CSS property, class name, attribute name, Structural Directive*
-+ *`<argument>` is the bound value or expression*
++ *`<directive>` is the directive, which is always a symbol*
++ *`<param>` is the parameter being bound, which could be a CSS property, class name, attribute name, Structural Directive - depending on the givin directive*
++ *`<arg>` is the bound value or expression*
 
 **-->** *which would give us the following for a CSS property*:
 
 ```html
-<div binding="&color: someColor; &backgroundColor: 'red'"></div>
+<div binding="& color:someColor; & backgroundColor:'red'"></div>
 ```
 
-**-->** *with enough liberty to separate the binding type from the directive itself*:
+**-->** *and that isn't space-sensitive*:
 
 ```html
-<div binding="& color: someColor; & backgroundColor: 'red'"></div>
+<div binding="& color:someColor; &backgroundColor: 'red'"></div>
 ```
 
 **-->** *the rest of which can be seen below*:
 
-| Symbol | Meaning | Usage |
+| Directive | Type | Usage |
 | :---- | :---- | :---- |
-| `&`  | CSS Property | `<div binding="&color: someColor;"></div>` |
-| `%`  | Class Name | `<div binding="%active: app.isActive;"></div>` |
-| `~`  | Attribute Name | `<a binding="~href: person.profileUrl+'#bio';"></a>` |
-|   | A Toggled Attribute | `<a binding="~required?: formField.required;"></a>` |
+| `&`  | CSS Property | `<div binding="& color:someColor; & backgroundColor:someColor;"></div>` |
+| `%`  | Class Name | `<div binding="% active:app.isActive; % expanded:app.isExpanded;"></div>` |
+| `~`  | Attribute Name | `<a binding="~ href:person.profileUrl+'#bio'; ~ title:'Click me';"></a>` |
+|   | Boolean Attribute | `<a binding="~ ?required:formField.required; ~ ?aria-checked: formField.checked"></a>` |
 | `@`  | Structural Directive: | *See next table* |
-
-| Directive | Meaning | Usage |
-| :---- | :---- | :---- |
-| `@text`   | Plain text content | `<span binding="@text: firstName+' '+lastName;"></span>` |
+| `@text`   | Plain text content | `<span binding="@text:firstName+' '+lastName;"></span>` |
 | `@html`   | Markup content | `<span binding="@html: '<i>'+firstName+'</i>';"></span>` |
 |  `@items`  | A list, with argument in the following format:<br>`<declaration> <of\|in> <iterable> / <importRef>` | *See next two tables* |
 
@@ -670,7 +667,7 @@ Here, we get the `binding` attribute for a declarative and neat, key/value data-
 
 </details>
 
-<details><summary>All in Realtime</summary>
+<details><summary>All in realtime</summary>
 
 Lists are rendered in realtime, which means that in-place mutations - additions and removals - on the *iteratee* will be automatically reflected on the UI!
 
@@ -682,7 +679,7 @@ Generated item elements are automatically assigned a corresponding index with a 
 
 </details>
 
-### Stateful Scripts
+### Quantum Scripts
 
 *[TODO]*
 
@@ -740,10 +737,10 @@ element.bindings.data = { prop1: 'value1' };
 Observer.set(element.bindings.data, 'prop2', 'value2');
 ```
 
-└ *"Stateful Scripts" for reactive scripting*:
+└ *"Quantum Scripts" for reactive scripting*:
 
 ```html
-<script stateful>
+<script quantum>
   console.log(this) // window
 
   console.log(window.liveProperty) // live expression
@@ -762,7 +759,7 @@ Observer.set(window, 'liveProperty'); // Live expressions rerun
 
 ```html
 <div>
-  <script stateful scoped>
+  <script quantum scoped>
     console.log(this) // div
 
     console.log(this.liveProperty) // live expression
@@ -836,7 +833,7 @@ Also, if you'll be going ahead to build a real app to see OOHTML in action, you 
 
 + **Loading Requirements**. As specified above, the OOHTML script tag is to be placed early on in the document and should be a classic script without any `defer` or `async` directives!
     
-    If you must load the script "async", one little trade-off has to be made for `<script scoped>` and `<script stateful>` elements to have them ignored by the browser until the polyfill comes picking them up: *employing a custom MIME type in place of the standard `text/javascript` and `module` types*, in which case, a `<meta name="scoped-js">` element is used to configure the polyfill to honor the custom MIME type:
+    If you must load the script "async", one little trade-off has to be made for `<script scoped>` and `<script quantum>` elements to have them ignored by the browser until the polyfill comes picking them up: *employing a custom MIME type in place of the standard `text/javascript` and `module` types*, in which case, a `<meta name="scoped-js">` element is used to configure the polyfill to honor the custom MIME type:
 
     ```html
     <head>
@@ -850,7 +847,7 @@ Also, if you'll be going ahead to build a real app to see OOHTML in action, you 
     </body>
     ```
 
-    The custom MIME type strategy also comes in as a "fix" for when in a browser or other runtime where the polyfill is not able to intercept `<script scoped>` and `<script stateful>` elements ahead of the runtime - e.g. where...
+    The custom MIME type strategy also comes in as a "fix" for when in a browser or other runtime where the polyfill is not able to intercept `<script scoped>` and `<script quantum>` elements ahead of the runtime - e.g. where...
 
     ```html
     <body>
@@ -862,7 +859,7 @@ Also, if you'll be going ahead to build a real app to see OOHTML in action, you 
 
     ...still gives the `window` object in the console.
 
-+ **Scoped/Stateful Scripts**. This feature is an extension of [Stateful JS](https://github.com/webqit/stateful-js). The default OOHTML build is based on the [Stateful JS Lite APIs](https://github.com/webqit/stateful-js#stateful-js-lite) and this means that `<script stateful></script>` and `<script scoped></script>` elements are parsed "asynchronously", in the same timing as `<script type="module"></script>`!
++ **Scoped/Quantum Scripts**. This feature is an extension of [Quantum JS](https://github.com/webqit/quantum-js). The default OOHTML build is based on the [Quantum JS Lite APIs](https://github.com/webqit/quantum-js#quantum-js-lite) and this means that `<script quantum></script>` and `<script scoped></script>` elements are parsed "asynchronously", in the same timing as `<script type="module"></script>`!
 
     This timing works perfectly generally, but if you have a requirment to have classic scripts follow their [native synchronous timing](https://html.spec.whatwg.org/multipage/parsing.html#scripts-that-modify-the-page-as-it-is-being-parsed), then you'd need to use the *realtime* OOHTML build:
 

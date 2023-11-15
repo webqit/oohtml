@@ -3,15 +3,15 @@
  * @imports
  */
 import Observer from '@webqit/observer';
-import { resolveParams } from '@webqit/stateful-js/params';
-import { StatefulAsyncFunction, StatefulAsyncScript, StatefulModule, State } from '@webqit/stateful-js/async';
+import { resolveParams } from '@webqit/quantum-js/params';
+import { QuantumAsyncFunction, QuantumAsyncScript, QuantumModule, State } from '@webqit/quantum-js/async';
 import { _init } from '../util.js';
 import Hash from './Hash.js';
 
 export {
-    StatefulAsyncFunction,
-    StatefulAsyncScript,
-    StatefulModule,
+    QuantumAsyncFunction,
+    QuantumAsyncScript,
+    QuantumModule,
     State,
     Observer,
 }
@@ -28,9 +28,9 @@ export default function init( { advanced = {}, ...$config } ) {
     } );
 	config.scriptSelector = ( Array.isArray( config.script.mimeType ) ? config.script.mimeType : [ config.script.mimeType ] ).reduce( ( selector, mm ) => {
         const qualifier = mm ? `[type=${ window.CSS.escape( mm ) }]` : '';
-        return selector.concat( `script${ qualifier }[scoped],script${ qualifier }[stateful]` );
+        return selector.concat( `script${ qualifier }[scoped],script${ qualifier }[quantum]` );
     }, [] ).join( ',' );
-    Object.assign( window.webqit, { StatefulAsyncFunction, StatefulAsyncScript, StatefulModule, State, Observer } );
+    Object.assign( window.webqit, { QuantumAsyncFunction, QuantumAsyncScript, QuantumModule, State, Observer } );
     window.webqit.oohtml.Script = {
         compileCache: [ new Map, new Map, ],
         execute: execute.bind( window, config ),
@@ -54,9 +54,9 @@ async function execute( config, execHash ) {
     }
     // Execute and save state
     const state = ( await compiledScript.bind( thisContext ) ).execute();
-    if ( script.stateful ) { Object.defineProperty( script, 'state', { value: state } ); }
+    if ( script.quantum ) { Object.defineProperty( script, 'state', { value: state } ); }
     realdom.realtime( window.document ).observe( script, () => {
-        if ( script.stateful ) { state.dispose(); }
+        if ( script.quantum ) { state.dispose(); }
         if ( script.scoped ) { thisContext.scripts.splice( thisContext.scripts.indexOf( script, 1 ) ); }
     }, { subtree: true, timing: 'sync', generation: 'exits' } );
 }
@@ -75,22 +75,22 @@ function realtime( config ) {
 	realdom.realtime( window.document ).subtree/*instead of observe(); reason: jsdom timing*/( config.scriptSelector, record => {
         record.entrants.forEach( script => {
             if ( script.cloned ) return;
-            if ( 'stateful' in script ) return handled( script );
-            Object.defineProperty( script, 'stateful', { value: script.hasAttribute( 'stateful' ) } ); 
+            if ( 'quantum' in script ) return handled( script );
+            Object.defineProperty( script, 'quantum', { value: script.hasAttribute( 'quantum' ) } ); 
             if ( 'scoped' in script ) return handled( script );
             Object.defineProperty( script, 'scoped', { value: script.hasAttribute( 'scoped' ) } ); 
             // Do compilation
             const textContent = ( script._ = script.textContent.trim() ) && script._.startsWith( '/*@oohtml*/if(false){' ) && script._.endsWith( '}/*@oohtml*/' ) ? script._.slice( 21, -12 ) : script.textContent;
             const sourceHash = Hash.toHash( textContent );
-            const compileCache = oohtml.Script.compileCache[ script.stateful ? 0 : 1 ];
+            const compileCache = oohtml.Script.compileCache[ script.quantum ? 0 : 1 ];
             let compiledScript;
             if ( !( compiledScript = compileCache.get( sourceHash ) ) ) {
                 const { parserParams, compilerParams, runtimeParams } = config.advanced;
-                compiledScript = new ( script.type === 'module' ? StatefulModule : StatefulAsyncScript )( textContent, {
+                compiledScript = new ( script.type === 'module' ? QuantumModule : QuantumAsyncScript )( textContent, {
                     exportNamespace: `#${ script.id }`,
                     fileName: window.document.url,
                     parserParams,
-                    compilerParams: { ...compilerParams, startStatic: !script.stateful },
+                    compilerParams: { ...compilerParams, startStatic: !script.quantum },
                     runtimeParams,
                 } );
                 compileCache.set( sourceHash, compiledScript );

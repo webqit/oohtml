@@ -36,12 +36,13 @@
   },
   "dependencies": {
     "@webqit/observer": "^2.2.9",
+    "@webqit/quantum-js": "^4.0.0",
     "@webqit/realdom": "^2.1.19",
     "@webqit/stateful-js": "^3.0.27",
     "@webqit/util": "^0.8.11"
   },
   "devDependencies": {
-    "@webqit/oohtml-ssr": "^1.2.19",
+    "@webqit/oohtml-ssr": "^2.0.0",
     "chai": "^4.3.4",
     "coveralls": "^3.1.1",
     "esbuild": "^0.14.43",

@@ -21,7 +21,7 @@ export function createDocument( head = '', body = '', callback = null, ) {
     <!DOCTYPE html>
     <html>
         <head>
-        <meta name="$f-compiler-url" content="../stateful-js/dist/compiler.js">
+        <meta name="$q-compiler-url" content="../quantum-js/dist/compiler.js">
         <script ssr src="/dist/main.js"></script>
         ${ head }
         </head>

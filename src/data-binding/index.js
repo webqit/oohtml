@@ -4,7 +4,7 @@
  */
 import Observer from '@webqit/observer';
 import _HTMLBindingsProvider from '../bindings-api/_HTMLBindingsProvider.js';
-import { StatefulAsyncFunction } from '@webqit/stateful-js/async';
+import { QuantumAsyncFunction } from '@webqit/quantum-js/async';
 import { _, _init } from '../util.js';
 
 /**
@@ -132,7 +132,7 @@ async function mountDiscreteBindings( config, ...entries ) {
         source += `let content = ((${ template.expr }) ?? '') + '';`;
         source += `$set__(this, 'nodeValue', content);`;
         if ( anchorNode ) { source += `$set__($anchorNode__, 'nodeValue', \`${ config.tokens.tagStart }${ template.expr }${ config.tokens.stateStart }\` + content.length + \`${ config.tokens.stateEnd } ${ config.tokens.tagEnd }\`);`; }
-        const compiled = new StatefulAsyncFunction( '$signals__', `$anchorNode__`, source, { env } );
+        const compiled = new QuantumAsyncFunction( '$signals__', `$anchorNode__`, source, { env } );
         const signals = [];
         bindings.set( textNode, { compiled, signals, state: await compiled.call( textNode, signals, anchorNode ), } );
     }
@@ -142,7 +142,7 @@ async function mountInlineBindings( config, ...entries ) {
     for ( const node of entries ) {
         const source = parseInlineBindings( config, node.getAttribute( config.attr.binding ) );
         const { scope: env, bindings } = createDynamicScope( config, node );
-        const compiled = new StatefulAsyncFunction( '$signals__', source, { env } );
+        const compiled = new QuantumAsyncFunction( '$signals__', source, { env } );
         const signals = [];
         bindings.set( node, { compiled, signals, state: await compiled.call( node, signals ), } );
     }
@@ -154,28 +154,28 @@ function parseInlineBindings( config, str ) {
     const validation = {};
     const source = splitOuter( str, ';' ).map( str => {
         const [ left, right ] = splitOuter( str, ':' ).map( x => x.trim() );
-        const token = left[ 0 ], param = left.slice( 1 ).trim();
-        const $expr = `(${ right })`, $$expr = `(${ $expr } ?? '')`;
-        if ( token === '&' ) return `this.style[\`${ param }\`] = ${ $$expr };`;
-        if ( token === '%' ) return `this.classList.toggle(\`${ param }\`, !!${ $expr });`;
-        if ( token === '~' ) {
-            if ( param.endsWith( '?' ) ) return `this.toggleAttribute(\`${ param.substring( 0, -1 ).trim() }\`, !!${ $expr });`;
-            return `this.setAttribute(\`${ param }\`, ${ $$expr });`;
+        const directive = left[ 0 ], param = left.slice( 1 ).trim();
+        const arg = `(${ right })`, $arg = `(${ arg } ?? '')`;
+        if ( directive === '&' ) return `this.style[\`${ param }\`] = ${ $arg };`;
+        if ( directive === '%' ) return `this.classList.toggle(\`${ param }\`, !!${ arg });`;
+        if ( directive === '~' ) {
+            if ( param.startsWith( '?' ) ) return `this.toggleAttribute(\`${ param.substring( 1 ).trim() }\`, !!${ arg });`;
+            return `this.setAttribute(\`${ param }\`, ${ $arg });`;
         }
-        if ( token === '@' ) {
+        if ( directive === '@' ) {
             if ( validation[ param ] ) throw new Error( `Duplicate binding: ${ left }.` );
             validation[ param ] = true;
-            if ( param === 'text' ) return `$set__(this, 'textContent', ${ $$expr });`;
-            if ( param === 'html' ) return `this.setHTML(${ $$expr });`;
+            if ( param === 'text' ) return `$set__(this, 'textContent', ${ $arg });`;
+            if ( param === 'html' ) return `this.setHTML(${ $arg });`;
             if ( param === 'items' ) {
                 const [ iterationSpec, importSpec ] = splitOuter( right, '/' );
-                if ( !importSpec ) throw new Error( `Invalid ${ token }items spec: ${ str }; no import specifier.` );
+                if ( !importSpec ) throw new Error( `Invalid ${ directive }items spec: ${ str }; no import specifier.` );
                 let [ raw, production, kind, iteratee ] = iterationSpec.trim().match( /(.*?[\)\s+])(of|in)([\(\{\[\s+].*)/i ) || [];
-                if ( !raw ) throw new Error( `Invalid ${ token }items spec: ${ str }.` );
+                if ( !raw ) throw new Error( `Invalid ${ directive }items spec: ${ str }.` );
                 if ( production.startsWith( '(' ) ) {
                     production = production.trim().slice( 1, -1 ).split( ',' ).map( x => x.trim() );
                 } else { production = [ production ]; }
-                if ( production.length > ( kind === 'in' ? 3 : 2 ) ) throw new Error( `Invalid ${ token }items spec: ${ str }.` );
+                if ( production.length > ( kind === 'in' ? 3 : 2 ) ) throw new Error( `Invalid ${ directive }items spec: ${ str }.` );
                 const indices = kind === 'in' ? production[ 2 ] : ( production[ 1 ] || '$index__' );
                 return `
                 let $iteratee__ = ${ iteratee };

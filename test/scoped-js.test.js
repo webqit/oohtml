@@ -12,7 +12,7 @@ describe(`Test: Scoped JS`, function() {
         it(`Should do basic observe`, async function() {
             const head = '', body = `            
             <h1>Hello World!</h1>
-            <script scoped stateful>
+            <script scoped quantum>
                 testRecords.push( this );
                 console.log('-------scoped JS here.', this);
             </script>`;
