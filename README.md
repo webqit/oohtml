@@ -789,7 +789,15 @@ It's Imperative Reactive Programming ([IRP](https://en.wikipedia.org/wiki/Reacti
 
 Here, the runtime executes your code in a special execution mode that gets literal JavaScript expressions to statically reflect changes. This makes a lot of things possible on the UI! The [Quantum JS](https://github.com/webqit/quantum-js) documentation has a detailed run down.
 
-Now, in each case above, reactivity terminates on script's removal from the DOM. But of course, DOM event handlers bound via `addEventListener()` would still need to be terminated in their own way.
+Now, in each case above, reactivity terminates on script's removal from the DOM. And a programmatic termination is sill possible:
+
+```js
+const script = document.querySelector('script[quantum]');
+// const script = document.querySelector('main').scripts[0];
+script.abort();
+```
+
+But while that is automatic, DOM event handlers bound via `addEventListener()` would still need to be terminated in their own way.
 
 </details>
 
@@ -913,9 +921,8 @@ OOHTML is being developed as something to be used today - via a polyfill.
 
 </details>
 
-<details><summary>Extended usage concepts</summary>
-
-To use the polyfill on server-side DOM instances as made possible by libraries like [jsdom](https://github.com/jsdom/jsdom), simply install and initialize the library `@webqit/oohtml` with the DOM instance:
+<details><summary>Install from NPM<br>
+└───────── <a href="https://npmjs.com/package/@webqit/oohtml"><img align="right" src="https://img.shields.io/npm/v/@webqit/oohtml?style=flat&label=&colorB=black"></a></summary>
 
 ```bash
 npm i @webqit/oohtml
@@ -929,9 +936,15 @@ import init from '@webqit/oohtml';
 init.call( window[, options = {} ]);
 ```
 
-But all things "SSR" for OOHTML are best left to the [`@webqit/oohtml-ssr`](https://github.com/webqit/oohtml-ssr) package!
+└ To use the polyfill on server-side DOM instances as made possible by libraries like [jsdom](https://github.com/jsdom/jsdom), simply install and initialize the library `@webqit/oohtml` with the DOM instance as above.
 
-Also, if you'll be going ahead to build a real app to see OOHTML in action, you may want to consider also using:
+└ But all things "SSR" for OOHTML are best left to the [`@webqit/oohtml-ssr`](https://github.com/webqit/oohtml-ssr) package!
+
+</details>
+
+<details><summary>Extended usage concepts</summary>
+
+If you'll be going ahead to build a real app to see OOHTML in action, you may want to consider also using:
 
 + the [`@webqit/oohtml-cli`](https://github.com/webqit/oohtml-cli) package for operating a file-based templating system.
 
@@ -969,7 +982,7 @@ Also, if you'll be going ahead to build a real app to see OOHTML in action, you 
 
     ...still gives the `window` object in the console.
 
-+ **Scoped/Quantum Scripts**. This feature is an extension of [Quantum JS](https://github.com/webqit/quantum-js). The default OOHTML build is based on the [Quantum JS Lite APIs](https://github.com/webqit/quantum-js#quantum-js-lite) and this means that `<script quantum></script>` and `<script scoped></script>` elements are parsed "asynchronously", in the same timing as `<script type="module"></script>`!
++ **Scoped/Quantum Scripts**. This feature is an extension of [Quantum JS](https://github.com/webqit/quantum-js) and the default OOHTML build is based on the [Quantum JS Lite APIs](https://github.com/webqit/quantum-js#quantum-js-lite). Now, while Quantum JS Lite yields faster load times, it also means that `<script quantum></script>` and `<script scoped></script>` elements are parsed "asynchronously", in the same timing as `<script type="module"></script>`!
 
     This timing works perfectly generally, but if you have a requirment to have classic scripts follow their [native synchronous timing](https://html.spec.whatwg.org/multipage/parsing.html#scripts-that-modify-the-page-as-it-is-being-parsed), then you'd need to use the *realtime* OOHTML build:
 
@@ -1029,81 +1042,70 @@ Also, if you'll be going ahead to build a real app to see OOHTML in action, you 
 
 Here are a few examples in the wide range of use cases these features cover.
 
-+ [Example 1: *Single Page Application*](#example-1-single-page-application)
-+ [Example 2: *Multi-Level Namespacing*](#example-2-multi-level-namespacing)
-+ [Example 3: *Dynamic Shadow DOM*](#example-3-dynamic-shadow-dom)
-+ [Example 4: *Declarative Lists*](#example-4-declarative-lists)
-+ [Example 5: *Imperative Lists*](#example-4-imperative-lists)
-
-### Example 1: *Single Page Application*
+<details><summary>Example 1: <i>Single Page Application</i><br>
+└───────── </summary>
 
 The following is how something you could call a Single Page Application ([SPA](https://en.wikipedia.org/wiki/Single-page_application)) could be made - with zero tooling:
 
-+ *First, two components that are themselves analogous to a Single File Component ([SFC](https://vuejs.org/guide/scaling-up/sfc.html))*:
+**-->** *First, two components that are themselves analogous to a Single File Component ([SFC](https://vuejs.org/guide/scaling-up/sfc.html))*:
 
-    <details><summary>Code</summary>
+```html
+<template def="pages">
 
-    ```html
-    <template def="pages">
+  <template def="layout">
+    <header def="header"></header>
+    <footer def="footer"></footer>
+  </template>
 
-      <template def="layout">
-        <header def="header"></header>
-        <footer def="footer"></footer>
-      </template>
+  <!-- Home Page -->
+  <template def="home" extends="layout">
+    <main def="main" namespace>
+      <h1 id="banner">Home Page</h1>
+      <a id="cta" href="#/products">Go to Products</a>
+      <template scoped></template>
+      <style scoped></style>
+      <script scoped></script>
+    </main>
+  </template>
 
-      <!-- Home Page -->
-      <template def="home" extends="layout">
-        <main def="main" namespace>
-          <h1 id="banner">Home Page</h1>
-          <a id="cta" href="#/products">Go to Products</a>
-          <template scoped></template>
-          <style scoped></style>
-          <script scoped></script>
-        </main>
-      </template>
+  <!-- Products Page -->
+  <template def="products" extends="layout">
+    <main def="main" namespace>
+      <h1 id="banner">Products Page</h1>
+      <a id="cta" href="#/home">Go to Home</a>
+      <template scoped></template>
+      <style scoped></style>
+      <script scoped></script>
+    </main>
+  </template>
 
-      <!-- Products Page -->
-      <template def="products" extends="layout">
-        <main def="main" namespace>
-          <h1 id="banner">Products Page</h1>
-          <a id="cta" href="#/home">Go to Home</a>
-          <template scoped></template>
-          <style scoped></style>
-          <script scoped></script>
-        </main>
-      </template>
+</template>
+```
 
-    </template>
-    ```
+**-->**  *Then a 2-line router that alternates the view based on the URL hash*:
 
-    </details>
+```html
+<body importscontext="/pages/home">
 
-+ *Then a 2-line router that alternates the view based on the URL hash*:
+  <import ref="#header"></import>
+  <import ref="#main"></import>
+  <import ref="#footer"></import>
+  
+  <script>
+  const route = () => { document.body.setAttribute('importscontext', '/pages' + location.hash.substring(1)); };
+  window.addEventListener('hashchange', route);
+  </script>
+  
+</body>
+```
 
-    <details><summary>Code</summary>
+</details>
 
-    ```html
-    <body importscontext="/pages/home">
+<details><summary>Example 2: <i>Multi-Level Namespacing</i><br>
+└───────── </summary>
 
-      <import ref="#header"></import>
-      <import ref="#main"></import>
-      <import ref="#footer"></import>
-      
-      <script>
-      const route = () => { document.body.setAttribute('importscontext', '/pages' + location.hash.substring(1)); };
-      window.addEventListener('hashchange', route);
-      </script>
-      
-    </body>
-    ```
-
-    </details>
-
-### Example 2: *Multi-Level Namespacing*
 
 The following is a Listbox component lifted directly from the [ARIA Authoring Practices Guide (APG)](https://www.w3.org/WAI/ARIA/apg/patterns/listbox/examples/listbox-grouped/#sc_label) but with IDs effectively "contained" at different levels within the component using the `namespace` attribute.
-
-<details><summary>Code</summary>
 
 ```html
 <div namespace class="listbox-area">
@@ -1170,74 +1172,64 @@ The following is a Listbox component lifted directly from the [ARIA Authoring Pr
 
 </details>
 
-### Example 3: *Dynamic Shadow DOM*
+<details><summary>Example 3: <i>Dynamic Shadow DOM</i><br>
+└───────── </summary>
 
 The following is a custom element that derives its Shadow DOM from an imported `<tenplate>` element. The idea is to have different Shadow DOM layouts defined and let the "usage" context decide which variant is imported!
 
-+ *First, two layout options defined for the Shadow DOM*:
+**-->** *First, two layout options defined for the Shadow DOM*:
 
-    <details><summary>Code</summary>
+```html
+<template def="vendor1">
 
-    ```html
-    <template def="vendor1">
-
-      <template def="components-layout1">
-        <template def="magic-button">
-          <span id="icon"></span> <span id="text"></span>
-        </template>
-      </template>
-
-      <template def="components-layout2">
-        <template def="magic-button">
-          <span id="text"></span> <span id="icon"></span>
-        </template>
-      </template>
-
+  <template def="components-layout1">
+    <template def="magic-button">
+      <span id="icon"></span> <span id="text"></span>
     </template>
-    ```
+  </template>
 
-    </details>
+  <template def="components-layout2">
+    <template def="magic-button">
+      <span id="text"></span> <span id="icon"></span>
+    </template>
+  </template>
 
-+ *Next, the Shadow DOM creation that imports its layout from context*:
+</template>
+```
 
-    <details><summary>Code</summary>
+**-->** *Next, the Shadow DOM creation that imports its layout from context*:
 
-    ```js
-    customElements.define('magic-button', class extends HTMLElement {
-      connectedCallback() {
-        const shadowRoot = this.attachShadow({ mode: 'open' });
-        this.import('@vendor1/magic-button', template => {
-          shadowRoot.appendChild( template.content.cloneNode(true) );
-        });
-      }
+```js
+customElements.define('magic-button', class extends HTMLElement {
+  connectedCallback() {
+    const shadowRoot = this.attachShadow({ mode: 'open' });
+    this.import('@vendor1/magic-button', template => {
+      shadowRoot.appendChild( template.content.cloneNode(true) );
     });
-    ```
+  }
+});
+```
 
-    </details>
+**-->** *Then, the part where we just drop the component in "layout" contexts*:
 
-+ *Then, the part where we just drop the component in "layout" contexts*:
+```html
+<div contextname="vendor1" importscontext="/vendor1/components-layout1">
 
-    <details><summary>Code</summary>
+  <magic-button></magic-button>
 
-    ```html
-    <div contextname="vendor1" importscontext="/vendor1/components-layout1">
+  <aside contextname="vendor1" importscontext="/vendor1/components-layout2">
+    <magic-button></magic-button>
+  </aside>
 
-      <magic-button></magic-button>
+</div>
+```
 
-      <aside contextname="vendor1" importscontext="/vendor1/components-layout2">
-        <magic-button></magic-button>
-      </aside>
+</details>
 
-    </div>
-    ```
-
-    </details>
-
-### Example 4: *Declarative Lists*
+<details><summary>Example 4: <i>Declarative Lists</i><br>
+└───────── </summary>
 
 The following is a hypothetical list page!
-
-<details><summary>Code</summary>
 
 ```html
 <section>
@@ -1255,11 +1247,10 @@ The following is a hypothetical list page!
 
 </details>
 
-### Example 4: *Imperative Lists*
+<details><summary>Example 5: <i>Imperative Lists</i><br>
+└───────── </summary>
 
 The following is much like the above, but imperative. Additions and removals on the data items are also statically reflected!
-
-<details><summary>Code</summary>
 
 ```html
 <section namespace>
