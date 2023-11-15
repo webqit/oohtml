@@ -599,7 +599,7 @@ Here, we get a comment-based data-binding tag `<?{ }?>` which works like regular
 </html>
 ```
 
-<details><summary>Details</summary>
+<details><summary>Resolution details</summary>
 
 Here, JavaScript references are resolved from the closest node up the document hierarchy that exposes a corresponding *binding* on its Bindings API ([discussed below](#bindings-api)). Thus, the above markup could have an underlying data structure like the below:
 
@@ -706,7 +706,7 @@ Here, we get the `binding` attribute for a declarative and neat, key/value data-
 
 </details>
 
-<details><summary>Details</summary>
+<details><summary>Resolution details</summary>
 
 Here, JavaScript references are resolved from the closest node up the document hierarchy that exposes a corresponding *binding* on its Bindings API ([discussed below](#bindings-api)). Thus, the above CSS example code could have an underlying data structure like the below:
 
