@@ -601,7 +601,7 @@ Here, we get a comment-based data-binding tag `<?{ }?>` which works like regular
 
 <details><summary>Resolution details</summary>
 
-Here, JavaScript references are resolved from the closest node up the document hierarchy that exposes a corresponding *binding* on its Bindings API ([discussed below](#bindings-api)). Thus, the above markup could have an underlying data structure like the below:
+Here, JavaScript references are resolved from the closest node up the document hierarchy that exposes a corresponding *binding* on its Bindings API ([discussed below](#bindings-api)). Thus, for the above markup, our underlying data structure could be anything like the below:
 
 ```js
 document.bind({ name: 'James Boye', cool: '100%', app: { title: 'Demo App' } });
@@ -708,7 +708,7 @@ Here, we get the `binding` attribute for a declarative and neat, key/value data-
 
 <details><summary>Resolution details</summary>
 
-Here, JavaScript references are resolved from the closest node up the document hierarchy that exposes a corresponding *binding* on its Bindings API ([discussed below](#bindings-api)). Thus, the above CSS example code could have an underlying data structure like the below:
+Here, JavaScript references are resolved from the closest node up the document hierarchy that exposes a corresponding *binding* on its Bindings API ([discussed below](#bindings-api)). Thus, for the above CSS bindings, our underlying data structure could be anything like the below:
 
 ```js
 document.bind({ someColor: 'green', someBgColor: 'yellow' });
