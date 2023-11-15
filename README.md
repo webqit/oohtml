@@ -237,9 +237,9 @@ Here, we get an `<import>` element that lets us do that declaratively:
 
 <details><summary>All in Realtime</summary>
 
-As a realtime module system, `<import> `elements maintain a live relationship with given module definition `<template def>` elements and are resolved again in the event that:
+As a realtime module system, `<import> `elements maintain a live relationship with given module definition elements (`<template def>`) and are resolved again in the event that:
 + the `<import>` element points to another module — either by `ref` change or by a change in `importscontext` (below).
-+ the module definition `<template def>` element has had its contents updated, either programmatically or automatically from having loaded.
++ the module definition element (`<template def>`) has had its contents updated, either programmatically or automatically from having loaded.
 
 Conversely, an `<import>` element that has been resolved will self-restore in the event that:
 + the `<import>` element no longer points to a module; or the module has been emptied or removed.
@@ -262,7 +262,7 @@ The above resolved imports would thus give us something like:
 </body>
 ```
 
-But they also have to remember the exact imported nodes that they manage so as to be able to re-establish that relationship on getting to the client. This information is automatically encoded as part of the serialised element itself, in something like:
+But they also would need to remember the exact imported nodes that they manage so as to be able to re-establish that relationship on getting to the client. This information is automatically encoded as part of the serialised element itself, in something like:
 
 ```html
 <!--&lt;import ref="/foo/nested#fragment2" nodecount="1"&gt;&lt;/import&gt;-->
@@ -362,7 +362,7 @@ setTimeout(() => abortController.abort(), 1000);
 
 We can defer module loading until we really need them.
 
-Here, we get the `loading="lazy"` directive for that:
+Here, we get the `loading="lazy"` directive for that; and loading is only then triggered on the first attempt to import its contents:
 
 ```html
 <!-- Loading doesn't happen until the first time this is being accessed -->
@@ -380,7 +380,7 @@ const moduleObject2 = document.import('/foo#fragment1'); // Triggers module load
 
 ### Scoped Modules
 
-Some modules will only be relevant within a specific context in the page.
+Some modules will only be relevant within a specific context in the page, and these shouldn't map to the global document scope.
 
 Here, we get the `scoped` attribute for scoping those to their respective contexts, and thus, implicitly have an *object-scoped* module system:
 
@@ -572,7 +572,7 @@ OOHTML makes this possible in just simple conventions - via a new comment-based 
 
 ### Discrete Data-Binding
 
-Here, we get a comment-based data-binding syntax `<?{ }?>` which works like regular comment but stay "data-charged":
+Here, we get a comment-based data-binding tag `<?{ }?>` which works like regular comment but stay "data-charged":
 
 ```js
 <html>
@@ -592,7 +592,7 @@ On the server, these data-binding tags would retain their place in the DOM while
 
 The following: `<?{ 'Hello World' }?>` would thus give us: `<?{ 'Hello World' }?>Hello World`.
 
-But they also have to remember the exact text node that they manage, so as to be able to re-establish that relationship on getting to the client. That information is automatically encoded as part of the declaration itself, and that brings us to having a typical server-rendered binding look like this:
+But they also would need to remember the exact text node that they manage, so as to be able to re-establish that relationship on getting to the client. That information is automatically encoded as part of the declaration itself, and that brings us to having a typical server-rendered binding look like this:
 
 ```html
 <?{ 'Hello World'; [=11] }?>Hello World
