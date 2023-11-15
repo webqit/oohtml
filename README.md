@@ -38,15 +38,15 @@ This project pursues an object-oriented approach to HTML and implicitly revisits
 
 ## Modular HTML
 
-Modular HTML is a markup pattern that lets us write arbitrary markup as self-contained objects - with each *encapsulating* its own structure, styling and logic - as against the regular idea of having everything converge and conflict on one global scope!
+Modular HTML is a markup pattern that lets us write arbitrary markup as self-contained objects - with each *encapsulating* their own structure, styling and logic!
 
 OOHTML makes this possible in just simple conventions - via two new attributes: `namespace` and `scoped`!
 
 ### Namespacing
 
-Naming things is hard! That's especially so when you have one global namespace and a miriad of potentially conflicting names to coordinate! (Looking at you: HTML!)
+Naming things is hard! That's especially so where you have one global namespace and a miriad of potentially conflicting names to coordinate!
 
-Well, here, we get the `namespace` attribute for designating an element as own naming context for identifiers instead of the global namespace:
+Here, we get the `namespace` attribute for designating an element as own naming context for identifiers instead of the global namespace:
 
 ```html
 <div id="user" namespace>
@@ -147,6 +147,15 @@ Here, we get the `scoped` attribute for *scoping* said element-specific styleshe
 ```js
 let { styleSheets, scripts } = user; // APIs that are analogous to the document.styleSheets, document.scripts properties
 ```
+
+<details><summary>Learn more</summary>
+
+The `scoped` has two effects on the `<script>` element:
+
++ The `this` keyword is a reference to the script's host element
++ The `<script>` element is executed again on each re-insertion to the DOM
+
+</details>
 
 ## HTML Imports
 
@@ -681,7 +690,75 @@ Generated item elements are automatically assigned a corresponding index with a 
 
 ### Quantum Scripts
 
-*[TODO]*
+We often still need to write more serious reactive logic on the UI than a declarative data-binding language can provide. But we shouldn't need to reach for special tooling or some "serious" programming paradigm on top of JavaScript.
+
+Here, from the same `<script>` element we write everyday, we get a direct upgrade path to reactive programming in just an attribute: `quantum`:
+
+```html
+<script quantum>
+  // Code here
+  console.log(this); // window
+</script>
+```
+
+```html
+<script type="module" quantum>
+  // Code here
+  console.log(this); // undefined
+</script>
+```
+
+**-->** *which adds up really well with the idea of scoping*:
+
+```html
+<main>
+
+  <script scoped quantum>
+    // Code here
+    console.log(this); // main
+  </script>
+
+</main>
+```
+
+```html
+<main>
+
+  <script type="module" scoped quantum>
+    // Code here
+    console.log(this); // main
+  </script>
+
+</main>
+```
+
+**-->** *with content being whatever you normally would write in a `<script>` element*:
+
+```html
+<main>
+
+  <script type="module" scoped quantum>
+    import { someAPI } from 'some-module';
+
+    let clickCount = 0;
+    console.log(clickCount);
+    someAPI(clickCount);
+
+    this.addEventListener('click', e => clickCount++);
+  </script>
+
+</main>
+```
+
+<details><summary>Details</summary>
+
+It's Imperative Reactive Programming ([IRP](https://en.wikipedia.org/wiki/Reactive_programming#Imperative)) right there and it's the [Quantum](https://github.com/webqit/quantum-js) runtime extension to JavaScript!
+
+Here, the runtime executes your code in a special execution mode that gets literal JavaScript expressions to statically reflect changes. This makes a lot of things possible on the UI! The [Quantum JS](https://github.com/webqit/quantum-js) documentation has a detailed run down.
+
+Now, in each case above, reactivity is stopped on script's removal from the DOM.
+
+<details>
 
 ## Data Plumbing
 
