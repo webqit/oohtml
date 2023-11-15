@@ -593,11 +593,41 @@ Here, we get a comment-based data-binding tag `<?{ }?>` which works like regular
     <title><?{ app.title }?></title>
   </head>
   <body>
-    Hi, I'm <?{ app.name ?? 'Default name' }?>!
-    and here's another way to write the same comment: <!--?{ app.cool }?-->
+    Hi, I'm <?{ name ?? 'Default name' }?>!
+    and here's another way to write the same comment: <!--?{ cool }?-->
   </body>
 </html>
 ```
+
+<details><summary>Details</summary>
+
+Here, JavaScript references are resolved from the closest node up the document hierarchy that exposes a corresponding *binding* on its Bindings API ([discussed below](#bindings-api)). Thus, the above markup could have an underlying data structure like the below:
+
+```js
+document.bind({ name: 'James Boye', cool: '100%', app: { title: 'Demo App' } });
+document.body.bind({ name: 'John Doe' });
+```
+
+```js
+document: { name: 'James Boye', cool: '100%', app: { title: 'Demo App' } }
+ └── html
+  ├── head
+  └── body: { name: 'John Doe' }
+```
+
+So, above, the `name` reference remains bound to the `name` *binding* on the `<body>` element until the meaning of "closest node" changes again:
+
+```js
+delete document.body.bindings.name;
+```
+
+While the `cool` reference remains bound to the `cool` *binding* on the `document` node until the meaning of "closest node" changes again:
+
+```js
+document.body.bindings.cool = '200%';
+```
+
+<details>
 
 <details><summary>With SSR Support</summary>
 
@@ -647,7 +677,7 @@ Here, we get the `binding` attribute for a declarative and neat, key/value data-
 
 | Directive | Type | Usage |
 | :---- | :---- | :---- |
-| `&`  | CSS Property | `<div binding="& color:someColor; & backgroundColor:someColor;"></div>` |
+| `&`  | CSS Property | `<div binding="& color:someColor; & backgroundColor:someBgColor;"></div>` |
 | `%`  | Class Name | `<div binding="% active:app.isActive; % expanded:app.isExpanded;"></div>` |
 | `~`  | Attribute Name | `<a binding="~ href:person.profileUrl+'#bio'; ~ title:'Click me';"></a>` |
 |   | Boolean Attribute | `<a binding="~ ?required:formField.required; ~ ?aria-checked: formField.checked"></a>` |
@@ -676,15 +706,45 @@ Here, we get the `binding` attribute for a declarative and neat, key/value data-
 
 </details>
 
+<details><summary>Details</summary>
+
+Here, JavaScript references are resolved from the closest node up the document hierarchy that exposes a corresponding *binding* on its Bindings API ([discussed below](#bindings-api)). Thus, the above CSS example code could have an underlying data structure like the below:
+
+```js
+document.bind({ someColor: 'green', someBgColor: 'yellow' });
+document.body.bind({ someBgColor: 'silver' });
+```
+
+```js
+document: { someColor: 'green', someBgColor: 'yellow' }
+ └── html
+  ├── head
+  └── body: { someBgColor: 'silver' }
+```
+
+So, above, the `someBgColor` reference remains bound to the `someBgColor` *binding* on the `<body>` element until the meaning of "closest node" changes again:
+
+```js
+delete document.body.bindings.someBgColor;
+```
+
+While the `someColor` reference remains bound to the `someColor` *binding* on the `document` node until the meaning of "closest node" changes again:
+
+```js
+document.body.bindings.someColor = 'brown';
+```
+
+<details>
+
 <details><summary>All in realtime</summary>
 
-Lists are rendered in realtime, which means that in-place mutations - additions and removals - on the *iteratee* will be automatically reflected on the UI!
+Bindings are resolved in realtime! And in fact, for lists, in-place mutations - additions and removals - on the *iteratee* are automatically reflected on the UI!
 
 </details>
 
 <details><summary>With SSR Support</summary>
 
-Generated item elements are automatically assigned a corresponding index with a `data-index` attribute! This helps in remapping generated item nodes to their respective entry in *iteratee* - universally.
+For lists, generated item elements are automatically assigned a corresponding index with a `data-index` attribute! This helps in remapping generated item nodes to their respective entry in *iteratee* - universally.
 
 </details>
 
