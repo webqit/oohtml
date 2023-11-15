@@ -44,9 +44,9 @@ OOHTML makes this possible in just simple conventions - via two new attributes: 
 
 ### Namespacing
 
-Naming things is hard! That's especially so where there's one global namespace and a miriad of potential conflicts - as is the case with HTML!
+Naming things is hard! That's especially so where you have one global namespace and a miriad of potentially conflicting name to coordinate!
 
-Here, we get the `namespace` attribute for designating an element as own naming context for identifiers instead of the global namespace:
+This time, we get the `namespace` attribute for designating an element as own naming context for identifiers instead of the global namespace:
 
 ```html
 <div id="user" namespace>
@@ -150,7 +150,7 @@ let { styleSheets, scripts } = user; // APIs that are analogous to the document.
 
 ## HTML Imports
 
-HTML Imports is a realtime module system for HTML written in HTML! Something like it is the [`<defs>`](https://developer.mozilla.org/en-US/docs/Web/SVG/Element/defs) and [`<use>`](https://developer.mozilla.org/en-US/docs/Web/SVG/Element/use) system in SVG.
+HTML Imports is a realtime module system for HTML that speaks HTML! Something like it is the [`<defs>`](https://developer.mozilla.org/en-US/docs/Web/SVG/Element/defs) and [`<use>`](https://developer.mozilla.org/en-US/docs/Web/SVG/Element/use) system in SVG.
 
 OOHTML makes this possible in just simple conventions - via a new `def` attribute and a complementary new `<import>` element!
 
@@ -570,7 +570,7 @@ console.log(localOrGlobalImport2); // { value: div }
 
 ## Data Binding
 
-Data binding is the concept of having a mechanism that declaratively drives the UI from application data, ensuring that the relevant parts of the UI are *automatically* updated as application state changes.
+Data binding is about declaratively binding the UI to application data, ensuring that the relevant parts of the UI are *automatically* updated as application state changes.
 
 OOHTML makes this possible in just simple conventions - via a new comment-based data-binding syntax `<?{ }?>` and a complementary new `binding` attribute! And there's one more: Quantum Scripts which brings the most advanced form of reactivity to HTML!
 
