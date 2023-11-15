@@ -860,7 +860,7 @@ Also, if you'll be going ahead to build a real app to see OOHTML in action, you 
 
 + **Scoped/Stateful Scripts**. This feature is an extension of [Stateful JS](https://github.com/webqit/stateful-js). The default OOHTML build is based on the [Stateful JS Lite APIs](https://github.com/webqit/stateful-js#stateful-js-lite) and this means that `<script stateful></script>` and `<script scoped></script>` elements are parsed "asynchronously", in the same timing as `<script type="module"></script>`!
 
-    This timing works perfectly generally, but if you have a requirment to have classic scripts follow their [native synchronous timing](https://html.spec.whatwg.org/multipage/parsing.html#scripts-that-modify-the-page-as-it-is-being-parsed), then you need to the *realtime* OOHTML build:
+    This timing works perfectly generally, but if you have a requirment to have classic scripts follow their [native synchronous timing](https://html.spec.whatwg.org/multipage/parsing.html#scripts-that-modify-the-page-as-it-is-being-parsed), then you'd need to use the *realtime* OOHTML build:
 
     ```html
     <head>
