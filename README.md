@@ -628,7 +628,7 @@ Here, we get the `binding` attribute for a declarative and neat, key/value data-
 <div binding="& color:someColor; & backgroundColor:'red'"></div>
 ```
 
-**-->** *and that isn't space-sensitive*:
+**-->** *without being space-sensitive*:
 
 ```html
 <div binding="& color:someColor; &backgroundColor: 'red'"></div>
