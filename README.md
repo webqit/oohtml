@@ -375,7 +375,7 @@ setTimeout(() => abortController.abort(), 1000);
 
 We can defer module loading until we really need them.
 
-Here, we get the `loading="lazy"` directive for that; and loading is only then triggered on the first attempt to import its contents:
+Here, we get the `loading="lazy"` directive for that; and loading is only then triggered on the first attempt to import their contents:
 
 ```html
 <!-- Loading doesn't happen until the first time this is being accessed -->
