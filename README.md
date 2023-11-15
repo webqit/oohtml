@@ -615,7 +615,7 @@ document: { name: 'James Boye', cool: '100%', app: { title: 'Demo App' } }
   └── body: { name: 'John Doe' }
 ```
 
-So, above, the `name` reference remains bound to the `name` *binding* on the `<body>` element until the meaning of "closest node" changes again:
+Now, the `name` reference remains bound to the `name` *binding* on the `<body>` element until the meaning of "closest node" changes again:
 
 ```js
 delete document.body.bindings.name;
@@ -722,7 +722,7 @@ document: { someColor: 'green', someBgColor: 'yellow' }
   └── body: { someBgColor: 'silver' }
 ```
 
-So, above, the `someBgColor` reference remains bound to the `someBgColor` *binding* on the `<body>` element until the meaning of "closest node" changes again:
+Now, the `someBgColor` reference remains bound to the `someBgColor` *binding* on the `<body>` element until the meaning of "closest node" changes again:
 
 ```js
 delete document.body.bindings.someBgColor;
