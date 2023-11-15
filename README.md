@@ -19,11 +19,15 @@ Building Single Page Applications? OOHTML is a special love letter!
 
 ## Motivation
 
+<details><summary>Show</summary>
+
 Vanilla HTML is unsurprisingly becoming a compelling option for an increasing number of developers! But the current authoring experience still leaves much to be desired in how the language lacks modularity, reusability, and other fundamental capabilities like data binding! Authors still have to rely on tools - or, to say the least, do half of the work in HTML and half in JS - to get even basic things working!
 
 This project pursues an object-oriented approach to HTML and implicitly revisits much of what inhibits the idea of a *component* architecture for HTML!
 
 └ [See more in the introductory blog post](https://dev.to/oxharris/the-web-native-equations-1m1p-temp-slug-6661657?preview=ba70ad2c17f05b5761bc74516dbde8c9eff8b581a0420d87334fd9ef6bab9d6e6d3ab6aaf3fe02542bb9e7250d0a88a6df91dae40919aabcc9a07320)<sup>draft</sup>
+
+</details>
 
 ## On the Agenda
 
