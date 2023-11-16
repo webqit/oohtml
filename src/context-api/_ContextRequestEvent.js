@@ -1,7 +1,8 @@
 
 export default function() {
     const window = this;
-    return class ContextRequestEvent extends window.Event {
+    if ( window.webqit.ContextRequestEvent ) return window.webqit.ContextRequestEvent;
+    class ContextRequestEvent extends window.Event {
 
         /**
          * @constructor
@@ -22,5 +23,7 @@ export default function() {
             }
             return this.callback( response, ...rest );
         }
-    };
+    }
+    window.webqit.ContextRequestEvent = ContextRequestEvent;
+    return ContextRequestEvent;
 }

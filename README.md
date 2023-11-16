@@ -909,7 +909,7 @@ node.bindings.style = 'tall-dark';
 node.bindings.normalize = true;
 ```
 
-**-->** *with a corresponding `bind()` method that lets us make mutations as a batch*:
+**-->** *with a corresponding `bind()` method that lets us make mutations in batches*:
 
 ```js
 // ------------
@@ -927,6 +927,16 @@ console.log(document.bindings); // { signedIn: false, hot: '100%' }
 document.bind({ name: 'James Boye', cool: '100%' }, { merge: true });
 // Inspect
 console.log(document.bindings); // { signedIn: false, hot: '100%', name: 'James Boye', cool: '100%' }
+```
+
+**-->** *and it becomes easy to pass data down a component tree*:
+
+```js
+// Inside a custom element
+connectedCallback() {
+  this.child1.bind(this.bindings.child1Data);
+  this.child2.bind(this.bindings.child2Data);
+}
 ```
 
 **-->** *and given the Observer API, reactivity is intrinsic*:
@@ -961,7 +971,7 @@ node.bindings.style = 'tall-dark'; // Reactive assignment
 delete node.bindings.style; // Reactive deletion
 ```
 
-For mutations at a deeper level be reactive, the corresponding Observer API method must be used:
+For mutations at a deeper level to be reactive, the corresponding Observer API method must be used:
 
 ```js
 Observer.set(document.bindings.app, 'title', 'Demo App!!!');
@@ -972,7 +982,176 @@ Observer.deleteProperty(document.bindings.app, 'title');
 
 ### The Context API
 
+A complex hierarchy of objects will often call for more than the normal top-down flow of data that the Bindings API facilitates. A child may need the ability to look up the component tree to directly access specific data, or in other words, "request" data from "context". This is possible via the Context API.
 
+And interestingly, the Context API is the "resolution" system behind the *HTMLImports* API and the declarative Data Binding features above!
+
+Here, we simply leverage the DOM's existing event system to fire a "request" event and let an arbitrary "provider" in context fulfill the request. This becomes very simple with the Context API which is exposed on the document object and on element instances via the readonly `context` property.
+
+**-->** *with the `context.request()` method to fire a request*:
+
+```js
+// ------------
+// Get an arbitrary
+const node = document.querySelector('my-element');
+
+// ------------
+// Prepare and fire request event
+const requestParams = { type: 'html-imports', detail: '/foo#fragment1' };
+const request = new ContextRequestEvent(requestParams);
+const contextReturnValue = node.context.request(request);
+
+// ------------
+// Handle response
+console.log(contextReturnValue.value); // It works!
+```
+
+**-->** *and the `context.attachProvider()` method to register a provider at arbitrary levels in the DOM tree*:
+
+```js
+// Define a ContextProvider class
+class FakeImportsProvider extends HTMLContextProvider {
+  static type = 'html-imports';
+  handle(request) {
+    console.log(request.detail);
+    request.respondWith('It works!');
+  }
+}
+
+// ------------
+// Instantiate and attach to a node
+const providerId = FakeImportsProvider.createId(); // { type: 'html-imports' }
+const fakeImportsProvider = new FakeImportsProvider(providerId);
+document.context.attachProvider(fakeImportsProvider);
+
+// ------------
+// Detach anytime
+document.context.detachProvider(fakeImportsProvider);
+```
+
+<details><summary>Details</summary>
+
+In the current OOHTML, the Context API interfaces are exposed on the global `webqit` object:
+
+```js
+const { HTMLContextProvider, ContextRequestEvent } = window.webqit;
+```
+
+And here's the Context API works:
+
++ It is possible to specificy a name for a provider which a request could target:
+
+    ```js
+    // Instantiate and attach to a node
+    const providerId = FakeImportsProvider.createId({ contextName: 'fake-provider' }); // { type: 'html-imports', contextName: 'fake-provider' }
+    const fakeImportsProvider = new FakeImportsProvider( providerId );
+    document.context.attachProvider(fakeImportsProvider);
+    ```
+
+    ```js
+    // Prepare and fire request event that specifies the provider name: 'fake-provider', without which only "type" match is performed
+    const requestParams = FakeImportsProvider.createRequest({ contextName: 'fake-provider', detail: '/foo#fragment1' }); // { type: 'html-imports', contextName: 'fake-provider', detail: '/foo#fragment1' }
+    const request = new ContextRequestEvent(requestParams);
+    const contextReturnValue = node.context.request(request);
+    ```
+
++ And a provider could indicate to manually match requests where the defualt "type" match, plus optional "name" match doesn't suffice:
+
+    ```js
+    // Define a ContextProvider class
+    class ContextProvider extends HTMLContextProvider {
+      static type = 'html-imports';
+      static matchRequest( id, request ) {
+        // The default request matching algorithm
+        return request.type === id.type && ( !request.contextName || request.contextName === id.contextName );
+      }
+      handle(request) {
+        console.log(request.detail);
+        request.respondWith('It works!');
+      }
+    }
+    ```
+
++ And a request could choose to stay subscribed to changes on the requested data; the `requestParams` would simply set a `live` flag and either stay alert to said updates on the returned `ContextReturnValue` object or specify a callback function, in which case no `ContextReturnValue` object is returned:
+
+    ```js
+    // Set the "live" flag
+    requestParams.live = true;
+    const request = new ContextRequestEvent(requestParams);
+    ```
+
+    ```js
+    // Handle response without a callback
+    const contextReturnValue = node.context.request(request);
+    console.log(contextReturnValue.value); // It works!
+    Observer.observe(contextReturnValue, 'value', e => {
+      console.log(e.value); // It works live!
+    });
+    ```
+
+    ```js
+    // Handle response with a callback
+    node.context.request(request, value => {
+      console.log(value);
+      // It works!
+      // It works live!
+    });
+    ```
+
+    ...while the provider simply checks for the `request.live` flag and keep the updates coming:
+
+    ```js
+    // Define a ContextProvider class
+    class ContextProvider extends HTMLContextProvider {
+      static type = 'html-imports';
+      handle(request) {
+        if (request.live) {
+          setTimeout(() => {
+            request.respondWith('It works live!');
+          }, 5000);
+        }
+        request.respondWith('It works!');
+      }
+    }
+    ```
+
++ Live requests are terminated via the returned `ContextReturnValue` object...
+
+    ```js
+    contextReturnValue.abort();
+    ```
+
+    ...or via an initially specified `AbortSignal`:
+
+    ```js
+    // Add a signal to the original request
+    const abortController = new AbortController;
+    requestParams.signal = abortController.signal;
+    ```
+
+    ```js
+    abortController.abort();
+    ```
+
++ Now, when a node in a provider's subtree is suddenly attached an identical provider, any live requests the super provider served are automatically "claimed" by the sub provider:
+
+    ```js
+    document: // 'fake-provider' here
+    └── html
+      ├── head
+      └── body:  // 'fake-provider' here. Our request above is now served from here.
+    ```
+
+    And when a sub provider is suddenly detached from said subtree, any live requests it served are automatically hoisted back to the super provider.
+
+    ```js
+    document: // 'fake-provider' here. Our request above is now served from here.
+    └── html
+      ├── head
+      └── body:
+    ```
+
+</details>
 
 ## Polyfill
 

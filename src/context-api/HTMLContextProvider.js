@@ -52,7 +52,7 @@ export default class HTMLContextProvider {
     static createId( host, fields = {} ) {
         const id = { type: this.type, ...fields };
         if ( id.contextName ) return id;
-        if ( host.getAttribute && !( id.contextName = ( host.getAttribute( this.config.context.attr.contextname ) || '' ).trim() ) ) {
+        if ( host.getAttribute && this.config.context && !( id.contextName = ( host.getAttribute( this.config.context.attr?.contextname ) || '' ).trim() ) ) {
             delete id.contextName;
         } else if ( !host.ownerDocument ) {
             id.contextName = 'root';
