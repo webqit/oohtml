@@ -849,7 +849,7 @@ It's Imperative Reactive Programming ([IRP](https://en.wikipedia.org/wiki/Reacti
 
 Here, the runtime executes your code in a special execution mode that gets literal JavaScript expressions to statically reflect changes. This makes a lot of things possible on the UI! The [Quantum JS](https://github.com/webqit/quantum-js) documentation has a detailed run down.
 
-Now, in each case above, reactivity terminates on script's removal from the DOM. And a programmatic termination is sill possible:
+Now, in each case above, reactivity terminates on script's removal from the DOM. And that could also be via a programmatic termination:
 
 ```js
 const script = document.querySelector('script[quantum]');
@@ -863,100 +863,116 @@ But while that is automatic, DOM event handlers bound via `addEventListener()` w
 
 ## Data Plumbing
 
-*[TODO]: Bindings API & The Context API*
-
-<!--
-The last set of features covers the concept of "state", "bindings", and "reactivity" for those objects at the DOM level - in the most exciting form of the terms and as an upgrade path! This comes factored into the design as something intrinsic to the problem.
-
-└ *The [Observer API](https://github.com/webqit/observer) for general-purpose object observability*:
+Components often need to manage, and be driven by, dynamic data. That could get very problematic and pretty messy if all of that should go directly on DOM nodes:
 
 ```js
-function changeCallback(changes) {
-    console.log(changes[0].type, changes[0].key, changes[0].value, changes[0].oldValue);
+// Inside a custom element
+connectedCallback() {
+  this.prop1 = 1;
+  this.prop2 = 2;
+  this.prop3 = 3;
+  this.style = 'tall-dark'; // ??? - conflict with the standard HTMLElement: style property
 }
 ```
 
 ```js
-const obj = {};
-Observer.observe(obj, changeCallback);
+// Outside the component
+const node = document.querySelector('my-element');
+node.prop1 = 1;
+node.prop2 = 2;
+node.prop3 = 3;
+node.normalize = true; // ??? - conflict with the standard Node: normalize() method
+```
+
+That calls for a decent API and some data-flow mechanism!
+
+### The Bindings API
+
+A place to maintain state need not be a complex state machine! Here, that comes as a simple, read/write, data object exposed on the document object and on DOM elements as a readonly `bindings` property. This is the Bindings API.
+
+**-->** *it's an ordinary JavaScript object that can be read and mutated*:
+
+```js
+// Read
+console.log(document.bindings); // {}
+// Modify
+document.bindings.app = { title: 'Demo App' };
+console.log(document.bindings.app); // { title: 'Demo App' }
 ```
 
 ```js
-Observer.set(obj, 'prop1', 'value1'); // Reported synchronously
+const node = document.querySelector('my-element');
+// Read
+console.log(node.bindings); // {}
+// Modify
+node.bindings.style = 'tall-dark';
+node.bindings.normalize = true;
+```
+
+**-->** *with a corresponding `bind()` method that lets us make mutations as a batch*:
+
+```js
+// ------------
+// Set multiple properties
+document.bind({ name: 'James Boye', cool: '100%', app: { title: 'Demo App' } });
+
+// ------------
+// Replace existing properties with a new set
+document.bind({ signedIn: false, hot: '100%' });
+// Inspect
+console.log(document.bindings); // { signedIn: false, hot: '100%' }
+
+// ------------
+// Merge a new set of properties with existing
+document.bind({ name: 'James Boye', cool: '100%' }, { merge: true });
+// Inspect
+console.log(document.bindings); // { signedIn: false, hot: '100%', name: 'James Boye', cool: '100%' }
+```
+
+**-->** *and given the Observer API, reactivity is intrinsic*:
+
+```js
+Observer.observe(document.bindings, mutations => {
+  mutations.forEach(mutation => console.log(mutation));
+});
 ```
 
 ```js
-Observer.deleteProperty(obj, 'prop1'); // Reported synchronously
-```
-
-└ *A Bindings API for binding application-level state to an object*:
-
-```js
-// Observing document-level bindings
-Observer.observe(document.bindings, changeCallback);
-
-// Set state
-document.bindings.userSignedIn = true;
-
-// Set data object
-document.bindings.data = { prop1: 'value1' };
-Observer.set(document.bindings.data, 'prop2', 'value2');
+// Inside a custom element
+connectedCallback() {
+  Observer.observe(this.bindings, 'style', e => {
+    // Compunonent should magically change style
+    console.log(e.value);
+  });
+}
 ```
 
 ```js
-// Observing element-level bindings
-Observer.observe(element.bindings, changeCallback);
-
-// Set state
-element.bindings.isCollapsed = true;
-
-// Set data object
-element.bindings.data = { prop1: 'value1' };
-Observer.set(element.bindings.data, 'prop2', 'value2');
+const node = document.querySelector('my-element');
+node.bindings.style = 'tall-dark';
 ```
 
-└ *"Quantum Scripts" for reactive scripting*:
+<details><summary>Details</summary>
 
-```html
-<script quantum>
-  console.log(this) // window
-
-  console.log(window.liveProperty) // live expression
-  console.log(liveProperty) // live expression; technically same as above
-
-  if (document.bindings.userSignedIn) {
-      // Live block
-      console.log('User signed in!');
-  }
-</script>
-```
+In the current OOHTML, the `document.bindings` and `Element.prototype.bindings` APIs are implemented as a proxy over the actual bindings interface to enable some interface-level reactivity. This lets us have reactivity over literal property assignments and deletions on the inerface:
 
 ```js
-Observer.set(window, 'liveProperty'); // Live expressions rerun
+node.bindings.style = 'tall-dark'; // Reactive assignment
+delete node.bindings.style; // Reactive deletion
 ```
 
-```html
-<div>
-  <script quantum scoped>
-    console.log(this) // div
-
-    console.log(this.liveProperty) // live expression
-
-    if (this.bindings.isCollapsed) {
-        // Live block
-        console.log('Section collapsed!');
-    }
-  </script>
-</div>
-```
+For mutations at a deeper level be reactive, the corresponding Observer API method must be used:
 
 ```js
-Observer.set(element, 'liveProperty'); // Live expressions rerun
+Observer.set(document.bindings.app, 'title', 'Demo App!!!');
+Observer.deleteProperty(document.bindings.app, 'title');
 ```
 
-└ [Reactive HTML concepts](#)
+</details>
 
--->
+### The Context API
+
+
 
 ## Polyfill
 
