@@ -1009,11 +1009,12 @@ console.log(contextReturnValue.value); // It works!
 **-->** *and the `context.attachProvider()` method to register a provider at arbitrary levels in the DOM tree*:
 
 ```js
+// ------------
 // Define a ContextProvider class
 class FakeImportsProvider extends HTMLContextProvider {
   static type = 'html-imports';
   handle(request) {
-    console.log(request.detail);
+    console.log(request.detail); // '/foo#fragment1'
     request.respondWith('It works!');
   }
 }
@@ -1034,12 +1035,12 @@ document.context.detachProvider(fakeImportsProvider);
 In the current OOHTML, the Context API interfaces are exposed on the global `webqit` object:
 
 ```js
-const { HTMLContextProvider, ContextRequestEvent } = window.webqit;
+const { HTMLContextProvider, ContextRequestEvent, ContextReturnValue } = window.webqit;
 ```
 
-And here's the Context API works:
+And here's how the Context API works:
 
-+ It is possible to specificy a name for a provider which a request could target:
++ It is possible to specify a name for a provider:
 
     ```js
     // Instantiate and attach to a node
@@ -1048,6 +1049,8 @@ And here's the Context API works:
     document.context.attachProvider(fakeImportsProvider);
     ```
 
+    ...which a request could target:
+
     ```js
     // Prepare and fire request event that specifies the provider name: 'fake-provider', without which only "type" match is performed
     const requestParams = FakeImportsProvider.createRequest({ contextName: 'fake-provider', detail: '/foo#fragment1' }); // { type: 'html-imports', contextName: 'fake-provider', detail: '/foo#fragment1' }
@@ -1055,7 +1058,7 @@ And here's the Context API works:
     const contextReturnValue = node.context.request(request);
     ```
 
-+ And a provider could indicate to manually match requests where the defualt "type" match, plus optional "name" match doesn't suffice:
++ And a provider could indicate to manually match requests where the defualt "type" match, plus optional "contextName" match doesn't suffice:
 
     ```js
     // Define a ContextProvider class
@@ -1072,7 +1075,7 @@ And here's the Context API works:
     }
     ```
 
-+ And a request could choose to stay subscribed to changes on the requested data; the `requestParams` would simply set a `live` flag and either stay alert to said updates on the returned `ContextReturnValue` object or specify a callback function, in which case no `ContextReturnValue` object is returned:
++ And a request could choose to stay subscribed to changes on the requested data; the `request` would simply set a `live` flag and either stay alert to said updates on the returned `ContextReturnValue` object or specify a callback function, in which case no `ContextReturnValue` object is returned:
 
     ```js
     // Set the "live" flag
@@ -1098,7 +1101,7 @@ And here's the Context API works:
     });
     ```
 
-    ...while the provider simply checks for the `request.live` flag and keep the updates coming:
+    ...while the provider would simply check for the `request.live` flag and keep the updates flowing:
 
     ```js
     // Define a ContextProvider class
@@ -1133,7 +1136,7 @@ And here's the Context API works:
     abortController.abort();
     ```
 
-+ Now, when a node in a provider's subtree is suddenly attached an identical provider, any live requests the super provider served are automatically "claimed" by the sub provider:
++ Now, when a node in a provider's subtree is suddenly attached an identical provider, any live requests the super provider already serves are automatically "claimed" by the sub provider:
 
     ```js
     document: // 'fake-provider' here
@@ -1142,7 +1145,7 @@ And here's the Context API works:
       └── body:  // 'fake-provider' here. Our request above is now served from here.
     ```
 
-    And when a sub provider is suddenly detached from said subtree, any live requests it served are automatically hoisted back to the super provider.
+    And when the sub provider is suddenly detached from said node, any live requests it had served are automatically hoisted back to the super provider.
 
     ```js
     document: // 'fake-provider' here. Our request above is now served from here.
@@ -1151,7 +1154,56 @@ And here's the Context API works:
       └── body:
     ```
 
+    While, in all, the original receiver needs not bother where a response is from!
+
 </details>
+
+**-->** *all of which gives us the programmatic equivalent of declarative HTMLImports and Data Binding*:
+
+```html
+<div contextname="vendor1">
+  <div contextname="vendor2">
+    ...
+
+      <my-element>
+        <!-- Declarative import -->
+        <import ref="@vendor1/foo#fragment1"></import>
+        <!-- Declarative Data Binding -->
+        <?{ @vendor2.app.title }?>
+      </my-element>
+
+    ...
+  </div>
+</div>
+```
+
+```js
+// ------------
+// Equivalent import() approach
+const contextReturnValue = myElement.import('@vendor1/foo#fragment1');
+
+// ------------
+// Equivalent raw Context API approach
+const requestParams = { type: 'html-imports', contextName: 'vendor1', detail: '/foo#fragment1' };
+const request = new ContextRequestEvent(requestParams);
+const contextReturnValue = myElement.context.request(request);
+
+// ------------
+// Handle response
+console.log(contextReturnValue.value);
+```
+
+```js
+// ------------
+// Equivalent raw Context API approach
+const requestParams = { type: 'bindings', contextName: 'vendor2', detail: 'app' };
+const request = new ContextRequestEvent(requestParams);
+const contextReturnValue = myElement.context.request(request);
+
+// ------------
+// Handle response
+console.log(contextReturnValue.value.title);
+```
 
 ## Polyfill
 

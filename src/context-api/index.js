@@ -5,6 +5,7 @@
 import { _init } from '../util.js';
 import HTMLContext from './HTMLContext.js';
 import HTMLContextProvider from './HTMLContextProvider.js';
+import ContextReturnValue from './ContextReturnValue.js';
 
 /**
  * @exports
@@ -27,6 +28,7 @@ export default function init( $config = {} ) {
         api: { context: 'context', },
     } );
     window.webqit.HTMLContextProvider = HTMLContextProvider;
+    window.webqit.ContextReturnValue = ContextReturnValue;
     window.webqit.HTMLContext = HTMLContext;
     exposeAPIs.call( window, config );
 }
