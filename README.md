@@ -768,7 +768,7 @@ Here, from the same `<script>` element we already write, we get a direct upgrade
 </script>
 ```
 
-**-->** *which adds up really well with the idea of scoping*:
+**-->** *which adds up really well with the `scoped` attribute*:
 
 ```html
 <main>
@@ -792,7 +792,7 @@ Here, from the same `<script>` element we already write, we get a direct upgrade
 </main>
 ```
 
-**-->** *with content being whatever you normally would write in a `<script>` element, but without the "manual" work for reactivity*:
+**-->** *with content being whatever you normally would write in a `<script>` element, minus the "manual" work for reactivity*:
 
 ```html
 <main>
@@ -849,7 +849,7 @@ It's Imperative Reactive Programming ([IRP](https://en.wikipedia.org/wiki/Reacti
 
 Here, the runtime executes your code in a special execution mode that gets literal JavaScript expressions to statically reflect changes. This makes a lot of things possible on the UI! The [Quantum JS](https://github.com/webqit/quantum-js) documentation has a detailed run down.
 
-Now, in each case above, reactivity terminates on script's removal from the DOM. And that could also be via a programmatic termination:
+Now, in each case above, reactivity terminates on script's removal from the DOM or via a programmatic approach:
 
 ```js
 const script = document.querySelector('script[quantum]');
@@ -863,7 +863,7 @@ But while that is automatic, DOM event handlers bound via `addEventListener()` w
 
 ## Data Plumbing
 
-Components often need to manage, and be driven by, dynamic data. That could get very problematic and pretty messy if all of that should go directly on DOM nodes:
+Components often need to manage, and also be driven by, dynamic data. That could get pretty problematic and messy if all of that should go on DOM nodes as direct properties:
 
 ```js
 // Inside a custom element
@@ -884,7 +884,7 @@ node.prop3 = 3;
 node.normalize = true; // ??? - conflict with the standard Node: normalize() method
 ```
 
-That calls for a decent API and some data-flow mechanism!
+This calls for a decent API and some data-flow mechanism!
 
 ### The Bindings API
 
@@ -964,7 +964,7 @@ node.bindings.style = 'tall-dark';
 
 <details><summary>Details</summary>
 
-In the current OOHTML, the `document.bindings` and `Element.prototype.bindings` APIs are implemented as a proxy over the actual bindings interface to enable some interface-level reactivity. This lets us have reactivity over literal property assignments and deletions on the inerface:
+In the current OOHTML, the `document.bindings` and `Element.prototype.bindings` APIs are implemented as proxies over their actual bindings interface to enable some interface-level reactivity. This lets us have reactivity over literal property assignments and deletions on the interface:
 
 ```js
 node.bindings.style = 'tall-dark'; // Reactive assignment
@@ -984,11 +984,11 @@ Observer.deleteProperty(document.bindings.app, 'title');
 
 A complex hierarchy of objects will often call for more than the normal top-down flow of data that the Bindings API facilitates. A child may need the ability to look up the component tree to directly access specific data, or in other words, "request" data from "context". This is possible via the Context API.
 
-And interestingly, the Context API is the "resolution" system behind the *HTMLImports* API and the declarative Data Binding features above!
+And interestingly, the Context API is the resolution system behind HTML Imports and Data Binding in OOHTML!
 
-Here, we simply leverage the DOM's existing event system to fire a "request" event and let an arbitrary "provider" in context fulfill the request. This becomes very simple with the Context API which is exposed on the document object and on element instances via the readonly `context` property.
+Here, we simply leverage the DOM's existing event system to fire a "request" event and let an arbitrary "provider" in context fulfill the request. This becomes very simple with the Context API which is exposed on the document object and on element instances as the readonly `context` property.
 
-**-->** *with the `context.request()` method to fire a request*:
+**-->** *with the `context.request()` method for firing requests*:
 
 ```js
 // ------------
@@ -1006,7 +1006,7 @@ const contextReturnValue = node.context.request(request);
 console.log(contextReturnValue.value); // It works!
 ```
 
-**-->** *and the `context.attachProvider()` method to register a provider at arbitrary levels in the DOM tree*:
+**-->** *and the `context.attachProvider()` method for registering providers at arbitrary levels in the DOM tree*:
 
 ```js
 // ------------
@@ -1038,9 +1038,9 @@ In the current OOHTML, the Context API interfaces are exposed on the global `web
 const { HTMLContextProvider, ContextRequestEvent, ContextReturnValue } = window.webqit;
 ```
 
-And here's how the Context API works:
+That said...
 
-+ It is possible to specify a name for a provider:
++ it is possible to specify a name for a provider:
 
     ```js
     // Instantiate and attach to a node
@@ -1058,7 +1058,7 @@ And here's how the Context API works:
     const contextReturnValue = node.context.request(request);
     ```
 
-+ And a provider could indicate to manually match requests where the defualt "type" match, plus optional "contextName" match doesn't suffice:
++ and a provider could indicate to manually match requests where the defualt "type" match, plus optional "contextName" match doesn't suffice:
 
     ```js
     // Define a ContextProvider class
@@ -1075,7 +1075,7 @@ And here's how the Context API works:
     }
     ```
 
-+ And a request could choose to stay subscribed to changes on the requested data; the `request` would simply set a `live` flag and either stay alert to said updates on the returned `ContextReturnValue` object or specify a callback function, in which case no `ContextReturnValue` object is returned:
++ and a request could choose to stay subscribed to changes on the requested data; the `request` would simply set a `live` flag and either stay alert to said updates on the returned `ContextReturnValue` object or specify a callback function, in which case no `ContextReturnValue` object is returned:
 
     ```js
     // Set the "live" flag
@@ -1118,7 +1118,7 @@ And here's how the Context API works:
     }
     ```
 
-+ Live requests are terminated via the returned `ContextReturnValue` object...
++ live requests are terminated via the returned `ContextReturnValue` object...
 
     ```js
     contextReturnValue.abort();
@@ -1136,7 +1136,7 @@ And here's how the Context API works:
     abortController.abort();
     ```
 
-+ Now, when a node in a provider's subtree is suddenly attached an identical provider, any live requests the super provider already serves are automatically "claimed" by the sub provider:
++ now, when a node in a provider's subtree is suddenly attached an identical provider, any live requests the super provider already serves are automatically "claimed" by the sub provider:
 
     ```js
     document: // 'fake-provider' here
