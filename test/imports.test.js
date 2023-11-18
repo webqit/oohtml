@@ -170,7 +170,7 @@ describe(`HTML Imports`, function() {
             const routingElement = document.body.firstElementChild;
             expect( routingElement.firstElementChild.nodeName ).to.eq( 'TEXTAREA' );
             document.import( 'temp0/temp1', temp1 => {
-                const textarea = temp1.modules[ '#input' ];
+                const textarea = temp1.exports[ '#input' ];
                 textarea.remove();
                 expect( routingElement.firstElementChild.nodeName ).to.eq( 'IMPORT' );
                 temp1.content.prepend( textarea );
@@ -198,9 +198,7 @@ describe(`HTML Imports`, function() {
                 <!--&lt;import ref="#input" data-nodecount="1"&gt;&lt;/import&gt;-->
             </div>`;
             const { document } = createDocument( head, body, window => window.webqit.env = 'client' );
-            console.log('-----------1');
             await delay( 20 );
-            console.log('-----------2');
 
             const routingElement = document.body.firstElementChild;
             expect( routingElement.firstElementChild.nodeName ).to.eq( 'TEXTAREA' );

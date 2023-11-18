@@ -22,7 +22,7 @@ export function createDocument( head = '', body = '', callback = null, ) {
     <html>
         <head>
         <meta name="$q-compiler-url" content="../quantum-js/dist/compiler.js">
-        <script ssr src="/dist/main.js"></script>
+        <script ssr src="/dist/main.lite.js"></script>
         ${ head }
         </head>
         <body>${ body }</body>

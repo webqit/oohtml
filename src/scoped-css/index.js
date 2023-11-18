@@ -28,7 +28,7 @@ export default function init( { advanced = {}, ...$config } ) {
  * @return Void
  */
 function realtime( config ) {
-	const window = this, { realdom } = window.webqit;
+	const window = this, { webqit: { realdom } } = window;
     if ( !window.HTMLScriptElement.supports ) { window.HTMLScriptElement.supports = () => false; }
     const handled = () => {};
 	realdom.realtime( window.document ).subtree/*instead of observe(); reason: jsdom timing*/( config.styleSelector, record => {

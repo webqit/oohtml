@@ -2,7 +2,6 @@
 /**
  * @imports
  */
-import Observer from '@webqit/observer';
 import NamespacedHTML from './namespaced-html/index.js';
 import ScopedCSS from './scoped-css/index.js';
 import ScopedJS from './scoped-js/index.js';
@@ -12,15 +11,11 @@ import HTMLImports from './html-imports/index.js';
 import DataBinding from './data-binding/index.js';
 
 /**
- * @exports
- */
-export { Observer }
-
-/**
  * @init
  */
-export default function init( configs = {} ) {
+export default function init( QuantumJS, configs = {} ) {
     if ( !this.webqit ) { this.webqit = {}; }
+    Object.assign( this.webqit, QuantumJS );
     // --------------
     NamespacedHTML.call( this, ( configs.NAMESPACED_HTML || {} ) );
     ScopedCSS.call( this, ( configs.SCOPED_CSS || {} ) );

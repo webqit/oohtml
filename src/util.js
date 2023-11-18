@@ -8,17 +8,20 @@ import { _merge } from '@webqit/util/obj/index.js';
 
 export const _ = ( ...args ) => _internals( 'oohtml', ...args );
 
+export const env = {};
+
 export function _init( name, $config, $defaults ) {
-    const _name = name.toUpperCase().replace( '-', '_' );
     const window = this, realdom = realdomInit.call( window );
     window.webqit || ( window.webqit = {} );
     window.webqit.oohtml || ( window.webqit.oohtml = {} );
     window.webqit.oohtml.configs || ( window.webqit.oohtml.configs = {} );
-    window.webqit.oohtml.configs[ _name ] || ( window.webqit.oohtml.configs[ _name ] = {} );
+    const configKey = name.toUpperCase().replace( '-', '_' );
+    window.webqit.oohtml.configs[ configKey ] || ( window.webqit.oohtml.configs[ configKey ] = {} );
+    env.window = window;
     // ---------------------
-    _merge( 2, window.webqit.oohtml.configs[ _name ], $defaults, $config, realdom.meta( name ).json() );
+    _merge( 2, window.webqit.oohtml.configs[ configKey ], $defaults, $config, realdom.meta( name ).json() );
     // ---------------------
-    return { config: window.webqit.oohtml.configs[ _name ], realdom, window };
+    return { config: window.webqit.oohtml.configs[ configKey ], realdom, window };
 }
 
 export function _compare( a, b, depth = 1, objectSizing = false ) {
@@ -32,4 +35,4 @@ export function _compare( a, b, depth = 1, objectSizing = false ) {
         return ( b = b.slice( 0 ).sort() ) && a.slice( 0 ).sort().every( ( valueA, i ) => valueA === b[ i ] );
     }
     return a === b;
-};
+}

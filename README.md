@@ -68,7 +68,7 @@ user
  └── email
 ```
 
-**-->** *with a corresponding API that exposes said structure to JavaScript applications*:
+**-->** *with a complementary API that exposes said structure to JavaScript applications*:
 
 ```js
 // The document.namespace API
@@ -144,7 +144,7 @@ Here, we get the `scoped` attribute for *scoping* said element-specific styleshe
 </div>
 ```
 
-**-->** *with a corresponding API that exposes said assets to JavaScript applications*:
+**-->** *with a complementary API that exposes said assets to JavaScript applications*:
 
 ```js
 let { styleSheets, scripts } = user; // APIs that are analogous to the document.styleSheets, document.scripts properties
@@ -220,10 +220,9 @@ Here, we get the `<template src>` element for that:
 ```html
 -- file: /nested.html --
 <div def="fragment2"></div>
---
 ```
 
-**-->** *which extends how elements like images already work; terminating with either a `load` or an `error` event*:
+**-->** *which borrows from how elements like images work; terminating with either a `load` or an `error` event*:
 
 ```js
 foo.addEventListener('load', loadCallback);
@@ -252,19 +251,20 @@ Here, we get an `<import>` element that lets us do that declaratively:
 
 <details><summary>All in realtime</summary>
 
-As a realtime module system, `<import> `elements maintain a live relationship with given module definition elements (`<template def>`) and are resolved again in the event that:
-+ the `<import>` element points to another module — either by `ref` change or by a change in `importscontext` (below).
-+ the module definition element (`<template def>`) has had its contents updated, either programmatically or automatically from having loaded.
+Import *refs* are live references and are sensitive to:
 
-Conversely, an `<import>` element that has been resolved will self-restore in the event that:
-+ the `<import>` element no longer points to a module; or the module has been emptied or removed.
-+ the previously slotted contents have been programmatically removed and slot is empty.
++ changes in the *ref* itself (in being defined/undefined/redefined)
++ changes in the referenced *defs* themselves (in being added/removed/loaded)
+
+And an `<import>` element that has been resolved will self-restore in the event that:
+
++ the previously slotted contents have *all* been programmatically removed and slot is empty.
 
 </details>
 
-<details><summary>With SSR Support</summary>
+<details><summary>With SSR support</summary>
 
-On the server, these `<import>` elements would retain their place in the DOM, but this time, serialized into comment nodes, while having their output rendered just above them as siblings.
+On the server, these `<import>` elements will retain their place in the DOM, but this time, serialized into comment nodes, while having their output rendered just above them as siblings.
 
 The above resolved imports would thus give us something like:
 
@@ -277,23 +277,23 @@ The above resolved imports would thus give us something like:
 </body>
 ```
 
-But they also would need to remember the exact imported nodes that they manage so as to be able to re-establish that relationship on getting to the client. This information is automatically encoded as part of the serialised element itself, in something like:
+But they also will need to remember the exact imported nodes that they manage so as to be able to re-establish that relationship on getting to the client. This information is automatically encoded as part of the serialised element itself, in something like:
 
 ```html
 <!--&lt;import ref="/foo/nested#fragment2" nodecount="1"&gt;&lt;/import&gt;-->
 ```
 
-Now that extra bit of information gets decoded and original relationships are formed again on getting to the client and "hydrating" the `<import>` element. But, the `<import>` element itself stays invisible in the DOM while still continuing to kick as above!
+Now, on getting to the client and "hydrating" the `<import>` element, that extra bit of information gets decoded, and original relationships are formed again. But, the `<import>` element itself stays invisible in the DOM while still continuing to kick as above!
 
 > Note: We know we're on the server when `window.webqit.env === 'server'`. This flag is automatically set by OOHTML's current SSR engine: [OOHTML-SSR](https://github.com/webqit/oohtml-ssr)
 
 </details>
 
-### Programmatic Module Imports
+### Imperative Module Imports
 
 JavaScript applications will need more than a declarative import mechanism.
 
-Here, we get an *HTMLImports* API for programmatic module import:
+Here, we get an *HTMLImports* API for imperative module import:
 
 ```js
 const moduleObject1 = document.import('/foo#fragment1');
@@ -305,7 +305,7 @@ const moduleObject2 = document.import('/foo/nested#fragment2');
 console.log(moduleObject2.value); // divElement
 ```
 
-**-->** *with an observable `moduleObject.value` property for working asynchronously; e.g. awaiting and handling remote modules*:
+**-->** *with the `moduleObject.value` property being a live property for when results are asynchronous; e.g. asynchronously loaded modules*:
 
 ```js
 Observer.observe(moduleObject2, 'value', e => {
@@ -321,7 +321,7 @@ document.import('/foo#fragment1', divElement => {
 });
 ```
 
-**-->** *with an optional `live` parameter for staying subscribed to any mutations made to source module elements*:
+**-->** *with an optional `live` parameter for staying subscribed to updated results*:
 
 ```js
 const moduleObject2 = document.import('/foo/nested#fragment2', true/*live*/);
@@ -337,38 +337,25 @@ document.import('/foo#fragment1', true/*live*/, divElement => {
 });
 ```
 
-*...both of which would get notified on doing the below*:
+*...both of which gets notified on doing the below*:
 
 ```js
 document.querySelector('template[def="foo"]').content.firstElementChild.remove();
 ```
 
-**-->** *with an optional `AbortSignal` parameter for aborting module mutation events*:
+**-->** *with a `moduleObject.abort()` method for unsubscribing from live updates*:
+
+**-->** *with an optional `signal` parameter for passing in a custom `AbortSignal` instance*:
 
 ```js
 const abortController = new AbortController;
-```
-
-```js
 const moduleObject2 = document.import('/foo/nested#fragment2', { live: true, signal: abortController.signal });
 ```
 
-*...in the absence of which an `AbortSignal` instance is automatically created internally for the same purpose, such that we're always able to do*:
-
 ```js
-moduleObject2.abort();
-```
-
-*...whereas in the `callback` approach, no automatic `AbortSignals` are created*:
-
-```js
-document.import('/foo#fragment1', { live: true, signal: abortController.signal }, divElement => {
-    console.log(divElement); // To be received after remote module has been loaded
-});
-```
-
-```js
-setTimeout(() => abortController.abort(), 1000);
+setTimeout(() => {
+  abortController.abort(); // which would also call moduleObject2.abort()
+}, 1000);
 ```
 
 <details><summary>Extended Imports concepts</summary>
@@ -377,7 +364,7 @@ setTimeout(() => abortController.abort(), 1000);
 
 We can defer module loading until we really need them.
 
-Here, we get the `loading="lazy"` directive for that; and loading is only then triggered on the first attempt to import their contents:
+Here, we get the `loading="lazy"` directive for that; and loading is only then triggered on the first attempt to import them or their contents:
 
 ```html
 <!-- Loading doesn't happen until the first time this is being accessed -->
@@ -391,43 +378,6 @@ Here, we get the `loading="lazy"` directive for that; and loading is only then t
 ```
 ```js
 const moduleObject2 = document.import('/foo#fragment1'); // Triggers module loading and resolves at moduleObject2.value on load success
-```
-
-### Scoped Modules
-
-Some modules will only be relevant within a specific context in the page, and these shouldn't map to the global document scope.
-
-Here, we get the `scoped` attribute for scoping those to their respective contexts, and thus, implicitly have an *object-scoped* module system:
-
-```html
-<section> <!-- object with own modules -->
-
-  <template def="foo" scoped> <!-- Scoped to host object and not available globally -->
-    <div def="fragment1"></div>
-  </template>
-
-  <div>
-    <import ref="foo#fragment1"></import> <!-- Relative path (beginning without a slash), resolves to the local module: foo#fragment1 -->
-    <import ref="/foo#fragment1"></import> <!-- Absolute path, resolves to the global module: /foo#fragment1 -->
-  </div>
-
-</section>
-```
-
-**-->** *with an equivalent `Element.prototype.import()` API for accessing said scoped modules*:
-
-```js
-// Using the HTMLImports API
-const moduleHost = document.querySelector('div');
-const localImport1 = moduleHost.import('foo#fragment1'); // the local module: foo#fragment1
-console.log(localImport1); // { value: div }
-```
-
-```js
-// Using the HTMLImports API
-const moduleHost = document.querySelector('div');
-const globalImport1 = moduleHost.import('/foo#fragment1'); // the global module: foo#fragment1
-console.log(globalImport1); // { value: div }
 ```
 
 ### Module Inheritance
@@ -480,34 +430,109 @@ Here, we get module nesting with inheritance to simplify that:
 
 ### Imports Contexts
 
-We should be able to define a base path at arbitrary levels in the page against which to resolve import *refs* in subtree.
+We should be able to have *relative* import refs that resolve against local contexts in the document tree.
 
-Here, we get "Imports Contexts" for that:
+Here, we call those arbitrary contexts "Imports Contexts", and these could be:
+
++ Simple Base Path Contexts ([below](#base-path-contexts))
++ Scoped Module Contexts ([below](#scoped-module-contexts))
++ Named Contexts ([below](#named-contexts))
++ Extended Scoped Module Contexts ([below](#extended-scoped-module-contexts))
+
+Alongside which we have a complementary `Element.prototype.import()` API for thinking in contexts.
+
+#### "Base Path" Contexts
+
+Base paths may be defined at arbitrary levels in the page using the `importscontext` attribute:
 
 ```html
 <body importscontext="/foo">
   <section>
-    <import ref="#fragment1"></import> <!-- Relative path (beginning without a slash), resolves to: /foo#fragment1 -->
+    <import ref="#fragment1"></import> <!-- Relative path (beginning without a slash), resolving to: /foo#fragment1 -->
   </section>
 </body>
 ```
 
 ```html
 <body importscontext="/foo/nested">
-  <section>
-    <import ref="#fragment2"></import> <!-- Relative path (beginning without a slash), resolves to: /foo/nested#fragment2 -->
-  </section>
+  <main>
+    <import ref="#fragment2"></import> <!-- Relative path (beginning without a slash), resolving to: /foo/nested#fragment2 -->
+  </main>
 </body>
 ```
 
-```js
-// Using the HTMLImports API
-const moduleHost = document.querySelector('section');
-const globalImport2 = moduleHost.import('#fragment2'); // module:/foo/nested#fragment2
-console.log(globalImport2); // { value: div }
+**-->** *with said base paths being able to "nest" nicely*:
+
+```html
+<body importscontext="/foo">
+
+  <section>
+    <import ref="#fragment1"></import> <!-- Relative path (beginning without a slash), resolves to: /foo#fragment1 -->
+  </section>
+
+  <div importscontext="nested"> <!-- Relative path (beginning without a slash), resolves to: /foo/nested -->
+    
+    <main>
+      <import ref="#fragment2"></import> <!-- Relative path (beginning without a slash), resolves to: /foo/nested#fragment2 -->
+    </main>
+
+  </div>
+
+</body>
 ```
 
-**-->** *with said "Imports Contexts" optionally having a name*:
+**-->** *with the `Element.prototype.import()` API for equivalent context-based imports*:
+
+```js
+// Using the HTMLImports API to import from context
+const contextElement = document.querySelector('section');
+const response = contextElement.import('#fragment1'); // Relative path (beginning without a slash), resolving to: /foo#fragment1
+```
+
+```js
+// Using the HTMLImports API to import from context
+const contextElement = document.querySelector('main');
+const response = contextElement.import('#fragment1'); // Relative path (beginning without a slash), resolving to: /foo/nested#fragment1
+```
+
+#### "Scoped Module" Contexts
+
+Some modules will only be relevant within a specific context in the page, and those wouldn't need to have a business with the global scope.
+
+Here, we get the `scoped` attribute for scoping those to their respective contexts, to give us an *object-scoped* module system (like what Scoped Registries are to Custom Elements):
+
+```html
+<section> <!-- Host object -->
+
+  <template def="foo" scoped> <!-- Scoped to host object and not available globally -->
+    <div def="fragment1"></div>
+  </template>
+
+  <div>
+    <import ref="foo#fragment1"></import> <!-- Relative path (beginning without a slash), resolving to the local module: foo#fragment1 -->
+    <import ref="/foo#fragment1"></import> <!-- Absolute path, resolving to the global module: /foo#fragment1 -->
+  </div>
+
+</section>
+```
+
+**-->** *with the `Element.prototype.import()` API for equivalent context-based imports*:
+
+```js
+// Using the HTMLImports API for local import
+const contextElement = document.querySelector('div');
+const localModule = moduleHost.import('#fragment1'); // Relative path (beginning without a slash), resolving to the local module: foo#fragment1
+```
+
+```js
+// Using the HTMLImports API for global import
+const contextElement = document.querySelector('div');
+const globalModule = contextElement.import('/foo#fragment1'); // Absolute path, resolving to the global module: /foo#fragment1 
+```
+
+#### Named Contexts
+
+Imports Contexts may be named:
 
 ```html
 <body contextname="context1" importscontext="/foo/nested">
@@ -516,44 +541,31 @@ console.log(globalImport2); // { value: div }
 
   <section importscontext="/foo">
     <import ref="#fragment1"></import> <!-- Relative path (beginning without a slash), resolves to: /foo#fragment1 -->
+
     <div>
       <import ref="@context1#fragment2"></import> <!-- Context-relative path (beginning with a context name), resolves to: /foo/nested#fragment2 -->
     </div>
+
   </section>
 
 </body>
 ```
+
+**-->** *with the `Element.prototype.import()` API for equivalent context-based imports*:
 
 ```js
-// Using the HTMLImports API
-const moduleHost = document.querySelector('div');
-const globalImport2 = moduleHost.import('@context1#fragment2'); // module:/foo/nested#fragment2
-console.log(globalImport2); // { value: div }
+// Using the HTMLImports API to import from a named Imports Context
+const contextElement = document.querySelector('div');
+const result = contextElement.import('@context1#fragment2'); // Resolving to the module:/foo/nested#fragment2
 ```
 
-**-->** *with said "Imports Contexts" being able to "nest" nicely*:
+#### Extended Scoped Module Contexts
 
-```html
-<body importscontext="/foo">
-
-  <import ref="#fragment1"></import> <!-- Relative path (beginning without a slash), resolves to: /foo#fragment1 -->
-
-  <section importscontext="nested"> <!-- Relative path (beginning without a slash), resolves to: /foo/nested -->
-    <import ref="#fragment2"></import> <!-- Relative path (beginning without a slash), resolves to: /foo/nested#fragment2 -->
-  </section>
-
-</body>
-```
-
-### Scoped Modules and Imports Contexts
-
-Scoped modules and Import Contexts shouldn't be mutually exclusive.
-
-Here, we're able to have *one* element implement *both* at the same time - with scoped modules inheriting Import Contexts:
+Scoped Module Contexts may also have a Base Path Context that they inherit from:
 
 ```html
 <body contextname="context1" importscontext="/bar">
-  <section importscontext="nested"> <!-- object with own modules, plus inherited context: /bar/nested -->
+  <section importscontext="nested"> <!-- object with Scoped Modules, plus inherited context: /bar/nested -->
 
     <template def="foo" scoped> <!-- Scoped to host object and not available globally -->
       <div def="fragment1"></div>
@@ -561,33 +573,36 @@ Here, we're able to have *one* element implement *both* at the same time - with 
     </template>
 
     <div>
-      <import ref="foo#fragment2"></import> <!-- Relative path (beginning without a slash), resolves to the local module: foo#fragment2, and if not found, resolves from context to the module: /bar/nested/foo#2 -->
-      <import ref="/foo#fragment1"></import> <!-- Absolute path, resolves to the global module: /foo#fragment1 -->
-      <import ref="@context1#fragment1"></import> <!-- Resolves to the global module: /bar#fragment1 -->
+      <import ref="foo#fragment2"></import> <!-- Relative path (beginning without a slash), resolving to the local module: foo#fragment2, and if not found, the inherited module: /bar/nested/foo#2 -->
+      <import ref="/foo#fragment1"></import> <!-- Absolute path, resolving to the global module: /foo#fragment1 -->
+      <import ref="@context1#fragment1"></import> <!-- Relative path with a named context, resolving to the global module: /bar#fragment1 -->
     </div>
 
   </section>
 </body>
 ```
 
+**-->** *with the `Element.prototype.import()` API for equivalent context-based imports*:
+
 ```js
 // Using the HTMLImports API
-const moduleHost = document.querySelector('div');
-const localOrGlobalImport2 = moduleHost.import('#fragment2'); // the local module: foo#fragment2, and if not found, resolves from context to the module: /bar/nested#fragment2
-console.log(localOrGlobalImport2); // { value: div }
+const contextElement = document.querySelector('div');
+const result = contextElement.import('#fragment2'); // the local module: foo#fragment2, and if not found, the inherited module: /bar/nested#fragment2
 ```
 
 </details>
 
 ## Data Binding
 
-Data binding is about declaratively binding the UI to application data, ensuring that the relevant parts of the UI are *automatically* updated as application state changes.
+Data binding is about declaratively binding the UI to application data, wherein the relevant parts of the UI *automatically* update as application state changes.
 
-OOHTML makes this possible in just simple conventions - via a new comment-based data-binding syntax `<?{ }?>` and a complementary new `binding` attribute! And there's one more: Quantum Scripts which brings the most advanced form of reactivity to HTML!
+OOHTML makes this possible in just simple conventions - via a new comment-based data-binding syntax `<?{ }?>` and a complementary new `expr` attribute!
+
+And there's one more: Quantum Scripts which brings the most advanced form of reactivity to HTML!
 
 ### Discrete Data-Binding
 
-Here, we get a comment-based data-binding tag `<?{ }?>` which works like regular comment but stay "data-charged":
+Here, we get a comment-based data-binding tag `<?{ }?>` which gives us a regular HTML comment but also an insertion point for application data:
 
 ```js
 <html>
@@ -603,7 +618,7 @@ Here, we get a comment-based data-binding tag `<?{ }?>` which works like regular
 
 <details><summary>Resolution details</summary>
 
-Here, JavaScript references are resolved from the closest node up the document hierarchy that exposes a corresponding *binding* on its Bindings API ([discussed below](#bindings-api)). Thus, for the above markup, our underlying data structure could be anything like the below:
+Here, JavaScript references are resolved from the closest node up the document tree that exposes a corresponding *binding* on its Bindings API ([discussed below](#bindings-api)). Thus, for the above markup, our underlying data structure could be something like the below:
 
 ```js
 document.bind({ name: 'James Boye', cool: '100%', app: { title: 'Demo App' } });
@@ -631,19 +646,19 @@ document.body.bindings.cool = '200%';
 
 </details>
 
-<details><summary>With SSR Support</summary>
+<details><summary>With SSR support</summary>
 
-On the server, these data-binding tags would retain their place in the DOM while having their output rendered to their right in a text node.
+On the server, these data-binding tags will retain their place in the DOM while having their output rendered to their right in a text node.
 
-The following: `<?{ 'Hello World' }?>` would thus give us: `<?{ 'Hello World' }?>Hello World`.
+The following expression: `<?{ 'Hello World' }?>` would thus give us: `<?{ 'Hello World' }?>Hello World`.
 
-But they also would need to remember the exact text node that they manage, so as to be able to re-establish that relationship on getting to the client. That information is automatically encoded as part of the declaration itself, and that brings us to having a typical server-rendered binding look like this:
+But they also will need to remember the exact text node that they manage, so as to be able to re-establish relevant relationships on getting to the client. That information is automatically encoded as part of the declaration itself, and that brings us to having a typical server-rendered binding in the following form:
 
 ```html
 <?{ 'Hello World'; [=11] }?>Hello World
 ```
 
-Now that extra bit of information gets decoded and original relationships are forned again on getting to the client. But the binding tag itself graciously disappears from the DOM, while the now "hydrated" text node continues to kick!
+Now, on getting to the client, that extra bit of information gets decoded, and original relationships are forned again. But the binding tag itself graciously disappears from the DOM, while the now "hydrated" text node continues to kick!
 
 > Note: We know we're on the server when `window.webqit.env === 'server'`. This flag is automatically set by OOHTML's current SSR engine: [OOHTML-SSR](https://github.com/webqit/oohtml-ssr)
 
@@ -651,51 +666,51 @@ Now that extra bit of information gets decoded and original relationships are fo
 
 ### Inline Data-Binding
 
-Here, we get the `binding` attribute for a declarative and neat, key/value data-binding syntax:
+Here, we get the `expr` attribute for a declarative, neat, key/value data-binding syntax:
 
 ```html
-<div binding="<directive> <param>: <arg>;"></div>
+<div expr="<directive> <param>: <arg>;"></div>
 ```
 
 **-->** *where*:
 
-+ *`<directive>` is the directive, which is always a symbol*
++ *`<directive>` is a directive, which is always a symbol*
 + *`<param>` is the parameter being bound, which could be a CSS property, class name, attribute name, Structural Directive - depending on the givin directive*
 + *`<arg>` is the bound value or expression*
 
 **-->** *which would give us the following for a CSS property*:
 
 ```html
-<div binding="& color:someColor; & backgroundColor:'red'"></div>
+<div expr="& color:someColor; & backgroundColor:'red'"></div>
 ```
 
 **-->** *without being space-sensitive*:
 
 ```html
-<div binding="& color:someColor; &backgroundColor: 'red'"></div>
+<div expr="& color:someColor; &backgroundColor: 'red'"></div>
 ```
 
 **-->** *the rest of which can be seen below*:
 
 | Directive | Type | Usage |
 | :---- | :---- | :---- |
-| `&`  | CSS Property | `<div binding="& color:someColor; & backgroundColor:someBgColor;"></div>` |
-| `%`  | Class Name | `<div binding="% active:app.isActive; % expanded:app.isExpanded;"></div>` |
-| `~`  | Attribute Name | `<a binding="~ href:person.profileUrl+'#bio'; ~ title:'Click me';"></a>` |
-|   | Boolean Attribute | `<a binding="~ ?required:formField.required; ~ ?aria-checked: formField.checked"></a>` |
+| `&`  | CSS Property | `<div expr="& color:someColor; & backgroundColor:someBgColor;"></div>` |
+| `%`  | Class Name | `<div expr="% active:app.isActive; % expanded:app.isExpanded;"></div>` |
+| `~`  | Attribute Name | `<a expr="~ href:person.profileUrl+'#bio'; ~ title:'Click me';"></a>` |
+|   | Boolean Attribute | `<a expr="~ ?required:formField.required; ~ ?aria-checked: formField.checked"></a>` |
 | `@`  | Structural Directive: | *See below* |
-| `@text`   | Plain text content | `<span binding="@text:firstName+' '+lastName;"></span>` |
-| `@html`   | Markup content | `<span binding="@html: '<i>'+firstName+'</i>';"></span>` |
-|  `@items`  | A list, with argument in the following format:<br>`<declaration> <of\|in> <iterable> / <importRef>` | *See next two tables* |
+| `@text`   | Plain text content | `<span expr="@text:firstName+' '+lastName;"></span>` |
+| `@html`   | Markup content | `<span expr="@html: '<i>'+firstName+'</i>';"></span>` |
+|  `@items`  | A list, of the following format | `<declaration> <of\|in> <iterable> / <importRef>`<br>*See next two tables* |
 
 <details><summary><code>For ... Of</code> Loops</summary>
 
 |  Idea | Usage |
 | :---- | :---- |
-| A `for...of` loop over an array/iterable | `<ul binding="@items: value of [1,2,3] / 'foo#fragment';"></ul>` |
-| Same as above but with a `key` declaration  | `<ul binding="@items: (value,key) of [1,2,3] / 'foo#fragment';"></ul>` |
-| Same as above but with different variable names  | `<ul binding="@items: (product,id) of store.products / 'foo#fragment';"></ul>` |
-| Same as above but with a dynamic `importRef`  | `<ul binding="@items: (product,id) of store.products / store.importRef;"></ul>` |
+| A `for...of` loop over an array/iterable | `<ul expr="@items: value of [1,2,3] / 'foo#fragment';"></ul>` |
+| Same as above but with a `key` declaration  | `<ul expr="@items: (value,key) of [1,2,3] / 'foo#fragment';"></ul>` |
+| Same as above but with different variable names  | `<ul expr="@items: (product,id) of store.products / 'foo#fragment';"></ul>` |
+| Same as above but with a dynamic `importRef`  | `<ul expr="@items: (product,id) of store.products / store.importRef;"></ul>` |
 
 </details>
 
@@ -703,14 +718,14 @@ Here, we get the `binding` attribute for a declarative and neat, key/value data-
 
 | Idea | Usage |
 | :---- | :---- |
-| A `for...in` loop over an object | `<ul binding="@items: key in {a:1,b:2} / 'foo#fragment';"></ul>` |
-| Same as above but with a `value` and `index` declaration | `<ul binding="@items: (key,value,index) in {a:1, b:2} / 'foo#fragment';"></ul>` |
+| A `for...in` loop over an object | `<ul expr="@items: key in {a:1,b:2} / 'foo#fragment';"></ul>` |
+| Same as above but with a `value` and `index` declaration | `<ul expr="@items: (key,value,index) in {a:1, b:2} / 'foo#fragment';"></ul>` |
 
 </details>
 
 <details><summary>Resolution details</summary>
 
-Here, JavaScript references are resolved from the closest node up the document hierarchy that exposes a corresponding *binding* on its Bindings API ([discussed below](#bindings-api)). Thus, for the above CSS bindings, our underlying data structure could be anything like the below:
+Here, JavaScript references are resolved from the closest node up the document tree that exposes a corresponding *binding* on its Bindings API ([discussed below](#bindings-api)). Thus, for the above CSS bindings, our underlying data structure could be something like the below:
 
 ```js
 document.bind({ someColor: 'green', someBgColor: 'yellow' });
@@ -744,9 +759,9 @@ Bindings are resolved in realtime! And in fact, for lists, in-place mutations - 
 
 </details>
 
-<details><summary>With SSR Support</summary>
+<details><summary>With SSR support</summary>
 
-For lists, generated item elements are automatically assigned a corresponding index with a `data-index` attribute! This helps in remapping generated item nodes to their respective entry in *iteratee* - universally.
+For lists, generated item elements are automatically assigned a corresponding key with a `data-key` attribute! This helps in remapping generated item nodes to their respective entry in *iteratee* during a rerendering or during hydration.
 
 </details>
 
@@ -754,7 +769,7 @@ For lists, generated item elements are automatically assigned a corresponding in
 
 We often still need to write more serious reactive logic on the UI than a declarative data-binding language can provide for. But we shouldn't need to reach for special tooling or some "serious" programming paradigm on top of JavaScript.
 
-Here, from the same `<script>` element we already write, we get a direct upgrade path to reactive programming in just an attribute: `quantum`:
+Here, from the same `<script>` element we already write, we get a direct upgrade path to reactive programming in just the addition of an attribute: `quantum`:
 
 ```html
 <script quantum>
@@ -770,7 +785,7 @@ Here, from the same `<script>` element we already write, we get a direct upgrade
 </script>
 ```
 
-**-->** *which adds up really well with the `scoped` attribute*:
+**-->** *which gives us fine-grained reactivity on top of literal JavaScript syntax; and which adds up really well with the `scoped` attribute*:
 
 ```html
 <main>
@@ -812,7 +827,7 @@ Here, from the same `<script>` element we already write, we get a direct upgrade
 </main>
 ```
 
-**-->** *within which other "live" APIs, like the Namespace API above, fit seamlessly*:
+**-->** *within which dynamic application state/data, and even things like the Namespace API above, fit seamlessly*:
 
 ```html
 <main namespace>
@@ -845,7 +860,7 @@ const removeButton = () => {
 };
 ```
 
-<details><summary>Details</summary>
+<details><summary>Learn more</summary>
 
 It's Imperative Reactive Programming ([IRP](https://en.wikipedia.org/wiki/Reactive_programming#Imperative)) right there and it's the [Quantum](https://github.com/webqit/quantum-js) runtime extension to JavaScript!
 
@@ -865,7 +880,9 @@ But while that is automatic, DOM event handlers bound via `addEventListener()` w
 
 ## Data Plumbing
 
-Components often need to manage, and also be driven by, dynamic data. That could get pretty problematic and messy if all of that should go on DOM nodes as direct properties:
+Components often need to manage, or be managed by, dynamic data. That could get pretty problematic and messy if all of that should go on DOM nodes as direct properties:
+
+<details><summary>Example</summary>
 
 ```js
 // Inside a custom element
@@ -886,6 +903,8 @@ node.prop3 = 3;
 node.normalize = true; // ??? - conflict with the standard Node: normalize() method
 ```
 
+</details>
+
 This calls for a decent API and some data-flow mechanism!
 
 ### The Bindings API
@@ -903,7 +922,7 @@ console.log(document.bindings.app); // { title: 'Demo App' }
 ```
 
 ```js
-const node = document.querySelector('my-element');
+const node = document.querySelector('div');
 // Read
 console.log(node.bindings); // {}
 // Modify
@@ -911,7 +930,7 @@ node.bindings.style = 'tall-dark';
 node.bindings.normalize = true;
 ```
 
-**-->** *with a corresponding `bind()` method that lets us make mutations in batches*:
+**-->** *with a complementary `bind()` method that lets us make mutations in batch*:
 
 ```js
 // ------------
@@ -931,7 +950,7 @@ document.bind({ name: 'James Boye', cool: '100%' }, { merge: true });
 console.log(document.bindings); // { signedIn: false, hot: '100%', name: 'James Boye', cool: '100%' }
 ```
 
-**-->** *and it becomes easy to pass data down a component tree*:
+**-->** *which also provides an easy way to pass data down a component tree*:
 
 ```js
 // Inside a custom element
@@ -941,7 +960,7 @@ connectedCallback() {
 }
 ```
 
-**-->** *and given the Observer API, reactivity is intrinsic*:
+**-->** *and with the Observer API in the picture for reactivity*:
 
 ```js
 Observer.observe(document.bindings, mutations => {
@@ -966,7 +985,7 @@ node.bindings.style = 'tall-dark';
 
 <details><summary>Details</summary>
 
-In the current OOHTML, the `document.bindings` and `Element.prototype.bindings` APIs are implemented as proxies over their actual bindings interface to enable some interface-level reactivity. This lets us have reactivity over literal property assignments and deletions on the interface:
+In the current OOHTML implementation, the `document.bindings` and `Element.prototype.bindings` APIs are implemented as proxies over their actual bindings interface to enable some interface-level reactivity. This lets us have reactivity over literal property assignments and deletions on these interfaces:
 
 ```js
 node.bindings.style = 'tall-dark'; // Reactive assignment
@@ -984,13 +1003,13 @@ Observer.deleteProperty(document.bindings.app, 'title');
 
 ### The Context API
 
-A complex hierarchy of objects will often call for more than the normal top-down flow of data that the Bindings API facilitates. A child may need the ability to look up the component tree to directly access specific data, or in other words, "request" data from "context". This is possible via the Context API.
+A complex hierarchy of objects will often call for more than the normal top-down flow of data that the Bindings API facilitates. A child may require the ability to look up the component tree to directly access specific data, or in other words, get data from "context". This is where a Context API comes in.
 
-And interestingly, the Context API is the resolution system behind HTML Imports and Data Binding in OOHTML!
+Interestingly, the Context API is the resolution mechanism behind HTML Imports and Data Binding in OOHTML!
 
-Here, we simply leverage the DOM's existing event system to fire a "request" event and let an arbitrary "provider" in context fulfill the request. This becomes very simple with the Context API which is exposed on the document object and on element instances as the readonly `context` property.
+Here, we simply leverage the DOM's existing event system to fire a "request" event and let an arbitrary "provider" in context fulfill the request. This becomes very simple with the Context API which is exposed on the document object and on element instances as a readonly `contexts` property.
 
-**-->** *with the `context.request()` method for firing requests*:
+**-->** *with the `contexts.request()` method for firing requests*:
 
 ```js
 // ------------
@@ -999,146 +1018,179 @@ const node = document.querySelector('my-element');
 
 // ------------
 // Prepare and fire request event
-const requestParams = { type: 'html-imports', detail: '/foo#fragment1' };
-const request = new ContextRequestEvent(requestParams);
-const contextReturnValue = node.context.request(request);
+const requestParams = { kind: 'html-imports', detail: '/foo#fragment1' };
+const contextResponse = node.contexts.request(requestParams);
 
 // ------------
 // Handle response
-console.log(contextReturnValue.value); // It works!
+console.log(contextResponse.value); // It works!
 ```
 
-**-->** *and the `context.attachProvider()` method for registering providers at arbitrary levels in the DOM tree*:
+**-->** *and the `contexts.attach()` and  `contexts.detach()` methods for attaching/detaching providers at arbitrary levels in the DOM tree*:
 
 ```js
 // ------------
-// Define a ContextProvider class
-class FakeImportsProvider extends HTMLContextProvider {
-  static type = 'html-imports';
-  handle(request) {
-    console.log(request.detail); // '/foo#fragment1'
-    request.respondWith('It works!');
+// Define a CustomContext class
+class FakeImportsContext extends DOMContext {
+  static kind = 'html-imports';
+  handle(event) {
+    console.log(event.detail); // '/foo#fragment1'
+    event.respondWith('It works!');
   }
 }
 
 // ------------
 // Instantiate and attach to a node
-const providerId = FakeImportsProvider.createId(); // { type: 'html-imports' }
-const fakeImportsProvider = new FakeImportsProvider(providerId);
-document.context.attachProvider(fakeImportsProvider);
+const fakeImportsContext = new FakeImportsContext;
+document.contexts.attach(fakeImportsContext);
 
 // ------------
 // Detach anytime
-document.context.detachProvider(fakeImportsProvider);
+document.contexts.detach(fakeImportsContext);
 ```
 
 <details><summary>Details</summary>
 
-In the current OOHTML, the Context API interfaces are exposed on the global `webqit` object:
+In the current OOHTML implementation, the Context API interfaces are exposed via the global `webqit` object:
 
 ```js
-const { HTMLContextProvider, ContextRequestEvent, ContextReturnValue } = window.webqit;
+const { DOMContext, DOMContextRequestEvent, DOMContextResponse } = window.webqit;
 ```
 
-That said...
+In addition...
 
-+ it is possible to specify a name for a provider:
++ a provider will automatically adopt the `contextname`, if any, of its host element:
+
+    ```html
+    <div contextname="context1"></div>
+    ```
 
     ```js
     // Instantiate and attach to a node
-    const providerId = FakeImportsProvider.createId({ contextName: 'fake-provider' }); // { type: 'html-imports', contextName: 'fake-provider' }
-    const fakeImportsProvider = new FakeImportsProvider( providerId );
-    document.context.attachProvider(fakeImportsProvider);
+    const host = document.querySelector('div');
+    const fakeImportsContext = new FakeImportsContext;
+    host.contexts.attach(fakeImportsContext);
+    // Inspect name
+    console.log(fakeImportsContext.name); // context1
     ```
 
     ...which a request could target:
 
     ```js
-    // Prepare and fire request event that specifies the provider name: 'fake-provider', without which only "type" match is performed
-    const requestParams = FakeImportsProvider.createRequest({ contextName: 'fake-provider', detail: '/foo#fragment1' }); // { type: 'html-imports', contextName: 'fake-provider', detail: '/foo#fragment1' }
-    const request = new ContextRequestEvent(requestParams);
-    const contextReturnValue = node.context.request(request);
+    const requestParams = { kind: FakeImportsContext.kind, targetContext: 'context1', detail: '/foo#fragment1' };
+    const contextResponse = node.contexts.request(requestParams);
     ```
 
-+ and a provider could indicate to manually match requests where the defualt "type" match, plus optional "contextName" match doesn't suffice:
++ and providers of same kind could be differentiated by an extra "detail" - an arbitrary value passed to the constructor:
 
     ```js
-    // Define a ContextProvider class
-    class ContextProvider extends HTMLContextProvider {
-      static type = 'html-imports';
-      static matchRequest( id, request ) {
-        // The default request matching algorithm
-        return request.type === id.type && ( !request.contextName || request.contextName === id.contextName );
+    const fakeImportsContext = new FakeImportsContext('lorem');
+    console.log(fakeImportsContext.detail); // lorem
+    ```
+
++ and a provider could indicate to manually match requests where the defualt "kind" matching, and optional "targetContext" matching, don't suffice:
+
+    ```js
+    // Define a CustomContext class
+    class CustomContext extends DOMContext {
+      static kind = 'html-imports';
+      matchEvent(event) {
+        // The default request matching algorithm + "detail" matching
+        return super.matchEvent() && event.detail === this.detail;
       }
-      handle(request) {
-        console.log(request.detail);
-        request.respondWith('It works!');
+      handle(event) {
+        console.log(event.detail);
+        event.respondWith('It works!');
       }
     }
     ```
 
-+ and a request could choose to stay subscribed to changes on the requested data; the `request` would simply set a `live` flag and either stay alert to said updates on the returned `ContextReturnValue` object or specify a callback function, in which case no `ContextReturnValue` object is returned:
++ and a request could choose to stay subscribed to changes on the requested data; the request would simply add a `live` flag:
 
     ```js
     // Set the "live" flag
-    requestParams.live = true;
-    const request = new ContextRequestEvent(requestParams);
+    const requestParams = { kind: FakeImportsContext.kind, targetContext: 'context1', detail: '/foo#fragment1', live: true };
     ```
+
+    ...then stay alert to said updates on the returned `DOMContextResponse` object or specify a callback function at request time:
 
     ```js
     // Handle response without a callback
-    const contextReturnValue = node.context.request(request);
-    console.log(contextReturnValue.value); // It works!
-    Observer.observe(contextReturnValue, 'value', e => {
+    const contextResponse = node.contexts.request(requestParams);
+    console.log(contextResponse.value); // It works!
+    Observer.observe(contextResponse, 'value', e => {
       console.log(e.value); // It works live!
     });
     ```
 
     ```js
     // Handle response with a callback
-    node.context.request(request, value => {
+    node.contexts.request(requestParams, value => {
       console.log(value);
       // It works!
       // It works live!
     });
     ```
 
-    ...while the provider would simply check for the `request.live` flag and keep the updates flowing:
+    ...while provider simply checks for the `event.live` flag and keep the updates flowing:
 
     ```js
-    // Define a ContextProvider class
-    class ContextProvider extends HTMLContextProvider {
-      static type = 'html-imports';
-      handle(request) {
-        if (request.live) {
+    // Define a CustomContext class
+    class CustomContext extends DOMContext {
+      static kind = 'html-imports';
+      handle(event) {
+        event.respondWith('It works!');
+        if (event.live) {
           setTimeout(() => {
-            request.respondWith('It works live!');
+            event.respondWith('It works live!');
           }, 5000);
         }
-        request.respondWith('It works!');
       }
     }
     ```
 
-+ live requests are terminated via the returned `ContextReturnValue` object...
+    ...and optionally implements a `subscribed` and `unsubscribed` lifecycle hook for when a "live" event enters and leaves the instance:
 
     ```js
-    contextReturnValue.abort();
+    // Define a CustomContext class
+    class CustomContext extends DOMContext {
+      static kind = 'html-imports';
+      subscribed(event) {
+        console.log(this.subscriptions.size); // 1
+      }
+      unsubscribed(event) {
+        console.log(this.subscriptions.size); // 0
+      }
+      handle(event) {
+        event.respondWith('It works!');
+        if (event.live) {
+          setTimeout(() => {
+            event.respondWith('It works live!');
+          }, 5000);
+        }
+      }
+    }
     ```
 
-    ...or via an initially specified `AbortSignal`:
++ live requests are terminated via the returned `DOMContextResponse` object...
+
+    ```js
+    contextResponse.abort();
+    ```
+
+    ...or via an initially specified custom `AbortSignal`:
 
     ```js
     // Add a signal to the original request
     const abortController = new AbortController;
-    requestParams.signal = abortController.signal;
+    const requestParams = { kind: FakeImportsContext.kind, targetContext: 'context1', detail: '/foo#fragment1', live: true, signal: abortController.signal };
     ```
 
     ```js
-    abortController.abort();
+    abortController.abort(); // Which also calls contextResponse.abort();
     ```
 
-+ now, when a node in a provider's subtree is suddenly attached an identical provider, any live requests the super provider already serves are automatically "claimed" by the sub provider:
++ now, when a node in a provider's subtree is suddenly attached an identical provider, any live requests the super provider may be serving are automatically "claimed" by the sub provider:
 
     ```js
     document: // 'fake-provider' here
@@ -1147,7 +1199,7 @@ That said...
       └── body:  // 'fake-provider' here. Our request above is now served from here.
     ```
 
-    And when the sub provider is suddenly detached from said node, any live requests it had served are automatically hoisted back to the super provider.
+    And when the sub provider is suddenly detached from said node, any live requests it may have served are automatically hoisted back to super provider.
 
     ```js
     document: // 'fake-provider' here. Our request above is now served from here.
@@ -1156,11 +1208,11 @@ That said...
       └── body:
     ```
 
-    While, in all, the original receiver needs not bother where a response is from!
+    While, in all, saving the requesting code that "admin" work!
 
 </details>
 
-**-->** *all of which gives us the programmatic equivalent of declarative HTMLImports and Data Binding*:
+**-->** *all of which gives us the imperative equivalent of context-based declarative features like HTMLImports and Data Binding*:
 
 ```html
 <div contextname="vendor1">
@@ -1182,45 +1234,43 @@ That said...
 ```js
 // ------------
 // Equivalent import() approach
-const contextReturnValue = myElement.import('@vendor1/foo#fragment1');
+const contextResponse = myElement.import('@vendor1/foo#fragment1');
 
 // ------------
-// Equivalent raw Context API approach
-const requestParams = { type: 'html-imports', contextName: 'vendor1', detail: '/foo#fragment1' };
-const request = new ContextRequestEvent(requestParams);
-const contextReturnValue = myElement.context.request(request);
+// Equivalent Context API approach
+const requestParams = { kind: 'html-imports', targetContext: 'vendor1', detail: 'foo#fragment1' };
+const contextResponse = myElement.contexts.request(requestParams);
 
 // ------------
 // Handle response
-console.log(contextReturnValue.value);
+console.log(contextResponse.value);
 ```
 
 ```js
 // ------------
-// Equivalent raw Context API approach
-const requestParams = { type: 'bindings', contextName: 'vendor2', detail: 'app' };
-const request = new ContextRequestEvent(requestParams);
-const contextReturnValue = myElement.context.request(request);
+// Context API request for bindings
+const requestParams = { kind: 'bindings', targetContext: 'vendor2', detail: 'app' };
+const contextResponse = myElement.contexts.request(requestParams);
 
 // ------------
 // Handle response
-console.log(contextReturnValue.value.title);
+console.log(contextResponse.value.title);
 ```
 
 ## Polyfill
 
-OOHTML is being developed as something to be used today—via a polyfill. This is an active and intentional effort that continues to ensure that the project evolves through a practice-driven process.
+OOHTML is being developed as something to be used today—via a polyfill. This is an intentional effort that's helping to ensure that the project evolves through a practice-driven process.
 
 <details><summary>Load from a CDN<br>
-└───────── <a href="https://bundlephobia.com/result?p=@webqit/oohtml"><img align="right" src="https://img.shields.io/bundlephobia/minzip/@webqit/oohtml?label=&style=flat&colorB=black"></a></summary>
+└───────── <a href="https://bundlephobia.com/result?p=@webqit/oohtml"><img align="right" src="https://img.shields.io/badge/21.7%20kB-black"></a></summary>
 
 ```html
-<script src="https://unpkg.com/@webqit/oohtml/dist/main.js"></script>
+<script src="https://unpkg.com/@webqit/oohtml/dist/main.lite.js"></script>
 ```
 
 └ This is to be placed early on in the document and should be a classic script without any `defer` or `async` directives!
 
-└ For the Scoped Styles feature, you'd also need something like the [samthor/scoped](https://github.com/samthor/scoped) polyfill (more details below):
+└ For the Scoped Styles feature, you'd need an external polyfill like the [samthor/scoped](https://github.com/samthor/scoped) polyfill (more details below):
 
 ```html
 <head>
@@ -1234,18 +1284,19 @@ OOHTML is being developed as something to be used today—via a polyfill. This i
 └───────── <a href="https://npmjs.com/package/@webqit/oohtml"><img align="right" src="https://img.shields.io/npm/v/@webqit/oohtml?style=flat&label=&colorB=black"></a></summary>
 
 ```bash
-npm i @webqit/oohtml
+npm i @webqit/oohtml @webqit/quantum-js
 ```
 
 ```js
 // Import
+import * as Quantum from '@webqit/quantum-js/lite'; // Or from '@webqit/quantum-js'; See implementation notes below
 import init from '@webqit/oohtml';
 
 // Initialize the lib
-init.call( window[, options = {} ]);
+init.call(window, Quantum[, options = {}]);
 ```
 
-└ To use the polyfill on server-side DOM instances as made possible by libraries like [jsdom](https://github.com/jsdom/jsdom), simply install and initialize the library `@webqit/oohtml` with the DOM instance as above.
+└ To use the polyfill on server-side DOM instances as made possible by libraries like [jsdom](https://github.com/jsdom/jsdom), simply install and initialize the library with the DOM instance as above.
 
 └ But all things "SSR" for OOHTML are best left to the [`@webqit/oohtml-ssr`](https://github.com/webqit/oohtml-ssr) package!
 
@@ -1253,24 +1304,36 @@ init.call( window[, options = {} ]);
 
 <details><summary>Extended usage concepts</summary>
 
-If you'll be going ahead to build a real app to see OOHTML in action, you may want to consider also using:
+If you'll be going ahead to build a real app with OOHTML, you may want to consider also using:
 
 + the [`@webqit/oohtml-cli`](https://github.com/webqit/oohtml-cli) package for operating a file-based templating system.
 
-+ the modest, OOHTML-based [Webflo](https://github.com/webqit/webflo) framework to greatly streamline your application development process!
++ the modest, OOHTML-based [Webflo](https://github.com/webqit/webflo) framework to greatly streamline your workflow!
 
 </details>
 
 <details><summary>Implementation Notes</summary>
 
++ **Scoped/Quantum Scripts**. This feature is an extension of [Quantum JS](https://github.com/webqit/quantum-js). While the main OOHTML build is based on the main Quantum JS APIs, a companion "OOHTML Lite" build is also available based on the [Quantum JS Lite](https://github.com/webqit/quantum-js#quantum-js-lite) edition. The trade-off is in the execution timing of `<script quantum></script>` and `<script scoped></script>` elements: being "synchronous/blocking" with the former, and "asynchronous/non-blocking" with the latter! (See [`async`/`defer`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script#attributes).)
+
+    Of the two, the "OOHTML Lite" edition is the recommend option (as used above) for faster load times unless there's a requirment to have classic scripts follow their [native synchronous timing](https://html.spec.whatwg.org/multipage/parsing.html#scripts-that-modify-the-page-as-it-is-being-parsed), in which case you'd need the main OOHTML build:
+
+    ```html
+    <head>
+      <script src="https://unpkg.com/@webqit/oohtml/dist/main.js"></script>
+    </head>
+    ```
+
+    └─ <a href="https://bundlephobia.com/result?p=@webqit/oohtml"><img align="right" src="https://img.shields.io/bundlephobia/minzip/@webqit/oohtml?label=&style=flat&colorB=black"></a>
+
 + **Loading Requirements**. As specified above, the OOHTML script tag is to be placed early on in the document and should be a classic script without any `defer` or `async` directives!
     
-    If you must load the script "async", one little trade-off has to be made for `<script scoped>` and `<script quantum>` elements to have them ignored by the browser until the polyfill comes picking them up: *employing a custom MIME type in place of the standard `text/javascript` and `module` types*, in which case, a `<meta name="scoped-js">` element is used to configure the polyfill to honor the custom MIME type:
+    If you must load the script "async", one little trade-off would have to be made for `<script scoped>` and `<script quantum>` elements to have them ignored by the browser until the polyfill comes picking them up: *employing a custom MIME type in place of the standard `text/javascript` and `module` types*, in which case, a `<meta name="scoped-js">` element is used to configure the polyfill to honor the custom MIME type:
 
     ```html
     <head>
       <meta name="scoped-js" content="script.mimeType=some-mime">
-      <script async src="https://unpkg.com/@webqit/oohtml/dist/main.js"></script>
+      <script async src="https://unpkg.com/@webqit/oohtml/dist/main.lite.js"></script>
     </head>
     <body>
       <script type="some-mime" scoped>
@@ -1290,16 +1353,6 @@ If you'll be going ahead to build a real app to see OOHTML in action, you may wa
     ```
 
     ...still gives the `window` object in the console.
-
-+ **Scoped/Quantum Scripts**. This feature is an extension of [Quantum JS](https://github.com/webqit/quantum-js) and the default OOHTML build is based on the [Quantum JS Lite APIs](https://github.com/webqit/quantum-js#quantum-js-lite). Now, while Quantum JS Lite yields faster load times, it also means that `<script quantum></script>` and `<script scoped></script>` elements are parsed "asynchronously", in the same timing as `<script type="module"></script>`!
-
-    This timing works perfectly generally, but if you have a requirment to have classic scripts follow their [native synchronous timing](https://html.spec.whatwg.org/multipage/parsing.html#scripts-that-modify-the-page-as-it-is-being-parsed), then you'd need to use the *realtime* OOHTML build:
-
-    ```html
-    <head>
-      <script src="https://unpkg.com/@webqit/oohtml/dist/main.realtime.js"></script>
-    </head>
-    ```
 
 + **Scoped CSS**. This feature is only in "concept" implementation and doesn't work right now as is. The current implementation simply wraps `<style scoped>` blocks in an `@scope {}` block - which itself isn't supported in any browser. To try this "concept" implementation, set the `style.strategy` config to `@scope`:
 
@@ -1349,7 +1402,7 @@ If you'll be going ahead to build a real app to see OOHTML in action, you may wa
 
 ## Examples
 
-Here are a few examples in the wide range of use cases these features cover. While we'll demonstrate the most basic forms of these scenarios, it takes roughly the same principles to build an intricate form and a highly interactive UI.
+Here are a few examples in the wide range of use cases these features cover. While we'll demonstrate the most basic form of these scenarios, it takes roughly the same principles to build an intricate form and a highly interactive UI.
 
 <details><summary>Example 1: <i>Single Page Application</i><br>
 └───────── </summary>
@@ -1544,11 +1597,11 @@ The following is a hypothetical list page!
 
   <!-- The "items" template -->
   <template def="item" scoped>
-    <li><a binding="~href: '/animals#'+name;"><?{ index+': '+name }?></a></li>
+    <li><a expr="~href: '/animals#'+name;"><?{ index+': '+name }?></a></li>
   </template>
 
   <!-- The loop -->
-  <ul binding="@items: (name,index) of ['dog','cat','ram'] / 'item';"></ul>
+  <ul expr="@items: (name,index) of ['dog','cat','ram'] / 'item';"></ul>
 
 </section>
 ```

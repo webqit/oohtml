@@ -2,63 +2,71 @@
 /**
  * @imports
  */
-import Observer from '@webqit/observer';
-import { HTMLContextProvider } from '../context-api/index.js';
-import { getModulesObject } from './index.js';
-import { _ } from '../util.js';
+import DOMContext from '../context-api/DOMContext.js';
+import { getExports } from './index.js';
+import { _, env } from '../util.js';
 
-export default class _HTMLImportsProvider extends HTMLContextProvider {
+export default class HTMLImportsContext extends DOMContext {
 
-    static type = 'html-imports';
+    /**
+     * @kind
+     */
+    static kind = 'html-imports';
 
     /**
      * @createRequest
      */
-    static createRequest( fields = {} ) {
-        const request = super.createRequest( fields );
-        if ( !request.contextName && request.detail?.startsWith( '/' ) ) { request.contextName = 'root'; }
-        else if ( request.detail?.startsWith( '@' ) ) {
-            const [ contextName, ...detail ] = request.detail.slice( 1 ).split( /(?<=\w)(?=\/|#)/ ).map( s => s.trim() );
-            request.contextName = contextName;
+    static createRequest( detail = null ) {
+        const request = super.createRequest();
+        if ( detail?.startsWith( '/' ) ) {
+            request.detail = detail;
+            request.targetContext = Infinity;
+        } else if ( detail?.startsWith( '@' ) ) {
+            const [ targetContext, ...detail ] = detail.slice( 1 ).split( /(?<=\w)(?=\/|#)/ ).map( s => s.trim() );
+            request.targetContext = targetContext;
             request.detail = detail.join( '' );
-        }
+        } else { request.detail = detail; }
         return request;
     }
      
     /**
      * @localModules
      */
-    get localModules() {
-        return getModulesObject( this.host );
-    }
+    get localModules() { return getExports( this.host ); }
 
     /**
      * @handle()
      */
     handle( event ) {
-        // Any existing event.request.controller? Abort!
-        event.request.controller?.abort();
+        const { window: { webqit: { Observer } } } = env;
+        // Any existing event._controller? Abort!
+        event._controller?.abort();
 
         // Parse and translate detail
-        if ( ( event.request.detail || '' ).trim() === '/' ) return event.respondWith( this.localModules );
-        const $config = this.constructor.config;
-        let path = ( event.request.detail || '' ).split( /\/|(?<=\w)(?=#)/g ).map( x => x.trim() ).filter( x => x );
-        if ( path.length ) { path = path.join( `/${ $config.template.api.modules }/` )?.split( '/' ) || []; }
+        if ( ( event.detail || '' ).trim() === '/' ) return event.respondWith( this.localModules );
+        const $config = this.configs.HTML_IMPORTS;
+        let path = ( event.detail || '' ).split( /\/|(?<=\w)(?=#)/g ).map( x => x.trim() ).filter( x => x );
+        if ( path.length ) { path = path.join( `/${ $config.template.api.exports }/` )?.split( '/' ) || []; }
         // No detail?
         if ( !path.length ) return event.respondWith();
- 
+
+
         // We'll now fulfill request
-        const options = { live: event.request.live, descripted: true };
+        const options = { live: event.live, signal: event.signal, descripted: true };
         // Find a way to resolve request against two sources
-        event.request.controller = Observer.reduce( this.localModules, path, Observer.get, ( result, { signal } = {} ) => {
+        event._controller = Observer.reduce( this.localModules, path, Observer.get, ( result, { signal } = {} ) => {
             const _result = Array.isArray( result ) ? result : result.value;
-            const _isValidResult = Array.isArray( result ) ? result.length : result.value;
-            if ( !_isValidResult && this.host.isConnected === false ) return; // Subtree is being disposed
-            if ( _isValidResult || !this.contextModules ) return event.respondWith( _result );
+            const _isValidLocalResult = Array.isArray( result ) ? result.length : result.value;
+            if ( !_isValidLocalResult && this.host.isConnected === false ) return; // Subtree is being disposed
+            if ( _isValidLocalResult || !this.contextModules ) {
+                event._isValidLocalResult = _isValidLocalResult;
+                return event.respondWith( _result );
+            }
             // This superModules binding is automatically aborted by the injected control.signal; see below
             return Observer.reduce( this.contextModules, path, Observer.get, result => {
+                event._currentSource = 'context';
                 return event.respondWith( Array.isArray( result ) ? result : result.value );
-            }, { signal, ...options } );
+            }, { ...options, signal } );
         }, { lifecycleSignals: true, ...options } );
     }
 
@@ -70,11 +78,12 @@ export default class _HTMLImportsProvider extends HTMLContextProvider {
         // ----------------
         const update = () => {
             for ( const subscriptionEvent of this.subscriptions ) {
+                if ( subscriptionEvent._isValidLocalResult ) continue;
                 this.handle( subscriptionEvent );
             }
         };
         // ----------------
-        const $config = this.constructor.config;
+        const $config = this.configs.HTML_IMPORTS;
         if ( !this.host.matches || !$config.context.attr.importscontext ) return;
         // Any existing this.refdSourceController? Abort!
         this.refdSourceController?.disconnect();
@@ -86,9 +95,9 @@ export default class _HTMLImportsProvider extends HTMLContextProvider {
                 return update();
             }
             // This superModules contextrequest is automatically aborted by the injected signal below
-            const request = this.constructor.createRequest( { detail: record.value.trim(), live: true, signal, superContextOnly: true } );
-            this.host[ $config.CONTEXT_API.api.context ].request( request, response => {
-                this.contextModules = !( response && Object.getPrototypeOf( response ) ) ? response : getModulesObject( response );
+            const request = { ...this.constructor.createRequest( record.value.trim() ), live: true, signal };
+            this.host.parentNode[ this.configs.CONTEXT_API.api.contexts ].request( request, response => {
+                this.contextModules = !( response && Object.getPrototypeOf( response ) ) ? response : getExports( response );
                 update();
             } );
         }, { live: true, timing: 'sync', lifecycleSignals: true } );

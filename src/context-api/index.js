@@ -2,18 +2,12 @@
 /**
  * @imports
  */
+import DOMContexts from './DOMContexts.js';
+import DOMContext from './DOMContext.js';
+import _DOMContextRequestEvent from './_DOMContextRequestEvent.js';
+import DOMContextResponse from './DOMContextResponse.js';
+import DuplicateContextError from './DuplicateContextError.js';
 import { _init } from '../util.js';
-import HTMLContext from './HTMLContext.js';
-import HTMLContextProvider from './HTMLContextProvider.js';
-import ContextReturnValue from './ContextReturnValue.js';
-
-/**
- * @exports
- */
-export {
-    HTMLContextProvider,
-    HTMLContext,
-}
 
 /**
  * Initializes HTML Modules.
@@ -25,11 +19,13 @@ export {
 export default function init( $config = {} ) {
     const { config, window } = _init.call( this, 'context-api', $config, {
         attr: { contextname: 'contextname', },
-        api: { context: 'context', },
+        api: { contexts: 'contexts', },
     } );
-    window.webqit.HTMLContextProvider = HTMLContextProvider;
-    window.webqit.ContextReturnValue = ContextReturnValue;
-    window.webqit.HTMLContext = HTMLContext;
+    window.webqit.DOMContexts = DOMContexts;
+    window.webqit.DOMContext = DOMContext;
+    window.webqit.DOMContextRequestEvent = _DOMContextRequestEvent();
+    window.webqit.DOMContextResponse = DOMContextResponse;
+    window.webqit.DuplicateContextError = DuplicateContextError;
     exposeAPIs.call( window, config );
 }
 
@@ -43,26 +39,26 @@ export default function init( $config = {} ) {
 function exposeAPIs( config ) {
     const window = this;
     // Assertions
-    if ( config.api.context in window.document ) { throw new Error( `document already has a "${ config.api.context }" property!` ); }
-    if ( config.api.context in window.HTMLElement.prototype ) { throw new Error( `The "HTMLElement" class already has a "${ config.api.context }" property!` ); }
+    if ( config.api.contexts in window.document ) { throw new Error( `document already has a "${ config.api.contexts }" property!` ); }
+    if ( config.api.contexts in window.HTMLElement.prototype ) { throw new Error( `The "HTMLElement" class already has a "${ config.api.contexts }" property!` ); }
     // Definitions
-    Object.defineProperty( window.document, config.api.context, { get: function() {
-        return HTMLContext.instance( window.document );
+    Object.defineProperty( window.document, config.api.contexts, { get: function() {
+        return DOMContexts.instance( window.document );
     } } );
-    Object.defineProperty( window.HTMLElement.prototype, config.api.context, { get: function() {
-        return HTMLContext.instance( this );
+    Object.defineProperty( window.HTMLElement.prototype, config.api.contexts, { get: function() {
+        return DOMContexts.instance( this );
     } } );
     const waitlist = new Set;
     window.addEventListener( 'contextrequest', event => {
-        if ( !( typeof event.request === 'object' && event.request ) || typeof event.respondWith !== 'function' ) return;
+        if ( typeof event.respondWith !== 'function' ) return;
         waitlist.add( event );
         event.respondWith();
     } );
     window.addEventListener( 'contextclaim', event => {
-        if ( !( typeof event.request === 'object' && event.request ) || typeof event.respondWith !== 'function' ) return;
+        if ( typeof event.detail !== 'object' || typeof event.detail.matchEvent !== 'function' || typeof event.respondWith !== 'function' ) return;
         const claims = new Set;
         waitlist.forEach( subscriptionEvent => {
-            if ( !HTMLContextProvider.providers.get( event.request.type ).matchRequest( event.request/*provider ID*/, subscriptionEvent.request/*request ID*/ ) ) return;
+            if ( !event.detail.matchEvent( subscriptionEvent ) ) return;
             waitlist.delete( subscriptionEvent );
             claims.add( subscriptionEvent );
         } );

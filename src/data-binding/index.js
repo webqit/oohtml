@@ -2,9 +2,6 @@
 /**
  * @imports
  */
-import Observer from '@webqit/observer';
-import _HTMLBindingsProvider from '../bindings-api/_HTMLBindingsProvider.js';
-import { QuantumAsyncFunction } from '@webqit/quantum-js/async';
 import { _, _init } from '../util.js';
 
 /**
@@ -16,22 +13,19 @@ import { _, _init } from '../util.js';
  */
 export default function init( $config = {} ) {
     const { config, window } = _init.call( this, 'html-bindings', $config, {
-        attr: { binding: 'binding', itemIndex: 'data-index' },
+        attr: { expr: 'expr', itemIndex: 'data-key' },
         tokens: { nodeType: 'processing-instruction', tagStart: '?{', tagEnd: '}?', stateStart: '; [=', stateEnd: ']' },
         staticsensitivity: true,
         isomorphic: true,
     } );
-    config.CONTEXT_API = window.webqit.oohtml.configs.CONTEXT_API;
-    config.BINDINGS_API = window.webqit.oohtml.configs.BINDINGS_API;
-    config.HTML_IMPORTS = window.webqit.oohtml.configs.HTML_IMPORTS;
-    config.attrSelector = `[${ window.CSS.escape( config.attr.binding ) }]`;
+    ( { CONTEXT_API: config.CONTEXT_API, BINDINGS_API: config.BINDINGS_API, HTML_IMPORTS: config.HTML_IMPORTS } = window.webqit.oohtml.configs );
+    config.attrSelector = `[${ window.CSS.escape( config.attr.expr ) }]`;
     const discreteBindingsMatch = ( start, end ) => {
         const starting = `starts-with(., "${ start }")`;
         const ending = `substring(., string-length(.) - string-length("${ end }") + 1) = "${ end }"`;
         return `${ starting } and ${ ending }`;
     }
     config.discreteBindingsSelector = `comment()[${ discreteBindingsMatch( config.tokens.tagStart, config.tokens.tagEnd ) }]`;
-    window.webqit.Observer = Observer;
     realtime.call( window, config );
 }
 
@@ -43,7 +37,7 @@ export default function init( $config = {} ) {
  * @return Void
  */
 function realtime( config ) {
-    const window = this, { realdom } = window.webqit;
+    const window = this, { webqit: { realdom } } = window;
 	// ----------------
     realdom.realtime( window.document ).subtree( `(${ config.discreteBindingsSelector })`, record => {
         cleanup.call( this, ...record.exits );  
@@ -56,16 +50,14 @@ function realtime( config ) {
 }
 
 function createDynamicScope( config, root ) {
+    const { webqit: { Observer, DOMBindingsContext } } = this;
     if ( _( root ).has( 'data-binding' ) ) return _( root ).get( 'data-binding' );
     const scope = {}, abortController = new AbortController;
-    scope.$set__ = function( node, prop, val ) {
-        node && ( node[ prop ] = val );
-    }
     Observer.intercept( scope, {
         get: ( e, recieved, next ) => {
             if ( !( e.key in scope ) ) {
-                const request = _HTMLBindingsProvider.createRequest( { detail: e.key, live: true, signal: abortController.signal } );
-                root[ config.CONTEXT_API.api.context ].request( request, value => {
+                const request = { ...DOMBindingsContext.createRequest( e.key ), live: true, signal: abortController.signal };
+                root[ config.CONTEXT_API.api.contexts ].request( request, value => {
                     Observer.set( scope, e.key, value );
                 } );
             }
@@ -94,7 +86,7 @@ function cleanup( ...entries ) {
 }
 
 async function mountDiscreteBindings( config, ...entries ) {
-    const window = this;
+    const window = this, { webqit: { QuantumAsyncFunction } } = window;
     const patternMatch = str => {
         const tagStart = config.tokens.tagStart.split( '' ).map( x => `\\${ x }` ).join( '' );
         const tagEnd = config.tokens.tagEnd.split( '' ).map( x => `\\${ x }` ).join( '' );
@@ -127,11 +119,11 @@ async function mountDiscreteBindings( config, ...entries ) {
     }, [] );
 
     for ( const { textNode, template, anchorNode } of instances ) {
-        const { scope: env, bindings } = createDynamicScope( config, textNode.parentNode );
+        const { scope: env, bindings } = createDynamicScope.call( this, config, textNode.parentNode );
         let source = '';
         source += `let content = ((${ template.expr }) ?? '') + '';`;
-        source += `$set__(this, 'nodeValue', content);`;
-        if ( anchorNode ) { source += `$set__($anchorNode__, 'nodeValue', \`${ config.tokens.tagStart }${ template.expr }${ config.tokens.stateStart }\` + content.length + \`${ config.tokens.stateEnd } ${ config.tokens.tagEnd }\`);`; }
+        source += `this.nodeValue = content;`;
+        if ( anchorNode ) { source += `$anchorNode__.nodeValue = "${ config.tokens.tagStart }${ escDouble( template.expr ) }${ config.tokens.stateStart }" + content.length + "${ config.tokens.stateEnd } ${ config.tokens.tagEnd }";`; }
         const compiled = new QuantumAsyncFunction( '$signals__', `$anchorNode__`, source, { env } );
         const signals = [];
         bindings.set( textNode, { compiled, signals, state: await compiled.call( textNode, signals, anchorNode ), } );
@@ -139,9 +131,10 @@ async function mountDiscreteBindings( config, ...entries ) {
 }
 
 async function mountInlineBindings( config, ...entries ) {
+    const { webqit: { QuantumAsyncFunction } } = this;
     for ( const node of entries ) {
-        const source = parseInlineBindings( config, node.getAttribute( config.attr.binding ) );
-        const { scope: env, bindings } = createDynamicScope( config, node );
+        const source = parseInlineBindings( config, node.getAttribute( config.attr.expr ) );
+        const { scope: env, bindings } = createDynamicScope.call( this, config, node );
         const compiled = new QuantumAsyncFunction( '$signals__', source, { env } );
         const signals = [];
         bindings.set( node, { compiled, signals, state: await compiled.call( node, signals ), } );
@@ -152,20 +145,21 @@ const parseCache = new Map;
 function parseInlineBindings( config, str ) {
     if ( parseCache.has( str ) ) return parseCache.get( str );
     const validation = {};
+    const escDouble = str => str.replace(/"/g, '\\"');
     const source = splitOuter( str, ';' ).map( str => {
         const [ left, right ] = splitOuter( str, ':' ).map( x => x.trim() );
         const directive = left[ 0 ], param = left.slice( 1 ).trim();
         const arg = `(${ right })`, $arg = `(${ arg } ?? '')`;
-        if ( directive === '&' ) return `this.style[\`${ param }\`] = ${ $arg };`;
-        if ( directive === '%' ) return `this.classList.toggle(\`${ param }\`, !!${ arg });`;
+        if ( directive === '&' ) return `this.style["${ escDouble( param ) }"] = ${ $arg };`;
+        if ( directive === '%' ) return `this.classList.toggle("${ escDouble( param ) }", !!${ arg });`;
         if ( directive === '~' ) {
-            if ( param.startsWith( '?' ) ) return `this.toggleAttribute(\`${ param.substring( 1 ).trim() }\`, !!${ arg });`;
-            return `this.setAttribute(\`${ param }\`, ${ $arg });`;
+            if ( param.startsWith( '?' ) ) return `this.toggleAttribute("${ escDouble( param.substring( 1 ).trim() ) }", !!${ arg });`;
+            return `this.setAttribute("${ escDouble( param ) }", ${ $arg });`;
         }
         if ( directive === '@' ) {
             if ( validation[ param ] ) throw new Error( `Duplicate binding: ${ left }.` );
             validation[ param ] = true;
-            if ( param === 'text' ) return `$set__(this, 'textContent', ${ $arg });`;
+            if ( param === 'text' ) return `this.textContent = ${ $arg };`;
             if ( param === 'html' ) return `this.setHTML(${ $arg });`;
             if ( param === 'items' ) {
                 const [ iterationSpec, importSpec ] = splitOuter( right, '/' );

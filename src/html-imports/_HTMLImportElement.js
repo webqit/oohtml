@@ -2,8 +2,8 @@
 /**
  * @imports
  */
-import _HTMLImportsContext from './_HTMLImportsProvider.js';
-import { _ } from '../util.js';
+import HTMLImportsContext from './HTMLImportsContext.js';
+import { _, env } from '../util.js';
 
 /**
  * Creates the HTMLImportElement class.
@@ -12,9 +12,10 @@ import { _ } from '../util.js';
  * 
  * @return HTMLImportElement
  */
-export default function( config ) {
-    const window = this, { realdom } = window.webqit;
-    const BaseElement = config.import.tagName.includes( '-' ) ? window.HTMLElement : class {};
+export default function() {
+    const { window } = env, { webqit } = window, { Observer, realdom, oohtml: { configs } } = webqit;
+    if ( webqit.HTMLImportElement ) return webqit.HTMLImportElement;
+    const BaseElement = configs.HTML_IMPORTS.import.tagName.includes( '-' ) ? window.HTMLElement : class {};
     class HTMLImportElement extends BaseElement {
         
         /**
@@ -25,7 +26,7 @@ export default function( config ) {
          * @returns 
          */
         static instance( node ) {
-            if ( config.import.tagName.includes( '-' ) && ( node instanceof this ) )  return node;
+            if ( configs.HTML_IMPORTS.import.tagName.includes( '-' ) && ( node instanceof this ) )  return node;
             return _( node ).get( 'import::instance' ) || new this( node );
         }
 
@@ -49,8 +50,8 @@ export default function( config ) {
             };
 
             priv.importRequest = ( callback, signal = null ) => {
-                const request = _HTMLImportsContext.createRequest( { detail: priv.moduleRef && !priv.moduleRef.includes( '#' ) ? priv.moduleRef + '#' : priv.moduleRef, live: signal && true, signal } );
-                ( this.el.isConnected ? this.el.parentNode : priv.anchorNode.parentNode )[ config.CONTEXT_API.api.context ].request( request, response => {
+                const request = { ...HTMLImportsContext.createRequest( priv.moduleRef?.includes( '#' ) ? priv.moduleRef : `${ priv.moduleRef }#`/* for live children */ ), live: signal && true, signal };
+                ( this.el.isConnected ? this.el.parentNode : priv.anchorNode.parentNode )[ configs.CONTEXT_API.api.contexts ].request( request, response => {
                     callback( ( response instanceof window.HTMLTemplateElement ? [ ...response.content.children ] : (
                         Array.isArray( response ) ? response : response && [ response ]
                     ) ) || [] );
@@ -59,7 +60,7 @@ export default function( config ) {
 
             priv.hydrate = ( anchorNode, slottedElements ) => {
                 // ----------------
-                priv.moduleRef = ( this.el.getAttribute( config.import.attr.moduleref ) || '' ).trim();
+                priv.moduleRef = ( this.el.getAttribute( configs.HTML_IMPORTS.import.attr.moduleref ) || '' ).trim();
                 anchorNode.replaceWith( priv.setAnchorNode( this.createAnchorNode() ) );
                 priv.autoRestore( () => {
                     slottedElements.forEach( slottedElement => {
@@ -71,10 +72,10 @@ export default function( config ) {
                 priv.hydrationImportRequest = new AbortController;
                 priv.importRequest( fragments => {
                     if ( priv.originalsRemapped ) { return this.fill( fragments ); }
-                    const identifiersMap = fragments.map( ( fragment, i ) => ( { el: fragment, fragmentDef: fragment.getAttribute( config.template.attr.fragmentdef ) || '', tagName: fragment.tagName, i } ) );
+                    const identifiersMap = fragments.map( ( fragment, i ) => ( { el: fragment, fragmentDef: fragment.getAttribute( configs.HTML_IMPORTS.template.attr.fragmentdef ) || '', tagName: fragment.tagName, i } ) );
                     let i = -1;
                     slottedElements.forEach( slottedElement => {
-                        const tagName = slottedElement.tagName, fragmentDef = slottedElement.getAttribute( config.template.attr.fragmentdef ) || '';
+                        const tagName = slottedElement.tagName, fragmentDef = slottedElement.getAttribute( configs.HTML_IMPORTS.template.attr.fragmentdef ) || '';
                         const originalsMatch = ( i ++, identifiersMap.find( fragmentIdentifiers => fragmentIdentifiers.tagName === tagName && fragmentIdentifiers.fragmentDef === fragmentDef && fragmentIdentifiers.i === i ) );
                         if ( !originalsMatch ) return; // Or should we throw integrity error?
                         _( slottedElement ).set( 'original@imports', originalsMatch.el );
@@ -112,7 +113,7 @@ export default function( config ) {
                 if ( priv.slottedElements.size ) throw new Error( `Illegal reinsertion into the DOM; import slot is not empty!` );
                 // Totally initialize this instance?
                 if ( priv.moduleRefRealtime ) return;
-                priv.moduleRefRealtime = realdom.realtime( this.el ).attr( config.import.attr.moduleref, ( record, { signal } ) => {
+                priv.moduleRefRealtime = realdom.realtime( this.el ).attr( configs.HTML_IMPORTS.import.attr.moduleref, ( record, { signal } ) => {
                     priv.moduleRef = record.value;
                     // Below, we ignore first restore from hydration
                     priv.importRequest( fragments => !priv.hydrationImportRequest && this.fill( fragments ), signal );
@@ -181,8 +182,8 @@ export default function( config ) {
                     // Clone each slottable element and give it a reference to its original
                     const slottableElementClone = slottableElement.cloneNode( true );
                     // The folllowing references must be set before adding to DODM
-                    if ( !slottableElementClone.hasAttribute( config.template.attr.fragmentdef ) ) {
-                        slottableElementClone.toggleAttribute( config.template.attr.fragmentdef, true );
+                    if ( !slottableElementClone.hasAttribute( configs.HTML_IMPORTS.template.attr.fragmentdef ) ) {
+                        slottableElementClone.toggleAttribute( configs.HTML_IMPORTS.template.attr.fragmentdef, true );
                     }
                     _( slottableElementClone ).set( 'original@imports', slottableElement );
                     _( slottableElementClone ).set( 'slot@imports', this.el );
@@ -220,8 +221,7 @@ export default function( config ) {
          */
         get slottedElements() { return this[ '#' ].slottedElements; }
     }
-    if ( config.import.tagName.includes( '-' ) ) {
-        customElements.define( config.import.tagName, HTMLImportElement );
-    }
+    if ( configs.HTML_IMPORTS.import.tagName.includes( '-' ) ) { customElements.define( configs.HTML_IMPORTS.import.tagName, HTMLImportElement ); }
+    webqit.HTMLImportElement = HTMLImportElement;
     return HTMLImportElement;
 }

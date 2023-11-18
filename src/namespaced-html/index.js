@@ -2,10 +2,7 @@
 /**
  * @imports
  */
-import Observer from '@webqit/observer';
 import { _, _init } from '../util.js';
-
-export { Observer }
 
 /**
  * @init
@@ -22,7 +19,6 @@ export default function init( $config = {} ) {
     } );
 	config.idSelector = `[${ window.CSS.escape( config.id.attr ) }]`;
 	config.namespaceSelector = `[${ window.CSS.escape( config.namespace.attr ) }]`;
-    window.webqit.Observer = Observer;
     exposeAPIs.call( window, config );
     realtime.call( window, config );
 }
@@ -35,7 +31,7 @@ export default function init( $config = {} ) {
  * @return Object
  */
 function getNamespaceObject( node, config ) {
-	const window = this;
+	const window = this, { webqit: { Observer } } = window;
 	if ( !_( node ).has( 'namespace' ) ) {
 		const namespaceObj = Object.create( null );
 		Observer.intercept( namespaceObj, 'get', ( event, receiver, next ) => {
@@ -65,7 +61,7 @@ function getNamespaceObject( node, config ) {
  * @return Void
  */
 function exposeAPIs( config ) {
-	const window = this;
+    const window = this, { webqit: { Observer } } = window;
     // Assertions
     if ( config.namespace.api in window.document ) { throw new Error( `document already has a "${ config.namespace.api }" property!` ); }
     if ( config.namespace.api in window.Element.prototype ) { throw new Error( `The "Element" class already has a "${ config.namespace.api }" property!` ); }
@@ -86,7 +82,7 @@ function exposeAPIs( config ) {
  * @return Void
  */
 function realtime( config ) {
-	const window = this, { realdom } = window.webqit;
+	const window = this, { webqit: { Observer, realdom } } = window;
 	// ----------------
 	const handle = ( target, entry, incoming ) => {
 		const identifier = entry.getAttribute( config.id.attr );

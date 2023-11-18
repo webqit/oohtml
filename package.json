@@ -29,16 +29,14 @@
   "scripts": {
     "test": "mocha --extension .test.js --exit",
     "test:coverage": "c8 --reporter=text-lcov npm run test | coveralls",
-    "build": "esbuild main=src/targets.browser.js namespaced-html=src/namespaced-html/targets.browser.js scoped-css=src/scoped-css/targets.browser.js scoped-js=src/scoped-js/targets.browser.js context-api=src/context-api/targets.browser.js bindings-api=src/bindings-api/targets.browser.js html-imports=src/html-imports/targets.browser.js data-binding=src/data-binding/targets.browser.js --bundle --minify --sourcemap --outdir=dist",
+    "build": "esbuild main=src/api.global.js main.lite=src/api.global.lite.js namespaced-html=src/namespaced-html/targets.browser.js scoped-css=src/scoped-css/targets.browser.js scoped-js=src/scoped-js/targets.browser.js context-api=src/context-api/targets.browser.js bindings-api=src/bindings-api/targets.browser.js html-imports=src/html-imports/targets.browser.js data-binding=src/data-binding/targets.browser.js --bundle --minify --sourcemap --outdir=dist",
     "preversion": "npm run test && npm run build && git add -A dist",
     "postversion": "npm publish",
     "postpublish": "git push && git push --tags"
   },
   "dependencies": {
-    "@webqit/observer": "^2.2.9",
-    "@webqit/quantum-js": "^4.0.0",
+    "@webqit/quantum-js": "^4.2.0",
     "@webqit/realdom": "^2.1.19",
-    "@webqit/stateful-js": "^3.0.27",
     "@webqit/util": "^0.8.11"
   },
   "devDependencies": {

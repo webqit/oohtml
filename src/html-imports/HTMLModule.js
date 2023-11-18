@@ -2,35 +2,33 @@
 /**
  * @imports
  */
-import Observer from '@webqit/observer';
 import { _isNumeric } from '@webqit/util/js/index.js';
-import { getModulesObject } from './index.js';
-import { _ } from '../util.js';
+import { getExports } from './index.js';
+import { _, env } from '../util.js';
 
-export default class _HTMLExportsManager {
+export default class HTMLModule {
 
     /**
      * @instance
      */
-    static instance( window, host, config ) {
-        return _( host ).get( 'exportsmanager::instance' ) || new this( window, host, config );
+    static instance( host ) {
+        return _( host ).get( 'exportsmanager::instance' ) || new this( host );
     }
 
     /**
      * @constructor
      */
-    constructor( window, host, config = {}, parent = null, level = 0 ) {
+    constructor( host, parent = null, level = 0 ) {
+        const { window } = env, { webqit: { realdom, oohtml: { configs } } } = window;
         _( host ).get( `exportsmanager::instance` )?.dispose();
         _( host ).set( `exportsmanager::instance`, this );
         this.host = host;
-        this.window = window;
-        this.config = config;
+        this.config = configs.HTML_IMPORTS;
         this.parent = parent;
         this.level = level;
-        this.modules = getModulesObject( this.host );
-        this.exportId = ( this.host.getAttribute( this.config.template?.attr.moduledef ) || '' ).trim();
-        this.validateExportId( this.exportId );
-        const realdom = this.window.webqit.realdom;
+        this.exports = getExports( this.host );
+        this.defId = ( this.host.getAttribute( this.config.template?.attr.moduledef ) || '' ).trim();
+        this.validateDefId( this.defId );
         // ----------
         this.realtimeA = realdom.realtime( this.host.content ).children( record => {
             this.export( record.entrants, true );
@@ -51,13 +49,13 @@ export default class _HTMLExportsManager {
     /**
      * Validates export ID.
      * 
-     * @param String     exportId
+     * @param String     defId
      *
      * @returns Void
      */
-    validateExportId( exportId ) {
-        if ( [ '@', '/', '*', '#' ].some( token => exportId.includes( token ) ) ) {
-            throw new Error( `The export ID "${ exportId }" contains an invalid character.` );
+    validateDefId( defId ) {
+        if ( [ '@', '/', '*', '#' ].some( token => defId.includes( token ) ) ) {
+            throw new Error( `The export ID "${ defId }" contains an invalid character.` );
         }
     }
 
@@ -70,32 +68,33 @@ export default class _HTMLExportsManager {
      * @returns Void
      */
     export( entries, isConnected ) {
-        let dirty, allFragments = this.modules[ '#' ] || [];
-        Observer.batch( this.modules, () => {
+        const { window } = env, { webqit: { Observer } } = window;
+        let dirty, allFragments = this.exports[ '#' ] || [];
+        Observer.batch( this.exports, () => {
             entries.forEach( entry => {
                 if ( entry.nodeType !== 1 ) return;
                 const isTemplate = entry.matches( this.config.templateSelector );
-                const exportId = ( entry.getAttribute( isTemplate ? this.config.template.attr.moduledef : this.config.template.attr.fragmentdef ) || '' ).trim();
+                const defId = ( entry.getAttribute( isTemplate ? this.config.template.attr.moduledef : this.config.template.attr.fragmentdef ) || '' ).trim();
                 if ( isConnected ) {
-                    if ( isTemplate && exportId ) { new _HTMLExportsManager( this.window, entry, this.config, this.host, this.level + 1 ); }
+                    if ( isTemplate && defId ) { new HTMLModule( entry, this.host, this.level + 1 ); }
                     else {
                         allFragments.push( entry );
                         dirty = true;
                     }
-                    if ( exportId ) {
-                        this.validateExportId( exportId );
-                        Observer.set( this.modules, ( !isTemplate && '#' || '' ) + exportId, entry );
+                    if ( defId ) {
+                        this.validateDefId( defId );
+                        Observer.set( this.exports, ( !isTemplate && '#' || '' ) + defId, entry );
                     }
                 } else {
-                    if ( isTemplate && exportId ) { _HTMLExportsManager.instance( this.window, entry ).dispose(); }
+                    if ( isTemplate && defId ) { HTMLModule.instance( entry ).dispose(); }
                     else {
                         allFragments = allFragments.filter( x => x !== entry );
                         dirty = true;
                     }
-                    if ( exportId ) Observer.deleteProperty( this.modules, ( !isTemplate && '#' || '' ) + exportId );
+                    if ( defId ) Observer.deleteProperty( this.exports, ( !isTemplate && '#' || '' ) + defId );
                 }
             } );
-            if ( dirty ) Observer.set( this.modules, '#', allFragments );
+            if ( dirty ) Observer.set( this.exports, '#', allFragments );
         } );
     }
 
@@ -107,6 +106,7 @@ export default class _HTMLExportsManager {
      * @returns Void
      */
     evaluateLoading( [ record1, record2 ], { signal } ) {
+        const { window: { webqit: { Observer } } } = env;
         const src = ( record1.value || '' ).trim();
         if ( !src ) return;
         let $loadingPromise, loadingPromise = promise => {
@@ -114,7 +114,7 @@ export default class _HTMLExportsManager {
             $loadingPromise = promise.then( () => interception.remove() ); // Set
         };
         const loading = ( record2.value || '' ).trim();
-        const interception = Observer.intercept( this.modules, 'get', async ( descriptor, recieved, next ) => {
+        const interception = Observer.intercept( this.exports, 'get', async ( descriptor, recieved, next ) => {
             if ( loading === 'lazy' ) { loadingPromise( this.load( src, true ) ); }
             await loadingPromise();
             return next();
@@ -130,14 +130,15 @@ export default class _HTMLExportsManager {
      * @return Promise
      */
     load( src ) {
+        const { window } = env;
         if ( this.host.content.children.length ) return Promise.resolve();
         // Ongoing request?
         if ( this.fetchInFlight?.src === src ) return this.fetchInFlight.request;
         this.fetchInFlight?.controller.abort();
         // The promise
         const controller = new AbortController();
-        const fire = ( type, detail ) => this.host.dispatchEvent( new this.window.CustomEvent( type, { detail } ) );
-        const request = this.window.fetch( src, { signal: controller.signal, element: this.host } ).then( response => {
+        const fire = ( type, detail ) => this.host.dispatchEvent( new window.CustomEvent( type, { detail } ) );
+        const request = window.fetch( src, { signal: controller.signal, element: this.host } ).then( response => {
             return response.ok ? response.text() : Promise.reject( response.statusText );
         } ).then( content => {
             this.host.innerHTML = content.trim(); // IMPORTANT: .trim()
@@ -160,22 +161,23 @@ export default class _HTMLExportsManager {
      */
     evalInheritance( ) {
         if ( !this.parent ) return [];
+        const { window: { webqit: { Observer } } } = env;
         let extendedId = ( this.host.getAttribute( this.config.template.attr.extends ) || '' ).trim();
         let inheritedIds = ( this.host.getAttribute( this.config.template.attr.inherits ) || '' ).trim();
         const handleInherited = records => {
             records.forEach( record => {
-                if ( Observer.get( this.modules, record.key ) !== record.oldValue ) return;
+                if ( Observer.get( this.exports, record.key ) !== record.oldValue ) return;
                 if ( [ 'get'/*initial get*/, 'set', 'def' ].includes( record.type ) ) {
-                    Observer[ record.type.replace( 'get', 'set' ) ]( this.modules, record.key, record.value );
+                    Observer[ record.type.replace( 'get', 'set' ) ]( this.exports, record.key, record.value );
                 } else if ( record.type === 'delete' ) {
-                    Observer.deleteProperty( this.modules, record.key );
+                    Observer.deleteProperty( this.exports, record.key );
                 }
             } );
         };
         const realtimes = [];
-        const parentExportsObj = getModulesObject( this.parent );
+        const parentExportsObj = getExports( this.parent );
         if ( extendedId ) {
-            realtimes.push( Observer.reduce( parentExportsObj, [ extendedId, this.config.template.api.modules, Infinity ], Observer.get, handleInherited, { live: true } ) );
+            realtimes.push( Observer.reduce( parentExportsObj, [ extendedId, this.config.template.api.exports, Infinity ], Observer.get, handleInherited, { live: true } ) );
         }
         if ( ( inheritedIds = inheritedIds.split( ' ' ).map( id => id.trim() ).filter( x => x ) ).length ) {
             realtimes.push( Observer.get( parentExportsObj, inheritedIds, handleInherited, { live: true } ) );
@@ -191,10 +193,10 @@ export default class _HTMLExportsManager {
     dispose() {
         this.realtimeA.disconnect();
         this.realtimeB.disconnect();
-        this.realtimeC.forEach( r => r.abort() );
-        Object.entries( this.modules ).forEach( ( [ key, entry ] ) => {
+        this.realtimeC.forEach( r => ( r instanceof Promise ? r.then( r => r.abort() ) : r.abort() ) );
+        Object.entries( this.exports ).forEach( ( [ key, entry ] ) => {
             if ( key.startsWith( '#' ) ) return;
-            _HTMLExportsManager.instance( this.window, entry ).dispose();
+            HTMLModule.instance( entry ).dispose();
         } );
     }
 }

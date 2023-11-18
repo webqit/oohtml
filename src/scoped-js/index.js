@@ -2,19 +2,9 @@
 /**
  * @imports
  */
-import Observer from '@webqit/observer';
 import { resolveParams } from '@webqit/quantum-js/params';
-import { QuantumAsyncFunction, QuantumAsyncScript, QuantumModule, State } from '@webqit/quantum-js/async';
 import { _init } from '../util.js';
 import Hash from './Hash.js';
-
-export {
-    QuantumAsyncFunction,
-    QuantumAsyncScript,
-    QuantumModule,
-    State,
-    Observer,
-}
 
 /**
  * @init
@@ -30,7 +20,6 @@ export default function init( { advanced = {}, ...$config } ) {
         const qualifier = mm ? `[type=${ window.CSS.escape( mm ) }]` : '';
         return selector.concat( `script${ qualifier }[scoped],script${ qualifier }[quantum]` );
     }, [] ).join( ',' );
-    Object.assign( window.webqit, { QuantumAsyncFunction, QuantumAsyncScript, QuantumModule, State, Observer } );
     window.webqit.oohtml.Script = {
         compileCache: [ new Map, new Map, ],
         execute: execute.bind( window, config ),
@@ -69,7 +58,7 @@ async function execute( config, execHash ) {
  * @return Void
  */
 function realtime( config ) {
-	const window = this, { oohtml, realdom } = window.webqit;
+	const window = this, { webqit: { oohtml, realdom, QuantumScript, QuantumAsyncScript, QuantumModule } } = window;
     if ( !window.HTMLScriptElement.supports ) { window.HTMLScriptElement.supports = () => false; }
     const potentialManualTypes = [ 'module' ].concat( config.script.mimeType || [] );
 	realdom.realtime( window.document ).subtree/*instead of observe(); reason: jsdom timing*/( config.scriptSelector, record => {
@@ -86,7 +75,7 @@ function realtime( config ) {
             let compiledScript;
             if ( !( compiledScript = compileCache.get( sourceHash ) ) ) {
                 const { parserParams, compilerParams, runtimeParams } = config.advanced;
-                compiledScript = new ( script.type === 'module' ? QuantumModule : QuantumAsyncScript )( textContent, {
+                compiledScript = new ( script.type === 'module' ? QuantumModule : ( QuantumScript || QuantumAsyncScript ) )( textContent, {
                     exportNamespace: `#${ script.id }`,
                     fileName: window.document.url,
                     parserParams,
