@@ -203,7 +203,7 @@ Here, we get the `def` attribute for defining those - either as whole *module* o
 
 We shouldn't need a different mechanism to work with remote content.
 
-Here, we get the `<template src>` element for that:
+Here, we get remote-loading modules using the `src` attribute:
 
 ```html
 <template def="foo" src="/foo.html"></template>
@@ -222,7 +222,7 @@ Here, we get the `<template src>` element for that:
 <div def="fragment2"></div>
 ```
 
-**-->** *which borrows from how elements like images work; terminating with either a `load` or an `error` event*:
+**-->** *which borrow from how `src` works in elements like `<img>`; terminating with either a `load` or an `error` event*:
 
 ```js
 foo.addEventListener('load', loadCallback);
@@ -231,9 +231,9 @@ foo.addEventListener('error', errorCallback);
 
 ### Declarative Module Imports
 
-The essence of a module is for reuse.
+HTML snippets should be reusable in "HTML"!
 
-Here, we get an `<import>` element that lets us do that declaratively:
+Here, we get an `<import>` element that lets us do just that:
 
 ```html
 <body>
@@ -251,13 +251,14 @@ Here, we get an `<import>` element that lets us do that declaratively:
 
 <details><summary>All in realtime</summary>
 
-Import *refs* are live references and are sensitive to:
+Import *refs* are live bindings that are highly sensitive to:
 
 + changes in the *ref* itself (in being defined/undefined/redefined)
 + changes in the referenced *defs* themselves (in being added/removed/loaded)
 
 And an `<import>` element that has been resolved will self-restore in the event that:
 
++ the above changes resolve to no imports.
 + the previously slotted contents have *all* been programmatically removed and slot is empty.
 
 </details>
@@ -277,13 +278,13 @@ The above resolved imports would thus give us something like:
 </body>
 ```
 
-But they also will need to remember the exact imported nodes that they manage so as to be able to re-establish that relationship on getting to the client. This information is automatically encoded as part of the serialised element itself, in something like:
+But they also will need to remember the exact imported nodes that they manage so as to be able to re-establish relevant relationships on getting to the client. This information is automatically encoded as part of the serialised element itself, in something like:
 
 ```html
 <!--&lt;import ref="/foo/nested#fragment2" nodecount="1"&gt;&lt;/import&gt;-->
 ```
 
-Now, on getting to the client and "hydrating" the `<import>` element, that extra bit of information gets decoded, and original relationships are formed again. But, the `<import>` element itself stays invisible in the DOM while still continuing to kick as above!
+Now, on getting to the client and getting "hydrated" back into an `<import>` element, that extra bit of information is decoded, and original relationships are formed again. But, the `<import>` element itself stays invisible in the DOM while still continuing to kick as above!
 
 > Note: We know we're on the server when `window.webqit.env === 'server'`. This flag is automatically set by OOHTML's current SSR engine: [OOHTML-SSR](https://github.com/webqit/oohtml-ssr)
 
@@ -305,7 +306,7 @@ const moduleObject2 = document.import('/foo/nested#fragment2');
 console.log(moduleObject2.value); // divElement
 ```
 
-**-->** *with the `moduleObject.value` property being a live property for when results are asynchronous; e.g. asynchronously loaded modules*:
+**-->** *with the `moduleObject.value` property being a live property for when results are delivered asynchronous; e.g. with an asynchronously loaded module*:
 
 ```js
 Observer.observe(moduleObject2, 'value', e => {
@@ -337,7 +338,7 @@ document.import('/foo#fragment1', true/*live*/, divElement => {
 });
 ```
 
-*...both of which gets notified on doing the below*:
+*...both of which get notified on doing the below*:
 
 ```js
 document.querySelector('template[def="foo"]').content.firstElementChild.remove();
@@ -499,7 +500,7 @@ const response = contextElement.import('#fragment1'); // Relative path (beginnin
 
 Some modules will only be relevant within a specific context in the page, and those wouldn't need to have a business with the global scope.
 
-Here, we get the `scoped` attribute for scoping those to their respective contexts, to give us an *object-scoped* module system (like what Scoped Registries are to Custom Elements):
+Here, we get the `scoped` attribute for scoping those to their respective contexts, to give us an *object-scoped* module system (like what Scoped Registries seek to be to Custom Elements):
 
 ```html
 <section> <!-- Host object -->
@@ -950,7 +951,7 @@ document.bind({ name: 'James Boye', cool: '100%' }, { merge: true });
 console.log(document.bindings); // { signedIn: false, hot: '100%', name: 'James Boye', cool: '100%' }
 ```
 
-**-->** *which also provides an easy way to pass data down a component tree*:
+**-->** *which also provides an easy way to passing data down a component tree*:
 
 ```js
 // Inside a custom element
@@ -1003,9 +1004,9 @@ Observer.deleteProperty(document.bindings.app, 'title');
 
 ### The Context API
 
-A complex hierarchy of objects will often call for more than the normal top-down flow of data that the Bindings API facilitates. A child may require the ability to look up the component tree to directly access specific data, or in other words, get data from "context". This is where a Context API comes in.
+Component trees on the typical UI often call for more than the normal top-down flow of data that the Bindings API facilitates. A child may require the ability to look up the component tree to directly access specific data, or in other words, get data from "context". This is where a Context API comes in.
 
-Interestingly, the Context API is the resolution mechanism behind HTML Imports and Data Binding in OOHTML!
+Interestingly, the Context API is the underlying resolution mechanism for HTML Imports and Data Binding in OOHTML!
 
 Here, we simply leverage the DOM's existing event system to fire a "request" event and let an arbitrary "provider" in context fulfill the request. This becomes very simple with the Context API which is exposed on the document object and on element instances as a readonly `contexts` property.
 
@@ -1019,11 +1020,11 @@ const node = document.querySelector('my-element');
 // ------------
 // Prepare and fire request event
 const requestParams = { kind: 'html-imports', detail: '/foo#fragment1' };
-const contextResponse = node.contexts.request(requestParams);
+const response = node.contexts.request(requestParams);
 
 // ------------
 // Handle response
-console.log(contextResponse.value); // It works!
+console.log(response.value); // It works!
 ```
 
 **-->** *and the `contexts.attach()` and  `contexts.detach()` methods for attaching/detaching providers at arbitrary levels in the DOM tree*:
@@ -1057,7 +1058,7 @@ In the current OOHTML implementation, the Context API interfaces are exposed via
 const { DOMContext, DOMContextRequestEvent, DOMContextResponse } = window.webqit;
 ```
 
-In addition...
+Now, by design...
 
 + a provider will automatically adopt the `contextname`, if any, of its host element:
 
@@ -1078,7 +1079,7 @@ In addition...
 
     ```js
     const requestParams = { kind: FakeImportsContext.kind, targetContext: 'context1', detail: '/foo#fragment1' };
-    const contextResponse = node.contexts.request(requestParams);
+    const response = node.contexts.request(requestParams);
     ```
 
 + and providers of same kind could be differentiated by an extra "detail" - an arbitrary value passed to the constructor:
@@ -1116,9 +1117,9 @@ In addition...
 
     ```js
     // Handle response without a callback
-    const contextResponse = node.contexts.request(requestParams);
-    console.log(contextResponse.value); // It works!
-    Observer.observe(contextResponse, 'value', e => {
+    const response = node.contexts.request(requestParams);
+    console.log(response.value); // It works!
+    Observer.observe(response, 'value', e => {
       console.log(e.value); // It works live!
     });
     ```
@@ -1175,7 +1176,7 @@ In addition...
 + live requests are terminated via the returned `DOMContextResponse` object...
 
     ```js
-    contextResponse.abort();
+    response.abort();
     ```
 
     ...or via an initially specified custom `AbortSignal`:
@@ -1187,7 +1188,7 @@ In addition...
     ```
 
     ```js
-    abortController.abort(); // Which also calls contextResponse.abort();
+    abortController.abort(); // Which also calls response.abort();
     ```
 
 + now, when a node in a provider's subtree is suddenly attached an identical provider, any live requests the super provider may be serving are automatically "claimed" by the sub provider:
@@ -1212,7 +1213,7 @@ In addition...
 
 </details>
 
-**-->** *all of which gives us the imperative equivalent of context-based declarative features like HTMLImports and Data Binding*:
+**-->** *all of which gives us the imperative equivalent of declarative context-based features like HTMLImports and Data Binding*:
 
 ```html
 <div contextname="vendor1">
@@ -1234,27 +1235,27 @@ In addition...
 ```js
 // ------------
 // Equivalent import() approach
-const contextResponse = myElement.import('@vendor1/foo#fragment1');
+const response = myElement.import('@vendor1/foo#fragment1');
 
 // ------------
 // Equivalent Context API approach
 const requestParams = { kind: 'html-imports', targetContext: 'vendor1', detail: 'foo#fragment1' };
-const contextResponse = myElement.contexts.request(requestParams);
+const response = myElement.contexts.request(requestParams);
 
 // ------------
 // Handle response
-console.log(contextResponse.value);
+console.log(response.value);
 ```
 
 ```js
 // ------------
 // Context API request for bindings
 const requestParams = { kind: 'bindings', targetContext: 'vendor2', detail: 'app' };
-const contextResponse = myElement.contexts.request(requestParams);
+const response = myElement.contexts.request(requestParams);
 
 // ------------
 // Handle response
-console.log(contextResponse.value.title);
+console.log(response.value.title);
 ```
 
 ## Polyfill
