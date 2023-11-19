@@ -7,13 +7,13 @@
 
 **[On the Agenda](#on-the-agenda) • [Modular HTML](#modular-html) • [HTML Imports](#html-imports) • [Data Binding](#data-binding) • [Data Plumbing](#data-plumbing) • [Polyfill](#polyfill) • [Examples](#examples) • [License](#license)**
 
-Object-Oriented HTML (OOHTML) is a set of features that extend standard HTML and the DOM to enable authoring modular, reusable and reactive markup - with a "buildless", web-native workflow as design goal! This project presents what "modern HTML" could look like at its best!
+Object-Oriented HTML (OOHTML) is a set of features that extend standard HTML and the DOM to enable authoring modular, reusable and reactive markup - with a "buildless", web-native workflow as design goal! This project presents what "modern HTML" could mean today!
 
 Building Single Page Applications? OOHTML is a special love letter!
 
 <details><summary>Versions</summary>
 
-*This is documentation for `OOHTML@2.x`. (Looking for [`OOHTML@1.x`](https://github.com/webqit/oohtml/tree/v1.10.4)?)*
+*This is documentation for `OOHTML@3`. (Looking for [`OOHTML@1`](https://github.com/webqit/oohtml/tree/v1.10.4)?)*
 
 </details>
 
@@ -21,7 +21,7 @@ Building Single Page Applications? OOHTML is a special love letter!
 
 <details><summary>Show</summary>
 
-Vanilla HTML is unsurprisingly becoming a compelling option for an increasing number of developers! But the current authoring experience still leaves much to be desired in how the language lacks modularity, reusability, and other fundamental capabilities like data binding! Authors still have to rely on tools - or, to say the least, have to do half of the work in HTML and half in JS - to get even basic things working!
+Vanilla HTML is unsurprisingly becoming the most compelling option for an increasing number of developers! But the current authoring experience still leaves much to be desired in how the language lacks modularity, reusability, and other fundamental capabilities like data binding! Authors still have to rely on tools - or, to say the least, have to do half of the work in HTML and half in JS - to get even basic things working!
 
 This project pursues an object-oriented approach to HTML and implicitly revisits much of what inhibits the idea of a *component* architecture for HTML!
 
@@ -42,13 +42,13 @@ This project pursues an object-oriented approach to HTML and implicitly revisits
 
 Modular HTML is a markup pattern that lets us write arbitrary markup as self-contained objects - with each *encapsulating* their own structure, styling and logic!
 
-OOHTML makes this possible in just simple conventions - via two new attributes: `namespace` and `scoped`!
+OOHTML makes this possible by introducing "namespacing" and style and script scoping!
 
 ### Namespacing
 
 Naming things is hard! That's especially so where you have one global namespace and a miriad of potentially conflicting names to coordinate!
 
-Here, we get the `namespace` attribute for designating an element as own naming context for identifiers instead of the global namespace:
+Here, we get the `namespace` attribute for designating an element as own naming context for identifiers instead of the global document namespace:
 
 ```html
 <div id="user" namespace>
@@ -124,11 +124,11 @@ console.log(window.foo); // div
 
 </details>
 
-### Scoping
+### Style and Script Scoping
 
-We often need a way to keep things like styles and scripts [scoped to a component](https://vuejs.org/guide/scaling-up/sfc.html).
+We often need a way to keep things like component-specific stylesheets and scripts [scoped to a component](https://vuejs.org/guide/scaling-up/sfc.html).
 
-Here, we get the `scoped` attribute for *scoping* said element-specific stylesheets and scripts:
+Here, we get the `scoped` attribute for doing just that:
 
 ```html
 <div>
@@ -144,7 +144,7 @@ Here, we get the `scoped` attribute for *scoping* said element-specific styleshe
 </div>
 ```
 
-**-->** *with a complementary API that exposes said assets to JavaScript applications*:
+**-->** *with a complementary API that exposes said assets for low-level access*:
 
 ```js
 let { styleSheets, scripts } = user; // APIs that are analogous to the document.styleSheets, document.scripts properties
@@ -152,9 +152,9 @@ let { styleSheets, scripts } = user; // APIs that are analogous to the document.
 
 <details><summary>Learn more</summary>
 
-The `scoped` has two effects on the `<script>` element:
+Here, the `scoped` has two effects on the `<script>` element:
 
-+ The `this` keyword is a reference to the script's host element
++ The `this` keyword is implicitly bound to the script's host element
 + The `<script>` element is executed again on each re-insertion to the DOM
 
 </details>
@@ -169,7 +169,7 @@ OOHTML makes this possible in just simple conventions - via a new `def` attribut
 
 A module here is any piece of markup that can be reused.
 
-Here, we get the `def` attribute for defining those - either as whole *module* or as *fragment*:
+Here, we get the `def` attribute for defining those - both at the `<template>` element level and at its contents (*fragment*) level:
 
 ```html
 <head>
@@ -203,7 +203,7 @@ Here, we get the `def` attribute for defining those - either as whole *module* o
 
 We shouldn't need a different mechanism to work with remote content.
 
-Here, we get remote-loading modules using the `src` attribute:
+Here, we get remote-loading modules with same `<template>` element using the `src` attribute:
 
 ```html
 <template def="foo" src="/foo.html"></template>
@@ -231,7 +231,7 @@ foo.addEventListener('error', errorCallback);
 
 ### Declarative Module Imports
 
-HTML snippets should be reusable in "HTML"!
+HTML snippets should be reusable in HTML itself!
 
 Here, we get an `<import>` element that lets us do just that:
 
@@ -251,10 +251,10 @@ Here, we get an `<import>` element that lets us do just that:
 
 <details><summary>All in realtime</summary>
 
-Import *refs* are live bindings that are highly sensitive to:
+Here, import *refs* are live bindings that are highly sensitive to:
 
-+ changes in the *ref* itself (in being defined/undefined/redefined)
-+ changes in the referenced *defs* themselves (in being added/removed/loaded)
++ changes in the *ref* itself (on being defined/undefined/redefined)
++ changes in the referenced *defs* themselves (on being added/removed/loaded)
 
 And an `<import>` element that has been resolved will self-restore in the event that:
 
@@ -306,7 +306,7 @@ const moduleObject2 = document.import('/foo/nested#fragment2');
 console.log(moduleObject2.value); // divElement
 ```
 
-**-->** *with the `moduleObject.value` property being a live property for when results are delivered asynchronous; e.g. with an asynchronously loaded module*:
+**-->** *with the `moduleObject.value` property being a live property for when results are delivered asynchronous; e.g. in the case of remote modules*:
 
 ```js
 Observer.observe(moduleObject2, 'value', e => {
@@ -314,7 +314,7 @@ Observer.observe(moduleObject2, 'value', e => {
 });
 ```
 
-**-->** *with an equivalent `callback` option on the `import()` method itself*:
+**-->** *with an equivalent `callback` option on the `import()` API itself*:
 
 ```js
 document.import('/foo#fragment1', divElement => {
@@ -322,7 +322,7 @@ document.import('/foo#fragment1', divElement => {
 });
 ```
 
-**-->** *with an optional `live` parameter for staying subscribed to updated results*:
+**-->** *with an optional `live` parameter for staying subscribed to live results*:
 
 ```js
 const moduleObject2 = document.import('/foo/nested#fragment2', true/*live*/);
@@ -338,7 +338,7 @@ document.import('/foo#fragment1', true/*live*/, divElement => {
 });
 ```
 
-*...both of which get notified on doing the below*:
+*...both of which get notified on doing something like the below*:
 
 ```js
 document.querySelector('template[def="foo"]').content.firstElementChild.remove();
@@ -363,9 +363,9 @@ setTimeout(() => {
 
 ### Lazy-Loading Modules
 
-We can defer module loading until we really need them.
+We should be able to defer module loading until we really need them.
 
-Here, we get the `loading="lazy"` directive for that; and loading is only then triggered on the first attempt to import them or their contents:
+Here, we get the `loading="lazy"` directive for that; and loading is only then triggered on the first attempt to import those or their contents:
 
 ```html
 <!-- Loading doesn't happen until the first time this is being accessed -->
@@ -383,9 +383,9 @@ const moduleObject2 = document.import('/foo#fragment1'); // Triggers module load
 
 ### Module Inheritance
 
-We'll often have repeating markup structures.
+We'll often have repeating markup structures across component layouts.
 
-Here, we get module nesting with inheritance to simplify that:
+Here, we get module nesting with inheritance to facilitate more reusability:
 
 ```html
 <template def="foo">
@@ -433,14 +433,14 @@ Here, we get module nesting with inheritance to simplify that:
 
 We should be able to have *relative* import refs that resolve against local contexts in the document tree.
 
-Here, we call those arbitrary contexts "Imports Contexts", and these could be:
+Here, we get just that - as "Imports Contexts", which could be:
 
 + Simple Base Path Contexts ([below](#base-path-contexts))
 + Scoped Module Contexts ([below](#scoped-module-contexts))
 + Named Contexts ([below](#named-contexts))
 + Extended Scoped Module Contexts ([below](#extended-scoped-module-contexts))
 
-Alongside which we have a complementary `Element.prototype.import()` API for thinking in contexts.
+And to facilitate thinking in contexts, we also get an `Element.prototype.import()` API for context-based module imports.
 
 #### "Base Path" Contexts
 
@@ -533,7 +533,7 @@ const globalModule = contextElement.import('/foo#fragment1'); // Absolute path, 
 
 #### Named Contexts
 
-Imports Contexts may be named:
+Imports Contexts may be named for direct referencing:
 
 ```html
 <body contextname="context1" importscontext="/foo/nested">
@@ -599,7 +599,7 @@ Data binding is about declaratively binding the UI to application data, wherein 
 
 OOHTML makes this possible in just simple conventions - via a new comment-based data-binding syntax `<?{ }?>` and a complementary new `expr` attribute!
 
-And there's one more: Quantum Scripts which brings the most advanced form of reactivity to HTML!
+And there's one more: Quantum Scripts for when we need to write extended reactive logic on the UI!
 
 ### Discrete Data-Binding
 
@@ -762,7 +762,7 @@ Bindings are resolved in realtime! And in fact, for lists, in-place mutations - 
 
 <details><summary>With SSR support</summary>
 
-For lists, generated item elements are automatically assigned a corresponding key with a `data-key` attribute! This helps in remapping generated item nodes to their respective entry in *iteratee* during a rerendering or during hydration.
+For lists, generated item elements are automatically assigned a corresponding key with a `data-key` attribute! This helps in remapping generated item nodes to their corresponding entry in *iteratee* during a rerendering or during hydration.
 
 </details>
 
@@ -770,7 +770,7 @@ For lists, generated item elements are automatically assigned a corresponding ke
 
 We often still need to write more serious reactive logic on the UI than a declarative data-binding language can provide for. But we shouldn't need to reach for special tooling or some "serious" programming paradigm on top of JavaScript.
 
-Here, from the same `<script>` element we already write, we get a direct upgrade path to reactive programming in just the addition of an attribute: `quantum`:
+Here, from the same `<script>` element we already write, we get a direct upgrade path to reactive programming in just the addition of an attribute: `quantum` - for [Quantum Scripts](https://github.com/webqit/quantum-js):
 
 ```html
 <script quantum>
@@ -786,7 +786,7 @@ Here, from the same `<script>` element we already write, we get a direct upgrade
 </script>
 ```
 
-**-->** *which gives us fine-grained reactivity on top of literal JavaScript syntax; and which adds up really well with the `scoped` attribute*:
+**-->** *which gives us fine-grained reactivity on top of literal JavaScript syntax; and which adds up really well with the `scoped` attribute for Single Page Applications*:
 
 ```html
 <main>
@@ -881,7 +881,7 @@ But while that is automatic, DOM event handlers bound via `addEventListener()` w
 
 ## Data Plumbing
 
-Components often need to manage, or be managed by, dynamic data. That could get pretty problematic and messy if all of that should go on DOM nodes as direct properties:
+Components often need to manage, and be managed by, dynamic data. That could get pretty problematic and messy if all of that should go on DOM nodes as direct properties:
 
 <details><summary>Example</summary>
 
@@ -951,7 +951,7 @@ document.bind({ name: 'James Boye', cool: '100%' }, { merge: true });
 console.log(document.bindings); // { signedIn: false, hot: '100%', name: 'James Boye', cool: '100%' }
 ```
 
-**-->** *which also provides an easy way to passing data down a component tree*:
+**-->** *which also provides an easy way to pass data down a component tree*:
 
 ```js
 // Inside a custom element
@@ -961,7 +961,7 @@ connectedCallback() {
 }
 ```
 
-**-->** *and with the Observer API in the picture for reactivity*:
+**-->** *and with the Observer API in the picture all the way for reactivity*:
 
 ```js
 Observer.observe(document.bindings, mutations => {
@@ -993,7 +993,7 @@ node.bindings.style = 'tall-dark'; // Reactive assignment
 delete node.bindings.style; // Reactive deletion
 ```
 
-For mutations at a deeper level to be reactive, the corresponding Observer API method must be used:
+For mutations at a deeper level to be reactive, the corresponding Observer API method would need to be used:
 
 ```js
 Observer.set(document.bindings.app, 'title', 'Demo App!!!');
@@ -1006,7 +1006,7 @@ Observer.deleteProperty(document.bindings.app, 'title');
 
 Component trees on the typical UI often call for more than the normal top-down flow of data that the Bindings API facilitates. A child may require the ability to look up the component tree to directly access specific data, or in other words, get data from "context". This is where a Context API comes in.
 
-Interestingly, the Context API is the underlying resolution mechanism for HTML Imports and Data Binding in OOHTML!
+Interestingly, the Context API is the underlying resolution mechanism behind HTML Imports and Data Binding in OOHTML!
 
 Here, we simply leverage the DOM's existing event system to fire a "request" event and let an arbitrary "provider" in context fulfill the request. This becomes very simple with the Context API which is exposed on the document object and on element instances as a readonly `contexts` property.
 
@@ -1055,7 +1055,7 @@ document.contexts.detach(fakeImportsContext);
 In the current OOHTML implementation, the Context API interfaces are exposed via the global `webqit` object:
 
 ```js
-const { DOMContext, DOMContextRequestEvent, DOMContextResponse } = window.webqit;
+const { DOMContext, DOMContextRequestEvent, DOMContextResponse, DuplicateContextError } = window.webqit;
 ```
 
 Now, by design...
@@ -1097,7 +1097,7 @@ Now, by design...
       static kind = 'html-imports';
       matchEvent(event) {
         // The default request matching algorithm + "detail" matching
-        return super.matchEvent() && event.detail === this.detail;
+        return super.matchEvent(event) && event.detail === this.detail;
       }
       handle(event) {
         console.log(event.detail);
@@ -1150,7 +1150,7 @@ Now, by design...
     }
     ```
 
-    ...and optionally implements a `subscribed` and `unsubscribed` lifecycle hook for when a "live" event enters and leaves the instance:
+    ...or optionally implement a `subscribed` and `unsubscribed` lifecycle hook for when a "live" event enters and leaves the instance:
 
     ```js
     // Define a CustomContext class
@@ -1191,7 +1191,7 @@ Now, by design...
     abortController.abort(); // Which also calls response.abort();
     ```
 
-+ now, when a node in a provider's subtree is suddenly attached an identical provider, any live requests the super provider may be serving are automatically "claimed" by the sub provider:
++ now, where a node in a provider's subtree is suddenly attached an identical provider, any live requests the super provider may be serving are automatically "claimed" by the sub provider:
 
     ```js
     document: // 'fake-provider' here
@@ -1200,7 +1200,7 @@ Now, by design...
       └── body:  // 'fake-provider' here. Our request above is now served from here.
     ```
 
-    And when the sub provider is suddenly detached from said node, any live requests it may have served are automatically hoisted back to super provider.
+    And where the sub provider is suddenly detached from said node, any live requests it may have served are automatically hoisted back to super provider.
 
     ```js
     document: // 'fake-provider' here. Our request above is now served from here.
@@ -1209,11 +1209,11 @@ Now, by design...
       └── body:
     ```
 
-    While, in all, saving the requesting code that "admin" work!
+    While, in all, the requesting code is saved that "admin" work!
 
 </details>
 
-**-->** *all of which gives us the imperative equivalent of declarative context-based features like HTMLImports and Data Binding*:
+**-->** *all of which gives us a standardized API underneath context-based features in HTML - like HTMLImports and Data Binding*:
 
 ```html
 <div contextname="vendor1">
@@ -1260,10 +1260,10 @@ console.log(response.value.title);
 
 ## Polyfill
 
-OOHTML is being developed as something to be used today—via a polyfill. This is an intentional effort that's helping to ensure that the project evolves through a practice-driven process.
+OOHTML is being developed as something to be used today—via a polyfill. This is an intentional effort that has continued to ensure that the proposal evolves through a practice-driven process.
 
 <details><summary>Load from a CDN<br>
-└───────── <a href="https://bundlephobia.com/result?p=@webqit/oohtml"><img align="right" src="https://img.shields.io/badge/21.7%20kB-black"></a></summary>
+└───────── <a href="https://bundlephobia.com/result?p=@webqit/oohtml"><img align="right" src="https://img.shields.io/badge/21.8%20kB-black"></a></summary>
 
 ```html
 <script src="https://unpkg.com/@webqit/oohtml/dist/main.lite.js"></script>
@@ -1355,7 +1355,7 @@ If you'll be going ahead to build a real app with OOHTML, you may want to consid
 
     ...still gives the `window` object in the console.
 
-+ **Scoped CSS**. This feature is only in "concept" implementation and doesn't work right now as is. The current implementation simply wraps `<style scoped>` blocks in an `@scope {}` block - which itself isn't supported in any browser. To try this "concept" implementation, set the `style.strategy` config to `@scope`:
++ **Scoped CSS**. This feature is only in "concept" implementation and doesn't work right now as is. The current implementation simply wraps `<style scoped>` blocks in an `@scope {}` block - which itself isn't supported in any browser *yet*. To try this "concept" implementation, set the `style.strategy` config to `@scope`:
 
     ```html
     <head>
@@ -1382,7 +1382,7 @@ If you'll be going ahead to build a real app with OOHTML, you may want to consid
     </style>
     ```
 
-    A working implementation may be coming soon, but in the meantime, you could try one of the polyfills for `<style scoped>` out there; e.g. [samthor/scoped](https://github.com/samthor/scoped):
+    Browser support for `@scope {}` style blocks may be coming soon, but in the meantime, you could try one of the polyfills for `<style scoped>` out there; e.g. [samthor/scoped](https://github.com/samthor/scoped):
 
     ```html
     <script src="https://unpkg.com/style-scoped/scoped.min.js"></script>
