@@ -608,9 +608,10 @@ Here, we get a comment-based data-binding tag `<?{ }?>` which gives us a regular
 ```js
 <html>
   <head>
-    <title><?{ app.title }?></title>
+    <title></title>
   </head>
   <body>
+    <hi><?{ app.title }?></h1>
     Hi, I'm <?{ name ?? 'Default name' }?>!
     and here's another way to write the same comment: <!--?{ cool }?-->
   </body>
