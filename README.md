@@ -144,7 +144,7 @@ Here, we get the `scoped` attribute for doing just that:
 </div>
 ```
 
-**-->** *with a complementary API that exposes said assets for low-level access*:
+**-->** *with a complementary low-level API that exposes said assets to tools*:
 
 ```js
 let { styleSheets, scripts } = user; // APIs that are analogous to the document.styleSheets, document.scripts properties
@@ -152,10 +152,10 @@ let { styleSheets, scripts } = user; // APIs that are analogous to the document.
 
 <details><summary>Learn more</summary>
 
-Here, the `scoped` has two effects on the `<script>` element:
+Here, the `scoped` attribute has two effects on the `<script>` element:
 
 + The `this` keyword is implicitly bound to the script's host element
-+ The `<script>` element is executed again on each re-insertion to the DOM
++ The `<script>` element is executed again on each re-insertion into the DOM
 
 </details>
 
@@ -251,10 +251,10 @@ Here, we get an `<import>` element that lets us do just that:
 
 <details><summary>All in realtime</summary>
 
-Here, import *refs* are live bindings that are highly sensitive to:
+Here, import *refs* are live bindings that are sensitive to:
 
-+ changes in the *ref* itself (on being defined/undefined/redefined)
-+ changes in the referenced *defs* themselves (on being added/removed/loaded)
++ changes in the *ref* itself (as to getting defined/undefined/redefined)
++ changes in the referenced *defs* themselves (as to becoming available/loaded/unavailable)
 
 And an `<import>` element that has been resolved will self-restore in the event that:
 
@@ -306,7 +306,7 @@ const moduleObject2 = document.import('/foo/nested#fragment2');
 console.log(moduleObject2.value); // divElement
 ```
 
-**-->** *with the `moduleObject.value` property being a live property for when results are delivered asynchronous; e.g. in the case of remote modules*:
+**-->** *with the `moduleObject.value` property being a live property for when results are delivered asynchronously; e.g. in the case of remote modules*:
 
 ```js
 Observer.observe(moduleObject2, 'value', e => {
