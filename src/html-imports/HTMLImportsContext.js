@@ -71,6 +71,11 @@ export default class HTMLImportsContext extends DOMContext {
     }
 
     /**
+     * @unsubscribed()
+     */
+    unsubscribed( event ) { event._controller?.abort(); }
+
+    /**
      * @startRealtime()
      */
     realtimeSources( host ) {

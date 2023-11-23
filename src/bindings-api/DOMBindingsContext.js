@@ -48,4 +48,9 @@ export default class DOMBindingsContext extends DOMContext {
             event.respondWith( descriptor.value );
         }, { live: event.live, signal: event.signal, descripted: true } );
     }
+
+    /**
+     * @unsubscribed()
+     */
+     unsubscribed( event ) { event._controller?.abort(); }
 }
