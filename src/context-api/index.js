@@ -58,7 +58,7 @@ function exposeAPIs( config ) {
         if ( typeof event.detail !== 'object' || typeof event.detail.matchEvent !== 'function' || typeof event.respondWith !== 'function' ) return;
         const claims = new Set;
         waitlist.forEach( subscriptionEvent => {
-            if ( !event.detail.matchEvent( subscriptionEvent ) ) return;
+            if ( !event.target.contains( subscriptionEvent.target ) || !event.detail.matchEvent( subscriptionEvent ) ) return;
             waitlist.delete( subscriptionEvent );
             claims.add( subscriptionEvent );
         } );
