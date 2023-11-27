@@ -150,7 +150,10 @@ function parseInlineBindings( config, str ) {
         const [ left, right ] = splitOuter( str, ':' ).map( x => x.trim() );
         const directive = left[ 0 ], param = left.slice( 1 ).trim();
         const arg = `(${ right })`, $arg = `(${ arg } ?? '')`;
-        if ( directive === '&' ) return `this.style["${ escDouble( param ) }"] = ${ $arg };`;
+        if ( directive === '&' ) {
+            if ( param.startsWith( '--' ) ) return `this.style.setProperty("${ escDouble( param ) }", ${ $arg });`;
+            return `this.style["${ escDouble( param ) }"] = ${ $arg };`;
+        }
         if ( directive === '%' ) return `this.classList.toggle("${ escDouble( param ) }", !!${ arg });`;
         if ( directive === '~' ) {
             if ( param.startsWith( '?' ) ) return `this.toggleAttribute("${ escDouble( param.substring( 1 ).trim() ) }", !!${ arg });`;
