@@ -77,7 +77,7 @@ function realtime( config ) {
                 const { parserParams, compilerParams, runtimeParams } = config.advanced;
                 compiledScript = new ( script.type === 'module' ? QuantumModule : ( QuantumScript || QuantumAsyncScript ) )( textContent, {
                     exportNamespace: `#${ script.id }`,
-                    fileName: window.document.url,
+                    fileName:`${ window.document.url.split( '#' )[ 0 ] }#${ script.id }`,
                     parserParams,
                     compilerParams: { ...compilerParams, startStatic: !script.quantum },
                     runtimeParams,

@@ -52,7 +52,7 @@ function realtime( config ) {
 function createDynamicScope( config, root ) {
     const { webqit: { Observer, DOMBindingsContext } } = this;
     if ( _( root ).has( 'data-binding' ) ) return _( root ).get( 'data-binding' );
-    const scope = {}, abortController = new AbortController;
+    const scope = Object.create( null ), abortController = new AbortController;
     Observer.intercept( scope, {
         get: ( e, recieved, next ) => {
             if ( !( e.key in scope ) ) {
@@ -76,7 +76,7 @@ function cleanup( ...entries ) {
         const { bindings, abortController } = _( root ).get( 'data-binding' ) || {};
         if ( !bindings?.has( node ) ) return;
         bindings.get( node ).state.dispose();
-        bindings.get( node ).signals.forEach( s => s.abort() );
+        bindings.get( node ).signals?.forEach( s => s.abort() );
         bindings.delete( node );
         if ( !bindings.size ) {
             abortController.abort();
@@ -119,33 +119,39 @@ async function mountDiscreteBindings( config, ...entries ) {
     }, [] );
 
     for ( const { textNode, template, anchorNode } of instances ) {
-        const { scope: env, bindings } = createDynamicScope.call( this, config, textNode.parentNode );
-        let source = '';
-        source += `let content = ((${ template.expr }) ?? '') + '';`;
-        source += `this.nodeValue = content;`;
-        if ( anchorNode ) { source += `$anchorNode__.nodeValue = "${ config.tokens.tagStart }${ escDouble( template.expr ) }${ config.tokens.stateStart }" + content.length + "${ config.tokens.stateEnd } ${ config.tokens.tagEnd }";`; }
-        const compiled = new QuantumAsyncFunction( '$signals__', `$anchorNode__`, source, { env } );
-        const signals = [];
-        bindings.set( textNode, { compiled, signals, state: await compiled.call( textNode, signals, anchorNode ), } );
+        const compiled = compileDiscreteBindings( config, template.expr );
+        const { scope, bindings } = createDynamicScope.call( this, config, textNode.parentNode );
+        Object.defineProperty( textNode, '$oohtml_internal_databinding_anchorNode', { value: anchorNode, configurable: true } );
+        bindings.set( textNode, { state: await ( await compiled.bind( textNode, scope ) ).execute(), } );
     }
+}
+
+const discreteParseCache = new Map;
+function compileDiscreteBindings( config, str ) {
+    if ( discreteParseCache.has( str ) ) return discreteParseCache.get( str );
+    let source = `let content = ((${ str }) ?? '') + '';`;
+    source += `this.nodeValue = content;`;
+    source += `if ( this.$oohtml_internal_databinding_anchorNode ) { this.$oohtml_internal_databinding_anchorNode.nodeValue = "${ config.tokens.tagStart }${ escDouble( str ) }${ config.tokens.stateStart }" + content.length + "${ config.tokens.stateEnd } ${ config.tokens.tagEnd }"; }`;
+    const { webqit: { QuantumAsyncScript } } = this;
+    const compiled = new QuantumAsyncScript( source );
+    discreteParseCache.set( str, compiled );
+    return compiled;
 }
 
 async function mountInlineBindings( config, ...entries ) {
-    const { webqit: { QuantumAsyncFunction } } = this;
     for ( const node of entries ) {
-        const source = parseInlineBindings( config, node.getAttribute( config.attr.expr ) );
-        const { scope: env, bindings } = createDynamicScope.call( this, config, node );
-        const compiled = new QuantumAsyncFunction( '$signals__', source, { env } );
+        const compiled = compileInlineBindings( config, node.getAttribute( config.attr.expr ) );
+        const { scope, bindings } = createDynamicScope.call( this, config, node );
         const signals = [];
-        bindings.set( node, { compiled, signals, state: await compiled.call( node, signals ), } );
+        Object.defineProperty( node, '$oohtml_internal_databinding_signals', { value: signals, configurable: true } );
+        bindings.set( node, { signals, state: await ( await compiled.bind( node, scope ) ).execute(), } );
     }
 }
 
-const parseCache = new Map;
-function parseInlineBindings( config, str ) {
-    if ( parseCache.has( str ) ) return parseCache.get( str );
+const inlineParseCache = new Map;
+function compileInlineBindings( config, str ) {
+    if ( inlineParseCache.has( str ) ) return inlineParseCache.get( str );
     const validation = {};
-    const escDouble = str => str.replace(/"/g, '\\"');
     const source = splitOuter( str, ';' ).map( str => {
         const [ left, right ] = splitOuter( str, ':' ).map( x => x.trim() );
         const directive = left[ 0 ], param = left.slice( 1 ).trim();
@@ -177,7 +183,7 @@ function parseInlineBindings( config, str ) {
                 return `
                 let $iteratee__ = ${ iteratee };
                 let $import__ = this.${ config.HTML_IMPORTS.context.api.import }( ${ importSpec.trim() }, true );
-                $signals__.push( $import__ );
+                this.$oohtml_internal_databinding_signals?.push( $import__ );
 
                 if ( $import__.value && $iteratee__ ) {
                     let $existing__ = new Map;
@@ -210,8 +216,10 @@ function parseInlineBindings( config, str ) {
         }
         if ( str.trim() ) throw new Error( `Invalid binding: ${ str }.` );
     } ).join( `\n` );
-    parseCache.set( str, source );
-    return source;
+    const { webqit: { QuantumAsyncScript } } = this;
+    const compiled = new QuantumAsyncScript( source );
+    inlineParseCache.set( str, compiled );
+    return compiled;
 }
 
 export function splitOuter( str, delim ) {
@@ -228,3 +236,5 @@ export function splitOuter( str, delim ) {
         return [ quote, depth, splits ]
     }, [ null, 0, [ '' ] ] )[ 2 ].reverse();
 }
+
+const escDouble = str => str.replace(/"/g, '\\"');
