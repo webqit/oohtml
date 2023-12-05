@@ -9,7 +9,7 @@
 
 Object-Oriented HTML (OOHTML) is a set of features that extend standard HTML and the DOM to enable authoring modular, reusable and reactive markup - with a "buildless" and intuitive workflow as design goal! This project revisits the HTML problem space to solve for an object-oriented approach to HTML!
 
-Building Single Page Applications? OOHTML is a special love letter! Writing Web Components? Now you can do that with zero tooling! Love vanilla HTML but can't go far with that? Now you can!
+Building Single Page Applications? OOHTML is a special love letter! Writing Web Components? Now you can do so with zero tooling! Love vanilla HTML but can't go far with that? Well, now you can!
 
 <details><summary>Versions</summary>
 
