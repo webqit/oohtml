@@ -128,7 +128,7 @@ console.log(window.foo); // div
 
 We often need a way to keep component-specific stylesheets and scripts [scoped to a component](https://vuejs.org/guide/scaling-up/sfc.html). **This is especially crucial to "page components" in an SPA architecture.**
 
-Here, we get the `scoped` attribute for doing just that:
+Here, we get the `scoped` attribute for that:
 
 ```html
 <div>
@@ -264,7 +264,7 @@ foo.addEventListener('error', errorCallback);
 
 ### Declarative Module Imports
 
-HTML snippets should be reusable entire out of HTML! So, we get an `<import>` element that lets us do just that:
+HTML snippets should be reusable entirely out of HTML! So, we get an `<import>` element that lets us do just that:
 
 ```html
 <body>
