@@ -12,7 +12,7 @@ export default class HTMLModule {
      * @instance
      */
     static instance( host ) {
-        return _( host ).get( 'exportsmanager::instance' ) || new this( host );
+        return _( host ).get( 'defsmanager::instance' ) || new this( host );
     }
 
     /**
@@ -20,14 +20,14 @@ export default class HTMLModule {
      */
     constructor( host, parent = null, level = 0 ) {
         const { window } = env, { webqit: { realdom, oohtml: { configs } } } = window;
-        _( host ).get( `exportsmanager::instance` )?.dispose();
-        _( host ).set( `exportsmanager::instance`, this );
+        _( host ).get( `defsmanager::instance` )?.dispose();
+        _( host ).set( `defsmanager::instance`, this );
         this.host = host;
         this.config = configs.HTML_IMPORTS;
         this.parent = parent;
         this.level = level;
-        this.exports = getExports( this.host );
-        this.defId = ( this.host.getAttribute( this.config.template?.attr.moduledef ) || '' ).trim();
+        this.defs = getExports( this.host );
+        this.defId = ( this.host.getAttribute( this.config.attr.def ) || '' ).trim();
         this.validateDefId( this.defId );
         // ----------
         this.realtimeA = realdom.realtime( this.host.content ).children( record => {
@@ -60,7 +60,7 @@ export default class HTMLModule {
     }
 
     /**
-     * Maps module contents as exports.
+     * Maps module contents as defs.
      * 
      * @param Array     entries
      * @param Bool      isConnected
@@ -69,12 +69,12 @@ export default class HTMLModule {
      */
     export( entries, isConnected ) {
         const { window } = env, { webqit: { Observer } } = window;
-        let dirty, allFragments = this.exports[ '#' ] || [];
-        Observer.batch( this.exports, () => {
+        let dirty, allFragments = this.defs[ '#' ] || [];
+        Observer.batch( this.defs, () => {
             entries.forEach( entry => {
                 if ( entry.nodeType !== 1 ) return;
                 const isTemplate = entry.matches( this.config.templateSelector );
-                const defId = ( entry.getAttribute( isTemplate ? this.config.template.attr.moduledef : this.config.template.attr.fragmentdef ) || '' ).trim();
+                const defId = ( entry.getAttribute( isTemplate ? this.config.attr.def : this.config.attr.fragmentdef ) || '' ).trim();
                 if ( isConnected ) {
                     if ( isTemplate && defId ) { new HTMLModule( entry, this.host, this.level + 1 ); }
                     else {
@@ -83,7 +83,7 @@ export default class HTMLModule {
                     }
                     if ( defId ) {
                         this.validateDefId( defId );
-                        Observer.set( this.exports, ( !isTemplate && '#' || '' ) + defId, entry );
+                        Observer.set( this.defs, ( !isTemplate && '#' || '' ) + defId, entry );
                     }
                 } else {
                     if ( isTemplate && defId ) { HTMLModule.instance( entry ).dispose(); }
@@ -91,10 +91,10 @@ export default class HTMLModule {
                         allFragments = allFragments.filter( x => x !== entry );
                         dirty = true;
                     }
-                    if ( defId ) Observer.deleteProperty( this.exports, ( !isTemplate && '#' || '' ) + defId );
+                    if ( defId ) Observer.deleteProperty( this.defs, ( !isTemplate && '#' || '' ) + defId );
                 }
             } );
-            if ( dirty ) Observer.set( this.exports, '#', allFragments );
+            if ( dirty ) Observer.set( this.defs, '#', allFragments );
         } );
     }
 
@@ -114,7 +114,7 @@ export default class HTMLModule {
             $loadingPromise = promise.then( () => interception.remove() ); // Set
         };
         const loading = ( record2.value || '' ).trim();
-        const interception = Observer.intercept( this.exports, 'get', async ( descriptor, recieved, next ) => {
+        const interception = Observer.intercept( this.defs, 'get', async ( descriptor, recieved, next ) => {
             if ( loading === 'lazy' ) { loadingPromise( this.load( src, true ) ); }
             await loadingPromise();
             return next();
@@ -162,22 +162,22 @@ export default class HTMLModule {
     evalInheritance( ) {
         if ( !this.parent ) return [];
         const { window: { webqit: { Observer } } } = env;
-        let extendedId = ( this.host.getAttribute( this.config.template.attr.extends ) || '' ).trim();
-        let inheritedIds = ( this.host.getAttribute( this.config.template.attr.inherits ) || '' ).trim();
+        let extendedId = ( this.host.getAttribute( this.config.attr.extends ) || '' ).trim();
+        let inheritedIds = ( this.host.getAttribute( this.config.attr.inherits ) || '' ).trim();
         const handleInherited = records => {
             records.forEach( record => {
-                if ( Observer.get( this.exports, record.key ) !== record.oldValue ) return;
+                if ( Observer.get( this.defs, record.key ) !== record.oldValue ) return;
                 if ( [ 'get'/*initial get*/, 'set', 'def' ].includes( record.type ) ) {
-                    Observer[ record.type.replace( 'get', 'set' ) ]( this.exports, record.key, record.value );
+                    Observer[ record.type.replace( 'get', 'set' ) ]( this.defs, record.key, record.value );
                 } else if ( record.type === 'delete' ) {
-                    Observer.deleteProperty( this.exports, record.key );
+                    Observer.deleteProperty( this.defs, record.key );
                 }
             } );
         };
         const realtimes = [];
         const parentExportsObj = getExports( this.parent );
         if ( extendedId ) {
-            realtimes.push( Observer.reduce( parentExportsObj, [ extendedId, this.config.template.api.exports, Infinity ], Observer.get, handleInherited, { live: true } ) );
+            realtimes.push( Observer.reduce( parentExportsObj, [ extendedId, this.config.api.defs, Infinity ], Observer.get, handleInherited, { live: true } ) );
         }
         if ( ( inheritedIds = inheritedIds.split( ' ' ).map( id => id.trim() ).filter( x => x ) ).length ) {
             realtimes.push( Observer.get( parentExportsObj, inheritedIds, handleInherited, { live: true } ) );
@@ -194,7 +194,7 @@ export default class HTMLModule {
         this.realtimeA.disconnect();
         this.realtimeB.disconnect();
         this.realtimeC.forEach( r => ( r instanceof Promise ? r.then( r => r.abort() ) : r.abort() ) );
-        Object.entries( this.exports ).forEach( ( [ key, entry ] ) => {
+        Object.entries( this.defs ).forEach( ( [ key, entry ] ) => {
             if ( key.startsWith( '#' ) ) return;
             HTMLModule.instance( entry ).dispose();
         } );

@@ -17,11 +17,16 @@ export function delay( duration, callback = undefined ) {
 }
 
 export function createDocument( head = '', body = '', callback = null, ) {
+    return createDocumentPrefixed( '', ...arguments );
+}
+
+export function createDocumentPrefixed( prefix, head = '', body = '', callback = null, ) {
     const skeletonDoc = `
     <!DOCTYPE html>
     <html>
         <head>
         <meta name="$q-compiler-url" content="../quantum-js/dist/compiler.js">
+        ${ prefix ? `<meta name="webqit" content="prefix=${ prefix };">` : `` }
         <script ssr src="/dist/main.lite.js"></script>
         ${ head }
         </head>

@@ -126,7 +126,7 @@ console.log(window.foo); // div
 
 ### Style and Script Scoping
 
-We often need a way to keep component-specific stylesheets and scripts [scoped to a component](https://vuejs.org/guide/scaling-up/sfc.html). **This is especially crucial to Page Components in an SPA architecture.**
+We often need a way to keep component-specific stylesheets and scripts [scoped to a component](https://vuejs.org/guide/scaling-up/sfc.html). **This is especially crucial to "page components" in an SPA architecture.**
 
 Here, we get the `scoped` attribute for doing just that:
 
@@ -161,9 +161,42 @@ Here, the `scoped` attribute has two effects on the `<script>` element:
 
 ## HTML Imports
 
-HTML Imports is a realtime *import* system for HTML that's drawn entirely on HTML - and worlds apart from [the abandoned `<link type="import">` feature](https://www.w3.org/TR/html-imports/) and the [HTML Modules proposal](https://github.com/WICG/webcomponents/blob/gh-pages/proposals/html-modules-explainer.md)! **Something like it is the [`<defs>`](https://developer.mozilla.org/en-US/docs/Web/SVG/Element/defs) and [`<use>`](https://developer.mozilla.org/en-US/docs/Web/SVG/Element/use) system in SVG.**
+HTML Imports is a realtime *import* system for HTML that's drawn entirely on HTML - and that's worlds apart from [the abandoned `<link type="import">` feature](https://www.w3.org/TR/html-imports/) and the [HTML Modules proposal](https://github.com/WICG/webcomponents/blob/gh-pages/proposals/html-modules-explainer.md)! **Something like it is the [`<defs>`](https://developer.mozilla.org/en-US/docs/Web/SVG/Element/defs) and [`<use>`](https://developer.mozilla.org/en-US/docs/Web/SVG/Element/use) system in SVG.**
 
-OOHTML makes this possible in just simple conventions - via a new `def` attribute and a complementary new `<import>` element!
+Here, we get a way to have both the definition and usage of a snippet based out of *same* document:
+
+```html
+<head>
+
+  <template def="foo">
+    <div></div>
+  </template>
+
+</head>
+<body>
+
+  <import ref="foo"></import>
+
+</body>
+```
+
+...and optionally support remote documents without a change in paradigm:
+
+```html
+<head>
+
+  <template def="foo" src="/foo.html"></template>
+
+</head>
+<body>
+
+  <import ref="foo"></import>
+  
+</body>
+```
+
+
+OOHTML makes this possible in a simple new `def` attribute and a complementary new `<import>` element!
 
 ### Module Definition
 
@@ -201,9 +234,9 @@ Here, we get the `def` attribute for defining those - both at the `<template>` e
 
 ### Remote Modules
 
-We shouldn't need a different mechanism - like `fetch('/foo.html')` - to work with remote content.
+We shouldn't need a different mechanism to work with remote content.
 
-Here, we get remote-loading modules with same `<template>` element using the `src` attribute:
+Here, OOHTML introduces an `src` attribute that lets us have self-loading `<template>` elements:
 
 ```html
 <template def="foo" src="/foo.html"></template>
@@ -222,7 +255,7 @@ Here, we get remote-loading modules with same `<template>` element using the `sr
 <div def="fragment2"></div>
 ```
 
-**-->** *which just borrows from the `src` in elements like `<img>`; terminating with either a `load` or an `error` event*:
+**-->** *which just draws on the existing semantics of `src` in elements like `<img>`; terminating with either a `load` or an `error` event*:
 
 ```js
 foo.addEventListener('load', loadCallback);
@@ -231,9 +264,7 @@ foo.addEventListener('error', errorCallback);
 
 ### Declarative Module Imports
 
-HTML snippets should be reusable declaratively!
-
-Here, we get an `<import>` element that lets us do just that:
+HTML snippets should be reusable entire out of HTML! So, we get an `<import>` element that lets us do just that:
 
 ```html
 <body>
@@ -253,8 +284,8 @@ Here, we get an `<import>` element that lets us do just that:
 
 Here, import *refs* are live bindings that are sensitive to:
 
-+ changes in the *ref* itself (as to later becoming defined/undefined/redefined)
-+ changes in the referenced *defs* themselves (as to later becoming available/loaded/unavailable)
++ changes in the *ref* itself (as to *refs* that are later defined/undefined/redefined)
++ changes in the referenced *defs* themselves (as to these later becoming available/loaded/unavailable)
 
 And an `<import>` element that has been resolved will self-restore in the event that:
 
@@ -433,14 +464,14 @@ Here, we get module nesting with inheritance to facilitate more reusability:
 
 We should be able to have *relative* import refs that resolve against local contexts in the document tree.
 
-Here, we get just that - as "Imports Contexts", which could be:
+Here, we call these "Imports Contexts", and these could be:
 
 + Simple Base Path Contexts ([below](#base-path-contexts))
 + Scoped Module Contexts ([below](#scoped-module-contexts))
 + Named Contexts ([below](#named-contexts))
 + Extended Scoped Module Contexts ([below](#extended-scoped-module-contexts))
 
-And to facilitate thinking in contexts, we also get an `Element.prototype.import()` API for context-based module imports.
+And to facilitate working with contexts, we also get an `Element.prototype.import()` API that is context-aware.
 
 #### "Base Path" Contexts
 
@@ -493,14 +524,14 @@ const response = contextElement.import('#fragment1'); // Relative path (beginnin
 ```js
 // Using the HTMLImports API to import from context
 const contextElement = document.querySelector('main');
-const response = contextElement.import('#fragment1'); // Relative path (beginning without a slash), resolving to: /foo/nested#fragment1
+const response = contextElement.import('#fragment2'); // Relative path (beginning without a slash), resolving to: /foo/nested#fragment2
 ```
 
 #### "Scoped Module" Contexts
 
 Some modules will only be relevant within a specific context in the page, and those wouldn't need to have a business with the global scope.
 
-Here, we get the `scoped` attribute for scoping those to their respective contexts, to give us an *object-scoped* module system (like what Scoped Registries seek to be to Custom Elements):
+Here, we get the `scoped` attribute for scoping those to their respective hosts, to give us an *object-scoped* module system (like what Scoped Registries seek to be to Custom Elements):
 
 ```html
 <section> <!-- Host object -->
@@ -522,7 +553,7 @@ Here, we get the `scoped` attribute for scoping those to their respective contex
 ```js
 // Using the HTMLImports API for local import
 const contextElement = document.querySelector('div');
-const localModule = moduleHost.import('#fragment1'); // Relative path (beginning without a slash), resolving to the local module: foo#fragment1
+const localModule = moduleHost.import('foo#fragment1'); // Relative path (beginning without a slash), resolving to the local module: foo#fragment1
 ```
 
 ```js
@@ -588,22 +619,22 @@ Scoped Module Contexts may also have a Base Path Context that they inherit from:
 ```js
 // Using the HTMLImports API
 const contextElement = document.querySelector('div');
-const result = contextElement.import('#fragment2'); // the local module: foo#fragment2, and if not found, the inherited module: /bar/nested#fragment2
+const result = contextElement.import('foo#fragment2'); // the local module: foo#fragment2, and if not found, the inherited module: /bar/nested#fragment2
 ```
 
 </details>
 
 ## Data Binding
 
-Data binding is about declaratively binding the UI to application data, wherein the relevant parts of the UI *automatically* update as application state changes.
+Data binding is a declarative approach to binding the UI to application data, wherein the relevant parts of the UI *automatically* update as application state changes.
 
 OOHTML makes this possible in just simple conventions - via a new comment-based data-binding syntax `<?{ }?>` and a complementary new `expr` attribute!
 
-And there's one more: Quantum Scripts for when we need to write extended reactive logic on the UI!
+And for when we need to write extended reactive logic on the UI, a perfect answer: Quantum Scripts!
 
 ### Discrete Data-Binding
 
-Here, we get a comment-based data-binding tag `<?{ }?>` which gives us a regular HTML comment but also an insertion point for application data:
+Here, we get a comment-based data-binding tag `<?{ }?>` (or `<!--?{ }?-->`), **which goes as a regular HTML comment** but also an insertion point for application data:
 
 ```js
 <html>
@@ -620,7 +651,7 @@ Here, we get a comment-based data-binding tag `<?{ }?>` which gives us a regular
 
 <details><summary>Resolution details</summary>
 
-Here, JavaScript references are resolved from the closest node up the document tree that exposes a corresponding *binding* on its Bindings API ([discussed below](#bindings-api)). Thus, for the above markup, our underlying data structure could be something like the below:
+Here, JavaScript references are resolved from the closest node up the document tree that exposes a corresponding *binding* on its Bindings API ([discussed below](#bindings-api)). For the above markup, our underlying data structure could be something like the below:
 
 ```js
 document.bind({ name: 'James Boye', cool: '100%', app: { title: 'Demo App' } });
@@ -668,7 +699,7 @@ Now, on getting to the client, that extra bit of information gets decoded, and o
 
 ### Inline Data-Binding
 
-For attributes, OOHTML deviates from the usual but problematic idea of bringing markup-style bindings into attributes: `title="Hello { titleValue }"`; as though attributes had the same semantics as markup. Instead, we get a dedicated "expressions" attribute - `expr` - for a key/value data-binding approach:
+For attribute-based data binding, OOHTML deviates from the usual (and problematic) idea of bringing markup-style bindings into attribute texts: `title="Hello { titleValue }"`, **as though attributes had the same semantics as markup**. Instead, we get a dedicated "expressions" attribute - `expr` - for a nifty, key/value data-binding language:
 
 ```html
 <div expr="<directive> <param>: <arg>;"></div>
@@ -727,7 +758,7 @@ For attributes, OOHTML deviates from the usual but problematic idea of bringing 
 
 <details><summary>Resolution details</summary>
 
-Here, JavaScript references are resolved from the closest node up the document tree that exposes a corresponding *binding* on its Bindings API ([discussed below](#bindings-api)). Thus, for the above CSS bindings, our underlying data structure could be something like the below:
+Here, JavaScript references are resolved from the closest node up the document tree that exposes a corresponding *binding* on its Bindings API ([discussed below](#bindings-api)). For the above CSS bindings, our underlying data structure could be something like the below:
 
 ```js
 document.bind({ someColor: 'green', someBgColor: 'yellow' });
@@ -882,7 +913,7 @@ But while that is automatic, DOM event handlers bound via `addEventListener()` w
 
 ## Data Plumbing
 
-Components often need to manage, and be managed by, dynamic data. That could get pretty problematic and messy if all of that should go on DOM nodes as direct properties:
+Components often need to manage, and be driven by, dynamic application state. That could get pretty problematic and messy if all of that should go on DOM nodes as direct properties:
 
 <details><summary>Example</summary>
 
@@ -1210,11 +1241,11 @@ Now, by design...
       └── body:
     ```
 
-    While, in all, the requesting code is saved that "admin" work!
+    While, in all, the requesting code is spared all of that "admin" work!
 
 </details>
 
-**-->** *all of which gives us a standardized API underneath context-based features in HTML - like HTMLImports and Data Binding*:
+**-->** *all of which gives us a standardized API across context-based features in HTML - like HTMLImports and Data Binding*:
 
 ```html
 <div contextname="vendor1">
@@ -1261,7 +1292,7 @@ console.log(response.value.title);
 
 ## Polyfill
 
-OOHTML is being developed as something to be used today—via a polyfill. This is an intentional effort that has continued to ensure that the proposal evolves through a practice-driven process.
+OOHTML is being developed as something to be used today—via a polyfill. This is an intentional effort that in turn ensures that the proposal evolves through a practice-driven process.
 
 <details><summary>Load from a CDN<br>
 └───────── <a href="https://bundlephobia.com/result?p=@webqit/oohtml"><img align="right" src="https://img.shields.io/badge/21.8%20kB-black"></a></summary>
@@ -1318,7 +1349,7 @@ If you'll be going ahead to build a real app with OOHTML, you may want to consid
 
 + **Scoped/Quantum Scripts**. This feature is an extension of [Quantum JS](https://github.com/webqit/quantum-js). While the main OOHTML build is based on the main Quantum JS APIs, a companion "OOHTML Lite" build is also available based on the [Quantum JS Lite](https://github.com/webqit/quantum-js#quantum-js-lite) edition. The trade-off is in the execution timing of `<script quantum></script>` and `<script scoped></script>` elements: being "synchronous/blocking" with the former, and "asynchronous/non-blocking" with the latter! (See [`async`/`defer`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script#attributes).)
 
-    Of the two, the "OOHTML Lite" edition is the recommend option (as used above) for faster load times unless there's a requirment to have classic scripts follow their [native synchronous timing](https://html.spec.whatwg.org/multipage/parsing.html#scripts-that-modify-the-page-as-it-is-being-parsed), in which case you'd need the main OOHTML build:
+    Of the two, the "OOHTML Lite" edition is the recommend option on web pages (as used above) for faster load times unless there's a requirment to emulate the [native synchronous timing](https://html.spec.whatwg.org/multipage/parsing.html#scripts-that-modify-the-page-as-it-is-being-parsed) of classic scripts, in which case you'd need the main OOHTML build:
 
     ```html
     <head>
@@ -1389,17 +1420,86 @@ If you'll be going ahead to build a real app with OOHTML, you may want to consid
     <script src="https://unpkg.com/style-scoped/scoped.min.js"></script>
     ```
 
-+ **HTML Imports**. The attribute names for exposing reusable modules and for referencing them - the `def` and `ref` keywords, respectively - aren't finalized. While the principle of operation remains, these attributes may be renamed in subsequent iterations. But the polyfill is designed to always defer to any syntax that has been explicitly specified using a meta tag. Here's an example:
++ **Syntax**. The syntax for attribute names and API names across features - e.g. the `def` and `ref` attributes, the `expr` attribute - isn't finalized, and may change on subsequent iterations, albeit with same principle of operation. But the polyfill is designed to be configurable via meta tags, and to honour any such "overrides". Here's an example:
 
     ```html
     <head>
-      <meta name="html-imports" content="template.attr.moduledef=def; template.attr.fragmentdef=def; import.attr.moduleref=ref;"> <!-- Must come before the polyfil -->
+      <!-- Configurations come before the polyfil -->
+      <meta name="data-binding" content="attr.expr=expr;">
+      <meta name="namespaced-html" content="attr.id=id;">
+      <meta name="html-imports" content="attr.def=def; attr.ref=ref;">
       <script src="https://unpkg.com/@webqit/oohtml/dist/main.js"></script>
     <head>
     ```
 
-    Now, even when the default attribute names change, your `def` and `ref` implementation will still work:
- 
+    Now, even when the default syntax change, your `def`, `ref`, etc. overrides will keep your implementation intact.
+
+    Additionally, you could employ a global prefix in your implementation:
+
+    ```html
+    <meta name="webqit" content="prefix=wq;">
+    ```
+
+    ...which automatically applies to all `webqit` attributes and APIs (with the exception of the `scoped`, `quantum`, and `data-*` attributes), such that:
+
+    + `<template def="foo"></template>` now becomes: `<template wq-def="foo"></template>`,
+    + `<import ref="foo"></import>` now becomes: `<wq-import wq-ref="foo"></wq-import>`,
+    + `document.import()` now becomes: `document.wqImport()`,
+    + `document.bind()` now becomes: `document.wqBind()`,
+    + `document.bindings` now becomes: `document.wqBindings`,
+    + etc.
+
+    The following is the full syntax table.
+
+    Spec: **data-binding**
+
+    | Config | Default Syntax | Description |
+    | :----- | :------------- | :---------- |
+    | `attr.expr` | `expr` | The "expr" attribute for inline data binding. ([Docs](#inline-data-binding)) |
+    | `attr.itemIndex` | `data-index` | The "item index" attribute for assigning indexes to list items. ([Docs](#inline-data-binding))  |
+
+    Spec: **bindings-api**
+
+    | Config | Default Syntax | Description |
+    | :----- | :------------- | :---------- |
+    | `attr.bindingsreflection` | `bindings` | The attribute for exposing an element's bindings. |
+    | `api.bind` | `bind` | The `document.bind()` and `Element.prototype.bind()` methods. ([Docs](#the-bindings-api)) |
+    | `api.bindings` | `bindings` | The `document.bindings` and `Element.prototype.bindings` object properties. ([Docs](#the-bindings-api)) |
+
+    Spec: **context-api**
+
+    | Config | Default Syntax | Description |
+    | :----- | :------------- | :---------- |
+    | `attr.contextname` | `contextname` | The "context name" attribute on arbitrary elements. ([Docs](#the-context-api)) |
+    | `api.contexts` | `contexts` | The `document.contexts` and `Element.prototype.contexts` object properties. ([Docs](#the-context-api)) |
+
+    Spec: **html-imports**
+
+    | Config | Default Syntax | Description |
+    | :----- | :------------- | :---------- |
+    | `elements.import` | `import` | The tag name for "import" elements. ([Docs](#html-imports)) |
+    | `attr.def` | `def` | The "definition" attribute on the `<template>` elements. ([Docs](#module-definition)) |
+    | `attr.fragmentdef` | *Inherits the value of `attr.def`* | The "definition" attribute on a `<template>`'s contents. ([Docs](#module-definition)) |
+    | `attr.extends` | `extends` | The "extends" attribute for extending definitions. ([Docs](#module-inheritance)) |
+    | `attr.inherits` | `inherits` | The "inherits" attribute for inheriting definitions. ([Docs](#module-inheritance)) |
+    | `attr.ref` | `ref` | The "import ref" attribute on "import" elements. ([Docs](#declarative-module-imports)) |
+    | `attr.importscontext` | `importscontext` | The "importscontext" attribute on arbitrary elements. ([Docs](#imports-contexts)) |
+    | `api.def` | `def` | The readonly string property for accessing an element's "def" value. ([Docs](#module-definition)) |
+    | `api.defs` | `defs` | The readonly object property for accessing a `<template>`'s list of definitions. ([Docs](#module-definition)) |
+    | `api.import` | `import` | The `document.import()` and `Element.prototype.import()` methods. ([Docs](#imperative-module-imports)) |
+
+    Spec: **namespaced-html**
+
+    | Config | Default Syntax | Description |
+    | :----- | :------------- | :---------- |
+    | `attr.namespace` | `namespace` | The "namespace" attribute on arbitrary elements. ([Docs](#namespacing)) |
+    | `attr.id` | `id` | The "id" attribute on arbitrary elements. ([Docs](#namespacing)) |
+    | `api.namespace` | `namespace` | The "namespace" object property on arbitrary elements. ([Docs](#namespacing)) |
+
+    Spec: **scoped-css** (TODO)
+
+    Spec: **scoped-js** (TODO)
+
 </details>
 
 ## Examples

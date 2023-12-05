@@ -9,8 +9,7 @@ describe(`Namespaced HTML`, function() {
 
     describe( `Basic...`, async function() {
         
-        const head = `
-        <meta name="oohtml" content="attr.id=id" />`;
+        const head = ``;
         const body = `
         <div id="main" namespace>
             <div id="child"></div>

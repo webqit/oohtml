@@ -3,7 +3,7 @@
  * @imports
  */
 import { expect } from 'chai';
-import { createDocument, mockRemoteFetch, delay } from './index.js';
+import { createDocument, createDocumentPrefixed, mockRemoteFetch, delay } from './index.js';
 
 describe(`HTML Imports`, function() {
 
@@ -38,73 +38,73 @@ describe(`HTML Imports`, function() {
     describe( `Dynamic...`, function() {
         
         const head = `
-        <template def="temp0">
+        <template wq-def="temp0">
             <!-- ------- -->
             <p>Hello world Export</p>
             <p>Hellort</p>
-            <input def="input" />
-            <template def="temp1">
-                <textarea def="input"></textarea>
-                <template def="temp2">
-                    <select def="input"></select>
+            <input wq-def="input" />
+            <template wq-def="temp1">
+                <textarea wq-def="input"></textarea>
+                <template wq-def="temp2">
+                    <select wq-def="input"></select>
                 </template>
             </template>
             <!-- ------- -->
-            <template def="_landing1">
-                <div def="main.html">a</div>
-                <template def="_landing2">
-                    <div def="main.html">b</div>
-                    <template def="_docs">
-                        <div def="main.html">c</div>
+            <template wq-def="_landing1">
+                <div wq-def="main.html">a</div>
+                <template wq-def="_landing2">
+                    <div wq-def="main.html">b</div>
+                    <template wq-def="_docs">
+                        <div wq-def="main.html">c</div>
                     </template>
                 </template>
             </template>
             <!-- ------- -->
-            <template def="landing1" extends="_landing1">
-                <div def="README.md">1</div>
-                <template def="landing2" extends="_landing2">
-                    <div def="README.md">2</div>
-                    <template def="docs" extends="_docs">
-                        <div def="README.md">3</div>
+            <template wq-def="landing1" wq-extends="_landing1">
+                <div wq-def="README.md">1</div>
+                <template wq-def="landing2" wq-extends="_landing2">
+                    <div wq-def="README.md">2</div>
+                    <template wq-def="docs" wq-extends="_docs">
+                        <div wq-def="README.md">3</div>
                     </template>
                 </template>
             </template>
             <!-- ------- -->
         </template>`;
         const body = `
-        <import ref="temp0/uuu"></import>`;
-        const { document } = createDocument( head, body );
-        const importEl = document.querySelector( 'import' );
+        <wq-import wq-ref="temp0/uuu"></wq-import>`;
+        const { document } = createDocumentPrefixed( 'wq', head, body );
+        const importEl = document.querySelector( 'wq-import' );
 
         it ( `<import> element should not be resolved: no match for given import ID...`, async function() {
-            expect( document.body.firstElementChild.nodeName ).to.eq( 'IMPORT' );
+            expect( document.body.firstElementChild.nodeName ).to.eq( 'WQ-IMPORT' );
         } );
 
         it ( `<import> element should be automatically resolved: new import ID is set...`, async function() {
-            importEl.setAttribute( 'ref', 'temp0#input' );
+            importEl.setAttribute( 'wq-ref', 'temp0#input' );
             expect( document.body.firstElementChild.nodeName ).to.eq( 'INPUT' );
         } );
 
         it ( `<import> element should be automatically resolved: new moduleref is set - nested...`, async function() {
-            importEl.setAttribute( 'ref', 'temp0/temp1#input' );
+            importEl.setAttribute( 'wq-ref', 'temp0/temp1#input' );
             expect( document.body.firstElementChild.nodeName ).to.eq( 'TEXTAREA' );
         } );
 
         it ( `<import> element should be automatically resolved: moduleref is unset - should now be inherited from <body>...`, async function() {
-            importEl.setAttribute( 'ref', '#input' );
-            expect( document.body.firstElementChild.nodeName ).to.eq( 'IMPORT' );
-            document.body.setAttribute( 'importscontext', 'temp0/temp1/temp2' );
+            importEl.setAttribute( 'wq-ref', '#input' );
+            expect( document.body.firstElementChild.nodeName ).to.eq( 'WQ-IMPORT' );
+            document.body.setAttribute( 'wq-importscontext', 'temp0/temp1/temp2' );
             expect( document.body.firstElementChild.nodeName ).to.eq( 'SELECT' );
         } );
 
         it ( `<import> element should be automatically resolved: moduleref at <body> is changed...`, async function() {
-            document.body.setAttribute( 'importscontext', 'temp0' );
+            document.body.setAttribute( 'wq-importscontext', 'temp0' );
             expect( document.body.firstElementChild.nodeName ).to.eq( 'INPUT' );
         } );
 
         it ( `<import> element should be automatically RESTORED: slotted element is removed from DOM...`, async function() {
             document.body.querySelector( 'input' ).remove();
-            expect( document.body.firstElementChild.nodeName ).to.eq( 'IMPORT' );
+            expect( document.body.firstElementChild.nodeName ).to.eq( 'WQ-IMPORT' );
         } );
         
     } );
@@ -170,7 +170,7 @@ describe(`HTML Imports`, function() {
             const routingElement = document.body.firstElementChild;
             expect( routingElement.firstElementChild.nodeName ).to.eq( 'TEXTAREA' );
             document.import( 'temp0/temp1', temp1 => {
-                const textarea = temp1.exports[ '#input' ];
+                const textarea = temp1.defs[ '#input' ];
                 textarea.remove();
                 expect( routingElement.firstElementChild.nodeName ).to.eq( 'IMPORT' );
                 temp1.content.prepend( textarea );

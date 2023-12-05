@@ -12,7 +12,7 @@ import { _, _init } from '../util.js';
  */
 export default function init( $config = {} ) {
     const { config, window } = _init.call( this, 'bindings-api', $config, {
-        context: { attr: { bindingsreflection: 'bindings' }, },
+        attr: { bindingsreflection: 'bindings' },
         api: { bind: 'bind', bindings: 'bindings', },
     } );
     window.webqit.DOMBindingsContext = DOMBindingsContext;
@@ -34,11 +34,11 @@ function getBindings( config, node ) {
             // Reflection
             const props = Object.keys( bindingsObj );
             const targetNode = node === window.document ? window.document.documentElement : node;
-            const bindingsReflection = config.context.attr.bindingsreflection;
+            const bindingsReflection = config.attr.bindingsreflection;
             if ( props.length && bindingsReflection ) {
-                targetNode.setAttribute( config.context.attr.bindingsreflection, props.join( ' ') );
+                targetNode.setAttribute( config.attr.bindingsreflection, props.join( ' ') );
             } else if ( bindingsReflection ) {
-                targetNode.toggleAttribute( config.context.attr.bindingsreflection, false );
+                targetNode.toggleAttribute( config.attr.bindingsreflection, false );
             }
             // Re: DOMBindingsContext
             const contextsApi = node[ ctxConfig.api.contexts ];

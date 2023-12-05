@@ -12,11 +12,9 @@ import { _, _init } from '../util.js';
  * @return Void
  */
 export default function init( $config = {} ) {
-    const { config, window } = _init.call( this, 'html-bindings', $config, {
+    const { config, window } = _init.call( this, 'data-binding', $config, {
         attr: { expr: 'expr', itemIndex: 'data-key' },
         tokens: { nodeType: 'processing-instruction', tagStart: '?{', tagEnd: '}?', stateStart: '; [=', stateEnd: ']' },
-        staticsensitivity: true,
-        isomorphic: true,
     } );
     ( { CONTEXT_API: config.CONTEXT_API, BINDINGS_API: config.BINDINGS_API, HTML_IMPORTS: config.HTML_IMPORTS } = window.webqit.oohtml.configs );
     config.attrSelector = `[${ window.CSS.escape( config.attr.expr ) }]`;
@@ -46,7 +44,7 @@ function realtime( config ) {
     realdom.realtime( window.document ).subtree( config.attrSelector, record => {
         cleanup.call( this, ...record.exits );  
         mountInlineBindings.call( this, config, ...record.entrants );  
-    }, { live: true, timing: 'sync', staticSensitivity: config.staticsensitivity } );
+    }, { live: true, timing: 'sync', staticSensitivity: true } );
 }
 
 function createDynamicScope( config, root ) {
@@ -188,7 +186,7 @@ function compileInlineBindings( config, str ) {
                 const indices = kind === 'in' ? production[ 2 ] : ( production[ 1 ] || '$index__' );
                 return `
                 let $iteratee__ = ${ iteratee };
-                let $import__ = this.${ config.HTML_IMPORTS.context.api.import }( ${ importSpec.trim() }, true );
+                let $import__ = this.${ config.HTML_IMPORTS.api.import }( ${ importSpec.trim() }, true );
                 this.$oohtml_internal_databinding_signals?.push( $import__ );
 
                 if ( $import__.value && $iteratee__ ) {

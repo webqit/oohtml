@@ -46,7 +46,7 @@ export default class HTMLImportsContext extends DOMContext {
         if ( ( event.detail || '' ).trim() === '/' ) return event.respondWith( this.localModules );
         const $config = this.configs.HTML_IMPORTS;
         let path = ( event.detail || '' ).split( /\/|(?<=\w)(?=#)/g ).map( x => x.trim() ).filter( x => x );
-        if ( path.length ) { path = path.join( `/${ $config.template.api.exports }/` )?.split( '/' ) || []; }
+        if ( path.length ) { path = path.join( `/${ $config.api.defs }/` )?.split( '/' ) || []; }
         // No detail?
         if ( !path.length ) return event.respondWith();
 
@@ -89,11 +89,11 @@ export default class HTMLImportsContext extends DOMContext {
         };
         // ----------------
         const $config = this.configs.HTML_IMPORTS;
-        if ( !this.host.matches || !$config.context.attr.importscontext ) return;
+        if ( !this.host.matches || !$config.attr.importscontext ) return;
         // Any existing this.refdSourceController? Abort!
         this.refdSourceController?.disconnect();
         const realdom = this.host.ownerDocument.defaultView.webqit.realdom;
-        this.refdSourceController = realdom.realtime( this.host ).attr( $config.context.attr.importscontext, ( record, { signal } ) => {
+        this.refdSourceController = realdom.realtime( this.host ).attr( $config.attr.importscontext, ( record, { signal } ) => {
             // No importscontext attr set. But we're still watching
             if ( !record.value ) {
                 this.contextModules = undefined;

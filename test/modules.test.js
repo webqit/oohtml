@@ -4,13 +4,13 @@
  */
 import { expect } from 'chai';
 import { createDocument, mockRemoteFetch, delay } from './index.js';
-const getQueryPath = str => str.split( '/' ).join( '/exports/' ).split( '/' );
+const getQueryPath = str => str.split( '/' ).join( '/defs/' ).split( '/' );
 
 describe(`HTML Modules`, function() {
 
     describe( `APIs...`, function() {
 
-        it ( `The document object and <template> elements should expose a "exports" property...`, async function() {
+        it ( `The document object and <template> elements should expose a "defs" property...`, async function() {
             
             const head = `
             <template def="temp0">
@@ -27,18 +27,18 @@ describe(`HTML Modules`, function() {
             // -------
             expect( document ).to.have.property( 'import' );
             document.import( 'temp0', temp0 => {
-                expect( temp0 ).to.have.property( 'exports' );
+                expect( temp0 ).to.have.property( 'defs' );
                 expect( temp0.def ).to.eq( 'temp0' );
             } );
             // -------
             expect( document.body ).to.have.property( 'import' );
             document.body.import( 'temp1', temp1 => {
-                expect( temp1 ).to.have.property( 'exports' );
+                expect( temp1 ).to.have.property( 'defs' );
                 expect( temp1.def ).to.eq( 'temp1' );
             } );
          } );
         
-        it ( `The document object and <template> elements should expose a "exports" property...`, async function() {
+        it ( `The document object and <template> elements should expose a "defs" property...`, async function() {
             
             const body = '', head = `
             <template def="temp0">
@@ -55,16 +55,16 @@ describe(`HTML Modules`, function() {
             const { webqit: { Observer } } = window;
             // -------
             document.import( 'temp0', temp0 => {
-                expect( temp0 ).to.have.property( 'exports' );
-                expect( temp0.exports[ '#' ] ).to.have.length( 2 );
-                const temp2 = Observer.reduce( temp0.exports, getQueryPath( 'temp2' ), Observer.get );
-                expect( temp2 ).to.have.property( 'exports' );
+                expect( temp0 ).to.have.property( 'defs' );
+                expect( temp0.defs[ '#' ] ).to.have.length( 2 );
+                const temp2 = Observer.reduce( temp0.defs, getQueryPath( 'temp2' ), Observer.get );
+                expect( temp2 ).to.have.property( 'defs' );
                 // -------
-                const temp1Inherited = Observer.reduce( temp0.exports, getQueryPath( 'temp2/temp1' ), Observer.get );
-                expect( temp1Inherited ).to.have.property( 'exports' );
+                const temp1Inherited = Observer.reduce( temp0.defs, getQueryPath( 'temp2/temp1' ), Observer.get );
+                expect( temp1Inherited ).to.have.property( 'defs' );
                 // -------
                 const temp3Observed = [];
-                Observer.reduce( temp0.exports, getQueryPath( 'temp2/temp3' ), Observer.observe, record => {
+                Observer.reduce( temp0.defs, getQueryPath( 'temp2/temp3' ), Observer.observe, record => {
                     temp3Observed.push( record.value );
                 } );
                 // -------
@@ -73,10 +73,10 @@ describe(`HTML Modules`, function() {
                 temp0.content.appendChild( temp3 );
                 // -------
                 expect( temp3Observed ).to.be.an( 'array' ).with.length( 1 );
-                expect( temp3Observed[ 0 ] ).to.have.property( 'exports' );
+                expect( temp3Observed[ 0 ] ).to.have.property( 'defs' );
                 // -------
-                const temp3Inherited = Observer.reduce( temp0.exports, getQueryPath( 'temp2/temp3' ), Observer.get );
-                expect( temp3Inherited ).to.have.property( 'exports' );
+                const temp3Inherited = Observer.reduce( temp0.defs, getQueryPath( 'temp2/temp3' ), Observer.get );
+                expect( temp3Inherited ).to.have.property( 'defs' );
                 // -------
             } );
        } );
@@ -114,25 +114,25 @@ describe(`HTML Modules`, function() {
             // -------
             // Add the import element to with a view to waiting for the remote module
             document.import( 'temp0', async temp0 => {
-                expect( temp0 ).to.have.property( 'exports' );
+                expect( temp0 ).to.have.property( 'defs' );
                 await delay( 2100 );
                 // temp1 shouldn't have been automatically loaded still
-                const hasTemp1 = Observer.reduce( temp0.exports, getQueryPath( 'temp1' ), Observer.has );
+                const hasTemp1 = Observer.reduce( temp0.defs, getQueryPath( 'temp1' ), Observer.has );
                 expect( hasTemp1 ).to.be.false;
                 // Try access temp1 to trigger loading and await
-                const _temp1 = await Observer.reduce( temp0.exports, getQueryPath( 'temp1' ), Observer.get );
-                expect( _temp1 ).to.have.property( 'exports' );
+                const _temp1 = await Observer.reduce( temp0.defs, getQueryPath( 'temp1' ), Observer.get );
+                expect( _temp1 ).to.have.property( 'defs' );
                 // -------
                 // Receive updates
                 const temp3Observed = [];
-                Observer.reduce( temp0.exports, getQueryPath( 'temp1/temp2/temp3' ), Observer.observe, ( record, lifecycle ) => {
+                Observer.reduce( temp0.defs, getQueryPath( 'temp1/temp2/temp3' ), Observer.observe, ( record, lifecycle ) => {
                     temp3Observed.push( record.value );
                 } );
                 await delay( 2100 );
                 // -------
                 // temp2 should be loaded by now
                 expect( temp3Observed ).to.be.an( 'array' ).with.length( 1 );
-                expect( temp3Observed[ 0 ] ).to.have.property( 'exports' );
+                expect( temp3Observed[ 0 ] ).to.have.property( 'defs' );
                 expect( temp3Observed[ 0 ].getAttribute( 'def' ) ).to.eq( 'temp3' );
             } );
         } );
@@ -171,33 +171,33 @@ describe(`HTML Modules`, function() {
                 return el.dispatchEvent( event );
             };
             // -------
-            await 'For some reason, the <template> element in the head needs to show up in the document exportsObj';
-            const exportsObjs = [], div = document.querySelector( 'div' );
+            await 'For some reason, the <template> element in the head needs to show up in the document defsObj';
+            const defsObjs = [], div = document.querySelector( 'div' );
             // -------
             contextRequest( div, { detail: '/temp0', diff: false }, response => {
-                exportsObjs.push( response );
+                defsObjs.push( response );
             } );
-            expect( exportsObjs ).to.have.length( 1 );
-            expect( exportsObjs[ 0 ] ).to.have.property( 'scoped', false );
+            expect( defsObjs ).to.have.length( 1 );
+            expect( defsObjs[ 0 ] ).to.have.property( 'scoped', false );
             // -------
             const scoped = addScopedModules();
-            expect( exportsObjs ).to.have.length( 2 );
-            expect( exportsObjs[ 1 ] ).to.have.property( 'scoped', true );
+            expect( defsObjs ).to.have.length( 2 );
+            expect( defsObjs[ 1 ] ).to.have.property( 'scoped', true );
             // -------
             scoped.remove();
-            expect( exportsObjs ).to.have.length( 3 );
-            expect( exportsObjs[ 2 ] ).to.have.property( 'scoped', false );
+            expect( defsObjs ).to.have.length( 3 );
+            expect( defsObjs[ 2 ] ).to.have.property( 'scoped', false );
             // -------
             document.body.appendChild( scoped );
-            expect( exportsObjs ).to.have.length( 4 );
-            expect( exportsObjs[ 3 ] ).to.have.property( 'scoped', true );
+            expect( defsObjs ).to.have.length( 4 );
+            expect( defsObjs[ 3 ] ).to.have.property( 'scoped', true );
             // -------
             document.import( 'temp0', temp0 => {
                 const unscoped = temp0;
                 unscoped.remove();
                 document.head.appendChild( unscoped );
                 document.body.remove();
-                expect( exportsObjs ).to.have.length( 4 );
+                expect( defsObjs ).to.have.length( 4 );
             } );
         } );
     } );

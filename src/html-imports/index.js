@@ -15,22 +15,21 @@ import { _, _init } from '../util.js';
  * @return Void
  */
 export default function init( $config = {} ) {
-    const { config, realdom, window } = _init.call( this, 'html-imports', $config, {
-        template: { attr: { moduledef: 'def', fragmentdef: 'def', extends: 'extends', inherits: 'inherits' }, api: { exports: 'exports', moduledef: 'def' }, },
-        context: { attr: { importscontext: 'importscontext', }, api: { import: 'import' }, },
-        import: { tagName: 'import', attr: { moduleref: 'ref' }, },
-        staticsensitivity: true,
-        isomorphic: true,
+    const { config, window } = _init.call( this, 'html-imports', $config, {
+        elements: { import: 'import', },
+        attr: { def: 'def', extends: 'extends', inherits: 'inherits', ref: 'ref', importscontext: 'importscontext', },
+        api: { def: 'def', defs: 'defs', import: 'import' },
     } );
-    config.templateSelector = `template[${ window.CSS.escape( config.template.attr.moduledef ) }]`;
-    config.importsContextSelector = `[${ window.CSS.escape( config.context.attr.importscontext ) }]`;
-    config.slottedElementsSelector = `[${ window.CSS.escape( config.template.attr.fragmentdef ) }]:not(template)`;
+    if ( !config.attr.fragmentdef ) { config.attr.fragmentdef = config.attr.def; }
+    config.templateSelector = `template[${ window.CSS.escape( config.attr.def ) }]`;
+    config.importsContextSelector = `[${ window.CSS.escape( config.attr.importscontext ) }]`;
+    config.slottedElementsSelector = `[${ window.CSS.escape( config.attr.fragmentdef ) }]:not(template)`;
     const anchorNodeMatch = ( start, end ) => {
         const starting = `starts-with(., "${ start }")`;
         const ending = `substring(., string-length(.) - string-length("${ end }") + 1) = "${ end }"`;
         return `${ starting } and ${ ending }`;
     }
-    config.anchorNodeSelector = `comment()[${ anchorNodeMatch( `&lt;${ config.import.tagName }`, `&lt;/${ config.import.tagName }&gt;` ) }]`;
+    config.anchorNodeSelector = `comment()[${ anchorNodeMatch( `&lt;${ config.elements.import }`, `&lt;/${ config.elements.import }&gt;` ) }]`;
     window.webqit.HTMLImportsContext = HTMLImportsContext;
     window.webqit.HTMLImportElement = _HTMLImportElement();
     exposeAPIs.call( window, config );
@@ -38,7 +37,7 @@ export default function init( $config = {} ) {
 }
 
 /**
- * Returns the "exports" object associated with the given node.
+ * Returns the "defs" object associated with the given node.
  *
  * @param Element       node
  * @param Bool          autoCreate
@@ -46,11 +45,11 @@ export default function init( $config = {} ) {
  * @return Object
  */
 export function getExports( node, autoCreate = true ) {
-	if ( !_( node ).has( 'exports' ) && autoCreate ) {
-		const exports = Object.create( null );
-		_( node ).set( 'exports', exports );
+	if ( !_( node ).has( 'defs' ) && autoCreate ) {
+		const defs = Object.create( null );
+		_( node ).set( 'defs', defs );
 	}
-	return _( node ).get( 'exports' );
+	return _( node ).get( 'defs' );
 }
 
 /**
@@ -63,21 +62,21 @@ export function getExports( node, autoCreate = true ) {
 function exposeAPIs( config ) {
     const window = this, { webqit: { oohtml: { configs } } } = window;
     // Assertions
-    if ( config.template.api.exports in window.HTMLTemplateElement.prototype ) { throw new Error( `The "HTMLTemplateElement" class already has a "${ config.template.api.exports }" property!` ); }
-    if ( config.template.api.moduledef in window.HTMLTemplateElement.prototype ) { throw new Error( `The "HTMLTemplateElement" class already has a "${ config.template.api.moduledef }" property!` ); }
-    if ( config.context.api.import in window.document ) { throw new Error( `document already has a "${ config.context.api.import }" property!` ); }
-    if ( config.context.api.import in window.HTMLElement.prototype ) { throw new Error( `The "HTMLElement" class already has a "${ config.context.api.import }" property!` ); }
+    if ( config.api.defs in window.HTMLTemplateElement.prototype ) { throw new Error( `The "HTMLTemplateElement" class already has a "${ config.api.defs }" property!` ); }
+    if ( config.api.def in window.HTMLTemplateElement.prototype ) { throw new Error( `The "HTMLTemplateElement" class already has a "${ config.api.def }" property!` ); }
+    if ( config.api.import in window.document ) { throw new Error( `document already has a "${ config.api.import }" property!` ); }
+    if ( config.api.import in window.HTMLElement.prototype ) { throw new Error( `The "HTMLElement" class already has a "${ config.api.import }" property!` ); }
     // Definitions
-    Object.defineProperty( window.HTMLTemplateElement.prototype, config.template.api.exports, { get: function() {
+    Object.defineProperty( window.HTMLTemplateElement.prototype, config.api.defs, { get: function() {
         return getExports( this );
     } } );
-    Object.defineProperty( window.HTMLTemplateElement.prototype, config.template.api.moduledef, { get: function() {
-        return this.getAttribute( config.template.attr.moduledef );
+    Object.defineProperty( window.HTMLTemplateElement.prototype, config.api.def, { get: function() {
+        return this.getAttribute( config.attr.def );
     } } );
-    Object.defineProperty( window.document, config.context.api.import, { value: function( ref, live = false, callback = null ) {
+    Object.defineProperty( window.document, config.api.import, { value: function( ref, live = false, callback = null ) {
         return importRequest( window.document, ...arguments );
     } } );
-    Object.defineProperty( window.HTMLElement.prototype, config.context.api.import, { value: function( ref, live = false, callback = null ) {
+    Object.defineProperty( window.HTMLElement.prototype, config.api.import, { value: function( ref, live = false, callback = null ) {
         return importRequest( this, ...arguments );
     } } );
     function importRequest( context, ref, live = false, callback = null ) {
@@ -130,7 +129,7 @@ function realtime( config ) {
                 htmlModule.ownerContext = entry.scoped ? record.target : window.document;
                 const ownerContextModulesObj = getExports( htmlModule.ownerContext );
                 if ( htmlModule.defId ) { Observer.set( ownerContextModulesObj, htmlModule.defId, entry ); }
-                // The ownerContext's exports - ownerContextModulesObj - has to be populated
+                // The ownerContext's defs - ownerContextModulesObj - has to be populated
                 // Before attaching a context instance to it, to give the just created context something to use for
                 // fullfiling reclaimed requests.
                 attachImportsContext( htmlModule.ownerContext );
@@ -148,11 +147,11 @@ function realtime( config ) {
                 detachImportsContext( entry );
             }
         } );
-    }, { live: true, timing: 'sync', staticSensitivity: config.staticsensitivity } );
+    }, { live: true, timing: 'sync', staticSensitivity: true } );
     // ------------
     // IMPORTS
     // ------------
-    realdom.realtime( window.document ).subtree/*instead of observe(); reason: jsdom timing*/( config.import.tagName, record => {
+    realdom.realtime( window.document ).subtree/*instead of observe(); reason: jsdom timing*/( config.elements.import, record => {
         record.entrants.forEach( node => handleRealtime( node, true, record ) );
         record.exits.forEach( node => handleRealtime( node, false, record ) );
     }, { live: true, timing: 'sync' } );
