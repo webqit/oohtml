@@ -101,7 +101,7 @@ export default class DOMContext {
         host.addEventListener( 'contextrequest', this );
         host.addEventListener( 'contextclaim', this );
         const { value: claims } = DOMContexts.instance( host ).request( 'contextclaim', { kind: this.constructor.kind, detail: this } );
-        claims.forEach( subscriptionEvent => {
+        claims?.forEach( subscriptionEvent => {
             this.subscriptions.add( subscriptionEvent );
             this.subscribed( subscriptionEvent );
             this.handle( subscriptionEvent );

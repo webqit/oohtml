@@ -50,9 +50,15 @@ function realtime( config ) {
 }
 
 function createDynamicScope( config, root ) {
-    const { webqit: { Observer, DOMBindingsContext } } = this;
+    const { webqit: { realdom, Observer, DOMBindingsContext } } = this;
     if ( _( root ).has( 'data-binding' ) ) return _( root ).get( 'data-binding' );
     const scope = Object.create( null ), abortController = new AbortController;
+    scope[ '$exec__' ] = ( target, prop, ...args ) => {
+        realdom.schedule( 'write', () => target[ prop ]( ...args ) );
+    };
+    scope[ '$assign__' ] = ( target, prop, val ) => {
+        realdom.schedule( 'write', () => (target[ prop ] = val) );
+    };
     Observer.intercept( scope, {
         get: ( e, recieved, next ) => {
             if ( !( e.key in scope ) ) {
@@ -130,10 +136,10 @@ const discreteParseCache = new Map;
 function compileDiscreteBindings( config, str ) {
     if ( discreteParseCache.has( str ) ) return discreteParseCache.get( str );
     let source = `let content = ((${ str }) ?? '') + '';`;
-    source += `this.nodeValue = content;`;
-    source += `if ( this.$oohtml_internal_databinding_anchorNode ) { this.$oohtml_internal_databinding_anchorNode.nodeValue = "${ config.tokens.tagStart }${ escDouble( str ) }${ config.tokens.stateStart }" + content.length + "${ config.tokens.stateEnd } ${ config.tokens.tagEnd }"; }`;
-    const { webqit: { QuantumAsyncScript } } = this;
-    const compiled = new QuantumAsyncScript( source );
+    source += `$assign__(this, 'nodeValue', content);`;
+    source += `if ( this.$oohtml_internal_databinding_anchorNode ) { $assign__(this.$oohtml_internal_databinding_anchorNode, 'nodeValue', "${ config.tokens.tagStart }${ escDouble( str ) }${ config.tokens.stateStart }" + content.length + "${ config.tokens.stateEnd } ${ config.tokens.tagEnd }"); }`;
+    const { webqit: { QuantumModule } } = this;
+    const compiled = new QuantumModule( source );
     discreteParseCache.set( str, compiled );
     return compiled;
 }
@@ -157,19 +163,19 @@ function compileInlineBindings( config, str ) {
         const directive = left[ 0 ], param = left.slice( 1 ).trim();
         const arg = `(${ right })`, $arg = `(${ arg } ?? '')`;
         if ( directive === '&' ) {
-            if ( param.startsWith( '--' ) ) return `this.style.setProperty("${ escDouble( param ) }", ${ $arg });`;
-            return `this.style["${ escDouble( param ) }"] = ${ $arg };`;
+            if ( param.startsWith( '--' ) ) return `$exec__(this.style, 'setProperty', "${ escDouble( param ) }", ${ $arg });`;
+            return `$assign__(this.style, "${ escDouble( param ) }", ${ $arg });`;
         }
-        if ( directive === '%' ) return `this.classList.toggle("${ escDouble( param ) }", !!${ arg });`;
+        if ( directive === '%' ) return `$exec__(this.classList, 'toggle', "${ escDouble( param ) }", !!${ arg });`;
         if ( directive === '~' ) {
-            if ( param.startsWith( '?' ) ) return `this.toggleAttribute("${ escDouble( param.substring( 1 ).trim() ) }", !!${ arg });`;
-            return `this.setAttribute("${ escDouble( param ) }", ${ $arg });`;
+            if ( param.startsWith( '?' ) ) return `$exec__(this, 'toggleAttribute', "${ escDouble( param.substring( 1 ).trim() ) }", !!${ arg });`;
+            return `$exec__(this, 'setAttribute', "${ escDouble( param ) }", ${ $arg });`;
         }
         if ( directive === '@' ) {
             if ( validation[ param ] ) throw new Error( `Duplicate binding: ${ left }.` );
             validation[ param ] = true;
-            if ( param === 'text' ) return `this.textContent = ${ $arg };`;
-            if ( param === 'html' ) return `this.setHTML(${ $arg });`;
+            if ( param === 'text' ) return `$assign__(this, 'textContent', ${ $arg });`;
+            if ( param === 'html' ) return `$exec__(this, 'setHTML', ${ $arg });`;
             if ( param === 'items' ) {
                 const [ iterationSpec, importSpec ] = splitOuter( right, '/' );
                 if ( !importSpec ) throw new Error( `Invalid ${ directive }items spec: ${ str }; no import specifier.` );
@@ -200,13 +206,14 @@ function compileInlineBindings( config, str ) {
                         let $itemNode__ = $existing__.get( $key___ );
                         if ( $itemNode__ ) {
                             $existing__.delete( $key___ );
+                            $exec__($itemNode__, '${ config.BINDINGS_API.api.bind }', $itemBinding__ );
                         } else {
                             $itemNode__ = ( Array.isArray( $import__.value ) ? $import__.value[ 0 ] : ( $import__.value instanceof window.HTMLTemplateElement ? $import__.value.content.firstElementChild : $import__.value ) ).cloneNode( true );
                             $itemNode__.setAttribute( "${ config.attr.itemIndex }", $key___ );
-                            this.appendChild( $itemNode__ );
+                            $exec__($itemNode__, '${ config.BINDINGS_API.api.bind }', $itemBinding__ );
+                            $exec__(this, 'appendChild', $itemNode__ );
                         }
 
-                        $itemNode__.${ config.BINDINGS_API.api.bind }( $itemBinding__ );
                         if ( ${ kind === 'in' ? `!( ${ production[ 0 ] } in $iteratee__ )` : `typeof ${ production[ 0 ] } === 'undefined'` } ) { $itemNode__.remove(); }
                     }
                     $existing__.forEach( x => x.remove() );
@@ -216,8 +223,8 @@ function compileInlineBindings( config, str ) {
         }
         if ( str.trim() ) throw new Error( `Invalid binding: ${ str }.` );
     } ).join( `\n` );
-    const { webqit: { QuantumAsyncScript } } = this;
-    const compiled = new QuantumAsyncScript( source );
+    const { webqit: { QuantumModule } } = this;
+    const compiled = new QuantumModule( source );
     inlineParseCache.set( str, compiled );
     return compiled;
 }

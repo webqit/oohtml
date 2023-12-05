@@ -5,11 +5,11 @@
 [![bundle][bundle-src]][bundle-href]
 [![License][license-src]][license-href]
 
-**[On the Agenda](#on-the-agenda) • [Modular HTML](#modular-html) • [HTML Imports](#html-imports) • [Data Binding](#data-binding) • [Data Plumbing](#data-plumbing) • [Polyfill](#polyfill) • [Examples](#examples) • [License](#license)**
+**[Explainer](#explainer) • [On the Agenda](#on-the-agenda) • [Modular HTML](#modular-html) • [HTML Imports](#html-imports) • [Data Binding](#data-binding) • [Data Plumbing](#data-plumbing) • [Polyfill](#polyfill) • [Examples](#examples) • [License](#license)**
 
-Object-Oriented HTML (OOHTML) is a set of features that extend standard HTML and the DOM to enable authoring modular, reusable and reactive markup - with a "buildless", web-native workflow as design goal! This project presents what "modern HTML" could mean today!
+Object-Oriented HTML (OOHTML) is a set of features that extend standard HTML and the DOM to enable authoring modular, reusable and reactive markup - with a "buildless" and intuitive workflow as design goal! This project revisits the HTML problem space to solve for an object-oriented approach to HTML!
 
-Building Single Page Applications? OOHTML is a special love letter!
+Building Single Page Applications? OOHTML is a special love letter! Writing Web Components? Now you can do that with zero tooling! Love vanilla HTML but can't go far with that? Now you can!
 
 <details><summary>Versions</summary>
 
@@ -17,17 +17,17 @@ Building Single Page Applications? OOHTML is a special love letter!
 
 </details>
 
-## Motivation
+## Explainer
 
 <details><summary>Show</summary>
 
-Vanilla HTML is unsurprisingly becoming the most compelling option for an increasing number of developers! But the current authoring experience still leaves much to be desired in how the language lacks modularity, reusability, and other fundamental capabilities like data binding! Authors still have to rely on tools - or, to say the least, have to do half of the work in HTML and half in JS - to get even basic things working!
+Amidst a multitude of approaches, vanilla HTML remains an attractive option for the UI author! But the current authoring experience still leaves much to be desired in how the language lacks modularity, reusability, and certain modern paradigms like data binding! Authors still have to rely on tools - and, for the most part, have to do half of the work in HTML and half in JS - to express even basic concepts!
 
-This project pursues an object-oriented approach to HTML and implicitly revisits much of what inhibits the idea of a *component* architecture for HTML!
+"As an author, I want to be able to do 'x' *declaratively* instead of *imperatively* in JavaScript or by means of a special Custom Element!" "As a Web Component author, I want to be able to leverage *conventions* that keep my component logic *concise*!" All such "user stories" represent important developer intuitions that has yet to be met in HTML; much of which belong under a broad subject: an object-oriented markup language! This subject is what we explore with OOHTML!
 
-<!--
-└ [See more in the introductory blog post](https://dev.to/oxharris/the-web-native-equations-1m1p-temp-slug-6661657?preview=ba70ad2c17f05b5761bc74516dbde8c9eff8b581a0420d87334fd9ef6bab9d6e6d3ab6aaf3fe02542bb9e7250d0a88a6df91dae40919aabcc9a07320)<sup>draft</sup>
--->
+OOHTML comes, not as a specific technology, but as a conceptual "framework" of features that solves for HTML as an object-oriented language - whether that means re-aligning existing features or introducing new ones! While features may be discussed or explored individually, the one agenda "Object-Oriented HTML" helps us stay aligned with the original problem! Each of these features has been introduced below with a small explainer.
+
+OOHTML is effectively different from Web Components (and from the related Declarative Custom Elements and Declarative Shadow DOM efforts) in its focus on "arbitrary" HTML and the DOM rather than on just the Custom Element or Shadow DOM "subset" of the language. This in turns lets us have a niftier authoring experience in Web Components as the latter actually just relies on the very HTML and DOM.
 
 </details>
 
@@ -48,7 +48,7 @@ OOHTML makes this possible by introducing "namespacing" and style and script sco
 
 Naming things is hard! That's especially so where you have one global namespace and a miriad of potentially conflicting names to coordinate!
 
-Here, we get the `namespace` attribute for designating an element as own naming context for identifiers instead of the global document namespace:
+Here, we get the `namespace` attribute for designating an element as own naming context for identifiers in its subtree:
 
 ```html
 <div id="user" namespace>
@@ -126,7 +126,7 @@ console.log(window.foo); // div
 
 ### Style and Script Scoping
 
-We often need a way to keep things like component-specific stylesheets and scripts [scoped to a component](https://vuejs.org/guide/scaling-up/sfc.html).
+We often need a way to keep component-specific stylesheets and scripts [scoped to a component](https://vuejs.org/guide/scaling-up/sfc.html). **This is especially crucial to Page Components in an SPA architecture.**
 
 Here, we get the `scoped` attribute for doing just that:
 
@@ -161,15 +161,15 @@ Here, the `scoped` attribute has two effects on the `<script>` element:
 
 ## HTML Imports
 
-HTML Imports is a realtime module system for HTML that speaks HTML! Something like it is the [`<defs>`](https://developer.mozilla.org/en-US/docs/Web/SVG/Element/defs) and [`<use>`](https://developer.mozilla.org/en-US/docs/Web/SVG/Element/use) system in SVG.
+HTML Imports is a realtime *import* system for HTML that's drawn entirely on HTML - and worlds apart from [the abandoned `<link type="import">` feature](https://www.w3.org/TR/html-imports/) and the [HTML Modules proposal](https://github.com/WICG/webcomponents/blob/gh-pages/proposals/html-modules-explainer.md)! **Something like it is the [`<defs>`](https://developer.mozilla.org/en-US/docs/Web/SVG/Element/defs) and [`<use>`](https://developer.mozilla.org/en-US/docs/Web/SVG/Element/use) system in SVG.**
 
 OOHTML makes this possible in just simple conventions - via a new `def` attribute and a complementary new `<import>` element!
 
 ### Module Definition
 
-A module here is any piece of markup that can be reused.
+A "module" here is any piece of markup that can be reused.
 
-Here, we get the `def` attribute for defining those - both at the `<template>` element level and at its contents (*fragment*) level:
+Here, we get the `def` attribute for defining those - both at the `<template>` element level and at its direct children (*fragments*) level:
 
 ```html
 <head>
@@ -201,7 +201,7 @@ Here, we get the `def` attribute for defining those - both at the `<template>` e
 
 ### Remote Modules
 
-We shouldn't need a different mechanism to work with remote content.
+We shouldn't need a different mechanism - like `fetch('/foo.html')` - to work with remote content.
 
 Here, we get remote-loading modules with same `<template>` element using the `src` attribute:
 
@@ -222,7 +222,7 @@ Here, we get remote-loading modules with same `<template>` element using the `sr
 <div def="fragment2"></div>
 ```
 
-**-->** *which borrow from how `src` works in elements like `<img>`; terminating with either a `load` or an `error` event*:
+**-->** *which just borrows from the `src` in elements like `<img>`; terminating with either a `load` or an `error` event*:
 
 ```js
 foo.addEventListener('load', loadCallback);
@@ -231,7 +231,7 @@ foo.addEventListener('error', errorCallback);
 
 ### Declarative Module Imports
 
-HTML snippets should be reusable in HTML itself!
+HTML snippets should be reusable declaratively!
 
 Here, we get an `<import>` element that lets us do just that:
 
@@ -253,12 +253,12 @@ Here, we get an `<import>` element that lets us do just that:
 
 Here, import *refs* are live bindings that are sensitive to:
 
-+ changes in the *ref* itself (as to getting defined/undefined/redefined)
-+ changes in the referenced *defs* themselves (as to becoming available/loaded/unavailable)
++ changes in the *ref* itself (as to later becoming defined/undefined/redefined)
++ changes in the referenced *defs* themselves (as to later becoming available/loaded/unavailable)
 
 And an `<import>` element that has been resolved will self-restore in the event that:
 
-+ the above changes resolve to no imports.
++ the above changes invalidate the reference.
 + the previously slotted contents have *all* been programmatically removed and slot is empty.
 
 </details>
@@ -668,7 +668,7 @@ Now, on getting to the client, that extra bit of information gets decoded, and o
 
 ### Inline Data-Binding
 
-Here, we get the `expr` attribute for a declarative, neat, key/value data-binding syntax:
+For attributes, OOHTML deviates from the usual but problematic idea of bringing markup-style bindings into attributes: `title="Hello { titleValue }"`; as though attributes had the same semantics as markup. Instead, we get a dedicated "expressions" attribute - `expr` - for a key/value data-binding approach:
 
 ```html
 <div expr="<directive> <param>: <arg>;"></div>
