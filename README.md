@@ -264,7 +264,7 @@ foo.addEventListener('error', errorCallback);
 
 ### Declarative Module Imports
 
-HTML snippets should be reusable entire out of HTML! So, we get an `<import>` element that lets us do just that:
+HTML snippets should be reusable entirely out of HTML! So, we get an `<import>` element that lets us do just that:
 
 ```html
 <body>
