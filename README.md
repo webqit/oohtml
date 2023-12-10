@@ -48,7 +48,7 @@ OOHTML makes this possible by introducing "namespacing" and style and script sco
 
 Naming things is hard! That's especially so where you have one global namespace and a miriad of potentially conflicting names to coordinate!
 
-Here, we get the `namespace` attribute for designating an element as own naming context for identifiers in its subtree:
+Here, we get a modular naming convention using the `namespace` attribute. This attribute let's us designate an element as naming context for identifiers in given subtree:
 
 ```html
 <div id="user" namespace>
@@ -128,7 +128,7 @@ console.log(window.foo); // div
 
 We often need a way to keep component-specific stylesheets and scripts [scoped to a component](https://vuejs.org/guide/scaling-up/sfc.html). **This is especially crucial to "page components" in an SPA architecture.**
 
-Here, we get the `scoped` attribute for that:
+Here, we get a new `scoped` attribute that lets us do just that:
 
 ```html
 <div>
@@ -163,7 +163,7 @@ Here, the `scoped` attribute has two effects on the `<script>` element:
 
 HTML Imports is a realtime *import* system for HTML that's drawn entirely on HTML - and that's worlds apart from [the abandoned `<link type="import">` feature](https://www.w3.org/TR/html-imports/) and the [HTML Modules proposal](https://github.com/WICG/webcomponents/blob/gh-pages/proposals/html-modules-explainer.md)! **Something like it is the [`<defs>`](https://developer.mozilla.org/en-US/docs/Web/SVG/Element/defs) and [`<use>`](https://developer.mozilla.org/en-US/docs/Web/SVG/Element/use) system in SVG.**
 
-Here, we get a way to have both the definition and usage of a snippet based out of *same* document:
+Here, we get a way to both define and use a snippet within *same* document:
 
 ```html
 <head>
