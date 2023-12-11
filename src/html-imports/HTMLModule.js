@@ -3,7 +3,7 @@
  * @imports
  */
 import { _isNumeric } from '@webqit/util/js/index.js';
-import { getExports } from './index.js';
+import { getDefs } from './index.js';
 import { _, env } from '../util.js';
 
 export default class HTMLModule {
@@ -26,7 +26,7 @@ export default class HTMLModule {
         this.config = configs.HTML_IMPORTS;
         this.parent = parent;
         this.level = level;
-        this.defs = getExports( this.host );
+        this.defs = getDefs( this.host );
         this.defId = ( this.host.getAttribute( this.config.attr.def ) || '' ).trim();
         this.validateDefId( this.defId );
         // ----------
@@ -175,12 +175,12 @@ export default class HTMLModule {
             } );
         };
         const realtimes = [];
-        const parentExportsObj = getExports( this.parent );
+        const parentDefsObj = getDefs( this.parent );
         if ( extendedId ) {
-            realtimes.push( Observer.reduce( parentExportsObj, [ extendedId, this.config.api.defs, Infinity ], Observer.get, handleInherited, { live: true } ) );
+            realtimes.push( Observer.reduce( parentDefsObj, [ extendedId, this.config.api.defs, Infinity ], Observer.get, handleInherited, { live: true } ) );
         }
         if ( ( inheritedIds = inheritedIds.split( ' ' ).map( id => id.trim() ).filter( x => x ) ).length ) {
-            realtimes.push( Observer.get( parentExportsObj, inheritedIds, handleInherited, { live: true } ) );
+            realtimes.push( Observer.get( parentDefsObj, inheritedIds, handleInherited, { live: true } ) );
         }
         return realtimes;
     }

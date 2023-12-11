@@ -44,7 +44,7 @@ export default function init( $config = {} ) {
  *
  * @return Object
  */
-export function getExports( node, autoCreate = true ) {
+export function getDefs( node, autoCreate = true ) {
 	if ( !_( node ).has( 'defs' ) && autoCreate ) {
 		const defs = Object.create( null );
 		_( node ).set( 'defs', defs );
@@ -68,7 +68,7 @@ function exposeAPIs( config ) {
     if ( config.api.import in window.HTMLElement.prototype ) { throw new Error( `The "HTMLElement" class already has a "${ config.api.import }" property!` ); }
     // Definitions
     Object.defineProperty( window.HTMLTemplateElement.prototype, config.api.defs, { get: function() {
-        return getExports( this );
+        return getDefs( this );
     } } );
     Object.defineProperty( window.HTMLTemplateElement.prototype, config.api.def, { get: function() {
         return this.getAttribute( config.attr.def );
@@ -127,7 +127,7 @@ function realtime( config ) {
                 Object.defineProperty( entry, 'scoped', { value: entry.hasAttribute( 'scoped' ) } ); 
                 const htmlModule = HTMLModule.instance( entry );
                 htmlModule.ownerContext = entry.scoped ? record.target : window.document;
-                const ownerContextModulesObj = getExports( htmlModule.ownerContext );
+                const ownerContextModulesObj = getDefs( htmlModule.ownerContext );
                 if ( htmlModule.defId ) { Observer.set( ownerContextModulesObj, htmlModule.defId, entry ); }
                 // The ownerContext's defs - ownerContextModulesObj - has to be populated
                 // Before attaching a context instance to it, to give the just created context something to use for
@@ -140,7 +140,7 @@ function realtime( config ) {
         record.exits.forEach( entry => {
             if ( entry.matches( config.templateSelector ) ) {
                 const htmlModule = HTMLModule.instance( entry );
-                const ownerContextModulesObj = getExports( htmlModule.ownerContext );
+                const ownerContextModulesObj = getDefs( htmlModule.ownerContext );
                 if ( htmlModule.defId ) { Observer.deleteProperty( ownerContextModulesObj, htmlModule.defId ); }
                 detachImportsContext( htmlModule.ownerContext );
             } else {

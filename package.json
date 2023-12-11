@@ -35,7 +35,7 @@
     "postpublish": "git push && git push --tags"
   },
   "dependencies": {
-    "@webqit/quantum-js": "^4.2.6",
+    "@webqit/quantum-js": "^4.2.11",
     "@webqit/realdom": "^2.1.22",
     "@webqit/util": "^0.8.11"
   },

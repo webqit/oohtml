@@ -3,7 +3,7 @@
  * @imports
  */
 import DOMContext from '../context-api/DOMContext.js';
-import { getExports } from './index.js';
+import { getDefs } from './index.js';
 import { _, env } from '../util.js';
 
 export default class HTMLImportsContext extends DOMContext {
@@ -32,7 +32,7 @@ export default class HTMLImportsContext extends DOMContext {
     /**
      * @localModules
      */
-    get localModules() { return getExports( this.host ); }
+    get localModules() { return getDefs( this.host ); }
 
     /**
      * @handle()
@@ -102,7 +102,7 @@ export default class HTMLImportsContext extends DOMContext {
             // This superModules contextrequest is automatically aborted by the injected signal below
             const request = { ...this.constructor.createRequest( record.value.trim() ), live: true, signal };
             this.host.parentNode[ this.configs.CONTEXT_API.api.contexts ].request( request, response => {
-                this.contextModules = !( response && Object.getPrototypeOf( response ) ) ? response : getExports( response );
+                this.contextModules = !( response && Object.getPrototypeOf( response ) ) ? response : getDefs( response );
                 update();
             } );
         }, { live: true, timing: 'sync', lifecycleSignals: true } );

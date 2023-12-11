@@ -20,7 +20,7 @@ export default function init( $config = {} ) {
 }
 
 /**
- * @Exports
+ * @Defs
  * 
  * The internal bindings object
  * within elements and the document object.
