@@ -17,6 +17,185 @@ Building Single Page Applications? OOHTML is a special love letter! Writing Web 
 
 </details>
 
+## Polyfill
+
+OOHTML is being developed as something to be used today. This implementation adheres closely to the spec and evolves the proposal through a practice-driven process.
+
+<details><summary>Load from a CDN<br>
+└───────── <a href="https://bundlephobia.com/result?p=@webqit/oohtml"><img align="right" src="https://img.shields.io/badge/21.8%20kB-black"></a></summary>
+
+```html
+<script src="https://unpkg.com/@webqit/oohtml/dist/main.lite.js"></script>
+```
+
+└ This is to be placed early on in the document and should be a classic script without any `defer` or `async` directives!
+
+> For `@webqit/oohtml@3.1` and below, you would need an external polyfill - like the [samthor/scoped](https://github.com/samthor/scoped) polyfill - for the Scoped Styles feature:
+>
+> ```html
+> <head>
+>   <script src="https://unpkg.com/style-scoped/scoped.min.js"></script>
+> </head>
+> ```
+
+</details>
+
+<details><summary>Install from NPM<br>
+└───────── <a href="https://npmjs.com/package/@webqit/oohtml"><img align="right" src="https://img.shields.io/npm/v/@webqit/oohtml?style=flat&label=&colorB=black"></a></summary>
+
+```bash
+npm i @webqit/oohtml @webqit/quantum-js
+```
+
+```js
+// Import
+import * as Quantum from '@webqit/quantum-js/lite'; // Or from '@webqit/quantum-js'; See implementation notes below
+import init from '@webqit/oohtml';
+
+// Initialize the lib
+init.call(window, Quantum[, options = {}]);
+```
+
+└ To use the polyfill on server-side DOM instances as made possible by libraries like [jsdom](https://github.com/jsdom/jsdom), simply install and initialize the library with the DOM instance as above.
+
+└ But all things "SSR" for OOHTML are best left to the [`@webqit/oohtml-ssr`](https://github.com/webqit/oohtml-ssr) package!
+
+</details>
+
+<details><summary>Extended usage concepts</summary>
+
+If you'll be going ahead to build a real app with OOHTML, you may want to consider also using:
+
++ the [`@webqit/oohtml-cli`](https://github.com/webqit/oohtml-cli) package for operating a file-based templating system.
+
++ the modest, OOHTML-based [Webflo](https://github.com/webqit/webflo) framework to greatly streamline your workflow!
+
+</details>
+
+<details><summary>Implementation Notes</summary>
+
++ **Scoped/Quantum Scripts**. This feature is an extension of [Quantum JS](https://github.com/webqit/quantum-js). While the main OOHTML build is based on the main Quantum JS APIs, a companion "OOHTML Lite" build is also available based on the [Quantum JS Lite](https://github.com/webqit/quantum-js#quantum-js-lite) edition. The trade-off is in the execution timing of `<script quantum></script>` and `<script scoped></script>` elements: being "synchronous/blocking" with the former, and "asynchronous/non-blocking" with the latter! (See [`async`/`defer`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script#attributes).)
+
+    Of the two, the "OOHTML Lite" edition is the recommend option on web pages (as used above) for faster load times unless there's a requirment to emulate the [native synchronous timing](https://html.spec.whatwg.org/multipage/parsing.html#scripts-that-modify-the-page-as-it-is-being-parsed) of classic scripts, in which case you'd need the main OOHTML build:
+
+    ```html
+    <head>
+      <script src="https://unpkg.com/@webqit/oohtml/dist/main.js"></script>
+    </head>
+    ```
+
+    └─ <a href="https://bundlephobia.com/result?p=@webqit/oohtml"><img align="right" src="https://img.shields.io/bundlephobia/minzip/@webqit/oohtml?label=&style=flat&colorB=black"></a>
+
++ **Loading Requirements**. As specified above, the OOHTML script tag is to be placed early on in the document and should be a classic script without any `defer` or `async` directives!
+    
+    If you must load the script "async", one little trade-off would have to be made for `<script scoped>` and `<script quantum>` elements to have them ignored by the browser until the polyfill comes picking them up: *employing a custom MIME type in place of the standard `text/javascript` and `module` types*, in which case, a `<meta name="scoped-js">` element is used to configure the polyfill to honor the custom MIME type:
+
+    ```html
+    <head>
+      <meta name="scoped-js" content="script.mimeType=some-mime">
+      <script async src="https://unpkg.com/@webqit/oohtml/dist/main.lite.js"></script>
+    </head>
+    <body>
+      <script type="some-mime" scoped>
+        console.log(this); // body
+      </script>
+    </body>
+    ```
+
+    The custom MIME type strategy also comes in as a "fix" for when in a browser or other runtime where the polyfill is not able to intercept `<script scoped>` and `<script quantum>` elements ahead of the runtime - e.g. where...
+
+    ```html
+    <body>
+      <script scoped>
+        console.log(this); // body
+      </script>
+    </body>
+    ```
+
+    ...still gives the `window` object in the console.
+
++ **Syntax**. The syntax for attribute names and API names across features - e.g. the `def` and `ref` attributes, the `expr` attribute - isn't finalized, and may change on subsequent iterations, albeit with same principle of operation. But the polyfill is designed to be configurable via meta tags, and to honour any such "overrides". Here's an example:
+
+    ```html
+    <head>
+      <!-- Configurations come before the polyfil -->
+      <meta name="data-binding" content="attr.expr=expr;">
+      <meta name="namespaced-html" content="attr.id=id;">
+      <meta name="html-imports" content="attr.def=def; attr.ref=ref;">
+      <script src="https://unpkg.com/@webqit/oohtml/dist/main.js"></script>
+    <head>
+    ```
+
+    Now, even when the default syntax change, your `def`, `ref`, etc. overrides will keep your implementation intact.
+
+    Additionally, you could employ a global prefix in your implementation:
+
+    ```html
+    <meta name="webqit" content="prefix=wq;">
+    ```
+
+    ...which automatically applies to all `webqit` attributes and APIs (with the exception of the `scoped`, `quantum`, and `data-*` attributes), such that:
+
+    + `<template def="foo"></template>` now becomes: `<template wq-def="foo"></template>`,
+    + `<import ref="foo"></import>` now becomes: `<wq-import wq-ref="foo"></wq-import>`,
+    + `document.import()` now becomes: `document.wqImport()`,
+    + `document.bind()` now becomes: `document.wqBind()`,
+    + `document.bindings` now becomes: `document.wqBindings`,
+    + etc.
+
+    The following is the full syntax table.
+
+    Spec: **data-binding**
+
+    | Config | Default Syntax | Description |
+    | :----- | :------------- | :---------- |
+    | `attr.expr` | `expr` | The "expr" attribute for inline data binding. ([Docs](#inline-data-binding)) |
+    | `attr.itemIndex` | `data-index` | The "item index" attribute for assigning indexes to list items. ([Docs](#inline-data-binding))  |
+
+    Spec: **bindings-api**
+
+    | Config | Default Syntax | Description |
+    | :----- | :------------- | :---------- |
+    | `attr.bindingsreflection` | `bindings` | The attribute for exposing an element's bindings. |
+    | `api.bind` | `bind` | The `document.bind()` and `Element.prototype.bind()` methods. ([Docs](#the-bindings-api)) |
+    | `api.bindings` | `bindings` | The `document.bindings` and `Element.prototype.bindings` object properties. ([Docs](#the-bindings-api)) |
+
+    Spec: **context-api**
+
+    | Config | Default Syntax | Description |
+    | :----- | :------------- | :---------- |
+    | `attr.contextname` | `contextname` | The "context name" attribute on arbitrary elements. ([Docs](#the-context-api)) |
+    | `api.contexts` | `contexts` | The `document.contexts` and `Element.prototype.contexts` object properties. ([Docs](#the-context-api)) |
+
+    Spec: **html-imports**
+
+    | Config | Default Syntax | Description |
+    | :----- | :------------- | :---------- |
+    | `elements.import` | `import` | The tag name for "import" elements. ([Docs](#html-imports)) |
+    | `attr.def` | `def` | The "definition" attribute on the `<template>` elements. ([Docs](#module-definition)) |
+    | `attr.fragmentdef` | *Inherits the value of `attr.def`* | The "definition" attribute on a `<template>`'s contents. ([Docs](#module-definition)) |
+    | `attr.extends` | `extends` | The "extends" attribute for extending definitions. ([Docs](#module-inheritance)) |
+    | `attr.inherits` | `inherits` | The "inherits" attribute for inheriting definitions. ([Docs](#module-inheritance)) |
+    | `attr.ref` | `ref` | The "import ref" attribute on "import" elements. ([Docs](#declarative-module-imports)) |
+    | `attr.importscontext` | `importscontext` | The "importscontext" attribute on arbitrary elements. ([Docs](#imports-contexts)) |
+    | `api.def` | `def` | The readonly string property for accessing an element's "def" value. ([Docs](#module-definition)) |
+    | `api.defs` | `defs` | The readonly object property for accessing a `<template>`'s list of definitions. ([Docs](#module-definition)) |
+    | `api.import` | `import` | The `document.import()` and `Element.prototype.import()` methods. ([Docs](#imperative-module-imports)) |
+
+    Spec: **namespaced-html**
+
+    | Config | Default Syntax | Description |
+    | :----- | :------------- | :---------- |
+    | `attr.namespace` | `namespace` | The "namespace" attribute on arbitrary elements. ([Docs](#namespacing)) |
+    | `attr.id` | `id` | The "id" attribute on arbitrary elements. ([Docs](#namespacing)) |
+    | `api.namespace` | `namespace` | The "namespace" object property on arbitrary elements. ([Docs](#namespacing)) |
+
+    Spec: **scoped-css** (TODO)
+
+    Spec: **scoped-js** (TODO)
+
+</details>
+
 ## Explainer
 
 <details><summary>Show</summary>
@@ -51,6 +230,36 @@ Naming things is hard! That's especially so where you have one global namespace 
 Here, we get a modular naming convention using the `namespace` attribute. This attribute let's us create a naming context for identifiers in a given subtree:
 
 ```html
+<form>
+
+  <fieldset namespace>
+    <legend>Home Address</legend>
+
+    <label for="~address-line">Address</label>
+    <input id="address-line">
+
+    <label for="~city">City</label>
+    <input id="city">
+   <fieldset>
+
+  <fieldset namespace>
+    <legend>Delivery Address</legend>
+
+    <label for="~address-line">Address</label>
+    <input id="address-line">
+    
+    <label for="~city">City</label>
+    <input id="city">
+   <fieldset>
+
+</form>
+```
+
+This lets us have repeating structures with identical but non-conflicting identifiers and `IDREFS`.
+
+And this also translates well to an object model:
+
+```html
 <div id="user" namespace>
   <a id="url" href="https://example.org">
     <span id="name">Joe Bloggs</span>
@@ -58,8 +267,6 @@ Here, we get a modular naming convention using the `namespace` attribute. This a
   <a id="email" href="mailto:joebloggs@example.com" >joebloggs@example.com</a>
 </div>
 ```
- 
-**-->** *and this translates really well to an object model*:
 
 ```html
 user
@@ -68,7 +275,7 @@ user
  └── email
 ```
 
-**-->** *with a complementary API that exposes said structure to JavaScript applications*:
+with a complementary API that exposes said structure to JavaScript applications:
 
 ```js
 // The document.namespace API
@@ -1289,218 +1496,6 @@ const response = myElement.contexts.request(requestParams);
 // Handle response
 console.log(response.value.title);
 ```
-
-## Polyfill
-
-OOHTML is being developed as something to be used today—via a polyfill. This is an intentional effort that in turn ensures that the proposal evolves through a practice-driven process.
-
-<details><summary>Load from a CDN<br>
-└───────── <a href="https://bundlephobia.com/result?p=@webqit/oohtml"><img align="right" src="https://img.shields.io/badge/21.8%20kB-black"></a></summary>
-
-```html
-<script src="https://unpkg.com/@webqit/oohtml/dist/main.lite.js"></script>
-```
-
-└ This is to be placed early on in the document and should be a classic script without any `defer` or `async` directives!
-
-└ For the Scoped Styles feature, you'd need an external polyfill like the [samthor/scoped](https://github.com/samthor/scoped) polyfill (more details below):
-
-```html
-<head>
-  <script src="https://unpkg.com/style-scoped/scoped.min.js"></script>
-</head>
-```
-
-</details>
-
-<details><summary>Install from NPM<br>
-└───────── <a href="https://npmjs.com/package/@webqit/oohtml"><img align="right" src="https://img.shields.io/npm/v/@webqit/oohtml?style=flat&label=&colorB=black"></a></summary>
-
-```bash
-npm i @webqit/oohtml @webqit/quantum-js
-```
-
-```js
-// Import
-import * as Quantum from '@webqit/quantum-js/lite'; // Or from '@webqit/quantum-js'; See implementation notes below
-import init from '@webqit/oohtml';
-
-// Initialize the lib
-init.call(window, Quantum[, options = {}]);
-```
-
-└ To use the polyfill on server-side DOM instances as made possible by libraries like [jsdom](https://github.com/jsdom/jsdom), simply install and initialize the library with the DOM instance as above.
-
-└ But all things "SSR" for OOHTML are best left to the [`@webqit/oohtml-ssr`](https://github.com/webqit/oohtml-ssr) package!
-
-</details>
-
-<details><summary>Extended usage concepts</summary>
-
-If you'll be going ahead to build a real app with OOHTML, you may want to consider also using:
-
-+ the [`@webqit/oohtml-cli`](https://github.com/webqit/oohtml-cli) package for operating a file-based templating system.
-
-+ the modest, OOHTML-based [Webflo](https://github.com/webqit/webflo) framework to greatly streamline your workflow!
-
-</details>
-
-<details><summary>Implementation Notes</summary>
-
-+ **Scoped/Quantum Scripts**. This feature is an extension of [Quantum JS](https://github.com/webqit/quantum-js). While the main OOHTML build is based on the main Quantum JS APIs, a companion "OOHTML Lite" build is also available based on the [Quantum JS Lite](https://github.com/webqit/quantum-js#quantum-js-lite) edition. The trade-off is in the execution timing of `<script quantum></script>` and `<script scoped></script>` elements: being "synchronous/blocking" with the former, and "asynchronous/non-blocking" with the latter! (See [`async`/`defer`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script#attributes).)
-
-    Of the two, the "OOHTML Lite" edition is the recommend option on web pages (as used above) for faster load times unless there's a requirment to emulate the [native synchronous timing](https://html.spec.whatwg.org/multipage/parsing.html#scripts-that-modify-the-page-as-it-is-being-parsed) of classic scripts, in which case you'd need the main OOHTML build:
-
-    ```html
-    <head>
-      <script src="https://unpkg.com/@webqit/oohtml/dist/main.js"></script>
-    </head>
-    ```
-
-    └─ <a href="https://bundlephobia.com/result?p=@webqit/oohtml"><img align="right" src="https://img.shields.io/bundlephobia/minzip/@webqit/oohtml?label=&style=flat&colorB=black"></a>
-
-+ **Loading Requirements**. As specified above, the OOHTML script tag is to be placed early on in the document and should be a classic script without any `defer` or `async` directives!
-    
-    If you must load the script "async", one little trade-off would have to be made for `<script scoped>` and `<script quantum>` elements to have them ignored by the browser until the polyfill comes picking them up: *employing a custom MIME type in place of the standard `text/javascript` and `module` types*, in which case, a `<meta name="scoped-js">` element is used to configure the polyfill to honor the custom MIME type:
-
-    ```html
-    <head>
-      <meta name="scoped-js" content="script.mimeType=some-mime">
-      <script async src="https://unpkg.com/@webqit/oohtml/dist/main.lite.js"></script>
-    </head>
-    <body>
-      <script type="some-mime" scoped>
-        console.log(this); // body
-      </script>
-    </body>
-    ```
-
-    The custom MIME type strategy also comes in as a "fix" for when in a browser or other runtime where the polyfill is not able to intercept `<script scoped>` and `<script quantum>` elements ahead of the runtime - e.g. where...
-
-    ```html
-    <body>
-      <script scoped>
-        console.log(this); // body
-      </script>
-    </body>
-    ```
-
-    ...still gives the `window` object in the console.
-
-+ **Scoped CSS**. This feature is only in "concept" implementation and doesn't work right now as is. The current implementation simply wraps `<style scoped>` blocks in an `@scope {}` block - which itself isn't supported in any browser *yet*. To try this "concept" implementation, set the `style.strategy` config to `@scope`:
-
-    ```html
-    <head>
-      <meta name="scoped-css" content="style.strategy=@scope"> <!-- Must come before the polyfil -->
-      <script src="https://unpkg.com/@webqit/oohtml/dist/main.js"></script>
-    <head>
-    ```
-
-    Now the following `<style scoped>`...
-
-    ```html
-    <style scoped>
-      h2 { color: red; }
-    </style>
-    ```
-    
-    ...will be wrapped to something like:
-
-    ```html
-    <style ref="scoped8eff" scoped>
-      @scope from (:has(> style[ref="scoped8eff"])) {
-        h2 { color: red; }
-      }
-    </style>
-    ```
-
-    Browser support for `@scope {}` style blocks may be coming soon, but in the meantime, you could try one of the polyfills for `<style scoped>` out there; e.g. [samthor/scoped](https://github.com/samthor/scoped):
-
-    ```html
-    <script src="https://unpkg.com/style-scoped/scoped.min.js"></script>
-    ```
-
-+ **Syntax**. The syntax for attribute names and API names across features - e.g. the `def` and `ref` attributes, the `expr` attribute - isn't finalized, and may change on subsequent iterations, albeit with same principle of operation. But the polyfill is designed to be configurable via meta tags, and to honour any such "overrides". Here's an example:
-
-    ```html
-    <head>
-      <!-- Configurations come before the polyfil -->
-      <meta name="data-binding" content="attr.expr=expr;">
-      <meta name="namespaced-html" content="attr.id=id;">
-      <meta name="html-imports" content="attr.def=def; attr.ref=ref;">
-      <script src="https://unpkg.com/@webqit/oohtml/dist/main.js"></script>
-    <head>
-    ```
-
-    Now, even when the default syntax change, your `def`, `ref`, etc. overrides will keep your implementation intact.
-
-    Additionally, you could employ a global prefix in your implementation:
-
-    ```html
-    <meta name="webqit" content="prefix=wq;">
-    ```
-
-    ...which automatically applies to all `webqit` attributes and APIs (with the exception of the `scoped`, `quantum`, and `data-*` attributes), such that:
-
-    + `<template def="foo"></template>` now becomes: `<template wq-def="foo"></template>`,
-    + `<import ref="foo"></import>` now becomes: `<wq-import wq-ref="foo"></wq-import>`,
-    + `document.import()` now becomes: `document.wqImport()`,
-    + `document.bind()` now becomes: `document.wqBind()`,
-    + `document.bindings` now becomes: `document.wqBindings`,
-    + etc.
-
-    The following is the full syntax table.
-
-    Spec: **data-binding**
-
-    | Config | Default Syntax | Description |
-    | :----- | :------------- | :---------- |
-    | `attr.expr` | `expr` | The "expr" attribute for inline data binding. ([Docs](#inline-data-binding)) |
-    | `attr.itemIndex` | `data-index` | The "item index" attribute for assigning indexes to list items. ([Docs](#inline-data-binding))  |
-
-    Spec: **bindings-api**
-
-    | Config | Default Syntax | Description |
-    | :----- | :------------- | :---------- |
-    | `attr.bindingsreflection` | `bindings` | The attribute for exposing an element's bindings. |
-    | `api.bind` | `bind` | The `document.bind()` and `Element.prototype.bind()` methods. ([Docs](#the-bindings-api)) |
-    | `api.bindings` | `bindings` | The `document.bindings` and `Element.prototype.bindings` object properties. ([Docs](#the-bindings-api)) |
-
-    Spec: **context-api**
-
-    | Config | Default Syntax | Description |
-    | :----- | :------------- | :---------- |
-    | `attr.contextname` | `contextname` | The "context name" attribute on arbitrary elements. ([Docs](#the-context-api)) |
-    | `api.contexts` | `contexts` | The `document.contexts` and `Element.prototype.contexts` object properties. ([Docs](#the-context-api)) |
-
-    Spec: **html-imports**
-
-    | Config | Default Syntax | Description |
-    | :----- | :------------- | :---------- |
-    | `elements.import` | `import` | The tag name for "import" elements. ([Docs](#html-imports)) |
-    | `attr.def` | `def` | The "definition" attribute on the `<template>` elements. ([Docs](#module-definition)) |
-    | `attr.fragmentdef` | *Inherits the value of `attr.def`* | The "definition" attribute on a `<template>`'s contents. ([Docs](#module-definition)) |
-    | `attr.extends` | `extends` | The "extends" attribute for extending definitions. ([Docs](#module-inheritance)) |
-    | `attr.inherits` | `inherits` | The "inherits" attribute for inheriting definitions. ([Docs](#module-inheritance)) |
-    | `attr.ref` | `ref` | The "import ref" attribute on "import" elements. ([Docs](#declarative-module-imports)) |
-    | `attr.importscontext` | `importscontext` | The "importscontext" attribute on arbitrary elements. ([Docs](#imports-contexts)) |
-    | `api.def` | `def` | The readonly string property for accessing an element's "def" value. ([Docs](#module-definition)) |
-    | `api.defs` | `defs` | The readonly object property for accessing a `<template>`'s list of definitions. ([Docs](#module-definition)) |
-    | `api.import` | `import` | The `document.import()` and `Element.prototype.import()` methods. ([Docs](#imperative-module-imports)) |
-
-    Spec: **namespaced-html**
-
-    | Config | Default Syntax | Description |
-    | :----- | :------------- | :---------- |
-    | `attr.namespace` | `namespace` | The "namespace" attribute on arbitrary elements. ([Docs](#namespacing)) |
-    | `attr.id` | `id` | The "id" attribute on arbitrary elements. ([Docs](#namespacing)) |
-    | `api.namespace` | `namespace` | The "namespace" object property on arbitrary elements. ([Docs](#namespacing)) |
-
-    Spec: **scoped-css** (TODO)
-
-    Spec: **scoped-js** (TODO)
-
-</details>
 
 ## Examples
 
