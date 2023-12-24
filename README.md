@@ -257,14 +257,14 @@ Here, we get a modular naming convention using the `namespace` attribute. This a
 
 This lets us have repeating structures with identical but non-conflicting identifiers. These identifiers are then referenced locally using "local" `IDREFS` - denoted by the `~` prefix.
 
-More generally, local `IDREFS` are resolved within the namespace where they're used (instead of globally):
+More generally, local `IDREFS` are resolved within the namespace where they're used (not globally; not deeply):
 
 ```js
 // Matches "#city" within the fieldset's namespace; not super namespace, not sub namespace 
 const city = fieldset.querySelector('#~city');
 ```
 
-And when used from the document context, these are resolved against top-level IDs; i.e. IDs in the document namespace itself:
+And when used from the document context, these are resolved against top-level IDs; i.e. IDs in the document namespace itself (not deeply):
 
 ```html
 <div id="user" namespace>
@@ -372,7 +372,22 @@ Here, we get a new `scoped` attribute that lets us do just that:
 </div>
 ```
 
-**-->** *with a complementary low-level API that exposes said assets to tools*:
+And the special "local ID" selector is supported within a scoped style sheet:
+
+```html
+<div namespace>
+  <a id="url" href="https://example.org">
+    <span id="name">Joe Bloggs</span>
+  </a>
+  <a id="email" href="mailto:joebloggs@example.com" >joebloggs@example.com</a>
+
+  <style scoped>
+    #\~name { color: red }
+  </style>
+</div>
+```
+
+And everything comes with a complementary low-level API that exposes said assets to tools:
 
 ```js
 let { styleSheets, scripts } = user; // APIs that are analogous to the document.styleSheets, document.scripts properties
