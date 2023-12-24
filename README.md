@@ -46,9 +46,9 @@ OOHTML makes this possible by introducing "namespacing" and style and script sco
 
 ### Namespacing
 
-Naming things is hard! That's especially so where you have one global namespace and a miriad of potentially conflicting names to coordinate!
+Naming things is hard! That's especially so where you have one global namespace and a miriad of potentially conflicting identifiers to coordinate!
 
-Here, we get a modular naming convention using the `namespace` attribute. This attribute let's us designate an element as naming context for identifiers in given subtree:
+Here, we get a modular naming convention using the `namespace` attribute. This attribute let's us create a naming context for identifiers in a given subtree:
 
 ```html
 <div id="user" namespace>

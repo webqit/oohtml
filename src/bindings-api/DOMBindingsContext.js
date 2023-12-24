@@ -52,5 +52,5 @@ export default class DOMBindingsContext extends DOMContext {
     /**
      * @unsubscribed()
      */
-     unsubscribed( event ) { event._controller?.abort(); }
+    unsubscribed( event ) { event._controller?.abort(); }
 }

@@ -58,27 +58,6 @@ function getBindings( config, node ) {
 /**
  * Exposes Bindings with native APIs.
  *
- * @param Object            config
- * @param document|Element  target
- * @param Object            bindings
- * @param Object            params
- *
- * @return Void
- */
-function applyBindings( config, target, bindings, { merge, diff, namespace } = {} ) {
-    const window = this, { webqit: { Observer } } = window;
-    const bindingsObj = getBindings.call( this, config, target );
-    const $params = { diff, namespace };
-    const exitingKeys = merge ? [] : Observer.ownKeys( bindingsObj, $params ).filter( key => !( key in bindings ) );
-    return Observer.batch( bindingsObj, () => {
-        if ( exitingKeys.length ) { Observer.deleteProperties( bindingsObj, exitingKeys, $params ); }
-        return Observer.set( bindingsObj, bindings, $params );
-    }, $params );
-}
-
-/**
- * Exposes Bindings with native APIs.
- *
  * @param Object config
  *
  * @return Void
@@ -103,4 +82,25 @@ function exposeAPIs( config ) {
     Object.defineProperty( window.Element.prototype, config.api.bindings, { get: function() {
         return Observer.proxy( getBindings.call( window, config, this ) );
     } } );
+}
+
+/**
+ * Exposes Bindings with native APIs.
+ *
+ * @param Object            config
+ * @param document|Element  target
+ * @param Object            bindings
+ * @param Object            params
+ *
+ * @return Void
+ */
+function applyBindings( config, target, bindings, { merge, diff, namespace } = {} ) {
+    const window = this, { webqit: { Observer } } = window;
+    const bindingsObj = getBindings.call( this, config, target );
+    const $params = { diff, namespace };
+    const exitingKeys = merge ? [] : Observer.ownKeys( bindingsObj, $params ).filter( key => !( key in bindings ) );
+    return Observer.batch( bindingsObj, () => {
+        if ( exitingKeys.length ) { Observer.deleteProperties( bindingsObj, exitingKeys, $params ); }
+        return Observer.set( bindingsObj, bindings, $params );
+    }, $params );
 }

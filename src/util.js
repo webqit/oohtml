@@ -54,3 +54,41 @@ export function _compare( a, b, depth = 1, objectSizing = false ) {
     }
     return a === b;
 }
+
+export function _splitOuter( str, delim ) {
+    return [ ...str ].reduce( ( [ quote, depth, splits ], x ) => {
+        if ( !quote && depth === 0 && ( Array.isArray( delim ) ? delim : [ delim ] ).includes( x ) ) {
+            return [ quote, depth, [ '' ].concat( splits ) ];
+        }
+        if ( !quote && [ '(', '[', '{' ].includes( x ) && !splits[ 0 ].endsWith( '\\' ) ) depth++;
+        if ( !quote && [ ')', ']', '}' ].includes( x ) && !splits[ 0 ].endsWith( '\\' ) ) depth--;
+        if ( [ '"', "'", '`' ].includes( x ) && !splits[ 0 ].endsWith( '\\' ) ) {
+            quote = quote === x ? null : ( quote || x );
+        }
+        splits[ 0 ] += x;
+        return [ quote, depth, splits ]
+    }, [ null, 0, [ '' ] ] )[ 2 ].reverse();
+}
+
+// Unique ID generator
+export const _uniqId = () => ( 0 | Math.random() * 9e6 ).toString( 36 );
+
+// Hash of anything generator
+const hashTable = new Map;
+export function _toHash( val ) {
+    let hash;
+    if ( !( hash = hashTable.get( val ) ) ) {
+        hash = _uniqId();
+        hashTable.set( val, hash );
+    }
+    return hash;
+}
+
+// Value of any hash
+export function _fromHash( hash ) {
+    let val;
+    hashTable.forEach( ( _hash, _val ) => {
+        if ( _hash === hash ) val = _val;
+    } );
+    return val;
+}

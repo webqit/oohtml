@@ -44,11 +44,9 @@ export default class HTMLImportsContext extends DOMContext {
 
         // Parse and translate detail
         if ( ( event.detail || '' ).trim() === '/' ) return event.respondWith( this.localModules );
-        const $config = this.configs.HTML_IMPORTS;
         let path = ( event.detail || '' ).split( /\/|(?<=\w)(?=#)/g ).map( x => x.trim() ).filter( x => x );
-        if ( path.length ) { path = path.join( `/${ $config.api.defs }/` )?.split( '/' ) || []; }
-        // No detail?
         if ( !path.length ) return event.respondWith();
+        path = path.join( `/${ this.configs.HTML_IMPORTS.api.defs }/` )?.split( '/' ) || [];
 
 
         // We'll now fulfill request

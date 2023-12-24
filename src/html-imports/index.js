@@ -73,6 +73,11 @@ function exposeAPIs( config ) {
     Object.defineProperty( window.HTMLTemplateElement.prototype, config.api.def, { get: function() {
         return this.getAttribute( config.attr.def );
     } } );
+    Object.defineProperty( window.HTMLTemplateElement.prototype, 'scoped', {
+        configurable: true,
+        get() { return this.hasAttribute( 'scoped' ); },
+        set( value ) { this.toggleAttribute( 'scoped', value ); },
+    } );
     Object.defineProperty( window.document, config.api.import, { value: function( ref, live = false, callback = null ) {
         return importRequest( window.document, ...arguments );
     } } );
@@ -102,6 +107,7 @@ function exposeAPIs( config ) {
  */
 function realtime( config ) {
     const window = this, { webqit: { Observer, realdom, oohtml: { configs }, HTMLImportElement, HTMLImportsContext } } = window;
+    
     // ------------
     // MODULES
     // ------------
@@ -124,7 +130,6 @@ function realtime( config ) {
     realdom.realtime( window.document ).subtree/*instead of observe(); reason: jsdom timing*/( [ config.templateSelector, config.importsContextSelector ], record => {
         record.entrants.forEach( entry => {
             if ( entry.matches( config.templateSelector ) ) {
-                Object.defineProperty( entry, 'scoped', { value: entry.hasAttribute( 'scoped' ) } ); 
                 const htmlModule = HTMLModule.instance( entry );
                 htmlModule.ownerContext = entry.scoped ? record.target : window.document;
                 const ownerContextModulesObj = getDefs( htmlModule.ownerContext );
@@ -148,6 +153,7 @@ function realtime( config ) {
             }
         } );
     }, { live: true, timing: 'sync', staticSensitivity: true } );
+    
     // ------------
     // IMPORTS
     // ------------

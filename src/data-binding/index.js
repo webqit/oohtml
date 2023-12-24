@@ -2,7 +2,7 @@
 /**
  * @imports
  */
-import { _, _init } from '../util.js';
+import { _, _init, _splitOuter } from '../util.js';
 
 /**
  * Initializes DOM Parts.
@@ -156,8 +156,8 @@ const inlineParseCache = new Map;
 function compileInlineBindings( config, str ) {
     if ( inlineParseCache.has( str ) ) return inlineParseCache.get( str );
     const validation = {};
-    const source = splitOuter( str, ';' ).map( str => {
-        const [ left, right ] = splitOuter( str, ':' ).map( x => x.trim() );
+    const source = _splitOuter( str, ';' ).map( str => {
+        const [ left, right ] = _splitOuter( str, ':' ).map( x => x.trim() );
         const directive = left[ 0 ], param = left.slice( 1 ).trim();
         const arg = `(${ right })`, $arg = `(${ arg } ?? '')`;
         if ( directive === '&' ) {
@@ -175,7 +175,7 @@ function compileInlineBindings( config, str ) {
             if ( param === 'text' ) return `$assign__(this, 'textContent', ${ $arg });`;
             if ( param === 'html' ) return `$exec__(this, 'setHTML', ${ $arg });`;
             if ( param === 'items' ) {
-                const [ iterationSpec, importSpec ] = splitOuter( right, '/' );
+                const [ iterationSpec, importSpec ] = _splitOuter( right, '/' );
                 if ( !importSpec ) throw new Error( `Invalid ${ directive }items spec: ${ str }; no import specifier.` );
                 let [ raw, production, kind, iteratee ] = iterationSpec.trim().match( /(.*?[\)\s+])(of|in)([\(\{\[\s+].*)/i ) || [];
                 if ( !raw ) throw new Error( `Invalid ${ directive }items spec: ${ str }.` );
@@ -225,21 +225,6 @@ function compileInlineBindings( config, str ) {
     const compiled = new QuantumModule( source );
     inlineParseCache.set( str, compiled );
     return compiled;
-}
-
-export function splitOuter( str, delim ) {
-    return [ ...str ].reduce( ( [ quote, depth, splits, skip ], x ) => {
-        if ( !quote && depth === 0 && ( Array.isArray( delim ) ? delim : [ delim ] ).includes( x ) ) {
-            return [ quote, depth, [ '' ].concat( splits ) ];
-        }
-        if ( !quote && [ '(', '[', '{' ].includes( x ) && !splits[ 0 ].endsWith( '\\' ) ) depth++;
-        if ( !quote && [ ')', ']', '}' ].includes( x ) && !splits[ 0 ].endsWith( '\\' ) ) depth--;
-        if ( [ '"', "'", '`' ].includes( x ) && !splits[ 0 ].endsWith( '\\' ) ) {
-            quote = quote === x ? null : ( quote || x );
-        }
-        splits[ 0 ] += x;
-        return [ quote, depth, splits ]
-    }, [ null, 0, [ '' ] ] )[ 2 ].reverse();
 }
 
 const escDouble = str => str.replace(/"/g, '\\"');

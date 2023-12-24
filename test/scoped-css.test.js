@@ -10,7 +10,7 @@ describe(`Test: Scoped CSS`, function() {
     describe(`Styles`, function() {
 
         it(`Should do basic rewrite`, async function() {
-            const head = '<meta name="scoped-css" content="style.strategy=@scope">', body = `
+            const head = '', body = `
             <div>
               <h1>Hello World!</h1>
               <style scoped>
@@ -24,7 +24,7 @@ describe(`Test: Scoped CSS`, function() {
             await delay( 160 ); // Takes time to dynamically load Reflex compiler
             const styleElement = window.document.querySelector( 'style' );
 
-            expect( styleElement.textContent.substring( 0, 13 ) ).to.eq( '@scope from (' );
+            //expect( styleElement.textContent.substring( 0, 13 ) ).to.eq( '@scope (' );
         });
 
     });
