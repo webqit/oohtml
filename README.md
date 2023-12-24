@@ -19,7 +19,7 @@ Building Single Page Applications? OOHTML is a special love letter! Writing Web 
 
 ## Polyfill
 
-OOHTML is being developed as something to be used today. This implementation adheres closely to the spec and evolves the proposal through a practice-driven process.
+OOHTML is being developed as something to be used today. This implementation adheres closely to the spec and helps evolve the proposal through a practice-driven process.
 
 <details><summary>Load from a CDN<br>
 └───────── <a href="https://bundlephobia.com/result?p=@webqit/oohtml"><img align="right" src="https://img.shields.io/badge/21.8%20kB-black"></a></summary>
