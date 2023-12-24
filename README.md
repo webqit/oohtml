@@ -255,9 +255,16 @@ Here, we get a modular naming convention using the `namespace` attribute. This a
 </form>
 ```
 
-This lets us have repeating structures with identical but non-conflicting identifiers and `IDREFS`.
+This lets us have repeating structures with identical but non-conflicting identifiers. These identifiers are then referenced locally using "local" `IDREFS` - denoted by the `~` prefix.
 
-And this also translates well to an object model:
+More generally, local `IDREFS` are resolved within the namespace where they're used (instead of globally):
+
+```js
+// Matches "#city" within the fieldset's namespace; not super namespace, not sub namespace 
+const city = fieldset.querySelector('#~city');
+```
+
+And when used from the document context, these are resolved against top-level IDs; i.e. IDs in the document namespace itself:
 
 ```html
 <div id="user" namespace>
@@ -268,14 +275,28 @@ And this also translates well to an object model:
 </div>
 ```
 
+```js
+const user = document.querySelector('#~user');
+```
+
+```js
+const user = document.getElementById('~user');
+```
+
+And these also play well as URL targets, with additional support for path expressions denoting a hierarchy of namespaces:
+
+```html
+<a href="#~user/email">Jump to Email</a>
+```
+
+And JavaScript applications are able to consume namespace structures as an object model:
+
 ```html
 user
  ├── url
  ├── name
  └── email
 ```
-
-with a complementary API that exposes said structure to JavaScript applications:
 
 ```js
 // The document.namespace API
