@@ -451,7 +451,7 @@ Here, we get a way to both define and use a snippet within *same* document:
 </body>
 ```
 
-...and optionally support remote documents without a change in paradigm:
+...while optionally supporting remote documents without a change in paradigm:
 
 ```html
 <head>
