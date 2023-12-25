@@ -243,7 +243,7 @@ console.log(window.foo); // div
 
 </details>
 
-Here, we get a modular naming convention using the `namespace` attribute. This attribute let's us create a naming context for identifiers in a given subtree:
+Here, we get a modular naming convention that let's us create a naming context for identifiers in a given subtree - by means of a new `namespace` attribute:
 
 ```html
 <form>
