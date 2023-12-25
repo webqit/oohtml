@@ -1308,9 +1308,9 @@ Observer.deleteProperty(document.bindings.app, 'title');
 
 ### The Context API
 
-Component trees on the typical UI often call for more than the normal top-down flow of data that the Bindings API facilitates. A child may require the ability to look up the component tree to directly access specific data, or in other words, get data from "context". This is where a Context API comes in.
+Component trees on the typical UI often call for more than the normal "top-down" flow of data that the Bindings API facilitates. We still often require the ability to "look up" the component tree to directly access specific data, or in other words, get data from "context". This is where a Context API comes in.
 
-Interestingly, the Context API is the underlying resolution mechanism behind HTML Imports and Data Binding in OOHTML!
+Interestingly, the Context API is the underlying "resolution" infrastructure for the Namespace API and the Data Binding and HTML Imports features in OOHTML!
 
 Here, we simply leverage the DOM's existing event system to fire a "request" event and let an arbitrary "provider" in context fulfill the request. This becomes very simple with the Context API which is exposed on the document object and on element instances as a readonly `contexts` property.
 
