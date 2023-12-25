@@ -897,15 +897,15 @@ const result = contextElement.import('foo#fragment2'); // the local module: foo#
 
 ## Data Binding
 
-Data binding is a declarative approach to binding the UI to application data, wherein the relevant parts of the UI *automatically* update as application state changes.
+Data binding is the idea of declaratively binding the UI to application data, wherein the relevant parts of the UI *automatically* update as application state changes.
 
 OOHTML makes this possible in just simple conventions - via a new comment-based data-binding syntax `<?{ }?>` and a complementary new `expr` attribute!
 
-And for when we need to write extended reactive logic on the UI, a perfect answer: Quantum Scripts!
+And for when we need to write extensive reactive logic on the UI, a perfect answer: Quantum Scripts!
 
 ### Discrete Data-Binding
 
-Here, we get a comment-based data-binding tag `<?{ }?>` (or `<!--?{ }?-->`), **which goes as a regular HTML comment** but also an insertion point for application data:
+Here, we get a comment-based data-binding syntax `<?{ }?>` (or `<!--?{ }?-->`), **which goes as a regular HTML comment** but also an insertion point for application data:
 
 ```js
 <html>
