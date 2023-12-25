@@ -25,42 +25,82 @@ export default function init( $config = {} ) {
 }
 
 /**
+ * @init
+ * 
+ * @param Object config
+ * 
+ * @return String
+ */
+function lidUtil( config ) {
+	const { lidrefPrefix, lidrefSeparator, } = config.tokens;
+	return {
+		escape( str, mode = 1 ) { return [ ...str ].map( x => !/\w/.test( x ) ? ( mode === 2 ? `\\\\${ x }` : `\\${ x }` ) : x ).join( '' ); },
+		lidrefPrefix( escapeMode = 0 ) { return escapeMode ? this.escape( lidrefPrefix, escapeMode ) : lidrefPrefix; },
+		lidrefSeparator( escapeMode = 0 ) { return escapeMode ? this.escape( lidrefSeparator, escapeMode ) : lidrefSeparator; },
+		isUuid( str, escapeMode = 0 ) { return str.startsWith( this.lidrefPrefix( escapeMode ) ) && str.includes( this.lidrefSeparator( escapeMode ) ); },
+		isLidref( str, escapeMode = 0 ) { return str.startsWith( this.lidrefPrefix( escapeMode ) ) && !str.includes( this.lidrefSeparator( escapeMode ) ); },
+		toUuid( hash, lid, escapeMode = 0 ) { return `${ this.lidrefPrefix( escapeMode ) }${ hash }${ this.lidrefSeparator( escapeMode ) }${ lid }`; },
+		uuidToLid( str, escapeMode = 0 ) { return this.isUuid( str ) ? str.split( this.lidrefSeparator( escapeMode ) )[ 1 ] : str; },
+		uuidToLidref( str, escapeMode = 0 ) { return this.isUuid( str ) ? `${ this.lidrefPrefix( escapeMode ) }${ str.split( this.lidrefSeparator( escapeMode ) )[ 1 ] }` : str; },
+	}
+}
+
+/**
  * @rewriteSelector
  * 
  * @param String selectorText
+ * @param String namespaceUUID
  * @param String scopeSelector
- * @param Bool isCssSelector
+ * @param Bool escapeMode
+ * 
+ * @return String
  */
-export function rewriteSelector( selectorText, scopeSelector = null, isCssSelector = false ) {
+export function rewriteSelector( selectorText, namespaceUUID, scopeSelector = null, escapeMode = 0 ) {
 	const window = this, { webqit: { oohtml: { configs: { NAMESPACED_HTML: config } } } } = window;
-	const { lidrefPrefix, lidrefSeparator } = config.tokens;
+	const $lidUtil = lidUtil( config );
 	// Match :scope and relative ID selector
-	const regex = new RegExp( `${ scopeSelector ? `:scope|` : '' }#${ [ ...lidrefPrefix ].map( x => !/\w/.test( x ) ? ( !isCssSelector ? `\\${ x }` : `\\\\${ x }` ) : x ).join( '' ) }([\\w-]|\\\\.)+`, 'g' );
+	const regex = new RegExp( `${ scopeSelector ? `:scope|` : '' }#(${ $lidUtil.lidrefPrefix( escapeMode + 1 ) })?([\\w]+${ $lidUtil.lidrefSeparator( escapeMode + 1 ) })?((?:[\\w-]|\\\\.)+)`, 'g' );
 	// Parse potentially combined selectors individually and categorise into categories per whether they have :scope or not
 	const [ cat1, cat2 ] = _splitOuter( selectorText, ',' ).reduce( ( [ cat1, cat2 ], selector ) => {
 		// The deal: match and replace
 		let quotesMatch, hadScopeSelector;
-		selector = selector.replace( regex, ( match, unused/**/, index ) => {
+		selector = selector.replace( regex, ( match, lidrefPrefixMatch, lidrefSeparatorMatch, id, index ) => {
 			if ( !quotesMatch ) { // Lazy: stuff
 				// Match strings between quotes (single or double) and use that qualify matches above
 				// The string: String.raw`She said, "Hello, John. I\"m your friend." or "you're he're" 'f\'"j\'"f'jfjf`;
 				// Should yield: `"Hello, John. I\\"m your friend."`, `"you're he're"`, `'f\\'"j\\'"f'`
 				quotesMatch = [ ...selector.matchAll( /(["'])(?:(?=(\\?))\2.)*?\1/g ) ];
 			}
+			if ( quotesMatch[ 0 ] )
 			// Qualify match
-			if ( quotesMatch.some( q => index > q.index && index + match.length < q.index + match.length ) ) return match;
+			if ( quotesMatch.some( q => index > q.index && index + match.length < q.index + q[ 0 ].length ) ) return match;
 			// Replace :scope
 			if ( match === ':scope' ) {
 				hadScopeSelector = true;
 				return scopeSelector;
 			}
-			// Replace relative ID selector
-			const lidref = match.replace( `#${ !isCssSelector ? lidrefPrefix : [ ...lidrefPrefix ].map( x => !/\w/.test( x ) ? `\\${ x }` : x ).join( '' ) }`, '' );
-			if ( config.attr.lid === 'id' ) {
-				return `[id^="${ lidrefPrefix }"][id$="${ lidrefSeparator }${ lidref }"]`;
-			} else {
-				return `[${ window.CSS.escape( config.attr.lid ) }="${ lidref }"]`;
+			const isLidref = lidrefPrefixMatch && !lidrefSeparatorMatch;
+			const isUuid = lidrefPrefixMatch && lidrefSeparatorMatch;			
+			if ( isUuid ) {
+				return `#${ $lidUtil.escape( match.replace( '#', '' ), 1 ) }`;
 			}
+			// Rewrite relative ID selector
+			let lowerBoundFactor = false;
+			if ( isLidref ) {
+				if ( config.attr.lid === 'id' && namespaceUUID ) {
+					return `#${ $lidUtil.toUuid( namespaceUUID, id, 1 ) }`;
+				}
+				// Fallback to attr-based
+				lowerBoundFactor = true;
+			}
+			// Rewrite absolute ID selector
+			let rewrite;
+			if ( config.attr.lid === 'id' ) {
+				rewrite = `[id^="${ $lidUtil.lidrefPrefix( escapeMode ) }"][id$="${ $lidUtil.lidrefSeparator( escapeMode ) }${ id }"]`;
+			} else {
+				rewrite = `:is(#${ id },[${ window.CSS.escape( config.attr.lid ) }="${ id }"])`;
+			}
+			return scopeSelector && lowerBoundFactor ? `:is(${ rewrite }):not(${ scopeSelector } [${ config.attr.namespace }] *)` : rewrite;
 		} );
 		// Category 2 has :scope and category 1 does not
 		return hadScopeSelector ? [ cat1, cat2.concat( selector ) ] : [ cat1.concat( selector ), cat2 ];
@@ -82,12 +122,23 @@ export function rewriteSelector( selectorText, scopeSelector = null, isCssSelect
  *
  * @return Object
  */
-function getNamespaceObject( node ) {
+export function getNamespaceObject( node ) {
 	if ( !_( node ).has( 'namespace' ) ) {
 		const namespaceObj = Object.create( null );
 		_( node ).set( 'namespace', namespaceObj );
 	}
 	return _( node ).get( 'namespace' );
+}
+
+/**
+ * @param Element node
+ *
+ * @return String
+ */
+export function getNamespaceUUID( node ) {
+	const window = this, { webqit: { oohtml: { configs: { NAMESPACED_HTML: config } } } } = window;
+	const namespaceObj = getNamespaceObject( node instanceof window.Document ? node : ( node.closest( `[${ config.attr.namespace }]` ) || node.ownerDocument ) );
+    return _fromHash( namespaceObj ) || _toHash( namespaceObj );
 }
 
 /**
@@ -120,7 +171,6 @@ function exposeAPIs( config ) {
  */
 function realtime( config ) {
     const window = this, { webqit: { Observer, realdom, oohtml: { configs }, DOMNamingContext } } = window;
-	const { lidrefPrefix, lidrefSeparator } = config.tokens;
 
     // ------------
     // NAMESPACE
@@ -149,31 +199,25 @@ function realtime( config ) {
 	const idRefAttrs = [ 'for', 'list', 'form', 'aria-activedescendant', 'aria-details', 'aria-errormessage', ];
 	const attrList = [ config.attr.lid, ...idRefsAttrs, ...idRefAttrs ];
 	const relMap = { id: 'id'/* just in case it's in attrList */, for: 'htmlFor', 'aria-owns': 'ariaOwns', 'aria-controls': 'ariaControls', 'aria-labelledby': 'ariaLabelledBy', 'aria-describedby': 'ariaDescribedBy', 'aria-flowto': 'ariaFlowto', 'aria-activedescendant': 'ariaActiveDescendant', 'aria-details': 'ariaDetails', 'aria-errormessage': 'ariaErrorMessage' };
-	const isUuid = str => str.startsWith( lidrefPrefix ) && str.includes( lidrefSeparator );
-	const isLidref = str => str.startsWith( lidrefPrefix ) && !str.includes( lidrefSeparator );
-	const toUuid = ( hash, lid ) => `${ lidrefPrefix }${ hash }${ lidrefSeparator }${ lid }`;
-	const uuidToLid = str => isUuid( str ) ? str.split( lidrefSeparator )[ 1 ] : str;
-	const uuidToLidref = str => isUuid( str ) ? `${ lidrefPrefix }${ str.split( lidrefSeparator )[ 1 ] }` : str;
+	const $lidUtil = lidUtil( config );
 
 	// Intercept getAttribute()
-	const getAttribute = Object.getOwnPropertyDescriptor( window.Element.prototype, 'getAttribute' );
-	Object.defineProperty( window.Element.prototype, 'getAttribute', { ...getAttribute, value( attrName ) {
-		const value = getAttribute.value.call( this, attrName );
-		return !_( this, 'lock' ).get( attrName ) && attrList.includes( attrName ) ? ( attrName === 'id' ? uuidToLid : uuidToLidref )( value ) : value;
+	const getAttributeDescr = Object.getOwnPropertyDescriptor( window.Element.prototype, 'getAttribute' );
+	Object.defineProperty( window.Element.prototype, 'getAttribute', { ...getAttributeDescr, value( attrName ) {
+		const value = getAttributeDescr.value.call( this, attrName );
+		return !_( this, 'lock' ).get( attrName ) && attrList.includes( attrName ) ? ( attrName === 'id' ? $lidUtil.uuidToLid : $lidUtil.uuidToLidref ).call( $lidUtil, value ) : value;
 	} } );
 	// Intercept getElementById()
-	const getElementById = Object.getOwnPropertyDescriptor( window.Document.prototype, 'getElementById' );
-	Object.defineProperty( window.Document.prototype, 'getElementById', { ...getElementById, value( id ) {
-		if ( !isLidref( id ) ) return getElementById.value.call( this, id );
-		const node = this.querySelector( rewriteSelector.call( window, `#${ id }` ) );
-		return node;// !node?.closest( config.namespaceSelector ) ? node : null; // Cool, but not consistent with querySelector(All)() results
+	const getElementByIdDescr = Object.getOwnPropertyDescriptor( window.Document.prototype, 'getElementById' );
+	Object.defineProperty( window.Document.prototype, 'getElementById', { ...getElementByIdDescr, value( id ) {
+		return this.querySelector( `#${ id }`/* Will be rewritten at querySelector() */ );
 	} } );
 	// Intercept querySelector() and querySelectorAll()
 	for ( const queryApi of [ 'querySelector', 'querySelectorAll' ] ) {
 		for ( nodeApi of [ window.Document, window.Element ] ) {
-			const querySelector = Object.getOwnPropertyDescriptor( nodeApi.prototype, queryApi );
-			Object.defineProperty( nodeApi.prototype, queryApi, { ...querySelector, value( selector ) {
-				return querySelector.value.call( this, rewriteSelector.call( window, selector ) );
+			const querySelectorDescr = Object.getOwnPropertyDescriptor( nodeApi.prototype, queryApi );
+			Object.defineProperty( nodeApi.prototype, queryApi, { ...querySelectorDescr, value( selector ) {
+				return querySelectorDescr.value.call( this, rewriteSelector.call( window, selector, getNamespaceUUID.call( window, this ) ) );
 			} } );
 		}
 	}
@@ -182,15 +226,21 @@ function realtime( config ) {
 		if ( !( attrName in relMap ) ) continue;
 		const domApis = attrName === 'for' ? [ window.HTMLLabelElement, window.HTMLOutputElement ] : [ window.Element ];
 		for ( const domApi of domApis ) {
-			const idReflection = Object.getOwnPropertyDescriptor( domApi.prototype, relMap[ attrName ] );
-			if ( !idReflection ) continue;
-			Object.defineProperty( domApi.prototype, relMap[ attrName ], { ...idReflection, get() {
-				return ( attrName === 'id' ? uuidToLid : uuidToLidref )( idReflection.get.call( this, attrName ) || '' );
+			const propertyDescr = Object.getOwnPropertyDescriptor( domApi.prototype, relMap[ attrName ] );
+			if ( !propertyDescr ) continue;
+			Object.defineProperty( domApi.prototype, relMap[ attrName ], { ...propertyDescr, get() {
+				return ( attrName === 'id' ? $lidUtil.uuidToLid : $lidUtil.uuidToLidref ).call( $lidUtil, propertyDescr.get.call( this, attrName ) || '' );
 			} } );
 		}
 	}
-	// Reflect the custom [config.attr.lid] attribute
+	// Hide implementation details on the Attr node too.
+	const propertyDescr = Object.getOwnPropertyDescriptor( window.Attr.prototype, 'value' );
+	Object.defineProperty( window.Attr.prototype, 'value', { ...propertyDescr, get() {
+		const value = propertyDescr.get.call( this );
+		return attrList.includes( this.name ) ? ( this.name === 'id' ? $lidUtil.uuidToLid : $lidUtil.uuidToLidref ).call( $lidUtil, value ) : value;
+	} } );
 	if ( config.attr.lid !== 'id' ) {
+		// Reflect the custom [config.attr.lid] attribute
 		Object.defineProperty( window.Element.prototype, config.attr.lid, { configurable: true, enumerable: true, get() {
 			return this.getAttribute( config.attr.lid );
 		}, set( value ) {
@@ -210,10 +260,10 @@ function realtime( config ) {
 		// Get down to work
 		const namespaceObj = _( entry ).get( 'ownerNamespace' );
 		if ( attrName === config.attr.lid ) {
-			const lid = uuidToLid( oldValue );
+			const lid = $lidUtil.uuidToLid( oldValue );
 			if ( Observer.get( namespaceObj, lid ) === entry ) { Observer.deleteProperty( namespaceObj, lid ); }
 		} else {
-			const newAttrValue = oldValue.split( ' ' ).map( lid => ( lid = lid.trim() ) && uuidToLidref( lid ) ).join( ' ' );
+			const newAttrValue = oldValue.split( ' ' ).map( lid => ( lid = lid.trim() ) && $lidUtil.uuidToLidref( lid ) ).join( ' ' );
 			entry.setAttribute( attrName, newAttrValue );
 		}
 		// Release locking
@@ -229,14 +279,14 @@ function realtime( config ) {
 		const namespaceObj = _( entry ).get( 'ownerNamespace' );
 		const namespaceUUID = _( entry ).get( 'namespaceUUID' );
 		if ( attrName === config.attr.lid ) {
-			const lid = uuidToLid( value );
+			const lid = $lidUtil.uuidToLid( value );
 			if ( Observer.get( namespaceObj, lid ) !== entry ) {
 				// Setup new namespace relationships
-				entry.setAttribute( 'id', toUuid( namespaceUUID, lid ) );
+				entry.setAttribute( 'id', $lidUtil.toUuid( namespaceUUID, lid ) );
 				Observer.set( namespaceObj, lid, entry );
 			}
 		} else {
-			const newAttrValue = value.split( ' ' ).map( lid => ( lid = lid.trim() ) && !isLidref( lid ) ? lid : toUuid( namespaceUUID, lid.replace( lidrefPrefix, '' ) ) ).join( ' ' );
+			const newAttrValue = value.split( ' ' ).map( lid => ( lid = lid.trim() ) && !$lidUtil.isLidref( lid ) ? lid : $lidUtil.toUuid( namespaceUUID, lid.replace( $lidUtil.lidrefPrefix(), '' ) ) ).join( ' ' );
 			entry.setAttribute( attrName, newAttrValue );
 		}
 		// Release locking
@@ -297,8 +347,8 @@ function realtime( config ) {
     // ------------
 	let prevTarget;
 	const activateTarget = () => {
-		if ( !window.location.hash?.startsWith( `#${ lidrefPrefix }` ) ) return;
-		const path = window.location.hash?.substring( `#${ lidrefPrefix }`.length ).split( '/' ).map( s => s.trim() ).filter( s => s ) || [];
+		if ( !window.location.hash?.startsWith( `#${ $lidUtil.lidrefPrefix() }` ) ) return;
+		const path = window.location.hash?.substring( `#${ $lidUtil.lidrefPrefix() }`.length ).split( '/' ).map( s => s.trim() ).filter( s => s ) || [];
 		const currTarget = path.reduce( ( prev, segment ) => prev && prev[ config.api.namespace ][ segment ], window.document );
 		if ( prevTarget && config.target.attr ) { prevTarget.toggleAttribute( config.target.attr, false ); }
 		if ( currTarget && currTarget !== window.document ) {
