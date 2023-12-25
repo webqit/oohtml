@@ -202,7 +202,7 @@ If you'll be going ahead to build a real app with OOHTML, you may want to consid
 
 Amidst a multitude of approaches, vanilla HTML remains an attractive option for the UI author! But the current authoring experience still leaves much to be desired in how the language lacks modularity, reusability, and certain modern paradigms like data binding! Authors still have to rely on tools - and, for the most part, have to do half of the work in HTML and half in JS - to express even basic concepts!
 
-"As an author, I want to be able to do 'x' *declaratively* instead of *imperatively* in JavaScript or by means of a special Custom Element!" "As a Web Component author, I want to be able to leverage *conventions* that keep my component logic *concise*!" All such "user stories" represent important developer intuitions that has yet to be met in HTML; much of which belong under a broad subject: an object-oriented markup language! This subject is what we explore with OOHTML!
+"As an author, I want to be able to do 'x' *declaratively* in HTML instead of *imperatively* in JavaScript or by means of a special Custom Element!" "As a Web Component author, I want to be able to leverage *conventions* that keep my component logic *concise*!" All such "user stories" represent important developer intuitions that has yet to be met in HTML; much of which belong under a broad subject: an object-oriented markup language! This subject is what we explore with OOHTML!
 
 OOHTML comes, not as a specific technology, but as a conceptual "framework" of features that solves for HTML as an object-oriented language - whether that means re-aligning existing features or introducing new ones! While features may be discussed or explored individually, the one agenda "Object-Oriented HTML" helps us stay aligned with the original problem! Each of these features has been introduced below with a small explainer.
 
@@ -219,7 +219,7 @@ OOHTML is effectively different from Web Components (and from the related Declar
 
 ## Modular HTML
 
-Modular HTML is a markup pattern that lets us write arbitrary markup as self-contained objects - with each *encapsulating* their own structure, styling and logic!
+Modular HTML is markup written as self-contained objects - wherein an element *encapsulates* their own structure, styling and logic!
 
 OOHTML makes this possible by introducing "namespacing" and style and script scoping!
 
@@ -240,7 +240,7 @@ Here, we get a modular naming convention using the `namespace` attribute. This a
 
     <label for="~city">City</label>
     <input id="city">
-   <fieldset>
+  <fieldset>
 
   <fieldset namespace>
     <legend>Delivery Address</legend>
@@ -250,14 +250,14 @@ Here, we get a modular naming convention using the `namespace` attribute. This a
     
     <label for="~city">City</label>
     <input id="city">
-   <fieldset>
+  <fieldset>
 
 </form>
 ```
 
-This lets us have repeating structures with identical but non-conflicting identifiers. These identifiers are then referenced locally using "local" `IDREFS` - denoted by the `~` prefix.
+This lets us have repeating structures with identical but non-conflicting identifiers. These identifiers are then referenced locally using "local `IDREFS`" - denoted by the `~` prefix.
 
-More generally, local `IDREFS` are resolved within the namespace where they're used (not globally; not deeply):
+Local `IDREFS` are resolved within the namespace where they're used (not globally; not deeply):
 
 ```js
 // Matches "#city" within the fieldset's namespace; not super namespace, not sub namespace 
