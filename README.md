@@ -507,7 +507,7 @@ Here, we get the `def` attribute for defining those - both at the `<template>` e
 
 We shouldn't need a different mechanism to work with remote content.
 
-Here, OOHTML introduces an `src` attribute that lets us have self-loading `<template>` elements:
+Here, OOHTML extends the `<template>` with an `src` attribute that lets us have self-loading `<template>` elements:
 
 ```html
 <template def="foo" src="/foo.html"></template>
