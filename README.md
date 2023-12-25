@@ -1175,10 +1175,11 @@ Now, in each case above, reactivity terminates on script's removal from the DOM 
 ```js
 const script = document.querySelector('script[quantum]');
 // const script = document.querySelector('main').scripts[0];
-script.abort();
+script.state.dispose();
+// which also happens on doing script.remove()
 ```
 
-But while that is automatic, DOM event handlers bound via `addEventListener()` would still need to be terminated in their own way.
+But note that while said termination is automatic on script's removal, DOM event handlers bound via `addEventListener()` would still need to be terminated in their own way.
 
 </details>
 
