@@ -1235,7 +1235,7 @@ node.bindings.style = 'tall-dark';
 node.bindings.normalize = true;
 ```
 
-**-->** *with a complementary `bind()` method that lets us make mutations in batch*:
+**-->** *with a complementary `bind()` method that lets us make multiple mutations in one batch*:
 
 ```js
 // ------------
@@ -1288,7 +1288,7 @@ const node = document.querySelector('my-element');
 node.bindings.style = 'tall-dark';
 ```
 
-<details><summary>Details</summary>
+<details><summary>Implementation details</summary>
 
 In the current OOHTML implementation, the `document.bindings` and `Element.prototype.bindings` APIs are implemented as proxies over their actual bindings interface to enable some interface-level reactivity. This lets us have reactivity over literal property assignments and deletions on these interfaces:
 
