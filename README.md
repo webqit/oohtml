@@ -227,6 +227,22 @@ OOHTML makes this possible by introducing "namespacing" and style and script sco
 
 Naming things is hard! That's especially so where you have one global namespace and a miriad of potentially conflicting identifiers to coordinate!
 
+<details><summary>Learn more</summary>
+
+You want to see how IDs are otherwise exposed as global variables:
+
+```html
+<div id="foo"><div>
+```
+
+```js
+console.log(window.foo); // div
+```
+
+[Read more](https://stackoverflow.com/questions/6381425/is-there-a-spec-that-the-id-of-elements-should-be-made-global-variable)
+
+</details>
+
 Here, we get a modular naming convention using the `namespace` attribute. This attribute let's us create a naming context for identifiers in a given subtree:
 
 ```html
@@ -334,29 +350,20 @@ function changeCallback(changes) {
 }
 ```
 
-</details>
-
-<details><summary>Learn more</summary>
-
-You want to see how IDs are otherwise exposed as global variables:
-
-```html
-<div id="foo"><div>
-```
-
-```js
-console.log(window.foo); // div
-```
-
-[Read more](https://stackoverflow.com/questions/6381425/is-there-a-spec-that-the-id-of-elements-should-be-made-global-variable)
-
-</details>
+</details> 
 
 <details><summary>Implementation details</summary>
 
-In the current implementation, a small random string is automatically prepended to each ID and IDREF token to give the browser something "unique" to work with in each case, but without that implementation detail breaking your application. So, while an element may be seen in the browser inspector tab as having a random hash pretended to their ID or IDREF:
+In the current implementation, a small random string is automatically prepended to each ID and IDREF token in the DOM to give the browser something "unique" to work with, but without that implementation detail leaking into your application. So, while an element may be seen in the browser inspector tab as having a random hash prepended to their ID or IDREF:
 
 ```html
+<!-- Original -->
+<label for="~real-id">Question 1:</label>
+<input id="real-id">
+```
+
+```html
+<!-- Transformed -->
 <label for="~hg3j:real-id">Question 1:</label>
 <input id="~hg3j:real-id">
 ```
@@ -364,11 +371,11 @@ In the current implementation, a small random string is automatically prepended 
 the values your application sees are the unprefixed ID and IDREFs:
 
 ```js
-console.log(label.htmlFor); // real-id
+console.log(label.htmlFor); // ~real-id
 console.log(input.id); // real-id
 
-console.log(label.getAttribute('id')); // real-id
-console.log(label.attributes[0].value); // real-id
+console.log(label.getAttribute('for')); // ~real-id
+console.log(input.attributes[0].value); // real-id
 ```
 
 </details>
