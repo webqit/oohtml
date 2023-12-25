@@ -219,7 +219,7 @@ OOHTML is effectively different from Web Components (and from the related Declar
 
 ## Modular HTML
 
-Modular HTML is markup architecture that lets us write elements as self-contained objects - which includes being able to *encapsulate* structure, styling and logic!
+Modular HTML is a markup architecture that enables writing elements as self-contained objects - which includes being able to *encapsulate* structure, styling and logic!
 
 OOHTML makes this possible by introducing "namespacing" and style and script scoping!
 
