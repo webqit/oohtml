@@ -219,7 +219,7 @@ OOHTML is effectively different from Web Components (and from the related Declar
 
 ## Modular HTML
 
-Modular HTML is markup written as self-contained objects - wherein an element *encapsulates* their own structure, styling and logic!
+Modular HTML is markup architecture that lets us write elements as self-contained objects - which includes being able to *encapsulate* structure, styling and logic!
 
 OOHTML makes this possible by introducing "namespacing" and style and script scoping!
 
@@ -283,7 +283,7 @@ const user = document.querySelector('#~user');
 const user = document.getElementById('~user');
 ```
 
-And these also play well as URL targets, with additional support for path expressions denoting a hierarchy of namespaces:
+And these also play well as URL targets, with additional support for path expressions given a hierarchy of namespaces:
 
 ```html
 <a href="#~user/email">Jump to Email</a>
@@ -349,6 +349,27 @@ console.log(window.foo); // div
 ```
 
 [Read more](https://stackoverflow.com/questions/6381425/is-there-a-spec-that-the-id-of-elements-should-be-made-global-variable)
+
+</details>
+
+<details><summary>Implementation details</summary>
+
+In the current implementation, a small random string is automatically prepended to each ID and IDREF token to give the browser something "unique" to work with in each case, but without that implementation detail breaking your application. So, while an element may be seen in the browser inspector tab as having a random hash pretended to their ID or IDREF:
+
+```html
+<label for="~hg3j:real-id">Question 1:</label>
+<input id="~hg3j:real-id">
+```
+
+the values your application sees are the unprefixed ID and IDREFs:
+
+```js
+console.log(label.htmlFor); // real-id
+console.log(input.id); // real-id
+
+console.log(label.getAttribute('id')); // real-id
+console.log(label.attributes[0].value); // real-id
+```
 
 </details>
 
