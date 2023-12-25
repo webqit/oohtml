@@ -432,7 +432,7 @@ Here, the `scoped` attribute has two effects on the `<script>` element:
 
 ## HTML Imports
 
-HTML Imports is a realtime *import* system for HTML that's drawn entirely on HTML - and which addresses a different problem than [the abandoned `<link type="import">` feature](https://www.w3.org/TR/html-imports/) and the [HTML Modules proposal](https://github.com/WICG/webcomponents/blob/gh-pages/proposals/html-modules-explainer.md)! **Something like it is the [`<defs>`](https://developer.mozilla.org/en-US/docs/Web/SVG/Element/defs) and [`<use>`](https://developer.mozilla.org/en-US/docs/Web/SVG/Element/use) system in SVG.**
+HTML Imports is a realtime *import* system for HTML that's drawn entirely on HTML - and which addresses a different problem case in comparison to [the abandoned `<link type="import">` feature](https://www.w3.org/TR/html-imports/) and the [HTML Modules proposal](https://github.com/WICG/webcomponents/blob/gh-pages/proposals/html-modules-explainer.md)! **Something like it is the [`<defs>`](https://developer.mozilla.org/en-US/docs/Web/SVG/Element/defs) and [`<use>`](https://developer.mozilla.org/en-US/docs/Web/SVG/Element/use) system in SVG.**
 
 Here, we get a way to both define and use a snippet within *same* document:
 
