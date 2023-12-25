@@ -19,7 +19,7 @@ Building Single Page Applications? OOHTML is a special love letter! Writing Web 
 
 ## Polyfill
 
-OOHTML is being developed as something to be used today. This implementation adheres closely to the spec and evolves the proposal through a practice-driven process.
+OOHTML is being developed as something to be used today. This implementation adheres closely to the spec and helps evolve the proposal through a practice-driven process.
 
 <details><summary>Load from a CDN<br>
 └───────── <a href="https://bundlephobia.com/result?p=@webqit/oohtml"><img align="right" src="https://img.shields.io/badge/21.8%20kB-black"></a></summary>
@@ -255,9 +255,16 @@ Here, we get a modular naming convention using the `namespace` attribute. This a
 </form>
 ```
 
-This lets us have repeating structures with identical but non-conflicting identifiers and `IDREFS`.
+This lets us have repeating structures with identical but non-conflicting identifiers. These identifiers are then referenced locally using "local" `IDREFS` - denoted by the `~` prefix.
 
-And this also translates well to an object model:
+More generally, local `IDREFS` are resolved within the namespace where they're used (not globally; not deeply):
+
+```js
+// Matches "#city" within the fieldset's namespace; not super namespace, not sub namespace 
+const city = fieldset.querySelector('#~city');
+```
+
+And when used from the document context, these are resolved against top-level IDs; i.e. IDs in the document namespace itself (not deeply):
 
 ```html
 <div id="user" namespace>
@@ -268,14 +275,28 @@ And this also translates well to an object model:
 </div>
 ```
 
+```js
+const user = document.querySelector('#~user');
+```
+
+```js
+const user = document.getElementById('~user');
+```
+
+And these also play well as URL targets, with additional support for path expressions denoting a hierarchy of namespaces:
+
+```html
+<a href="#~user/email">Jump to Email</a>
+```
+
+And JavaScript applications are able to consume namespace structures as an object model:
+
 ```html
 user
  ├── url
  ├── name
  └── email
 ```
-
-with a complementary API that exposes said structure to JavaScript applications:
 
 ```js
 // The document.namespace API
@@ -351,7 +372,22 @@ Here, we get a new `scoped` attribute that lets us do just that:
 </div>
 ```
 
-**-->** *with a complementary low-level API that exposes said assets to tools*:
+And the special "local ID" selector is supported within a scoped style sheet:
+
+```html
+<div namespace>
+  <a id="url" href="https://example.org">
+    <span id="name">Joe Bloggs</span>
+  </a>
+  <a id="email" href="mailto:joebloggs@example.com" >joebloggs@example.com</a>
+
+  <style scoped>
+    #\~name { color: red }
+  </style>
+</div>
+```
+
+And everything comes with a complementary low-level API that exposes said assets to tools:
 
 ```js
 let { styleSheets, scripts } = user; // APIs that are analogous to the document.styleSheets, document.scripts properties
