@@ -15,7 +15,7 @@ export default function init( $config = {} ) {
 		attr: { namespace: 'namespace', lid: 'id', },
 		api: { namespace: 'namespace', },
 		tokens: { lidrefPrefix: '~', lidrefSeparator: ':' },
-		target: { attr: ':target', event: ':target', scrolling: true },
+		target: { className: ':target', eventName: ':target', scrolling: true },
     } );
 	config.lidSelector = `[${ window.CSS.escape( config.attr.lid ) }]`;
 	config.namespaceSelector = `[${ window.CSS.escape( config.attr.namespace ) }]`;
@@ -350,10 +350,10 @@ function realtime( config ) {
 		if ( !window.location.hash?.startsWith( `#${ $lidUtil.lidrefPrefix() }` ) ) return;
 		const path = window.location.hash?.substring( `#${ $lidUtil.lidrefPrefix() }`.length ).split( '/' ).map( s => s.trim() ).filter( s => s ) || [];
 		const currTarget = path.reduce( ( prev, segment ) => prev && prev[ config.api.namespace ][ segment ], window.document );
-		if ( prevTarget && config.target.attr ) { prevTarget.toggleAttribute( config.target.attr, false ); }
+		if ( prevTarget && config.target.className ) { prevTarget.classList.toggle( config.target.className, false ); }
 		if ( currTarget && currTarget !== window.document ) {
-			if ( config.target.attr ) { currTarget.toggleAttribute( config.target.attr, true ); }
-			if ( config.target.event ) { currTarget.dispatchEvent( new window.CustomEvent( config.target.event ) ); }
+			if ( config.target.className ) { currTarget.classList.toggle( config.target.className, true ); }
+			if ( config.target.eventName ) { currTarget.dispatchEvent( new window.CustomEvent( config.target.eventName ) ); }
 			if ( config.target.scrolling && path.length > 1 ) { currTarget.scrollIntoView(); }
 			prevTarget = currTarget;
 		}
