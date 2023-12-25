@@ -229,7 +229,7 @@ Naming things is hard! That's especially so where you have one global namespace 
 
 <details><summary>Learn more</summary>
 
-You want to see how IDs are otherwise exposed as global variables:
+You want to see how IDs are, in fact, by default, exposed as global variables:
 
 ```html
 <div id="foo"><div>
