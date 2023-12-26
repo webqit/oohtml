@@ -80,8 +80,12 @@ function realtime( config ) {
                 Object.defineProperty( style, 'sheet', { value: compiledSheet, configurable: true } );
                 style.textContent = '\n/*[ Shared style sheet ]*/\n';
             } else {
-                const namespaceUUID = getNamespaceUUID( getOwnerNamespaceObject.call( window, style ) );
-                upgradeSheet.call( this, style.sheet, namespaceUUID, !supportsScope && scopeSelector );
+                const transform = () => {
+                    const namespaceUUID = getNamespaceUUID( getOwnerNamespaceObject.call( window, style ) );
+                    upgradeSheet.call( this, style.sheet, namespaceUUID, !supportsScope && scopeSelector );
+                };
+                if ( style.isConnected ) { transform(); }
+                else { setTimeout( () => { transform(); }, 0 ); }
             }
         } );
     }, { live: true, timing: 'intercept', generation: 'entrants' } );
