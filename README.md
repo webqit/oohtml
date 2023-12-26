@@ -1665,8 +1665,8 @@ The following is a Listbox component lifted directly from the [ARIA Authoring Pr
     <div id="ss_elem_list"
          tabindex="0"
          role="listbox"
-         aria-labelledby="ss_elem">
-      <ul role="group" aria-labelledby="~cat" namespace>
+         aria-labelledby="~ss_elem">
+      <ul role="group" namespace aria-labelledby="~cat">
         <li role="presentation" id="cat">
           Land
         </li>
@@ -1686,7 +1686,7 @@ The following is a Listbox component lifted directly from the [ARIA Authoring Pr
           Raccoon
         </li>
       </ul>
-      <ul role="group" aria-labelledby="cat" namespace>
+      <ul role="group" namespace aria-labelledby="~cat">
         <li role="presentation" id="cat">
           Water
         </li>
@@ -1700,7 +1700,7 @@ The following is a Listbox component lifted directly from the [ARIA Authoring Pr
           Eel
         </li>
       </ul>
-      <ul role="group" aria-labelledby="cat" namespace>
+      <ul role="group" namespace aria-labelledby="~cat">
         <li role="presentation" id="cat">
           Air
         </li>
