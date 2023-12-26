@@ -143,16 +143,16 @@ If you'll be going ahead to build a real app with OOHTML, you may want to consid
     + `document.bindings` now becomes: `document.wqBindings`,
     + etc.
 
-    The following is the full syntax table.
+    <details><summary>Show the full syntax table</summary>
 
-    Spec: **data-binding**
+    **Spec: `<meta name="data-binding">`**
 
     | Config | Default Syntax | Description |
     | :----- | :------------- | :---------- |
     | `attr.expr` | `expr` | The "expr" attribute for inline data binding. ([Docs](#inline-data-binding)) |
     | `attr.itemIndex` | `data-index` | The "item index" attribute for assigning indexes to list items. ([Docs](#inline-data-binding))  |
 
-    Spec: **bindings-api**
+    **Spec: `<meta name="bindings-api">`**
 
     | Config | Default Syntax | Description |
     | :----- | :------------- | :---------- |
@@ -160,14 +160,14 @@ If you'll be going ahead to build a real app with OOHTML, you may want to consid
     | `api.bind` | `bind` | The `document.bind()` and `Element.prototype.bind()` methods. ([Docs](#the-bindings-api)) |
     | `api.bindings` | `bindings` | The `document.bindings` and `Element.prototype.bindings` object properties. ([Docs](#the-bindings-api)) |
 
-    Spec: **context-api**
+    **Spec: `<meta name="context-api">`**
 
     | Config | Default Syntax | Description |
     | :----- | :------------- | :---------- |
     | `attr.contextname` | `contextname` | The "context name" attribute on arbitrary elements. ([Docs](#the-context-api)) |
     | `api.contexts` | `contexts` | The `document.contexts` and `Element.prototype.contexts` object properties. ([Docs](#the-context-api)) |
 
-    Spec: **html-imports**
+    **Spec: `<meta name="html-imports">`**
 
     | Config | Default Syntax | Description |
     | :----- | :------------- | :---------- |
@@ -182,7 +182,8 @@ If you'll be going ahead to build a real app with OOHTML, you may want to consid
     | `api.defs` | `defs` | The readonly object property for accessing a `<template>`'s list of definitions. ([Docs](#module-definition)) |
     | `api.import` | `import` | The `document.import()` and `Element.prototype.import()` methods. ([Docs](#imperative-module-imports)) |
 
-    Spec: **namespaced-html**
+
+    **Spec: `<meta name="namespaced-html">`**
 
     | Config | Default Syntax | Description |
     | :----- | :------------- | :---------- |
@@ -190,9 +191,11 @@ If you'll be going ahead to build a real app with OOHTML, you may want to consid
     | `attr.id` | `id` | The "id" attribute on arbitrary elements. ([Docs](#namespacing)) |
     | `api.namespace` | `namespace` | The "namespace" object property on arbitrary elements. ([Docs](#namespacing)) |
 
-    Spec: **scoped-css** (TODO)
+    **Spec: `<meta name="scoped-css">`** (TODO)
 
-    Spec: **scoped-js** (TODO)
+    **Spec: `<meta name="scoped-js">`** (TODO)
+
+    </details>
 
 </details>
 
@@ -219,7 +222,7 @@ OOHTML is effectively different from Web Components (and from the related Declar
 
 ## Modular HTML
 
-Modular HTML is a markup architecture that enables writing elements as self-contained objects - which includes being able to *encapsulate* structure, styling and logic!
+The modern UI is best approached with a modular architecture (think UI component frameworks) wherein we are able to author the bits and pieces as self-contained objects - enabling us *encapsulate* structure, styling and logic!
 
 OOHTML makes this possible by introducing "namespacing" and style and script scoping!
 
@@ -292,14 +295,21 @@ And when used from the document context, these are resolved against top-level ID
 ```
 
 ```js
-const user = document.querySelector('#~user');
+// Namespace aware ID selectors
+console.log(document.querySelector('#user')); // div#user
+console.log(document.querySelector('#~user')); // div#user
+
+console.log(document.getElementById('user')); // div#user
+console.log(document.getElementById('~user')); // div#user
+
+console.log(document.querySelector('#url')); // a#url
+console.log(document.querySelector('#~url')); // null... not directly in the "document" namespace
+
+console.log(document.getElementById('url')); // a#url
+console.log(document.getElementById('~url')); // null... not directly in the "document" namespace
 ```
 
-```js
-const user = document.getElementById('~user');
-```
-
-And these also play well as URL targets, with additional support for path expressions given a hierarchy of namespaces:
+And these also play well as navigation targets, with additional support for path expressions given a hierarchy of namespaces:
 
 ```html
 <a href="#~user/email">Jump to Email</a>
@@ -354,7 +364,7 @@ function changeCallback(changes) {
 
 <details><summary>Implementation details</summary>
 
-In the current implementation, a small random string is automatically prepended to each ID and IDREF token in the DOM to give the browser something "unique" to work with, but without that implementation detail leaking into your application. So, while an element may be seen in the browser inspector tab as having a random hash prepended to their ID or IDREF:
+In the current implementation, a small random string is automatically prepended to each ID and IDREF token in the DOM to give the browser something "unique" to work with, but without that implementation detail leaking into your application. So, while an element may be seen in the browser console as having a random hash prepended to their ID or IDREF:
 
 ```html
 <!-- Original -->
@@ -378,11 +388,27 @@ console.log(label.getAttribute('for')); // ~real-id
 console.log(input.attributes[0].value); // real-id
 ```
 
+Now, for URL targets, e.g. `#~user/email`, the "target" element is given a custom `:target` class while it matches the URL fragment, and this may be accessed in CSS as:
+
+```css
+.\:target {
+  background-color: whitesmoke;
+}
+```
+
+or, to be more complete:
+
+```css
+:target, .\:target {
+  background-color: whitesmoke;
+}
+```
+
 </details>
 
 ### Style and Script Scoping
 
-We often need a way to keep component-specific stylesheets and scripts [scoped to a component](https://vuejs.org/guide/scaling-up/sfc.html). **This is especially crucial to "page components" in an SPA architecture.**
+We often need a way to keep component-specific style sheets and scripts [scoped to a component](https://vuejs.org/guide/scaling-up/sfc.html). **This is especially crucial to "page components" in an SPA architecture.**
 
 Here, we get a new `scoped` attribute that lets us do just that:
 
@@ -400,7 +426,7 @@ Here, we get a new `scoped` attribute that lets us do just that:
 </div>
 ```
 
-And the special "local ID" selector is supported within a scoped style sheet:
+And the special namespace-aware ID selector is supported from within scoped style sheets:
 
 ```html
 <div namespace>
@@ -426,15 +452,15 @@ let { styleSheets, scripts } = user; // APIs that are analogous to the document.
 Here, the `scoped` attribute has two effects on the `<script>` element:
 
 + The `this` keyword is implicitly bound to the script's host element
-+ The `<script>` element is executed again on each re-insertion into the DOM
++ The `<script>` element is (re)executed on each re-insertion into the DOM
 
 </details>
 
 ## HTML Imports
 
-HTML Imports is a realtime *import* system for HTML that's drawn entirely on HTML - and which addresses a different problem case in comparison to [the abandoned `<link type="import">` feature](https://www.w3.org/TR/html-imports/) and the [HTML Modules proposal](https://github.com/WICG/webcomponents/blob/gh-pages/proposals/html-modules-explainer.md)! **Something like it is the [`<defs>`](https://developer.mozilla.org/en-US/docs/Web/SVG/Element/defs) and [`<use>`](https://developer.mozilla.org/en-US/docs/Web/SVG/Element/use) system in SVG.**
+HTML Imports is a realtime *import* system for HTML that's drawn entirely on HTML - and which addresses a different pain point in comparison to [the abandoned `<link type="import">` feature](https://www.w3.org/TR/html-imports/) and the [HTML Modules proposal](https://github.com/WICG/webcomponents/blob/gh-pages/proposals/html-modules-explainer.md)! **Something like it is the [`<defs>`](https://developer.mozilla.org/en-US/docs/Web/SVG/Element/defs) and [`<use>`](https://developer.mozilla.org/en-US/docs/Web/SVG/Element/use) system in SVG.**
 
-Here, we get a way to both define and use a snippet within *same* document:
+Here, we get a way to both define and reuse a snippet out of *same* document:
 
 ```html
 <head>
@@ -451,7 +477,7 @@ Here, we get a way to both define and use a snippet within *same* document:
 </body>
 ```
 
-...while optionally supporting remote documents without a change in paradigm:
+...while optionally supporting remote content without a change in paradigm:
 
 ```html
 <head>
@@ -661,7 +687,7 @@ setTimeout(() => {
 }, 1000);
 ```
 
-<details><summary>Extended Imports concepts</summary>
+<!--<details><summary>Extended Imports concepts</summary>-->
 
 ### Lazy-Loading Modules
 
@@ -893,7 +919,7 @@ const contextElement = document.querySelector('div');
 const result = contextElement.import('foo#fragment2'); // the local module: foo#fragment2, and if not found, the inherited module: /bar/nested#fragment2
 ```
 
-</details>
+<!--</details>-->
 
 ## Data Binding
 
@@ -905,7 +931,7 @@ And for when we need to write extensive reactive logic on the UI, a perfect answ
 
 ### Discrete Data-Binding
 
-Here, we get a comment-based data-binding syntax `<?{ }?>` (or `<!--?{ }?-->`), **which goes as a regular HTML comment** but also an insertion point for application data:
+Here, we get a comment-based data-binding syntax `<?{ }?>` (or `<!--?{ }?-->`), **which works as a regular HTML comment** but also as an insertion point for application data:
 
 ```js
 <html>
