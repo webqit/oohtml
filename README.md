@@ -1666,7 +1666,7 @@ The following is a Listbox component lifted directly from the [ARIA Authoring Pr
          tabindex="0"
          role="listbox"
          aria-labelledby="ss_elem">
-      <ul role="group" aria-labelledby="cat" namespace>
+      <ul role="group" aria-labelledby="~cat" namespace>
         <li role="presentation" id="cat">
           Land
         </li>

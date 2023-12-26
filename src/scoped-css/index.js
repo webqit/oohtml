@@ -2,7 +2,7 @@
 /**
  * @imports
  */
-import { rewriteSelector, getNamespaceUUID } from '../namespaced-html/index.js';
+import { rewriteSelector, getOwnerNamespaceObject, getNamespaceUUID } from '../namespaced-html/index.js';
 import { _init, _toHash } from '../util.js';
 
 /**
@@ -70,7 +70,7 @@ function realtime( config ) {
             const scopeSelector = supportsHAS ? `:has(> style[rand-${ sourceHash }])` : `[rand-${ sourceHash }]`;
             const supportsScope = window.CSSScopeRule && false/* Disabled for buggy behaviour: rewriting selectorText within an @scope block invalidates the scoping */;
             ( supportsHAS ? style : style.parentNode ).toggleAttribute( `rand-${ sourceHash }`, true );
-            if ( false ) {
+            if ( style.hasAttribute( 'shared' ) ) {
                 let compiledSheet;
                 if ( !( compiledSheet = oohtml.Style.compileCache.get( sourceHash ) ) ) {
                     compiledSheet = createAdoptableStylesheet.call( window, style, null, supportsScope, scopeSelector );
@@ -80,7 +80,7 @@ function realtime( config ) {
                 Object.defineProperty( style, 'sheet', { value: compiledSheet, configurable: true } );
                 style.textContent = '\n/*[ Shared style sheet ]*/\n';
             } else {
-                const namespaceUUID = getNamespaceUUID.call( window, style );
+                const namespaceUUID = getNamespaceUUID( getOwnerNamespaceObject.call( window, style ) );
                 upgradeSheet.call( this, style.sheet, namespaceUUID, !supportsScope && scopeSelector );
             }
         } );

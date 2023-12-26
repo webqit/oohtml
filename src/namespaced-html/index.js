@@ -116,13 +116,11 @@ export function rewriteSelector( selectorText, namespaceUUID, scopeSelector = nu
 }
 
 /**
- * Returns the "namespace" object associated with the given node.
- *
  * @param Element node
  *
  * @return Object
  */
-export function getNamespaceObject( node ) {
+export function getOwnNamespaceObject( node ) {
 	if ( !_( node ).has( 'namespace' ) ) {
 		const namespaceObj = Object.create( null );
 		_( node ).set( 'namespace', namespaceObj );
@@ -132,12 +130,21 @@ export function getNamespaceObject( node ) {
 
 /**
  * @param Element node
+ * @param Bool forID
+ *
+ * @return Object
+ */
+export function getOwnerNamespaceObject( node, forID = false ) {
+	const window = this, { webqit: { oohtml: { configs: { NAMESPACED_HTML: config } } } } = window;
+	return getOwnNamespaceObject( node instanceof window.Document ? node : ( ( forID ? node.parentNode : node )?.closest( `[${ config.attr.namespace }]` ) || node.ownerDocument ) );
+}
+
+/**
+ * @param Object namespaceObj
  *
  * @return String
  */
-export function getNamespaceUUID( node ) {
-	const window = this, { webqit: { oohtml: { configs: { NAMESPACED_HTML: config } } } } = window;
-	const namespaceObj = getNamespaceObject( node instanceof window.Document ? node : ( node.closest( `[${ config.attr.namespace }]` ) || node.ownerDocument ) );
+export function getNamespaceUUID( namespaceObj ) {
     return _fromHash( namespaceObj ) || _toHash( namespaceObj );
 }
 
@@ -155,10 +162,10 @@ function exposeAPIs( config ) {
     if ( config.api.namespace in window.Element.prototype ) { throw new Error( `The "Element" class already has a "${ config.api.namespace }" property!` ); }
     // Definitions
     Object.defineProperty( window.document, config.api.namespace, { get: function() {
-        return Observer.proxy( getNamespaceObject.call( window, window.document ) );
+        return Observer.proxy( getOwnNamespaceObject.call( window, window.document ) );
     } });
     Object.defineProperty( window.Element.prototype, config.api.namespace, { get: function() {
-        return Observer.proxy( getNamespaceObject.call( window, this ) );
+        return Observer.proxy( getOwnNamespaceObject.call( window, this ) );
     } } );
 }
 
@@ -171,24 +178,6 @@ function exposeAPIs( config ) {
  */
 function realtime( config ) {
     const window = this, { webqit: { Observer, realdom, oohtml: { configs }, DOMNamingContext } } = window;
-
-    // ------------
-    // NAMESPACE
-    // ------------
-	window.document[ configs.CONTEXT_API.api.contexts ].attach( new DOMNamingContext );
-    realdom.realtime( window.document ).subtree/*instead of observe(); reason: jsdom timing*/( config.namespaceSelector, record => {
-        record.exits.forEach( entry => {
-			const contextsApi = entry[ configs.CONTEXT_API.api.contexts ];
-			const ctx = contextsApi.find( DOMNamingContext.kind );
-			if ( ctx ) { contextsApi.detach( ctx ); }
-        } );
-        record.entrants.forEach( entry => {
-			const contextsApi = entry[ configs.CONTEXT_API.api.contexts ];
-			if ( !contextsApi.find( DOMNamingContext.kind ) ) {
-				contextsApi.attach( new DOMNamingContext );
-			}
-        } );
-    }, { live: true, timing: 'sync', staticSensitivity: true } );
 	
 	// ------------
 	// APIS
@@ -205,7 +194,7 @@ function realtime( config ) {
 	const getAttributeDescr = Object.getOwnPropertyDescriptor( window.Element.prototype, 'getAttribute' );
 	Object.defineProperty( window.Element.prototype, 'getAttribute', { ...getAttributeDescr, value( attrName ) {
 		const value = getAttributeDescr.value.call( this, attrName );
-		return !_( this, 'lock' ).get( attrName ) && attrList.includes( attrName ) ? ( attrName === 'id' ? $lidUtil.uuidToLid : $lidUtil.uuidToLidref ).call( $lidUtil, value ) : value;
+		return value && !_( this, 'lock' ).get( attrName ) && attrList.includes( attrName ) ? ( attrName === 'id' ? $lidUtil.uuidToLid : $lidUtil.uuidToLidref ).call( $lidUtil, value ) : value;
 	} } );
 	// Intercept getElementById()
 	const getElementByIdDescr = Object.getOwnPropertyDescriptor( window.Document.prototype, 'getElementById' );
@@ -237,7 +226,7 @@ function realtime( config ) {
 	const propertyDescr = Object.getOwnPropertyDescriptor( window.Attr.prototype, 'value' );
 	Object.defineProperty( window.Attr.prototype, 'value', { ...propertyDescr, get() {
 		const value = propertyDescr.get.call( this );
-		return attrList.includes( this.name ) ? ( this.name === 'id' ? $lidUtil.uuidToLid : $lidUtil.uuidToLidref ).call( $lidUtil, value ) : value;
+		return value && attrList.includes( this.name ) ? ( this.name === 'id' ? $lidUtil.uuidToLid : $lidUtil.uuidToLidref ).call( $lidUtil, value ) : value;
 	} } );
 	if ( config.attr.lid !== 'id' ) {
 		// Reflect the custom [config.attr.lid] attribute
@@ -251,94 +240,105 @@ function realtime( config ) {
 	// ------------
     // LOCAL IDS & IDREFS
     // ------------
-	const cleanupBinding = ( entry, attrName, oldValue ) => {
+	const attrChange = ( entry, attrName, value, callback ) => {
 		// Create or honour locking
 		if ( _( entry, 'lock' ).get( attrName ) ) return;
 		_( entry, 'lock' ).set( attrName, true );
-		// A function can be passed in to be called after having done the _( entry, 'lock' ).set( attrName, true ); flag
-		if ( typeof oldValue === 'function' ) oldValue = oldValue();
-		// Get down to work
-		const namespaceObj = _( entry ).get( 'ownerNamespace' );
-		if ( attrName === config.attr.lid ) {
-			const lid = $lidUtil.uuidToLid( oldValue );
-			if ( Observer.get( namespaceObj, lid ) === entry ) { Observer.deleteProperty( namespaceObj, lid ); }
-		} else {
-			const newAttrValue = oldValue.split( ' ' ).map( lid => ( lid = lid.trim() ) && $lidUtil.uuidToLidref( lid ) ).join( ' ' );
-			entry.setAttribute( attrName, newAttrValue );
-		}
-		// Release locking
+		if ( typeof value === 'function' ) value = value();
+		callback( value );
 		_( entry, 'lock' ).delete( attrName );
 	};
-	const setupBinding = ( entry, attrName, value ) => {
-		// Create or honour locking
-		if ( _( entry, 'lock' ).get( attrName ) ) return;
-		_( entry, 'lock' ).set( attrName, true );
-		// A function can be passed in to be called after having done the _( entry, 'lock' ).set( attrName, true ); flag
-		if ( typeof value === 'function' ) value = value();
-		// Get down to work
-		const namespaceObj = _( entry ).get( 'ownerNamespace' );
-		const namespaceUUID = _( entry ).get( 'namespaceUUID' );
-		if ( attrName === config.attr.lid ) {
-			const lid = $lidUtil.uuidToLid( value );
-			if ( Observer.get( namespaceObj, lid ) !== entry ) {
-				// Setup new namespace relationships
-				entry.setAttribute( 'id', $lidUtil.toUuid( namespaceUUID, lid ) );
-				Observer.set( namespaceObj, lid, entry );
+	const setupBinding = ( entry, attrName, value, newNamespaceObj = null ) => {
+		attrChange( entry, attrName, value, value => {
+			const isLidAttr = attrName === config.attr.lid;
+			const namespaceObj = newNamespaceObj || getOwnerNamespaceObject( entry, isLidAttr );
+			const namespaceUUID = getNamespaceUUID( namespaceObj );
+			if ( isLidAttr ) {
+				const lid = $lidUtil.uuidToLid( value );
+				if ( Observer.get( namespaceObj, lid ) !== entry ) {
+					entry.setAttribute( 'id', $lidUtil.toUuid( namespaceUUID, lid ) );
+					Observer.set( namespaceObj, lid, entry );
+				}
+			} else {
+				const newAttrValue = value.split( ' ' ).map( lid => ( lid = lid.trim() ) && !$lidUtil.isLidref( lid ) ? lid : $lidUtil.toUuid( namespaceUUID, lid.replace( $lidUtil.lidrefPrefix(), '' ) ) ).join( ' ' );
+				entry.setAttribute( attrName, newAttrValue );
+				_( namespaceObj ).set( 'idrefs', _( namespaceObj ).get( 'idrefs' ) || new Set );
+				_( namespaceObj ).get( 'idrefs' ).add( entry );
 			}
-		} else {
-			const newAttrValue = value.split( ' ' ).map( lid => ( lid = lid.trim() ) && !$lidUtil.isLidref( lid ) ? lid : $lidUtil.toUuid( namespaceUUID, lid.replace( $lidUtil.lidrefPrefix(), '' ) ) ).join( ' ' );
-			entry.setAttribute( attrName, newAttrValue );
-		}
-		// Release locking
-		_( entry, 'lock' ).delete( attrName );
+		} );
+	};
+	const cleanupBinding = ( entry, attrName, oldValue, prevNamespaceObj = null ) => {
+		attrChange( entry, attrName, oldValue, oldValue => {
+			const isLidAttr = attrName === config.attr.lid;
+			const namespaceObj = prevNamespaceObj || getOwnerNamespaceObject( entry, isLidAttr );
+			if ( isLidAttr ) {
+				const lid = $lidUtil.uuidToLid( oldValue );
+				if ( Observer.get( namespaceObj, lid ) === entry ) {
+					Observer.deleteProperty( namespaceObj, lid );
+				}
+			} else {
+				const newAttrValue = oldValue.split( ' ' ).map( lid => ( lid = lid.trim() ) && $lidUtil.uuidToLidref( lid ) ).join( ' ' );
+				entry.setAttribute( attrName, newAttrValue );
+				_( namespaceObj ).get( 'idrefs' ).delete( entry );
+			}
+		} );
 	};
 
-	const cleanupAllBindings = ( entry, total = true ) => {
-		for ( const attrName of attrList ) {
-			if ( !entry.hasAttribute( attrName ) ) continue;
-			cleanupBinding( entry, attrName, () => entry.getAttribute( attrName ) );
-		}
-		_( entry ).delete( 'ownerNamespace' );
-		_( entry ).delete( 'namespaceUUID' );
-		if ( total ) {
-			_( entry ).get( 'namespaceBinding' ).abort();
-			_( entry ).delete( 'namespaceBinding' );
-		}
-	};
-	const setupAllBindings = ( entry ) => {
-		if ( !_( entry ).get( 'ownerNamespace' ) ) {
-			const request = { ...DOMNamingContext.createRequest(), live: true };
-			const binding = entry.parentNode[ configs.CONTEXT_API.api.contexts ].request( request, namespaceObj => {
-				// Cleanup of previous namespace?
-				if ( _( entry ).get( 'namespaceUUID' ) ) {
-					cleanupAllBindings( entry, false );
-				}
-				// Setup new namespace
-				_( entry ).set( 'ownerNamespace', namespaceObj );
-				_( entry ).set( 'namespaceUUID', _fromHash( namespaceObj ) || _toHash( namespaceObj ) );
-				setupAllBindings( entry );
-			} );
-			_( entry ).set( 'namespaceBinding', binding );
-			return;
-		}
-		for ( const attrName of attrList ) {
-			if ( !entry.hasAttribute( attrName ) ) continue;
-			setupBinding( entry, attrName, () => entry.getAttribute( attrName ) );
-		}
-	};
+    // ------------
+    // NAMESPACE
+    // ------------
+	window.document[ configs.CONTEXT_API.api.contexts ].attach( new DOMNamingContext );
+    realdom.realtime( window.document ).subtree/*instead of observe(); reason: jsdom timing*/( config.namespaceSelector, record => {
+		const reAssociate = ( entry, attrName, oldNamespaceObj, newNamespaceObj ) => {
+			if ( !entry.hasAttribute( attrName ) ) return;
+			const attrValue = () => entry.getAttribute( attrName );
+			cleanupBinding( entry, attrName, attrValue, oldNamespaceObj );
+			if ( entry.isConnected ) { setupBinding( entry, attrName, attrValue, newNamespaceObj ); }
+		};
+        record.exits.forEach( entry => {
+			const namespaceObj = getOwnNamespaceObject( entry );
+			// Detach ID and IDREF associations
+			for ( const node of new Set( [ ...Object.values( namespaceObj ), ..._( namespaceObj ).get( 'idrefs' ) ] ) ) {
+				for ( const attrName of attrList ) { reAssociate( node, attrName, namespaceObj ); }
+			}
+			// Detach ID associations
+			const contextsApi = entry[ configs.CONTEXT_API.api.contexts ];
+			const ctx = contextsApi.find( DOMNamingContext.kind );
+			// Detach namespace instance
+			if ( ctx ) { contextsApi.detach( ctx ); }
+        } );
+        record.entrants.forEach( entry => {
+			// Claim ID and IDREF associations
+			let newSuperNamespaceObj;
+			const superNamespaceObj = getOwnerNamespaceObject( entry, true );
+			for ( const node of new Set( [ ...Object.values( superNamespaceObj ), ...( _( superNamespaceObj ).get( 'idrefs' ) || [] ) ] ) ) {
+				if ( ( newSuperNamespaceObj = getOwnerNamespaceObject( node, true ) ) === superNamespaceObj ) continue;
+				for ( const attrName of attrList ) { reAssociate( node, attrName, superNamespaceObj, newSuperNamespaceObj ); }
+			}
+			// Attach namespace instance
+			const contextsApi = entry[ configs.CONTEXT_API.api.contexts ];
+			if ( !contextsApi.find( DOMNamingContext.kind ) ) { contextsApi.attach( new DOMNamingContext ); }
+        } );
+    }, { live: true, timing: 'sync', staticSensitivity: true } );
 
 	// DOM realtime
 	realdom.realtime( window.document ).subtree/*instead of observe(); reason: jsdom timing*/( `[${ attrList.map( attrName => window.CSS.escape( attrName ) ).join( '],[' ) }]`, record => {
-		record.exits.forEach( cleanupAllBindings );
-		record.entrants.forEach( setupAllBindings );
+		for ( const attrName of attrList ) {
+			record.exits.forEach( entry => {
+				if ( !entry.hasAttribute( attrName ) ) return;
+				cleanupBinding( entry, attrName, () => entry.getAttribute( attrName ) );
+			} );
+			record.entrants.forEach( entry => {
+				if ( !entry.hasAttribute( attrName ) ) return;
+				setupBinding( entry, attrName, () => entry.getAttribute( attrName ) );
+			} );
+		}
 	}, { live: true, timing: 'sync' } );
 	// Attr realtime
 	realdom.realtime( window.document, 'attr' ).observe( attrList, records => {
 		for ( const record of records ) {
-			if ( record.oldValue ) {
-				cleanupBinding( record.target, record.name, record.oldValue );
-				if ( record.value ) { setupBinding( record.target, record.name, record.value ); }
-			} else { setupAllBindings( entry ); }
+			if ( record.oldValue ) { cleanupBinding( record.target, record.name, record.oldValue ); }
+			if ( record.value ) { setupBinding( record.target, record.name, record.value ); }
 		}
 	}, { subtree: true, timing: 'sync', newValue: true, oldValue: true } );
 
