@@ -17,7 +17,7 @@ export default function init({ advanced = {}, ...$config }) {
     } );
     config.styleSelector = (Array.isArray( config.style.mimeType ) ? config.style.mimeType : [ config.style.mimeType ] ).reduce( ( selector, mm ) => {
         const qualifier = mm ? `[type=${ window.CSS.escape( mm ) }]` : '';
-        return selector.concat( `style${ qualifier }[scoped]` );
+        return selector.concat( `style${ qualifier }` );
     }, [] ).join( ',' );
     window.webqit.oohtml.Style = {
         compileCache: new Map,
@@ -62,15 +62,16 @@ function realtime( config ) {
         record.entrants.forEach( style => {
             if ( handled.has( style ) ) return;
             handled.add( style );
-            if ( !style.scoped ) return;
-            style.parentNode[ config.api.styleSheets ].push( style );
             // Do compilation
             const sourceHash = _toHash( style.textContent );
             const supportsHAS = CSS.supports( 'selector(:has(a,b))' );
-            const scopeSelector = supportsHAS ? `:has(> style[rand-${ sourceHash }])` : `[rand-${ sourceHash }]`;
-            const supportsScope = window.CSSScopeRule && false/* Disabled for buggy behaviour: rewriting selectorText within an @scope block invalidates the scoping */;
-            ( supportsHAS ? style : style.parentNode ).toggleAttribute( `rand-${ sourceHash }`, true );
-            if ( style.hasAttribute( 'shared' ) ) {
+            const scopeSelector = style.scoped && ( supportsHAS ? `:has(> style[rand-${ sourceHash }])` : `[rand-${ sourceHash }]` );
+            const supportsScope = style.scoped && window.CSSScopeRule && false/* Disabled for buggy behaviour: rewriting selectorText within an @scope block invalidates the scoping */;
+            if ( style.scoped ) {
+                style.parentNode[ config.api.styleSheets ].push( style );
+                ( supportsHAS ? style : style.parentNode ).toggleAttribute( `rand-${ sourceHash }`, true );
+            }
+            if ( style.scoped && style.hasAttribute( 'shared' ) ) {
                 let compiledSheet;
                 if ( !( compiledSheet = oohtml.Style.compileCache.get( sourceHash ) ) ) {
                     compiledSheet = createAdoptableStylesheet.call( window, style, null, supportsScope, scopeSelector );
@@ -81,7 +82,7 @@ function realtime( config ) {
                 style.textContent = '\n/*[ Shared style sheet ]*/\n';
             } else {
                 const transform = () => {
-                    const namespaceUUID = getNamespaceUUID( getOwnerNamespaceObject.call( window, style ) );
+                    const namespaceUUID = getNamespaceUUID( getOwnerNamespaceObject.call( window, style.scoped ? style : window.document ) );
                     upgradeSheet.call( this, style.sheet, namespaceUUID, !supportsScope && scopeSelector );
                 };
                 if ( style.isConnected ) { transform(); }
@@ -94,7 +95,7 @@ function realtime( config ) {
 
 function createAdoptableStylesheet( style, namespaceUUID, supportsScope, scopeSelector ) {
     const window = this, textContent = style.textContent;
-    let styleSheet, cssText = supportsScope ? `@scope (${ scopeSelector }) {\n${ textContent.trim() }\n}` : textContent.trim();
+    let styleSheet, cssText = supportsScope && scopeSelector ? `@scope (${ scopeSelector }) {\n${ textContent.trim() }\n}` : textContent.trim();
     try {
         styleSheet = new window.CSSStyleSheet;
         styleSheet.replaceSync( cssText );

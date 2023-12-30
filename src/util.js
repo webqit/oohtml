@@ -42,6 +42,17 @@ export function _init( name, $config, $defaults ) {
     return { config: window.webqit.oohtml.configs[ configKey ], realdom, window };
 }
 
+export function getInternalAttrInteraction( node, attrName ) {
+	return _internals( node, 'internalAttrInteractions' ).get( attrName );
+}
+export function internalAttrInteraction( node, attrName, callback ) {
+	const savedAttrLocking = _internals( node, 'internalAttrInteractions' ).get( attrName );
+	_internals( node, 'internalAttrInteractions' ).set( attrName, true );
+	const value = callback();
+	_internals( node, 'internalAttrInteractions' ).set( attrName, savedAttrLocking );
+	return value;
+}
+
 export function _compare( a, b, depth = 1, objectSizing = false ) {
     if ( depth && typeof a === 'object' && a && typeof b === 'object' && b && ( !objectSizing || Object.keys( a ).length === Object.keys( b ).length ) ) {
         for ( let key in a ) {

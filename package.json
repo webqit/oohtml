@@ -36,7 +36,7 @@
   },
   "dependencies": {
     "@webqit/quantum-js": "^4.2.11",
-    "@webqit/realdom": "^2.1.22",
+    "@webqit/realdom": "^2.1.23",
     "@webqit/util": "^0.8.11"
   },
   "devDependencies": {

@@ -3,7 +3,7 @@
  * @imports
  */
 import DOMNamingContext from './DOMNamingContext.js';
-import { _, _init, _splitOuter, _fromHash, _toHash } from '../util.js';
+import { _, _init, _splitOuter, _fromHash, _toHash, getInternalAttrInteraction, internalAttrInteraction } from '../util.js';
 
 /**
  * @init
@@ -19,6 +19,7 @@ export default function init( $config = {} ) {
     } );
 	config.lidSelector = `[${ window.CSS.escape( config.attr.lid ) }]`;
 	config.namespaceSelector = `[${ window.CSS.escape( config.attr.namespace ) }]`;
+	config.documentNamespaceUUID = getNamespaceUUID( getOwnNamespaceObject.call( window, window.document ) );
     window.webqit.DOMNamingContext = DOMNamingContext;
     exposeAPIs.call( window, config );
     realtime.call( window, config );
@@ -39,8 +40,8 @@ function lidUtil( config ) {
 		lidrefSeparator( escapeMode = 0 ) { return escapeMode ? this.escape( lidrefSeparator, escapeMode ) : lidrefSeparator; },
 		isUuid( str, escapeMode = 0 ) { return str.startsWith( this.lidrefPrefix( escapeMode ) ) && str.includes( this.lidrefSeparator( escapeMode ) ); },
 		isLidref( str, escapeMode = 0 ) { return str.startsWith( this.lidrefPrefix( escapeMode ) ) && !str.includes( this.lidrefSeparator( escapeMode ) ); },
-		toUuid( hash, lid, escapeMode = 0 ) { return `${ this.lidrefPrefix( escapeMode ) }${ hash }${ this.lidrefSeparator( escapeMode ) }${ lid }`; },
-		uuidToLid( str, escapeMode = 0 ) { return this.isUuid( str ) ? str.split( this.lidrefSeparator( escapeMode ) )[ 1 ] : str; },
+		toUuid( hash, lid, escapeMode = 0 ) { return hash === config.documentNamespaceUUID ? lid : `${ this.lidrefPrefix( escapeMode ) }${ hash }${ this.lidrefSeparator( escapeMode ) }${ lid }`; },
+		uuidToId( str, escapeMode = 0 ) { return this.isUuid( str ) ? str.split( this.lidrefSeparator( escapeMode ) )[ 1 ] : str; },
 		uuidToLidref( str, escapeMode = 0 ) { return this.isUuid( str ) ? `${ this.lidrefPrefix( escapeMode ) }${ str.split( this.lidrefSeparator( escapeMode ) )[ 1 ] }` : str; },
 	}
 }
@@ -85,22 +86,20 @@ export function rewriteSelector( selectorText, namespaceUUID, scopeSelector = nu
 				return `#${ $lidUtil.escape( match.replace( '#', '' ), 1 ) }`;
 			}
 			// Rewrite relative ID selector
-			let lowerBoundFactor = false;
 			if ( isLidref ) {
-				if ( config.attr.lid === 'id' && namespaceUUID ) {
+				if ( config.attr.lid === 'id' && namespaceUUID && namespaceUUID !== config.documentNamespaceUUID ) {
 					return `#${ $lidUtil.toUuid( namespaceUUID, id, 1 ) }`;
 				}
 				// Fallback to attr-based
-				lowerBoundFactor = true;
 			}
 			// Rewrite absolute ID selector
 			let rewrite;
 			if ( config.attr.lid === 'id' ) {
-				rewrite = `[id^="${ $lidUtil.lidrefPrefix( escapeMode ) }"][id$="${ $lidUtil.lidrefSeparator( escapeMode ) }${ id }"]`;
+				rewrite = `:is(#${ id },[id^="${ $lidUtil.lidrefPrefix( escapeMode ) }"][id$="${ $lidUtil.lidrefSeparator( escapeMode ) }${ id }"])`;
 			} else {
 				rewrite = `:is(#${ id },[${ window.CSS.escape( config.attr.lid ) }="${ id }"])`;
 			}
-			return scopeSelector && lowerBoundFactor ? `:is(${ rewrite }):not(${ scopeSelector } [${ config.attr.namespace }] *)` : rewrite;
+			return isLidref ? `:is(${ rewrite }):not(${ scopeSelector ? scopeSelector + ' ' : '' }[${ config.attr.namespace }] *)` : rewrite;
 		} );
 		// Category 2 has :scope and category 1 does not
 		return hadScopeSelector ? [ cat1, cat2.concat( selector ) ] : [ cat1.concat( selector ), cat2 ];
@@ -189,27 +188,46 @@ function realtime( config ) {
 	const attrList = [ config.attr.lid, ...idRefsAttrs, ...idRefAttrs ];
 	const relMap = { id: 'id'/* just in case it's in attrList */, for: 'htmlFor', 'aria-owns': 'ariaOwns', 'aria-controls': 'ariaControls', 'aria-labelledby': 'ariaLabelledBy', 'aria-describedby': 'ariaDescribedBy', 'aria-flowto': 'ariaFlowto', 'aria-activedescendant': 'ariaActiveDescendant', 'aria-details': 'ariaDetails', 'aria-errormessage': 'ariaErrorMessage' };
 	const $lidUtil = lidUtil( config );
+	const uuidsToLidrefs = ( node, attrName, getter ) => {
+		if ( !getInternalAttrInteraction( node, attrName ) && _( node, 'attrOriginals' ).has( attrName ) ) {
+			return _( node, 'attrOriginals' ).get( attrName );
+		}
+		const value = getter();
+		if ( getInternalAttrInteraction( node, attrName ) ) return value;
+		return value && value.split( ' ' ).map( x => ( x = x.trim() ) && ( attrName === config.attr.lid ? $lidUtil.uuidToId : $lidUtil.uuidToLidref ).call( $lidUtil, x ) ).join( ' ' );
+	};
 
-	// Intercept getAttribute()
-	const getAttributeDescr = Object.getOwnPropertyDescriptor( window.Element.prototype, 'getAttribute' );
-	Object.defineProperty( window.Element.prototype, 'getAttribute', { ...getAttributeDescr, value( attrName ) {
-		const value = getAttributeDescr.value.call( this, attrName );
-		return value && !_( this, 'lock' ).get( attrName ) && attrList.includes( attrName ) ? ( attrName === 'id' ? $lidUtil.uuidToLid : $lidUtil.uuidToLidref ).call( $lidUtil, value ) : value;
-	} } );
 	// Intercept getElementById()
 	const getElementByIdDescr = Object.getOwnPropertyDescriptor( window.Document.prototype, 'getElementById' );
 	Object.defineProperty( window.Document.prototype, 'getElementById', { ...getElementByIdDescr, value( id ) {
-		return this.querySelector( `#${ id }`/* Will be rewritten at querySelector() */ );
+		return this.querySelector( `#${ id }` ); // To be rewritten at querySelector()
 	} } );
 	// Intercept querySelector() and querySelectorAll()
 	for ( const queryApi of [ 'querySelector', 'querySelectorAll' ] ) {
 		for ( nodeApi of [ window.Document, window.Element ] ) {
 			const querySelectorDescr = Object.getOwnPropertyDescriptor( nodeApi.prototype, queryApi );
 			Object.defineProperty( nodeApi.prototype, queryApi, { ...querySelectorDescr, value( selector ) {
-				return querySelectorDescr.value.call( this, rewriteSelector.call( window, selector, getNamespaceUUID.call( window, this ) ) );
+				return querySelectorDescr.value.call( this, rewriteSelector.call( window, selector, getNamespaceUUID( getOwnNamespaceObject.call( window, this ) ) ) );
 			} } );
 		}
 	}
+	// Intercept getAttribute()
+	const getAttributeDescr = Object.getOwnPropertyDescriptor( window.Element.prototype, 'getAttribute' );
+	Object.defineProperty( window.Element.prototype, 'getAttribute', { ...getAttributeDescr, value( attrName ) {
+		const getter = () => getAttributeDescr.value.call( this, attrName );
+		return attrList.includes( attrName ) && !_( this, 'lock' ).get( attrName ) ? uuidsToLidrefs( this, attrName, getter ) : getter();
+	} } );
+	// Hide implementation details on the Attr node too.
+	const propertyDescr = Object.getOwnPropertyDescriptor( window.Attr.prototype, 'value' );
+	Object.defineProperty( window.Attr.prototype, 'value', { ...propertyDescr, get() {
+		const getter = () => propertyDescr.get.call( this );
+		return attrList.includes( this.name ) ? uuidsToLidrefs( this.ownerElement, this.name, getter ) : getter();
+	} } );
+	const propertyDescr2 = Object.getOwnPropertyDescriptor( window.Node.prototype, 'nodeValue' );
+	Object.defineProperty( window.Node.prototype, 'nodeValue', { ...propertyDescr2, get() {
+		const getter = () => propertyDescr2.get.call( this );
+		return this instanceof window.Attr && attrList.includes( this.name ) ? uuidsToLidrefs( this.ownerElement, this.name, getter ) : getter();
+	} } );
 	// These APIs should return LIDREFS minus the hash part
 	for ( const attrName of attrList ) {
 		if ( !( attrName in relMap ) ) continue;
@@ -218,16 +236,11 @@ function realtime( config ) {
 			const propertyDescr = Object.getOwnPropertyDescriptor( domApi.prototype, relMap[ attrName ] );
 			if ( !propertyDescr ) continue;
 			Object.defineProperty( domApi.prototype, relMap[ attrName ], { ...propertyDescr, get() {
-				return ( attrName === 'id' ? $lidUtil.uuidToLid : $lidUtil.uuidToLidref ).call( $lidUtil, propertyDescr.get.call( this, attrName ) || '' );
+				const getter = () => propertyDescr.get.call( this, attrName );
+				return uuidsToLidrefs( this, attrName, getter );
 			} } );
 		}
 	}
-	// Hide implementation details on the Attr node too.
-	const propertyDescr = Object.getOwnPropertyDescriptor( window.Attr.prototype, 'value' );
-	Object.defineProperty( window.Attr.prototype, 'value', { ...propertyDescr, get() {
-		const value = propertyDescr.get.call( this );
-		return value && attrList.includes( this.name ) ? ( this.name === 'id' ? $lidUtil.uuidToLid : $lidUtil.uuidToLidref ).call( $lidUtil, value ) : value;
-	} } );
 	if ( config.attr.lid !== 'id' ) {
 		// Reflect the custom [config.attr.lid] attribute
 		Object.defineProperty( window.Element.prototype, config.attr.lid, { configurable: true, enumerable: true, get() {
@@ -241,12 +254,10 @@ function realtime( config ) {
     // LOCAL IDS & IDREFS
     // ------------
 	const attrChange = ( entry, attrName, value, callback ) => {
-		// Create or honour locking
-		if ( _( entry, 'lock' ).get( attrName ) ) return;
-		_( entry, 'lock' ).set( attrName, true );
-		if ( typeof value === 'function' ) value = value();
-		callback( value );
-		_( entry, 'lock' ).delete( attrName );
+		return internalAttrInteraction( entry, attrName, () => {
+			if ( typeof value === 'function' ) value = value();
+			return callback( value );
+		} );
 	};
 	const setupBinding = ( entry, attrName, value, newNamespaceObj = null ) => {
 		attrChange( entry, attrName, value, value => {
@@ -254,13 +265,15 @@ function realtime( config ) {
 			const namespaceObj = newNamespaceObj || getOwnerNamespaceObject( entry, isLidAttr );
 			const namespaceUUID = getNamespaceUUID( namespaceObj );
 			if ( isLidAttr ) {
-				const lid = $lidUtil.uuidToLid( value );
-				if ( Observer.get( namespaceObj, lid ) !== entry ) {
-					entry.setAttribute( 'id', $lidUtil.toUuid( namespaceUUID, lid ) );
-					Observer.set( namespaceObj, lid, entry );
+				const id = $lidUtil.uuidToId( value );
+				if ( Observer.get( namespaceObj, id ) !== entry ) {
+					const uuid = $lidUtil.toUuid( namespaceUUID, id );
+					if ( uuid !== value ) { entry.setAttribute( 'id', uuid ); }
+					Observer.set( namespaceObj, id, entry );
 				}
 			} else {
-				const newAttrValue = value.split( ' ' ).map( lid => ( lid = lid.trim() ) && !$lidUtil.isLidref( lid ) ? lid : $lidUtil.toUuid( namespaceUUID, lid.replace( $lidUtil.lidrefPrefix(), '' ) ) ).join( ' ' );
+				_( entry, 'attrOriginals' ).set( attrName, value ); // Save original before rewrite
+				const newAttrValue = value.split( ' ' ).map( idref => ( idref = idref.trim() ) && !$lidUtil.isLidref( idref ) ? idref : $lidUtil.toUuid( namespaceUUID, idref.replace( $lidUtil.lidrefPrefix(), '' ) ) ).join( ' ' );
 				entry.setAttribute( attrName, newAttrValue );
 				_( namespaceObj ).set( 'idrefs', _( namespaceObj ).get( 'idrefs' ) || new Set );
 				_( namespaceObj ).get( 'idrefs' ).add( entry );
@@ -272,12 +285,12 @@ function realtime( config ) {
 			const isLidAttr = attrName === config.attr.lid;
 			const namespaceObj = prevNamespaceObj || getOwnerNamespaceObject( entry, isLidAttr );
 			if ( isLidAttr ) {
-				const lid = $lidUtil.uuidToLid( oldValue );
-				if ( Observer.get( namespaceObj, lid ) === entry ) {
-					Observer.deleteProperty( namespaceObj, lid );
+				const id = $lidUtil.uuidToId( oldValue );
+				if ( Observer.get( namespaceObj, id ) === entry ) {
+					Observer.deleteProperty( namespaceObj, id );
 				}
 			} else {
-				const newAttrValue = oldValue.split( ' ' ).map( lid => ( lid = lid.trim() ) && $lidUtil.uuidToLidref( lid ) ).join( ' ' );
+				const newAttrValue = _( entry, 'attrOriginals' ).get( attrName );// oldValue.split( ' ' ).map( lid => ( lid = lid.trim() ) && $lidUtil.uuidToLidref( lid ) ).join( ' ' );
 				entry.setAttribute( attrName, newAttrValue );
 				_( namespaceObj ).get( 'idrefs' ).delete( entry );
 			}
@@ -292,8 +305,8 @@ function realtime( config ) {
 		const reAssociate = ( entry, attrName, oldNamespaceObj, newNamespaceObj ) => {
 			if ( !entry.hasAttribute( attrName ) ) return;
 			const attrValue = () => entry.getAttribute( attrName );
-			cleanupBinding( entry, attrName, attrValue, oldNamespaceObj );
-			if ( entry.isConnected ) { setupBinding( entry, attrName, attrValue, newNamespaceObj ); }
+			cleanupBinding( entry, attrName, attrValue/* Current resolved value as-is */, oldNamespaceObj );
+			if ( entry.isConnected ) { setupBinding( entry, attrName, _( entry, 'attrOriginals' ).get( attrName )/* Saved original value */ || attrValue/* Lest it's ID */, newNamespaceObj ); }
 		};
         record.exits.forEach( entry => {
 			const namespaceObj = getOwnNamespaceObject( entry );
@@ -326,19 +339,19 @@ function realtime( config ) {
 		for ( const attrName of attrList ) {
 			record.exits.forEach( entry => {
 				if ( !entry.hasAttribute( attrName ) ) return;
-				cleanupBinding( entry, attrName, () => entry.getAttribute( attrName ) );
+				cleanupBinding( entry, attrName, () => entry.getAttribute( attrName )/* Current resolved value as-is */ );
 			} );
 			record.entrants.forEach( entry => {
 				if ( !entry.hasAttribute( attrName ) ) return;
-				setupBinding( entry, attrName, () => entry.getAttribute( attrName ) );
+				setupBinding( entry, attrName, () => entry.getAttribute( attrName )/* Raw value (as-is) that will be saved as original */ );
 			} );
 		}
 	}, { live: true, timing: 'sync' } );
 	// Attr realtime
 	realdom.realtime( window.document, 'attr' ).observe( attrList, records => {
 		for ( const record of records ) {
-			if ( record.oldValue ) { cleanupBinding( record.target, record.name, record.oldValue ); }
-			if ( record.value ) { setupBinding( record.target, record.name, record.value ); }
+			if ( record.oldValue ) { cleanupBinding( record.target, record.name, record.oldValue/* Current resolved value as-is */ ); }
+			if ( record.value ) { setupBinding( record.target, record.name, record.value/* Raw value (as-is) that will be saved as original */ ); }
 		}
 	}, { subtree: true, timing: 'sync', newValue: true, oldValue: true } );
 
