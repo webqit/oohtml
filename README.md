@@ -222,7 +222,7 @@ OOHTML is effectively different from Web Components (and from the related Declar
 
 ## Modular HTML
 
-The modern UI is best approached with a modular architecture (think UI component frameworks) wherein we are able to author the bits and pieces as self-contained objects - enabling us *encapsulate* structure, styling and logic!
+The modern UI is best approached with a modular architecture (think UI component frameworks) wherein we are able to author in bits and pieces while having each piece *encapsulate* their structure, styling and logic!
 
 OOHTML makes this possible by introducing "namespacing" and style and script scoping!
 
