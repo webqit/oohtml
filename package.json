@@ -14,7 +14,7 @@
     "wicg-proposal"
   ],
   "homepage": "https://webqit.io/tooling/oohtml",
-  "version": "3.1.22",
+  "version": "4.0.0",
   "license": "MIT",
   "repository": {
     "type": "git",
