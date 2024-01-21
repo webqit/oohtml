@@ -13,10 +13,10 @@ import { _init, _toHash } from '../util.js';
 export default function init({ advanced = {}, ...$config }) {
     const { config, window } = _init.call( this, 'scoped-css', $config, {
         api: { styleSheets: 'styleSheets' },
-        style: { retention: 'retain', mimeType: '', strategy: null },
+        style: { retention: 'retain', mimeTypes: 'text/css', strategy: null },
     } );
-    config.styleSelector = (Array.isArray( config.style.mimeType ) ? config.style.mimeType : [ config.style.mimeType ] ).reduce( ( selector, mm ) => {
-        const qualifier = mm ? `[type=${ window.CSS.escape( mm ) }]` : '';
+    config.styleSelector = (Array.isArray( config.style.mimeTypes ) ? config.style.mimeTypes : config.style.mimeTypes.split( '|' ) ).concat( '' ).reduce( ( selector, mm ) => {
+        const qualifier = mm ? `[type="${ window.CSS.escape( mm ) }"]` : ':not([type])';
         return selector.concat( `style${ qualifier }` );
     }, [] ).join( ',' );
     window.webqit.oohtml.Style = {

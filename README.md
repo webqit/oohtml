@@ -114,12 +114,12 @@ If you'll be going ahead to build a real app with OOHTML, you may want to consid
 
     ...still gives the `window` object in the console.
 
-+ **Syntax**. The syntax for attribute names and API names across features - e.g. the `def` and `ref` attributes, the `expr` attribute - isn't finalized, and may change on subsequent iterations, albeit with same principle of operation. But the polyfill is designed to be configurable via meta tags, and to honour any such "overrides". Here's an example:
++ **Syntax**. The syntax for attribute names and API names across features - e.g. the `def` and `ref` attributes, the `render` attribute - isn't finalized, and may change on subsequent iterations, albeit with same principle of operation. But the polyfill is designed to be configurable via meta tags, and to honour any such "overrides". Here's an example:
 
     ```html
     <head>
       <!-- Configurations come before the polyfil -->
-      <meta name="data-binding" content="attr.expr=expr;">
+      <meta name="data-binding" content="attr.render=render;">
       <meta name="namespaced-html" content="attr.id=id;">
       <meta name="html-imports" content="attr.def=def; attr.ref=ref;">
       <script src="https://unpkg.com/@webqit/oohtml/dist/main.js"></script>
@@ -149,7 +149,7 @@ If you'll be going ahead to build a real app with OOHTML, you may want to consid
 
     | Config | Default Syntax | Description |
     | :----- | :------------- | :---------- |
-    | `attr.expr` | `expr` | The "expr" attribute for inline data binding. ([Docs](#inline-data-binding)) |
+    | `attr.render` | `render` | The "render" attribute for inline data binding. ([Docs](#inline-data-binding)) |
     | `attr.itemIndex` | `data-index` | The "item index" attribute for assigning indexes to list items. ([Docs](#inline-data-binding))  |
 
     **Spec: `<meta name="bindings-api">`**
@@ -925,7 +925,7 @@ const result = contextElement.import('foo#fragment2'); // the local module: foo#
 
 Data binding is the idea of declaratively binding the UI to application data, wherein the relevant parts of the UI *automatically* update as application state changes.
 
-OOHTML makes this possible in just simple conventions - via a new comment-based data-binding syntax `<?{ }?>` and a complementary new `expr` attribute!
+OOHTML makes this possible in just simple conventions - via a new comment-based data-binding syntax `<?{ }?>` and a complementary new `render` attribute!
 
 And for when we need to write extensive reactive logic on the UI, a perfect answer: Quantum Scripts!
 
@@ -996,10 +996,12 @@ Now, on getting to the client, that extra bit of information gets decoded, and o
 
 ### Inline Data-Binding
 
-For attribute-based data binding, OOHTML deviates from the usual (and problematic) idea of bringing markup-style bindings into attribute texts: `title="Hello { titleValue }"`, **as though attributes had the same semantics as markup**. Instead, we get a dedicated "expressions" attribute - `expr` - for a nifty, key/value data-binding language:
+For attribute-based data binding, OOHTML deviates from the usual (and problematic) idea of bringing markup-style bindings into attribute texts: `title="Hello { titleValue }"`, **as though attributes had the same semantics as markup**. Instead, we get a dedicated "render" attribute - `render` - for a nifty, key/value data-binding language:
+
+> Note that in OOHTML <= v3 the `render` attribute was `expr`.
 
 ```html
-<div expr="<directive> <param>: <arg>;"></div>
+<div render="<directive> <param>: <arg>;"></div>
 ```
 
 **-->** *where*:
@@ -1011,36 +1013,36 @@ For attribute-based data binding, OOHTML deviates from the usual (and problemati
 **-->** *which would give us the following for a CSS property*:
 
 ```html
-<div expr="& color:someColor; & backgroundColor:'red'"></div>
+<div render="& color:someColor; & backgroundColor:'red'"></div>
 ```
 
 **-->** *without being space-sensitive*:
 
 ```html
-<div expr="& color:someColor; &backgroundColor: 'red'"></div>
+<div render="& color:someColor; &backgroundColor: 'red'"></div>
 ```
 
 **-->** *the rest of which can be seen below*:
 
 | Directive | Type | Usage |
 | :---- | :---- | :---- |
-| `&`  | CSS Property | `<div expr="& color:someColor; & backgroundColor:someBgColor;"></div>` |
-| `%`  | Class Name | `<div expr="% active:app.isActive; % expanded:app.isExpanded;"></div>` |
-| `~`  | Attribute Name | `<a expr="~ href:person.profileUrl+'#bio'; ~ title:'Click me';"></a>` |
-|   | Boolean Attribute | `<a expr="~ ?required:formField.required; ~ ?aria-checked: formField.checked"></a>` |
+| `&`  | CSS Property | `<div render="& color:someColor; & backgroundColor:someBgColor;"></div>` |
+| `%`  | Class Name | `<div render="% active:app.isActive; % expanded:app.isExpanded;"></div>` |
+| `~`  | Attribute Name | `<a render="~ href:person.profileUrl+'#bio'; ~ title:'Click me';"></a>` |
+|   | Boolean Attribute | `<a render="~ ?required:formField.required; ~ ?aria-checked: formField.checked"></a>` |
 | `@`  | Structural Directive: | *See below* |
-| `@text`   | Plain text content | `<span expr="@text:firstName+' '+lastName;"></span>` |
-| `@html`   | Markup content | `<span expr="@html: '<i>'+firstName+'</i>';"></span>` |
+| `@text`   | Plain text content | `<span render="@text:firstName+' '+lastName;"></span>` |
+| `@html`   | Markup content | `<span render="@html: '<i>'+firstName+'</i>';"></span>` |
 |  `@items`  | A list, of the following format | `<declaration> <of\|in> <iterable> / <importRef>`<br>*See next two tables* |
 
 <details><summary><code>For ... Of</code> Loops</summary>
 
 |  Idea | Usage |
 | :---- | :---- |
-| A `for...of` loop over an array/iterable | `<ul expr="@items: value of [1,2,3] / 'foo#fragment';"></ul>` |
-| Same as above but with a `key` declaration  | `<ul expr="@items: (value,key) of [1,2,3] / 'foo#fragment';"></ul>` |
-| Same as above but with different variable names  | `<ul expr="@items: (product,id) of store.products / 'foo#fragment';"></ul>` |
-| Same as above but with a dynamic `importRef`  | `<ul expr="@items: (product,id) of store.products / store.importRef;"></ul>` |
+| A `for...of` loop over an array/iterable | `<ul render="@items: value of [1,2,3] / 'foo#fragment';"></ul>` |
+| Same as above but with a `key` declaration  | `<ul render="@items: (value,key) of [1,2,3] / 'foo#fragment';"></ul>` |
+| Same as above but with different variable names  | `<ul render="@items: (product,id) of store.products / 'foo#fragment';"></ul>` |
+| Same as above but with a dynamic `importRef`  | `<ul render="@items: (product,id) of store.products / store.importRef;"></ul>` |
 
 </details>
 
@@ -1048,8 +1050,8 @@ For attribute-based data binding, OOHTML deviates from the usual (and problemati
 
 | Idea | Usage |
 | :---- | :---- |
-| A `for...in` loop over an object | `<ul expr="@items: key in {a:1,b:2} / 'foo#fragment';"></ul>` |
-| Same as above but with a `value` and `index` declaration | `<ul expr="@items: (key,value,index) in {a:1, b:2} / 'foo#fragment';"></ul>` |
+| A `for...in` loop over an object | `<ul render="@items: key in {a:1,b:2} / 'foo#fragment';"></ul>` |
+| Same as above but with a `value` and `index` declaration | `<ul render="@items: (key,value,index) in {a:1, b:2} / 'foo#fragment';"></ul>` |
 
 </details>
 
@@ -1785,11 +1787,11 @@ The following is a hypothetical list page!
 
   <!-- The "items" template -->
   <template def="item" scoped>
-    <li><a expr="~href: '/animals#'+name;"><?{ index+': '+name }?></a></li>
+    <li><a render="~href: '/animals#'+name;"><?{ index+': '+name }?></a></li>
   </template>
 
   <!-- The loop -->
-  <ul expr="@items: (name,index) of ['dog','cat','ram'] / 'item';"></ul>
+  <ul render="@items: (name,index) of ['dog','cat','ram'] / 'item';"></ul>
 
 </section>
 ```

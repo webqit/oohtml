@@ -13,11 +13,11 @@ import { _, _init, _splitOuter } from '../util.js';
  */
 export default function init( $config = {} ) {
     const { config, window } = _init.call( this, 'data-binding', $config, {
-        attr: { expr: 'expr', itemIndex: 'data-key' },
+        attr: { render: 'render', itemIndex: 'data-key' },
         tokens: { nodeType: 'processing-instruction', tagStart: '?{', tagEnd: '}?', stateStart: '; [=', stateEnd: ']' },
     } );
     ( { CONTEXT_API: config.CONTEXT_API, BINDINGS_API: config.BINDINGS_API, HTML_IMPORTS: config.HTML_IMPORTS } = window.webqit.oohtml.configs );
-    config.attrSelector = `[${ window.CSS.escape( config.attr.expr ) }]`;
+    config.attrSelector = `[${ window.CSS.escape( config.attr.render ) }]`;
     const discreteBindingsMatch = ( start, end ) => {
         const starting = `starts-with(., "${ start }")`;
         const ending = `substring(., string-length(.) - string-length("${ end }") + 1) = "${ end }"`;
@@ -144,7 +144,7 @@ function compileDiscreteBindings( config, str ) {
 
 async function mountInlineBindings( config, ...entries ) {
     for ( const node of entries ) {
-        const compiled = compileInlineBindings( config, node.getAttribute( config.attr.expr ) );
+        const compiled = compileInlineBindings( config, node.getAttribute( config.attr.render ) );
         const { scope, bindings } = createDynamicScope.call( this, config, node );
         const signals = [];
         Object.defineProperty( node, '$oohtml_internal_databinding_signals', { value: signals, configurable: true } );

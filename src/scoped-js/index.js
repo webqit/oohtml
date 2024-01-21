@@ -12,13 +12,13 @@ import { _init, _toHash, _fromHash } from '../util.js';
  */
 export default function init({ advanced = {}, ...$config }) {
     const { config, window } = _init.call( this, 'scoped-js', $config, {
-        script: { retention: 'retain', mimeType: '' },
+        script: { retention: 'retain', mimeTypes: 'module|text/javascript|application/javascript' },
         api: { scripts: 'scripts' },
         advanced: resolveParams(advanced),
     } );
-    config.scriptSelector = ( Array.isArray( config.script.mimeType ) ? config.script.mimeType : [ config.script.mimeType ] ).reduce( ( selector, mm ) => {
-        const qualifier = mm ? `[type=${ window.CSS.escape( mm ) } ]` : '';
-        return selector.concat( `script${ qualifier }[scoped],script${ qualifier }[quantum]` );
+    config.scriptSelector = ( Array.isArray( config.script.mimeTypes ) ? config.script.mimeTypes : config.script.mimeTypes.split( '|' ) ).concat( '' ).reduce( ( selector, mm ) => {
+        const qualifier = mm ? `[type="${ window.CSS.escape( mm ) }"]` : ':not([type])';
+        return selector.concat( `script${ qualifier }` );
     }, [] ).join( ',' );
     window.webqit.oohtml.Script = {
         compileCache: [ new Map, new Map, ],
@@ -88,24 +88,25 @@ async function execute( config, execHash ) {
  */
 function realtime( config ) {
     const window = this, { webqit: { oohtml, realdom, QuantumScript, QuantumAsyncScript, QuantumModule } } = window;
-    if ( !window.HTMLScriptElement.supports ) { window.HTMLScriptElement.supports = () => false; }
-    const potentialManualTypes = [ 'module' ].concat( config.script.mimeType || [] ), handled = new WeakSet;
+    if ( !window.HTMLScriptElement.supports ) { window.HTMLScriptElement.supports = type => [ 'text/javascript', 'application/javascript' ].includes( type ); }
+    const handled = new WeakSet;
     realdom.realtime( window.document ).subtree/*instead of observe(); reason: jsdom timing*/( config.scriptSelector, record => {
         record.entrants.forEach( script => {
             if ( handled.has( script ) ) return;
+            const textContent = ( script._ = script.textContent.trim() ) && script._.startsWith( '/*@oohtml*/if(false){' ) && script._.endsWith( '}/*@oohtml*/' ) ? script._.slice( 21, -12 ) : script.textContent;
+            if ( !script.scoped && !script.quantum && !textContent.includes( 'quantum' ) ) return;
             handled.add( script );
             // Do compilation
-            const textContent = ( script._ = script.textContent.trim() ) && script._.startsWith( '/*@oohtml*/if(false){' ) && script._.endsWith( '}/*@oohtml*/' ) ? script._.slice( 21, -12 ) : script.textContent;
             const sourceHash = _toHash( textContent );
             const compileCache = oohtml.Script.compileCache[ script.quantum ? 0 : 1 ];
             let compiledScript;
             if ( !( compiledScript = compileCache.get( sourceHash ) ) ) {
                 const { parserParams, compilerParams, runtimeParams } = config.advanced;
-                compiledScript = new ( script.type === 'module' ? QuantumModule : (QuantumScript || QuantumAsyncScript) )( textContent, {
+                compiledScript = new ( script.type === 'module' ? QuantumModule : ( QuantumScript || QuantumAsyncScript ) )( textContent, {
                     exportNamespace: `#${ script.id }`,
                     fileName: `${ window.document.url?.split( '#' )?.[ 0 ] || '' }#${ script.id }`,
-                    parserParams,
-                    compilerParams: { ...compilerParams, startStatic: !script.quantum },
+                    parserParams: { ...parserParams, quantumMode: script.quantum },
+                    compilerParams,
                     runtimeParams,
                 } );
                 compileCache.set( sourceHash, compiledScript );
@@ -114,7 +115,7 @@ function realtime( config ) {
             const thisContext = script.scoped ? script.parentNode || record.target : ( script.type === 'module' ? undefined : window );
             if ( script.scoped ) { thisContext[ config.api.scripts ].push( script ); }
             const execHash = _toHash( { script, compiledScript, thisContext } );
-            const manualHandling = record.type === 'query' || ( potentialManualTypes.includes( script.type ) && !window.HTMLScriptElement.supports( script.type ) );
+            const manualHandling = record.type === 'query' || ( script.type && !window.HTMLScriptElement.supports( script.type ) );
             if ( manualHandling ) { oohtml.Script.execute( execHash ); } else {
                 script.textContent = `webqit.oohtml.Script.execute( '${ execHash }' );`;
             }
