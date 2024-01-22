@@ -30,19 +30,19 @@ OOHTML is being developed as something to be used today. This implementation adh
 
 └ This is to be placed early on in the document and should be a classic script without any `defer` or `async` directives!
 
+└ For `@webqit/oohtml@3.1` and below, you would need an external polyfill - like the [samthor/scoped](https://github.com/samthor/scoped) polyfill - for the Scoped Styles feature:
+
+```html
+<head>
+  <script src="https://unpkg.com/style-scoped/scoped.min.js"></script>
+</head>
+```
+
 └ Being an integral part of OOHTML, the Observer and Quantum JS APIs are also accessible on loading the OOHTML polyfill:
 
 ```js
 const { QuantumFunction, QuantumAsyncFunction, QuantumScript, QuantumModule, QuantumAsyncScript, State, Observer } = window.webqit;
 ```
-
-> For `@webqit/oohtml@3.1` and below, you would need an external polyfill - like the [samthor/scoped](https://github.com/samthor/scoped) polyfill - for the Scoped Styles feature:
->
-> ```html
-> <head>
->   <script src="https://unpkg.com/style-scoped/scoped.min.js"></script>
-> </head>
-> ```
 
 </details>
 
