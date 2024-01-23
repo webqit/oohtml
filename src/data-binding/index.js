@@ -90,7 +90,7 @@ function cleanup( ...entries ) {
 }
 
 async function mountDiscreteBindings( config, ...entries ) {
-    const window = this, { webqit: { QuantumAsyncFunction } } = window;
+    const window = this;
     const patternMatch = str => {
         const tagStart = config.tokens.tagStart.split( '' ).map( x => `\\${ x }` ).join( '' );
         const tagEnd = config.tokens.tagEnd.split( '' ).map( x => `\\${ x }` ).join( '' );

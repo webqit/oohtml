@@ -13,9 +13,15 @@ Building Single Page Applications? OOHTML is a special love letter! Writing Web 
 
 <details><summary>Versions</summary>
 
-*This is documentation for `OOHTML@3`. (Looking for [`OOHTML@1`](https://github.com/webqit/oohtml/tree/v1.10.4)?)*
+*This is documentation for `OOHTML@4`. (Looking for [`OOHTML@1`](https://github.com/webqit/oohtml/tree/v1.10.4)?)*
 
 </details>
+
+## Status
+
++ Working implementation via a polyfill
++ Actively developed
++ Open to contributions
 
 ## Polyfill
 
@@ -50,7 +56,7 @@ npm i @webqit/oohtml @webqit/quantum-js
 ```js
 // Import
 import * as Quantum from '@webqit/quantum-js/lite'; // Or from '@webqit/quantum-js'; See implementation notes below
-import init from '@webqit/oohtml';
+import init from '@webqit/oohtml/src/init.js';
 
 // Initialize the lib
 init.call(window, Quantum[, options = {}]);

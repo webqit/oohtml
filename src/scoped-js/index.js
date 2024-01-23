@@ -3,7 +3,7 @@
  * @imports
  */
 import { resolveParams } from '@webqit/quantum-js/params';
-import { _init, _toHash, _fromHash } from '../util.js';
+import { _, _init, _toHash, _fromHash } from '../util.js';
 
 /**
  * @init
@@ -71,9 +71,13 @@ async function execute( config, execHash ) {
         script.textContent = await compiledScript.toString();
     }
     // Execute and save state
-    const state = ( await compiledScript.bind( thisContext ) ).execute();
+    const documentRoot = script.getRootNode();
+    if ( !_( documentRoot ).has( 'scriptEnv' ) ) {
+        _( documentRoot ).set( 'scriptEnv', Object.create( null ) );
+    }
+    const state = ( await compiledScript.bind( thisContext, _( documentRoot ).get( 'scriptEnv' ) ) ).execute();
     if ( script.quantum ) { Object.defineProperty( script, 'state', { value: state } ); }
-    realdom.realtime( window.document ).observe( script, () => {
+    realdom.realtime( documentRoot ).observe( script, () => {
         if ( script.quantum ) { state.dispose(); }
         if ( script.scoped ) { thisContext[ config.api.scripts ].splice( thisContext[ config.api.scripts ].indexOf( script, 1 ) ); }
     }, { subtree: true, timing: 'sync', generation: 'exits' } );
@@ -87,7 +91,7 @@ async function execute( config, execHash ) {
  * @return Void
  */
 function realtime( config ) {
-    const window = this, { webqit: { oohtml, realdom, QuantumScript, QuantumAsyncScript, QuantumModule } } = window;
+    const window = this, { webqit: { oohtml, realdom, QuantumScript, AsyncQuantumScript, QuantumModule } } = window;
     if ( !window.HTMLScriptElement.supports ) { window.HTMLScriptElement.supports = type => [ 'text/javascript', 'application/javascript' ].includes( type ); }
     const handled = new WeakSet;
     realdom.realtime( window.document ).subtree/*instead of observe(); reason: jsdom timing*/( config.scriptSelector, record => {
@@ -102,7 +106,7 @@ function realtime( config ) {
             let compiledScript;
             if ( !( compiledScript = compileCache.get( sourceHash ) ) ) {
                 const { parserParams, compilerParams, runtimeParams } = config.advanced;
-                compiledScript = new ( script.type === 'module' ? QuantumModule : ( QuantumScript || QuantumAsyncScript ) )( textContent, {
+                compiledScript = new ( script.type === 'module' ? QuantumModule : ( QuantumScript || AsyncQuantumScript ) )( textContent, {
                     exportNamespace: `#${ script.id }`,
                     fileName: `${ window.document.url?.split( '#' )?.[ 0 ] || '' }#${ script.id }`,
                     parserParams: { ...parserParams, quantumMode: script.quantum },
