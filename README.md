@@ -110,7 +110,7 @@ If you'll be going ahead to build a real app with OOHTML, you may want to consid
 
     ```html
     <head>
-      <meta name="scoped-js" content="script.mimeType=some-mime">
+      <meta name="scoped-js" content="script.mimeTypes=module|text/javascript|application/javascript|some-mime">
       <script async src="https://unpkg.com/@webqit/oohtml/dist/main.lite.js"></script>
     </head>
     <body>
