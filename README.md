@@ -36,13 +36,19 @@ OOHTML is being developed as something to be used today. This implementation adh
 
 └ This is to be placed early on in the document and should be a classic script without any `defer` or `async` directives!
 
-> For `@webqit/oohtml@3.1` and below, you would need an external polyfill - like the [samthor/scoped](https://github.com/samthor/scoped) polyfill - for the Scoped Styles feature:
->
-> ```html
-> <head>
->   <script src="https://unpkg.com/style-scoped/scoped.min.js"></script>
-> </head>
-> ```
+└ For `@webqit/oohtml@3.1` and below, you would need an external polyfill - like the [samthor/scoped](https://github.com/samthor/scoped) polyfill - for the Scoped Styles feature:
+
+```html
+<head>
+  <script src="https://unpkg.com/style-scoped/scoped.min.js"></script>
+</head>
+```
+
+└ Being an integral part of OOHTML, the Observer and Quantum JS APIs are also accessible on loading the OOHTML polyfill:
+
+```js
+const { QuantumFunction, QuantumAsyncFunction, QuantumScript, QuantumModule, QuantumAsyncScript, State, Observer } = window.webqit;
+```
 
 </details>
 
@@ -60,6 +66,12 @@ import init from '@webqit/oohtml/src/init.js';
 
 // Initialize the lib
 init.call(window, Quantum[, options = {}]);
+```
+
+└ Being an integral part of OOHTML, the Observer API, in addition to the Quantum JS APIs, is also available from the OOHTML installation:
+
+```js
+import * as Observer from '@webqit/observer';
 ```
 
 └ To use the polyfill on server-side DOM instances as made possible by libraries like [jsdom](https://github.com/jsdom/jsdom), simply install and initialize the library with the DOM instance as above.
