@@ -19,8 +19,8 @@ Building Single Page Applications? OOHTML is a special love letter! Writing Web 
 
 ## Status
 
-+ Working implementation via a polyfill
 + Actively developed
++ Working implementation via a polyfill
 + Open to contributions
 
 ## Polyfill
@@ -228,6 +228,8 @@ Amidst a multitude of approaches, vanilla HTML remains an attractive option for 
 OOHTML comes, not as a specific technology, but as a conceptual "framework" of features that solves for HTML as an object-oriented language - whether that means re-aligning existing features or introducing new ones! While features may be discussed or explored individually, the one agenda "Object-Oriented HTML" helps us stay aligned with the original problem! Each of these features has been introduced below with a small explainer.
 
 OOHTML is effectively different from Web Components (and from the related Declarative Custom Elements and Declarative Shadow DOM efforts) in its focus on "arbitrary" HTML and the DOM rather than on just the Custom Element or Shadow DOM "subset" of the language. This in turn lets us have a niftier authoring experience in Web Components as the latter actually just relies on the very HTML and DOM.
+
+└ You may want to learn more in the introductory article: [Revisiting the HTML Problem Space and Introducing OOHTML](https://dev.to/oxharris/revisiting-the-html-problem-space-and-introducing-oohtml-3oh5)
 
 </details>
 

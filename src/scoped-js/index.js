@@ -98,7 +98,7 @@ function realtime( config ) {
         record.entrants.forEach( script => {
             if ( handled.has( script ) ) return;
             const textContent = ( script._ = script.textContent.trim() ) && script._.startsWith( '/*@oohtml*/if(false){' ) && script._.endsWith( '}/*@oohtml*/' ) ? script._.slice( 21, -12 ) : script.textContent;
-            if ( !script.scoped && !script.quantum && !textContent.includes( 'quantum' ) ) return;
+            //if ( !script.scoped && !script.quantum && !textContent.includes( 'quantum' ) ) return;
             handled.add( script );
             // Do compilation
             const sourceHash = _toHash( textContent );
