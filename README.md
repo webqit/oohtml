@@ -233,7 +233,7 @@ OOHTML is effectively different from Web Components (and from the related Declar
 
 </details>
 
-## On the Agenda
+## Features
 
 + [Modular HTML](#modular-html)
 + [HTML Imports](#html-imports)
