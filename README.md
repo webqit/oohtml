@@ -19,8 +19,9 @@ Building Single Page Applications? OOHTML is a special love letter! Writing Web 
 
 ## Status
 
-+ Actively developed
++ Actively maintained
 + Working implementation via a polyfill
++ [Proposed at the WICG](https://github.com/WICG/proposals/issues/137)
 + Open to contributions
 
 ## Polyfill
