@@ -20,13 +20,13 @@ Building Single Page Applications? OOHTML is a special love letter! Writing Web 
 ## Status
 
 + Actively maintained
-+ Working implementation via a polyfill
++ A working implementation
 + [Proposed at the WICG](https://github.com/WICG/proposals/issues/137)
 + Open to contributions
 
 ## Implementation
 
-OOHTML is being developed as something to be used today. This implementation adheres closely to the spec and helps evolve the proposal through a practice-driven process.
+OOHTML may be used today. This implementation adheres closely to the spec and helps evolve the proposal through a practice-driven process.
 
 <details><summary>Load from a CDN<br>
 └───────── <a href="https://bundlephobia.com/result?p=@webqit/oohtml"><img align="right" src="https://img.shields.io/badge/21.8%20kB-black"></a></summary>
