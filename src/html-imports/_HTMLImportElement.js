@@ -104,7 +104,7 @@ export default function() {
                         if ( !record.target.isConnected ) return;
                         restore();
                     }
-                }, { subtree: true, timing: 'sync', generation: 'exits' } );
+                }, { subtree: 'cross-roots', timing: 'sync', generation: 'exits' } );
                 priv.autoRestoreRealtime = autoRestoreRealtime;
             };
 

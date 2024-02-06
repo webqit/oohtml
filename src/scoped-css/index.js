@@ -35,11 +35,18 @@ export default function init({ advanced = {}, ...$config }) {
  */
 function exposeAPIs( config ) {
     const window = this, styleSheetsMap = new Map;
-    if ( config.api.styleSheets in window.Element.prototype ) { throw new Error( `The "Element" class already has a "${ config.api.styleSheets }" property!` ); }
-    Object.defineProperty( window.HTMLElement.prototype, config.api.styleSheets, { get: function() {
-        if ( !styleSheetsMap.has( this ) ) { styleSheetsMap.set( this, [] ); }
-        return styleSheetsMap.get( this );
-    }, } );
+    // The "styleSheets" API
+    [ window.Element.prototype ].forEach( prototype => {
+        // No-conflict assertions
+        const type = 'Element';
+        if ( config.api.styleSheets in prototype ) { throw new Error( `The ${ type } prototype already has a "${ config.api.styleSheets }" API!` ); }
+        // Definitions
+        Object.defineProperty( prototype, config.api.styleSheets, { get: function() {
+            if ( !styleSheetsMap.has( this ) ) { styleSheetsMap.set( this, [] ); }
+            return styleSheetsMap.get( this );
+        }, } );
+    } );
+    // The HTMLStyleElement "scoped" property
     Object.defineProperty( window.HTMLStyleElement.prototype, 'scoped', {
         configurable: true,
         get() { return this.hasAttribute( 'scoped' ); },
@@ -56,9 +63,10 @@ function exposeAPIs( config ) {
  */
 function realtime( config ) {
     const window = this, { webqit: { oohtml, realdom } } = window;
+    const inBrowser = Object.getOwnPropertyDescriptor( globalThis, 'window' )?.get?.toString().includes( '[native code]' ) ?? false;
     if ( !window.CSS.supports ) { window.CSS.supports = () => false; }
     const handled = new WeakSet;
-    realdom.realtime( window.document ).subtree/*instead of observe(); reason: jsdom timing*/( config.styleSelector, record => {
+    realdom.realtime( window.document ).query( config.styleSelector, record => {
         record.entrants.forEach( style => {
             if ( handled.has( style ) ) return;
             handled.add( style );
@@ -67,10 +75,13 @@ function realtime( config ) {
             const supportsHAS = CSS.supports( 'selector(:has(a,b))' );
             const scopeSelector = style.scoped && ( supportsHAS ? `:has(> style[rand-${ sourceHash }])` : `[rand-${ sourceHash }]` );
             const supportsScope = style.scoped && window.CSSScopeRule && false/* Disabled for buggy behaviour: rewriting selectorText within an @scope block invalidates the scoping */;
-            if ( style.scoped ) {
-                style.parentNode[ config.api.styleSheets ].push( style );
-                ( supportsHAS ? style : style.parentNode ).toggleAttribute( `rand-${ sourceHash }`, true );
+            const scopeRoot = style.scoped && style.parentNode || style.getRootNode();
+            if ( scopeRoot instanceof window.Element ) {
+                scopeRoot[ config.api.styleSheets ].push( style );
+                if ( !inBrowser ) return;
+                ( supportsHAS ? style : scopeRoot ).toggleAttribute( `rand-${ sourceHash }`, true );
             }
+            if ( !inBrowser ) return;
             if ( style.scoped && style.hasAttribute( 'shared' ) ) {
                 let compiledSheet;
                 if ( !( compiledSheet = oohtml.Style.compileCache.get( sourceHash ) ) ) {
@@ -82,14 +93,14 @@ function realtime( config ) {
                 style.textContent = '\n/*[ Shared style sheet ]*/\n';
             } else {
                 const transform = () => {
-                    const namespaceUUID = getNamespaceUUID( getOwnerNamespaceObject.call( window, style.scoped ? style : window.document ) );
+                    const namespaceUUID = getNamespaceUUID( getOwnerNamespaceObject.call( window, scopeRoot ) );
                     upgradeSheet.call( this, style.sheet, namespaceUUID, !supportsScope && scopeSelector );
                 };
                 if ( style.isConnected ) { transform(); }
                 else { setTimeout( () => { transform(); }, 0 ); }
             }
         } );
-    }, { live: true, timing: 'intercept', generation: 'entrants' } );
+    }, { live: true, subtree: 'cross-roots', timing: 'intercept', generation: 'entrants' } );
     // ---
 }
 
@@ -100,12 +111,14 @@ function createAdoptableStylesheet( style, namespaceUUID, supportsScope, scopeSe
         styleSheet = new window.CSSStyleSheet;
         styleSheet.replaceSync( cssText );
         upgradeSheet.call( this, styleSheet, namespaceUUID, !supportsScope && scopeSelector );
-        document.adoptedStyleSheets.push( styleSheet );
+        const adopt = () => style.getRootNode().adoptedStyleSheets.push( styleSheet );
+        if ( style.isConnected ) { adopt(); }
+        else { setTimeout( () => { adopt(); }, 0 ); }
     } catch( e ) {
-        const style = window.document.createElement( 'style' );
-        window.document.body.appendChild( style );
-        style.textContent = cssText;
-        styleSheet = style.sheet;
+        const styleCopy = window.document.createElement( 'style' );
+        style.after( styleCopy );
+        styleCopy.textContent = cssText;
+        styleSheet = styleCopy.sheet;
         upgradeSheet.call( this, styleSheet, namespaceUUID, !supportsScope && scopeSelector );
     }
     return styleSheet;

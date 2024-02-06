@@ -26,6 +26,10 @@
   "type": "module",
   "sideEffects": true,
   "main": "./src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./lite": "./src/index.lite.js"
+  },
   "scripts": {
     "test": "mocha --extension .test.js --exit",
     "test:coverage": "c8 --reporter=text-lcov npm run test | coveralls",
@@ -35,8 +39,8 @@
     "postpublish": "git push && git push --tags"
   },
   "dependencies": {
-    "@webqit/quantum-js": "^4.5.2",
-    "@webqit/realdom": "^2.1.23",
+    "@webqit/quantum-js": "^4.5.5",
+    "@webqit/realdom": "^2.1.24",
     "@webqit/util": "^0.8.11"
   },
   "devDependencies": {

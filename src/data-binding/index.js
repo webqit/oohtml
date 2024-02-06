@@ -37,14 +37,14 @@ export default function init( $config = {} ) {
 function realtime( config ) {
     const window = this, { webqit: { realdom } } = window;
 	// ----------------
-    realdom.realtime( window.document ).subtree( `(${ config.discreteBindingsSelector })`, record => {
+    realdom.realtime( window.document ).query( `(${ config.discreteBindingsSelector })`, record => {
         cleanup.call( this, ...record.exits );  
         mountDiscreteBindings.call( this, config, ...record.entrants );  
-    }, { live: true } );
-    realdom.realtime( window.document ).subtree( config.attrSelector, record => {
+    }, { live: true, subtree: 'cross-roots', timing: 'sync' } );
+    realdom.realtime( window.document ).query( config.attrSelector, record => {
         cleanup.call( this, ...record.exits );  
         mountInlineBindings.call( this, config, ...record.entrants );  
-    }, { live: true, timing: 'sync', staticSensitivity: true } );
+    }, { live: true, subtree: 'cross-roots', timing: 'sync', staticSensitivity: true } );
 }
 
 function createDynamicScope( config, root ) {

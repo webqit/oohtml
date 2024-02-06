@@ -8,6 +8,7 @@ import DOMContext from './DOMContext.js';
 import DuplicateContextError from './DuplicateContextError.js';
 import { _ } from '../util.js';
 
+const waitListMappings = new Map;
 export default class DOMContexts {
 
     /**
@@ -76,13 +77,35 @@ export default class DOMContexts {
                 if ( !args[ args.length - 1 ] ) { args[ args.length - 1 ] = emitter; }
                 else { args.push( emitter ); }
             }
+
             let options;
             if ( ( options = args.find( arg => typeof arg === 'object' && arg ) ) && options.live ) {
                 if ( options.signal ) options.signal.addEventListener( 'abort', () => responseInstance.abort() );
                 args[ args.indexOf( options ) ] = { ...options, signal: responseInstance.signal };
             }
             const event = new ( _DOMContextRequestEvent() )( ...args );
-            this[ '#' ].host.dispatchEvent( event );
+
+            const rootNode = this[ '#' ].host.getRootNode();
+            const temp = event => {
+                if ( event.answered ) return;
+                event.meta.target = event.target;
+                if ( !waitListMappings.get( rootNode ) ) { waitListMappings.set( rootNode, new Set ); }
+                if ( event.type === 'contextrequest' && event.live ) {
+                    waitListMappings.get( rootNode ).add( event );
+                } else if ( event.type === 'contextclaim' ) {
+                    const claims = new Set;
+                    waitListMappings.get( rootNode ).forEach( subscriptionEvent => {
+                        if ( !this[ '#' ].host.contains( subscriptionEvent.target ) || !event.detail.matchEvent( subscriptionEvent ) ) return;
+                        waitListMappings.get( rootNode ).delete( subscriptionEvent );
+                        claims.add( subscriptionEvent );
+                    } );
+                    return event.respondWith( claims );
+                }
+            };
+
+            rootNode.addEventListener( event.type, temp );
+            this[ '#' ].host.dispatchEvent( event );            
+            rootNode.removeEventListener( event.type, temp );
         } );
     }
 

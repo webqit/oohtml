@@ -31,12 +31,17 @@ export default function() {
             Object.defineProperty( this, 'signal', { get: () => signal } );
             Object.defineProperty( this, 'diff', { get: () => diff } );
             Object.defineProperty( this, 'options', { get: () => otherOpts } );
+            Object.defineProperty( this, 'meta', { value: {} } );
         }
+
+        get target() { return super.target || this.meta.target; }
+        get answered() { return this.meta.answered || false; }
 
         /**
          * @respondWith
          */
         respondWith( response ) {
+            this.meta.answered = true;
             if ( this.diff ) {
                 if ( '_prevValue' in this && this._prevValue === response ) return;
                 Object.defineProperty( this, '_prevValue', { value: response, configurable: true } );

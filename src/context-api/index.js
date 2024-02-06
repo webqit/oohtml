@@ -38,30 +38,13 @@ export default function init( $config = {} ) {
  */
 function exposeAPIs( config ) {
     const window = this;
-    // Assertions
-    if ( config.api.contexts in window.document ) { throw new Error( `document already has a "${ config.api.contexts }" property!` ); }
-    if ( config.api.contexts in window.HTMLElement.prototype ) { throw new Error( `The "HTMLElement" class already has a "${ config.api.contexts }" property!` ); }
-    // Definitions
-    Object.defineProperty( window.document, config.api.contexts, { get: function() {
-        return DOMContexts.instance( window.document );
-    } } );
-    Object.defineProperty( window.HTMLElement.prototype, config.api.contexts, { get: function() {
-        return DOMContexts.instance( this );
-    } } );
-    const waitlist = new Set;
-    window.addEventListener( 'contextrequest', event => {
-        if ( typeof event.respondWith !== 'function' ) return;
-        waitlist.add( event );
-        event.respondWith();
-    } );
-    window.addEventListener( 'contextclaim', event => {
-        if ( typeof event.detail !== 'object' || typeof event.detail.matchEvent !== 'function' || typeof event.respondWith !== 'function' ) return;
-        const claims = new Set;
-        waitlist.forEach( subscriptionEvent => {
-            if ( !event.target.contains( subscriptionEvent.target ) || !event.detail.matchEvent( subscriptionEvent ) ) return;
-            waitlist.delete( subscriptionEvent );
-            claims.add( subscriptionEvent );
-        } );
-        event.respondWith( claims );
+    [ window.Document.prototype, window.Element.prototype, window.ShadowRoot.prototype ].forEach( prototype => {
+        // No-conflict assertions
+        const type = prototype === window.Document.prototype ? 'Document' : ( prototype === window.ShadowRoot.prototype ? 'ShadowRoot' : 'Element' );
+        if ( config.api.contexts in prototype ) { throw new Error( `The ${ type } prototype already has a "${ config.api.contexts }" API!` ); }
+        // Definitions
+        Object.defineProperty( prototype, config.api.contexts, { get: function() {
+            return DOMContexts.instance( this );
+        } } );
     } );
 }

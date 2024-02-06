@@ -135,6 +135,7 @@ export default class HTMLModule {
         // Ongoing request?
         if ( this.fetchInFlight?.src === src ) return this.fetchInFlight.request;
         this.fetchInFlight?.controller.abort();
+
         // The promise
         const controller = new AbortController();
         const fire = ( type, detail ) => this.host.dispatchEvent( new window.CustomEvent( type, { detail } ) );

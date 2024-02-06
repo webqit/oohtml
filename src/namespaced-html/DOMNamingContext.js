@@ -32,8 +32,8 @@ export default class DOMNamingContext extends DOMContext {
      */
     handle( event ) {
         const { window: { webqit: { Observer } } } = env;
-        // Any existing event._controller? Abort!
-        event._controller?.abort();
+        // Any existing event.meta.controller? Abort!
+        event.meta.controller?.abort();
 
         // Parse and translate detail
         if ( !( event.detail || '' ).trim() ) return event.respondWith( Observer.unproxy( this.namespaceObj ) );
@@ -41,7 +41,7 @@ export default class DOMNamingContext extends DOMContext {
         if ( !path.length ) return event.respondWith();
         path = path.join( `/${ this.configs.NAMESPACED_HTML.api.namespace }/` )?.split( '/' ) || [];
 
-        event._controller = Observer.reduce( this.namespaceObj, path, Observer.get, descriptor => {
+        event.meta.controller = Observer.reduce( this.namespaceObj, path, Observer.get, descriptor => {
             if ( this.disposed ) return; // If already scheduled but aborted as in provider unmounting
             event.respondWith( descriptor.value );
         }, { live: event.live, signal: event.signal, descripted: true } );
@@ -50,5 +50,5 @@ export default class DOMNamingContext extends DOMContext {
     /**
      * @unsubscribed()
      */
-    unsubscribed( event ) { event._controller?.abort(); }
+    unsubscribed( event ) { event.meta.controller?.abort(); }
 }

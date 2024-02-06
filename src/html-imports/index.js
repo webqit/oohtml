@@ -61,29 +61,32 @@ export function getDefs( node, autoCreate = true ) {
  */
 function exposeAPIs( config ) {
     const window = this, { webqit: { oohtml: { configs } } } = window;
-    // Assertions
-    if ( config.api.defs in window.HTMLTemplateElement.prototype ) { throw new Error( `The "HTMLTemplateElement" class already has a "${ config.api.defs }" property!` ); }
-    if ( config.api.def in window.HTMLTemplateElement.prototype ) { throw new Error( `The "HTMLTemplateElement" class already has a "${ config.api.def }" property!` ); }
-    if ( config.api.import in window.document ) { throw new Error( `document already has a "${ config.api.import }" property!` ); }
-    if ( config.api.import in window.HTMLElement.prototype ) { throw new Error( `The "HTMLElement" class already has a "${ config.api.import }" property!` ); }
-    // Definitions
-    Object.defineProperty( window.HTMLTemplateElement.prototype, config.api.defs, { get: function() {
-        return getDefs( this );
-    } } );
+    // The "def" & "defs" properties
+    if ( config.api.def in window.HTMLTemplateElement.prototype ) { throw new Error( `The "HTMLTemplateElement" prototype already has a "${ config.api.def }" API!` ); }
+    if ( config.api.defs in window.HTMLTemplateElement.prototype ) { throw new Error( `The "HTMLTemplateElement" prototype already has a "${ config.api.defs }" API!` ); }
+    // No-conflict assertions
     Object.defineProperty( window.HTMLTemplateElement.prototype, config.api.def, { get: function() {
         return this.getAttribute( config.attr.def );
     } } );
+    Object.defineProperty( window.HTMLTemplateElement.prototype, config.api.defs, { get: function() {
+        return getDefs( this );
+    } } );
+    // The "scoped" property
     Object.defineProperty( window.HTMLTemplateElement.prototype, 'scoped', {
         configurable: true,
         get() { return this.hasAttribute( 'scoped' ); },
         set( value ) { this.toggleAttribute( 'scoped', value ); },
     } );
-    Object.defineProperty( window.document, config.api.import, { value: function( ref, live = false, callback = null ) {
-        return importRequest( window.document, ...arguments );
-    } } );
-    Object.defineProperty( window.HTMLElement.prototype, config.api.import, { value: function( ref, live = false, callback = null ) {
-        return importRequest( this, ...arguments );
-    } } );
+    // The Import API
+    [ window.Document.prototype, window.Element.prototype, window.ShadowRoot.prototype ].forEach( prototype => {
+        // No-conflict assertions
+        const type = prototype === window.Document.prototype ? 'Document' : ( prototype === window.ShadowRoot.prototype ? 'ShadowRoot' : 'Element' );
+        if ( config.api.import in prototype ) { throw new Error( `The ${ type } prototype already has a "${ config.api.import }" API!` ); }
+        // Definitions
+        Object.defineProperty( prototype, config.api.import, { value: function( ref, live = false, callback = null ) {
+            return importRequest( this, ...arguments );
+        } });
+    } );
     function importRequest( context, ref, live = false, callback = null ) {
         let options = {};
         if ( typeof live === 'function' ) {
@@ -127,11 +130,11 @@ function realtime( config ) {
         }
     };
     // ------------
-    realdom.realtime( window.document ).subtree/*instead of observe(); reason: jsdom timing*/( [ config.templateSelector, config.importsContextSelector ], record => {
+    realdom.realtime( window.document ).query( [ config.templateSelector, config.importsContextSelector ], record => {
         record.entrants.forEach( entry => {
             if ( entry.matches( config.templateSelector ) ) {
                 const htmlModule = HTMLModule.instance( entry );
-                htmlModule.ownerContext = entry.scoped ? record.target : window.document;
+                htmlModule.ownerContext = entry.scoped ? record.target : record.target.getRootNode();
                 const ownerContextModulesObj = getDefs( htmlModule.ownerContext );
                 if ( htmlModule.defId ) { Observer.set( ownerContextModulesObj, htmlModule.defId, entry ); }
                 // The ownerContext's defs - ownerContextModulesObj - has to be populated
@@ -152,15 +155,15 @@ function realtime( config ) {
                 detachImportsContext( entry );
             }
         } );
-    }, { live: true, timing: 'sync', staticSensitivity: true } );
+    }, { live: true, subtree: 'cross-roots', timing: 'sync', staticSensitivity: true } );
     
     // ------------
     // IMPORTS
     // ------------
-    realdom.realtime( window.document ).subtree/*instead of observe(); reason: jsdom timing*/( config.elements.import, record => {
+    realdom.realtime( window.document ).query( config.elements.import, record => {
         record.entrants.forEach( node => handleRealtime( node, true, record ) );
         record.exits.forEach( node => handleRealtime( node, false, record ) );
-    }, { live: true, timing: 'sync' } );
+    }, { live: true, subtree: 'cross-roots', timing: 'sync' } );
     function handleRealtime( entry, connectedState ) {
         const elInstance = HTMLImportElement.instance( entry );
         if ( connectedState ) { elInstance[ '#' ].connectedCallback(); }
@@ -168,7 +171,7 @@ function realtime( config ) {
     }
     // Hydration
     if ( window.webqit.env === 'server' ) return;
-    realdom.realtime( window.document ).subtree( `(${ config.anchorNodeSelector })`, record => {
+    realdom.realtime( window.document ).query( `(${ config.anchorNodeSelector })`, record => {
         record.entrants.forEach( anchorNode => {
             if ( _( anchorNode ).get( 'isAnchorNode' ) ) return; // Doubling up on the early return above! Ignoring every just created anchorNode
             const reviver = window.document.createElement( 'div' );
@@ -183,5 +186,5 @@ function realtime( config ) {
             }
             HTMLImportElement.instance( importEl )[ '#' ].hydrate( anchorNode, slottedElements );
         } );
-    }, { live: true } );
+    }, { live: true, subtree: 'cross-roots', timing: 'sync' } );
 }

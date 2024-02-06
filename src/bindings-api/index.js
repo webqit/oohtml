@@ -33,12 +33,12 @@ function getBindings( config, node ) {
         Observer.observe( bindingsObj, mutations => {
             // Reflection
             const props = Object.keys( bindingsObj );
-            const targetNode = node === window.document ? window.document.documentElement : node;
+            const reflectionTargetNode = node instanceof window.Document ? node.documentElement : node;
             const bindingsReflection = config.attr.bindingsreflection;
-            if ( props.length && bindingsReflection ) {
-                targetNode.setAttribute( config.attr.bindingsreflection, props.join( ' ') );
-            } else if ( bindingsReflection ) {
-                targetNode.toggleAttribute( config.attr.bindingsreflection, false );
+            if ( props.length && bindingsReflection && reflectionTargetNode.setAttribute ) {
+                reflectionTargetNode.setAttribute( config.attr.bindingsreflection, props.join( ' ') );
+            } else if ( bindingsReflection && reflectionTargetNode.setAttribute ) {
+                reflectionTargetNode.toggleAttribute( config.attr.bindingsreflection, false );
             }
             // Re: DOMBindingsContext
             const contextsApi = node[ ctxConfig.api.contexts ];
@@ -64,24 +64,20 @@ function getBindings( config, node ) {
  */
 function exposeAPIs( config ) {
 	const window = this, { webqit: { Observer } } = window;
-    // Assertions
-    if ( config.api.bind in window.document ) { throw new Error( `document already has a "${ config.api.bind }" property!` ); }
-    if ( config.api.bindings in window.document ) { throw new Error( `document already has a "${ config.api.bindings }" property!` ); }
-    if ( config.api.bind in window.Element.prototype ) { throw new Error( `The "Element" class already has a "${ config.api.bind }" property!` ); }
-    if ( config.api.bindings in window.Element.prototype ) { throw new Error( `The "Element" class already has a "${ config.api.bindings }" property!` ); }
-    // Definitions
-    Object.defineProperty( window.document, config.api.bind, { value: function( bindings, options = {} ) {
-        return applyBindings.call( window, config, window.document, bindings, options );
-    } });
-    Object.defineProperty( window.document, config.api.bindings, { get: function() {
-        return Observer.proxy( getBindings.call( window, config, window.document ) );
-    } });
-    Object.defineProperty( window.Element.prototype, config.api.bind, { value: function( bindings, options = {} ) {
-        return applyBindings.call( window, config, this, bindings, options );
-    } });
-    Object.defineProperty( window.Element.prototype, config.api.bindings, { get: function() {
-        return Observer.proxy( getBindings.call( window, config, this ) );
-    } } );
+    // The Bindings APIs
+    [ window.Document.prototype, window.Element.prototype, window.ShadowRoot.prototype ].forEach( prototype => {
+        // No-conflict assertions
+        const type = prototype === window.Document.prototype ? 'Document' : ( prototype === window.ShadowRoot.prototype ? 'ShadowRoot' : 'Element' );
+        if ( config.api.bind in prototype ) { throw new Error( `The ${ type } prototype already has a "${ config.api.bind }" API!` ); }
+        if ( config.api.bindings in prototype ) { throw new Error( `The ${ type } prototype already has a "${ config.api.bindings }" API!` ); }
+        // Definitions
+        Object.defineProperty( prototype, config.api.bind, { value: function( bindings, options = {} ) {
+            return applyBindings.call( window, config, this, bindings, options );
+        } });
+        Object.defineProperty( prototype, config.api.bindings, { get: function() {
+            return Observer.proxy( getBindings.call( window, config, this ) );
+        } } );
+    } );
 }
 
 /**

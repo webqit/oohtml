@@ -38,7 +38,7 @@ export default function init({ advanced = {}, ...$config }) {
 function exposeAPIs( config ) {
     const window = this, scriptsMap = new Map;
     if ( config.api.scripts in window.Element.prototype ) { throw new Error( `The "Element" class already has a "${ config.api.scripts }" property!` ); }
-    Object.defineProperty( window.HTMLElement.prototype, config.api.scripts, { get: function() {
+    Object.defineProperty( window.Element.prototype, config.api.scripts, { get: function() {
         if ( !scriptsMap.has( this ) ) { scriptsMap.set( this, [] ); }
         return scriptsMap.get( this );
     }, } );
@@ -77,10 +77,10 @@ async function execute( config, execHash ) {
     }
     const state = ( await compiledScript.bind( thisContext, _( documentRoot ).get( 'scriptEnv' ) ) ).execute();
     if ( script.quantum ) { Object.defineProperty( script, 'state', { value: state } ); }
-    realdom.realtime( documentRoot ).observe( script, () => {
+    realdom.realtime( window.document ).observe( script, () => {
         if ( script.quantum ) { state.dispose(); }
-        if ( script.scoped ) { thisContext[ config.api.scripts ].splice( thisContext[ config.api.scripts ].indexOf( script, 1 ) ); }
-    }, { subtree: true, timing: 'sync', generation: 'exits' } );
+        if ( thisContext instanceof window.Element ) { thisContext[ config.api.scripts ]?.splice( thisContext[ config.api.scripts ].indexOf( script, 1 ) ); }
+    }, { subtree: 'cross-roots', timing: 'sync', generation: 'exits' } );
 }
 
 /**
@@ -94,7 +94,7 @@ function realtime( config ) {
     const window = this, { webqit: { oohtml, realdom, QuantumScript, AsyncQuantumScript, QuantumModule } } = window;
     if ( !window.HTMLScriptElement.supports ) { window.HTMLScriptElement.supports = type => [ 'text/javascript', 'application/javascript' ].includes( type ); }
     const handled = new WeakSet;
-    realdom.realtime( window.document ).subtree/*instead of observe(); reason: jsdom timing*/( config.scriptSelector, record => {
+    realdom.realtime( window.document ).query( config.scriptSelector, record => {
         record.entrants.forEach( script => {
             if ( handled.has( script ) ) return;
             const textContent = ( script._ = script.textContent.trim() ) && script._.startsWith( '/*@oohtml*/if(false){' ) && script._.endsWith( '}/*@oohtml*/' ) ? script._.slice( 21, -12 ) : script.textContent;
@@ -124,6 +124,6 @@ function realtime( config ) {
                 script.textContent = `webqit.oohtml.Script.execute( '${ execHash }' );`;
             }
         } );
-    }, { live: true, timing: 'intercept', generation: 'entrants', eventDetails: true } );
+    }, { live: true, subtree: 'cross-roots', timing: 'intercept', generation: 'entrants', eventDetails: true } );
     // ---
 }

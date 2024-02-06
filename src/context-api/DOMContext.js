@@ -36,7 +36,7 @@ export default class DOMContext {
     /**
      * @name
      */
-    get name() { return this.host === env.window.document ? Infinity : this.host.getAttribute( this.configs.CONTEXT_API.attr.contextname ); }
+    get name() { return [ env.window.Document, env.window.ShadowRoot ].some( x => this.host instanceof x ) ? Infinity : this.host.getAttribute( this.configs.CONTEXT_API.attr.contextname ); }
 
     /**
      * @subscribed()
@@ -67,15 +67,15 @@ export default class DOMContext {
     handleEvent( event ) {
         if ( this.disposed || typeof event.respondWith !== 'function'  ) return;
         if ( event.type === 'contextclaim' ) {
-            if ( event.target === this.host || !( event.detail instanceof DOMContext ) ) return;
+            if ( !( event.detail instanceof DOMContext ) || event.target === this.host ) return;
             const claims = new Set;
             this.subscriptions.forEach( subscriptionEvent => {
                 if ( !event.target.contains( subscriptionEvent.target ) || !event.detail.matchEvent( subscriptionEvent ) ) return;
-                event.stopPropagation();
                 this.subscriptions.delete( subscriptionEvent );
+                this.unsubscribed( subscriptionEvent );
                 claims.add( subscriptionEvent );
             } );
-            return event.respondWith( claims );
+            if ( claims.size ) { return event.respondWith( claims ); }
         }
         if ( event.type === 'contextrequest' ) {
             if ( !this.matchEvent( event ) ) return;

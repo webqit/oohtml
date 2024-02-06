@@ -39,8 +39,8 @@ export default class HTMLImportsContext extends DOMContext {
      */
     handle( event ) {
         const { window: { webqit: { Observer } } } = env;
-        // Any existing event._controller? Abort!
-        event._controller?.abort();
+        // Any existing event.meta.controller? Abort!
+        event.meta.controller?.abort();
 
         // Parse and translate detail
         if ( ( event.detail || '' ).trim() === '/' ) return event.respondWith( this.localModules );
@@ -48,11 +48,10 @@ export default class HTMLImportsContext extends DOMContext {
         if ( !path.length ) return event.respondWith();
         path = path.join( `/${ this.configs.HTML_IMPORTS.api.defs }/` )?.split( '/' ) || [];
 
-
         // We'll now fulfill request
         const options = { live: event.live, signal: event.signal, descripted: true };
         // Find a way to resolve request against two sources
-        event._controller = Observer.reduce( this.localModules, path, Observer.get, ( result, { signal } = {} ) => {
+        event.meta.controller = Observer.reduce( this.localModules, path, Observer.get, ( result, { signal } = {} ) => {
             const _result = Array.isArray( result ) ? result : result.value;
             const _isValidLocalResult = Array.isArray( result ) ? result.length : result.value;
             if ( !_isValidLocalResult && this.host.isConnected === false ) return; // Subtree is being disposed
@@ -71,7 +70,7 @@ export default class HTMLImportsContext extends DOMContext {
     /**
      * @unsubscribed()
      */
-    unsubscribed( event ) { event._controller?.abort(); }
+    unsubscribed( event ) { event.meta.controller?.abort(); }
 
     /**
      * @startRealtime()

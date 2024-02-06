@@ -39,11 +39,11 @@ export default class DOMBindingsContext extends DOMContext {
      * @handle()
      */
     handle( event ) {
-        // Any existing event._controller? Abort!
-        event._controller?.abort();
+        // Any existing event.meta.controller? Abort!
+        event.meta.controller?.abort();
         if ( !( event.detail + '' ).trim() ) return event.respondWith( this.bindingsObj );
         const { window: { webqit: { Observer } } } = env;
-        event._controller = Observer.reduce( this.bindingsObj, Array.isArray( event.detail ) ? event.detail : [ event.detail ], Observer.get, descriptor => {
+        event.meta.controller = Observer.reduce( this.bindingsObj, Array.isArray( event.detail ) ? event.detail : [ event.detail ], Observer.get, descriptor => {
             if ( this.disposed ) return; // If already scheduled but aborted as in provider unmounting
             event.respondWith( descriptor.value );
         }, { live: event.live, signal: event.signal, descripted: true } );
@@ -52,5 +52,5 @@ export default class DOMBindingsContext extends DOMContext {
     /**
      * @unsubscribed()
      */
-    unsubscribed( event ) { event._controller?.abort(); }
+    unsubscribed( event ) { event.meta.controller?.abort(); }
 }

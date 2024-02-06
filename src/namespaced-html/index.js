@@ -19,7 +19,6 @@ export default function init( $config = {} ) {
     } );
 	config.lidSelector = `[${ window.CSS.escape( config.attr.lid ) }]`;
 	config.namespaceSelector = `[${ window.CSS.escape( config.attr.namespace ) }]`;
-	config.documentNamespaceUUID = getNamespaceUUID( getOwnNamespaceObject.call( window, window.document ) );
     window.webqit.DOMNamingContext = DOMNamingContext;
     exposeAPIs.call( window, config );
     realtime.call( window, config );
@@ -40,7 +39,7 @@ function lidUtil( config ) {
 		lidrefSeparator( escapeMode = 0 ) { return escapeMode ? this.escape( lidrefSeparator, escapeMode ) : lidrefSeparator; },
 		isUuid( str, escapeMode = 0 ) { return str.startsWith( this.lidrefPrefix( escapeMode ) ) && str.includes( this.lidrefSeparator( escapeMode ) ); },
 		isLidref( str, escapeMode = 0 ) { return str.startsWith( this.lidrefPrefix( escapeMode ) ) && !str.includes( this.lidrefSeparator( escapeMode ) ); },
-		toUuid( hash, lid, escapeMode = 0 ) { return hash === config.documentNamespaceUUID ? lid : `${ this.lidrefPrefix( escapeMode ) }${ hash }${ this.lidrefSeparator( escapeMode ) }${ lid }`; },
+		toUuid( hash, lid, escapeMode = 0 ) { return hash.endsWith( '-root' ) ? lid : `${ this.lidrefPrefix( escapeMode ) }${ hash }${ this.lidrefSeparator( escapeMode ) }${ lid }`; },
 		uuidToId( str, escapeMode = 0 ) { return this.isUuid( str ) ? str.split( this.lidrefSeparator( escapeMode ) )[ 1 ] : str; },
 		uuidToLidref( str, escapeMode = 0 ) { return this.isUuid( str ) ? `${ this.lidrefPrefix( escapeMode ) }${ str.split( this.lidrefSeparator( escapeMode ) )[ 1 ] }` : str; },
 	}
@@ -72,7 +71,6 @@ export function rewriteSelector( selectorText, namespaceUUID, scopeSelector = nu
 				// Should yield: `"Hello, John. I\\"m your friend."`, `"you're he're"`, `'f\\'"j\\'"f'`
 				quotesMatch = [ ...selector.matchAll( /(["'])(?:(?=(\\?))\2.)*?\1/g ) ];
 			}
-			if ( quotesMatch[ 0 ] )
 			// Qualify match
 			if ( quotesMatch.some( q => index > q.index && index + match.length < q.index + q[ 0 ].length ) ) return match;
 			// Replace :scope
@@ -87,7 +85,7 @@ export function rewriteSelector( selectorText, namespaceUUID, scopeSelector = nu
 			}
 			// Rewrite relative ID selector
 			if ( isLidref ) {
-				if ( config.attr.lid === 'id' && namespaceUUID && namespaceUUID !== config.documentNamespaceUUID ) {
+				if ( config.attr.lid === 'id' && namespaceUUID && !namespaceUUID.endsWith( '-root' ) ) {
 					return `#${ $lidUtil.toUuid( namespaceUUID, id, 1 ) }`;
 				}
 				// Fallback to attr-based
@@ -99,7 +97,7 @@ export function rewriteSelector( selectorText, namespaceUUID, scopeSelector = nu
 			} else {
 				rewrite = `:is(#${ id },[${ window.CSS.escape( config.attr.lid ) }="${ id }"])`;
 			}
-			return isLidref ? `:is(${ rewrite }):not(${ scopeSelector ? scopeSelector + ' ' : '' }[${ config.attr.namespace }] *)` : rewrite;
+			return isLidref ? `:is(${ rewrite }):not(${ scopeSelector ? scopeSelector + ' ' : '' }${ config.namespaceSelector } *)` : rewrite;
 		} );
 		// Category 2 has :scope and category 1 does not
 		return hadScopeSelector ? [ cat1, cat2.concat( selector ) ] : [ cat1.concat( selector ), cat2 ];
@@ -120,9 +118,14 @@ export function rewriteSelector( selectorText, namespaceUUID, scopeSelector = nu
  * @return Object
  */
 export function getOwnNamespaceObject( node ) {
+	const window = this;
 	if ( !_( node ).has( 'namespace' ) ) {
 		const namespaceObj = Object.create( null );
 		_( node ).set( 'namespace', namespaceObj );
+		const isDocumentRoot = [ window.Document, window.ShadowRoot ].some( x => node instanceof x );
+		Object.defineProperty( namespaceObj, Symbol.toStringTag, { get() {
+			return isDocumentRoot ? 'RootNamespaceRegistry' : 'NamespaceRegistry';
+		} } );
 	}
 	return _( node ).get( 'namespace' );
 }
@@ -135,7 +138,8 @@ export function getOwnNamespaceObject( node ) {
  */
 export function getOwnerNamespaceObject( node, forID = false ) {
 	const window = this, { webqit: { oohtml: { configs: { NAMESPACED_HTML: config } } } } = window;
-	return getOwnNamespaceObject( node instanceof window.Document ? node : ( ( forID ? node.parentNode : node )?.closest( `[${ config.attr.namespace }]` ) || node.ownerDocument ) );
+	const isDocumentRoot = [ window.Document, window.ShadowRoot ].some( x => node instanceof x );
+	return getOwnNamespaceObject.call( window, isDocumentRoot ? node : ( ( forID ? node.parentNode : node )?.closest/*can be documentFragment when Shadow DOM*/?.( config.namespaceSelector ) || node.getRootNode() ) );
 }
 
 /**
@@ -144,7 +148,8 @@ export function getOwnerNamespaceObject( node, forID = false ) {
  * @return String
  */
 export function getNamespaceUUID( namespaceObj ) {
-    return _fromHash( namespaceObj ) || _toHash( namespaceObj );
+	const isDocumentRoot = Object.prototype.toString.call( namespaceObj ) === '[object RootNamespaceRegistry]';
+    return ( _fromHash( namespaceObj ) || _toHash( namespaceObj ) ) + ( isDocumentRoot ? '-root' : '' );
 }
 
 /**
@@ -156,16 +161,16 @@ export function getNamespaceUUID( namespaceObj ) {
  */
 function exposeAPIs( config ) {
     const window = this, { webqit: { Observer } } = window;
-    // Assertions
-    if ( config.api.namespace in window.document ) { throw new Error( `document already has a "${ config.api.namespace }" property!` ); }
-    if ( config.api.namespace in window.Element.prototype ) { throw new Error( `The "Element" class already has a "${ config.api.namespace }" property!` ); }
-    // Definitions
-    Object.defineProperty( window.document, config.api.namespace, { get: function() {
-        return Observer.proxy( getOwnNamespaceObject.call( window, window.document ) );
-    } });
-    Object.defineProperty( window.Element.prototype, config.api.namespace, { get: function() {
-        return Observer.proxy( getOwnNamespaceObject.call( window, this ) );
-    } } );
+    // The Namespace API
+    [ window.Document.prototype, window.Element.prototype, window.ShadowRoot.prototype ].forEach( prototype => {
+        // No-conflict assertions
+        const type = prototype === window.Document.prototype ? 'Document' : ( prototype === window.ShadowRoot.prototype ? 'ShadowRoot' : 'Element' );
+        if ( config.api.namespace in prototype ) { throw new Error( `The ${ type } prototype already has a "${ config.api.namespace }" API!` ); }
+        // Definitions
+        Object.defineProperty( prototype, config.api.namespace, { get: function() {
+			return Observer.proxy( getOwnNamespaceObject.call( window, this ) );
+		} } );
+    } );
 }
 
 /**
@@ -262,7 +267,7 @@ function realtime( config ) {
 	const setupBinding = ( entry, attrName, value, newNamespaceObj = null ) => {
 		attrChange( entry, attrName, value, value => {
 			const isLidAttr = attrName === config.attr.lid;
-			const namespaceObj = newNamespaceObj || getOwnerNamespaceObject( entry, isLidAttr );
+			const namespaceObj = newNamespaceObj || getOwnerNamespaceObject.call( window, entry, isLidAttr );
 			const namespaceUUID = getNamespaceUUID( namespaceObj );
 			if ( isLidAttr ) {
 				const id = $lidUtil.uuidToId( value );
@@ -283,7 +288,7 @@ function realtime( config ) {
 	const cleanupBinding = ( entry, attrName, oldValue, prevNamespaceObj = null ) => {
 		attrChange( entry, attrName, oldValue, oldValue => {
 			const isLidAttr = attrName === config.attr.lid;
-			const namespaceObj = prevNamespaceObj || getOwnerNamespaceObject( entry, isLidAttr );
+			const namespaceObj = prevNamespaceObj || getOwnerNamespaceObject.call( window, entry, isLidAttr );
 			if ( isLidAttr ) {
 				const id = $lidUtil.uuidToId( oldValue );
 				if ( Observer.get( namespaceObj, id ) === entry ) {
@@ -300,8 +305,7 @@ function realtime( config ) {
     // ------------
     // NAMESPACE
     // ------------
-	window.document[ configs.CONTEXT_API.api.contexts ].attach( new DOMNamingContext );
-    realdom.realtime( window.document ).subtree/*instead of observe(); reason: jsdom timing*/( config.namespaceSelector, record => {
+    realdom.realtime( window.document ).query( config.namespaceSelector, record => {
 		const reAssociate = ( entry, attrName, oldNamespaceObj, newNamespaceObj ) => {
 			if ( !entry.hasAttribute( attrName ) ) return;
 			const attrValue = () => entry.getAttribute( attrName );
@@ -309,9 +313,9 @@ function realtime( config ) {
 			if ( entry.isConnected ) { setupBinding( entry, attrName, _( entry, 'attrOriginals' ).get( attrName )/* Saved original value */ || attrValue/* Lest it's ID */, newNamespaceObj ); }
 		};
         record.exits.forEach( entry => {
-			const namespaceObj = getOwnNamespaceObject( entry );
+			const namespaceObj = getOwnNamespaceObject.call( window, entry );
 			// Detach ID and IDREF associations
-			for ( const node of new Set( [ ...Object.values( namespaceObj ), ..._( namespaceObj ).get( 'idrefs' ) ] ) ) {
+			for ( const node of new Set( [ ...Object.values( namespaceObj ), ...( _( namespaceObj ).get( 'idrefs' ) || [] ) ] ) ) {
 				for ( const attrName of attrList ) { reAssociate( node, attrName, namespaceObj ); }
 			}
 			// Detach ID associations
@@ -323,19 +327,19 @@ function realtime( config ) {
         record.entrants.forEach( entry => {
 			// Claim ID and IDREF associations
 			let newSuperNamespaceObj;
-			const superNamespaceObj = getOwnerNamespaceObject( entry, true );
+			const superNamespaceObj = getOwnerNamespaceObject.call( window, entry, true );
 			for ( const node of new Set( [ ...Object.values( superNamespaceObj ), ...( _( superNamespaceObj ).get( 'idrefs' ) || [] ) ] ) ) {
-				if ( ( newSuperNamespaceObj = getOwnerNamespaceObject( node, true ) ) === superNamespaceObj ) continue;
+				if ( ( newSuperNamespaceObj = getOwnerNamespaceObject.call( window, node, true ) ) === superNamespaceObj ) continue;
 				for ( const attrName of attrList ) { reAssociate( node, attrName, superNamespaceObj, newSuperNamespaceObj ); }
 			}
 			// Attach namespace instance
 			const contextsApi = entry[ configs.CONTEXT_API.api.contexts ];
 			if ( !contextsApi.find( DOMNamingContext.kind ) ) { contextsApi.attach( new DOMNamingContext ); }
         } );
-    }, { live: true, timing: 'sync', staticSensitivity: true } );
+    }, { live: true, subtree: 'cross-roots', timing: 'sync', staticSensitivity: true, eventDetails: true } );
 
 	// DOM realtime
-	realdom.realtime( window.document ).subtree/*instead of observe(); reason: jsdom timing*/( `[${ attrList.map( attrName => window.CSS.escape( attrName ) ).join( '],[' ) }]`, record => {
+	realdom.realtime( window.document ).query( `[${ attrList.map( attrName => window.CSS.escape( attrName ) ).join( '],[' ) }]`, record => {
 		for ( const attrName of attrList ) {
 			record.exits.forEach( entry => {
 				if ( !entry.hasAttribute( attrName ) ) return;
@@ -346,14 +350,14 @@ function realtime( config ) {
 				setupBinding( entry, attrName, () => entry.getAttribute( attrName )/* Raw value (as-is) that will be saved as original */ );
 			} );
 		}
-	}, { live: true, timing: 'sync' } );
+	}, { live: true, subtree: 'cross-roots', timing: 'sync' } );
 	// Attr realtime
 	realdom.realtime( window.document, 'attr' ).observe( attrList, records => {
 		for ( const record of records ) {
 			if ( record.oldValue ) { cleanupBinding( record.target, record.name, record.oldValue/* Current resolved value as-is */ ); }
 			if ( record.value ) { setupBinding( record.target, record.name, record.value/* Raw value (as-is) that will be saved as original */ ); }
 		}
-	}, { subtree: true, timing: 'sync', newValue: true, oldValue: true } );
+	}, { subtree: 'cross-roots', timing: 'sync', newValue: true, oldValue: true } );
 
     // ------------
 	// TARGETS
