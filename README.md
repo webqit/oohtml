@@ -1,7 +1,6 @@
 # OOHTML
 
-[![npm version][npm-version-src]][npm-version-href]
-<!--[![npm downloads][npm-downloads-src]][npm-downloads-href]-->
+[![npm version][npm-version-src]][npm-version-href]<!--[![npm downloads][npm-downloads-src]][npm-downloads-href]-->
 [![bundle][bundle-src]][bundle-href]
 [![License][license-src]][license-href]
 
