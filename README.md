@@ -1,11 +1,11 @@
 # OOHTML
 
 [![npm version][npm-version-src]][npm-version-href]
-[![npm downloads][npm-downloads-src]][npm-downloads-href]
+<!--[![npm downloads][npm-downloads-src]][npm-downloads-href]-->
 [![bundle][bundle-src]][bundle-href]
 [![License][license-src]][license-href]
 
-**[Explainer](#explainer) • [On the Agenda](#on-the-agenda) • [Modular HTML](#modular-html) • [HTML Imports](#html-imports) • [Data Binding](#data-binding) • [Data Plumbing](#data-plumbing) • [Polyfill](#polyfill) • [Examples](#examples) • [License](#license)**
+**[Explainer](#explainer) • [Features](#features) • [Modular HTML](#modular-html) • [HTML Imports](#html-imports) • [Data Binding](#data-binding) • [Data Plumbing](#data-plumbing) • [Implementation](#implementation) • [Examples](#examples) • [License](#license)**
 
 Object-Oriented HTML (OOHTML) is a set of features that extend standard HTML and the DOM to enable authoring modular, reusable and reactive markup - with a "buildless" and intuitive workflow as design goal! This project revisits the HTML problem space to solve for an object-oriented approach to HTML!
 
@@ -19,13 +19,14 @@ Building Single Page Applications? OOHTML is a special love letter! Writing Web 
 
 ## Status
 
-+ Actively developed
-+ Working implementation via a polyfill
++ Actively maintained
++ A working implementation
++ [Proposed at the WICG](https://github.com/WICG/proposals/issues/137)
 + Open to contributions
 
-## Polyfill
+## Implementation
 
-OOHTML is being developed as something to be used today. This implementation adheres closely to the spec and helps evolve the proposal through a practice-driven process.
+OOHTML may be used today. This implementation adheres closely to the spec and helps evolve the proposal through a practice-driven process.
 
 <details><summary>Load from a CDN<br>
 └───────── <a href="https://bundlephobia.com/result?p=@webqit/oohtml"><img align="right" src="https://img.shields.io/badge/21.8%20kB-black"></a></summary>
@@ -233,7 +234,7 @@ OOHTML is effectively different from Web Components (and from the related Declar
 
 </details>
 
-## On the Agenda
+## Features
 
 + [Modular HTML](#modular-html)
 + [HTML Imports](#html-imports)
