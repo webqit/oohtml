@@ -116,7 +116,7 @@ export default function() {
                 priv.moduleRefRealtime = realdom.realtime( this.el ).attr( configs.HTML_IMPORTS.attr.ref, ( record, { signal } ) => {
                     priv.moduleRef = record.value;
                     // Below, we ignore first restore from hydration
-                    priv.importRequest( fragments => (console.log('////--////---////---///', fragments), !priv.hydrationImportRequest && this.fill( fragments )), signal );
+                    priv.importRequest( fragments => !priv.hydrationImportRequest && this.fill( fragments ), signal );
                 }, { live: true, timing: 'sync', lifecycleSignals: true } );
                 // Must come after
                 priv.hydrationImportRequest?.abort();
@@ -154,7 +154,6 @@ export default function() {
          * @return void
          */
         fill( slottableElements ) {
-            console.log('////////--///////', slottableElements);
             if ( Array.isArray( slottableElements ) ) { slottableElements = new Set( slottableElements ) }
             // This state must be set before the diffing below and the serialization done at createAnchorNode()
             this.el.setAttribute( 'data-nodecount', slottableElements.size );
