@@ -154,7 +154,7 @@ export default function() {
          * @return void
          */
         fill( slottableElements ) {
-            console.log('////////--///////', entry, connectedState);
+            console.log('////////--///////', slottableElements);
 
             if ( Array.isArray( slottableElements ) ) { slottableElements = new Set( slottableElements ) }
             // This state must be set before the diffing below and the serialization done at createAnchorNode()
@@ -191,6 +191,7 @@ export default function() {
                     _( slottableElementClone ).set( 'slot@imports', this.el );
                     this[ '#' ].slottedElements.add( slottableElementClone );
                     this[ '#' ].anchorNode.before( slottableElementClone );
+                    console.log('////////---////---///', slottableElementClone);
                 } );
             } );
         }
