@@ -120,8 +120,7 @@ function realtime( config ) {
             if ( script.scoped ) { thisContext[ config.api.scripts ].push( script ); }
             const execHash = _toHash( { script, compiledScript, thisContext } );
             const manualHandling = record.type === 'query' || ( script.type && !window.HTMLScriptElement.supports( script.type ) );
-            console.log('--------////', record.event);
-            if ( manualHandling ) { oohtml.Script.execute( execHash ); } else {
+            if ( manualHandling && 1 ) { oohtml.Script.execute( execHash ); } else {
                 script.textContent = `webqit.oohtml.Script.execute( '${ execHash }' );`;
             }
         } );
