@@ -58,6 +58,7 @@ function exposeAPIs( config ) {
 
 // Script runner
 async function execute( config, execHash ) {
+    console.log('//........', execHash);
     const window = this, { realdom } = window.webqit;
     const exec = _fromHash( execHash );
     if ( !exec ) throw new Error( `Argument must be a valid exec hash.` );
@@ -68,7 +69,9 @@ async function execute( config, execHash ) {
     } else if ( config.script.retention === 'dispose' ) {
         script.textContent = `"source hidden"`;
     } else {
+        console.log('//........1');
         script.textContent = await compiledScript.toString();
+        console.log('//........2');
     }
     // Execute and save state
     const documentRoot = script.getRootNode();
