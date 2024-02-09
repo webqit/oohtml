@@ -154,6 +154,8 @@ export default function() {
          * @return void
          */
         fill( slottableElements ) {
+            console.log('////////--///////', entry, connectedState);
+
             if ( Array.isArray( slottableElements ) ) { slottableElements = new Set( slottableElements ) }
             // This state must be set before the diffing below and the serialization done at createAnchorNode()
             this.el.setAttribute( 'data-nodecount', slottableElements.size );

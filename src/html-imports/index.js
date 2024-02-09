@@ -165,7 +165,6 @@ function realtime( config ) {
         record.exits.forEach( node => handleRealtime( node, false, record ) );
     }, { live: true, subtree: 'cross-roots', timing: 'sync' } );
     function handleRealtime( entry, connectedState ) {
-        console.log('///////////////', entry, connectedState);
         const elInstance = HTMLImportElement.instance( entry );
         if ( connectedState ) { elInstance[ '#' ].connectedCallback(); }
         else { elInstance[ '#' ].disconnectedCallback(); }
