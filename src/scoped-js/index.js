@@ -12,7 +12,7 @@ import { _, _init, _toHash, _fromHash } from '../util.js';
  */
 export default function init({ advanced = {}, ...$config }) {
     const { config, window } = _init.call( this, 'scoped-js', $config, {
-        script: { retention: 'retain', mimeTypes: 'module|text/javascript|application/javascript' },
+        script: { retention: 'retain', mimeTypes: 'module|text/javascript|application/javascript', timing: 'auto' },
         api: { scripts: 'scripts' },
         advanced: resolveParams(advanced),
     } );
@@ -120,7 +120,7 @@ function realtime( config ) {
             if ( script.scoped ) { thisContext[ config.api.scripts ].push( script ); }
             const execHash = _toHash( { script, compiledScript, thisContext } );
             const manualHandling = record.type === 'query' || ( script.type && !window.HTMLScriptElement.supports( script.type ) );
-            if ( manualHandling || 1 ) { oohtml.Script.execute( execHash ); } else {
+            if ( manualHandling || config.script.timing === 'manual' ) { oohtml.Script.execute( execHash ); } else {
                 script.textContent = `webqit.oohtml.Script.execute( '${ execHash }' );`;
             }
         } );
