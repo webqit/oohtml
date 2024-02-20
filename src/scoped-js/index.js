@@ -71,11 +71,11 @@ async function execute( config, execHash ) {
         script.textContent = await compiledScript.toString();
     }
     // Execute and save state
-    const documentRoot = script.getRootNode();
-    if ( !_( documentRoot ).has( 'scriptEnv' ) ) {
-        _( documentRoot ).set( 'scriptEnv', Object.create( null ) );
+    const varScope = script.scoped ? thisContext : script.getRootNode();
+    if ( !_( varScope ).has( 'scriptEnv' ) ) {
+        _( varScope ).set( 'scriptEnv', Object.create( null ) );
     }
-    const state = ( await compiledScript.bind( thisContext, _( documentRoot ).get( 'scriptEnv' ) ) ).execute();
+    const state = ( await compiledScript.bind( thisContext, _( varScope ).get( 'scriptEnv' ) ) ).execute();
     if ( script.quantum ) { Object.defineProperty( script, 'state', { value: state } ); }
     realdom.realtime( window.document ).observe( script, () => {
         if ( script.quantum ) { state.dispose(); }
