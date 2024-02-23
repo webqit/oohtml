@@ -313,6 +313,7 @@ function realtime( config ) {
 			if ( entry.isConnected ) { setupBinding( entry, attrName, _( entry, 'attrOriginals' ).get( attrName )/* Saved original value */ || attrValue/* Lest it's ID */, newNamespaceObj ); }
 		};
         record.exits.forEach( entry => {
+			if (!entry.isConnected) return;
 			const namespaceObj = getOwnNamespaceObject.call( window, entry );
 			// Detach ID and IDREF associations
 			for ( const node of new Set( [ ...Object.values( namespaceObj ), ...( _( namespaceObj ).get( 'idrefs' ) || [] ) ] ) ) {
@@ -342,7 +343,8 @@ function realtime( config ) {
 	realdom.realtime( window.document ).query( `[${ attrList.map( attrName => window.CSS.escape( attrName ) ).join( '],[' ) }]`, record => {
 		for ( const attrName of attrList ) {
 			record.exits.forEach( entry => {
-				if ( !entry.hasAttribute( attrName ) ) return;
+				const namespaceNodeToTest = ( attrName === config.attr.lid ? entry.parentNode : entry )?.closest/*can be documentFragment when Shadow DOM*/?.( config.namespaceSelector ) || entry.getRootNode().host;
+				if ( ( namespaceNodeToTest && !namespaceNodeToTest.isConnected ) || !entry.hasAttribute( attrName ) ) return;
 				cleanupBinding( entry, attrName, () => entry.getAttribute( attrName )/* Current resolved value as-is */ );
 			} );
 			record.entrants.forEach( entry => {
