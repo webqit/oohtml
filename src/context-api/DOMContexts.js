@@ -87,8 +87,10 @@ export default class DOMContexts {
 
             const rootNode = this[ '#' ].host.getRootNode();
             const temp = event => {
-                if ( event.answered ) return;
+                event.stopImmediatePropagation();
+                // Always set thus whether answered or not
                 event.meta.target = event.target;
+                if ( event.answered ) return;
                 if ( !waitListMappings.get( rootNode ) ) { waitListMappings.set( rootNode, new Set ); }
                 if ( event.type === 'contextrequest' && event.live ) {
                     waitListMappings.get( rootNode ).add( event );

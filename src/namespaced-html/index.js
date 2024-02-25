@@ -313,11 +313,12 @@ function realtime( config ) {
 			if ( entry.isConnected ) { setupBinding( entry, attrName, _( entry, 'attrOriginals' ).get( attrName )/* Saved original value */ || attrValue/* Lest it's ID */, newNamespaceObj ); }
 		};
         record.exits.forEach( entry => {
-			if (!entry.isConnected) return;
-			const namespaceObj = getOwnNamespaceObject.call( window, entry );
-			// Detach ID and IDREF associations
-			for ( const node of new Set( [ ...Object.values( namespaceObj ), ...( _( namespaceObj ).get( 'idrefs' ) || [] ) ] ) ) {
-				for ( const attrName of attrList ) { reAssociate( node, attrName, namespaceObj ); }
+			if ( entry.isConnected ) {
+				const namespaceObj = getOwnNamespaceObject.call( window, entry );
+				// Detach ID and IDREF associations
+				for ( const node of new Set( [ ...Object.values( namespaceObj ), ...( _( namespaceObj ).get( 'idrefs' ) || [] ) ] ) ) {
+					for ( const attrName of attrList ) { reAssociate( node, attrName, namespaceObj ); }
+				}
 			}
 			// Detach ID associations
 			const contextsApi = entry[ configs.CONTEXT_API.api.contexts ];
@@ -341,10 +342,20 @@ function realtime( config ) {
 
 	// DOM realtime
 	realdom.realtime( window.document ).query( `[${ attrList.map( attrName => window.CSS.escape( attrName ) ).join( '],[' ) }]`, record => {
+		// We do some caching to prevent redundanct lookups
+		const namespaceNodesToTest = { forID: new Map, forOther: new Map, };
 		for ( const attrName of attrList ) {
+			// Point to the right cache
+			const _namespaceNodesToTest = attrName === config.attr.lid ? namespaceNodesToTest.forID : namespaceNodesToTest.forOther;
 			record.exits.forEach( entry => {
-				const namespaceNodeToTest = ( attrName === config.attr.lid ? entry.parentNode : entry )?.closest/*can be documentFragment when Shadow DOM*/?.( config.namespaceSelector ) || entry.getRootNode().host;
-				if ( ( namespaceNodeToTest && !namespaceNodeToTest.isConnected ) || !entry.hasAttribute( attrName ) ) return;
+				if ( !entry.hasAttribute( attrName ) ) return;
+				// Point to the right namespace node
+				let namespaceNodeToTest = _namespaceNodesToTest.get( entry );
+				if ( typeof namespaceNodeToTest === 'undefined' ) {
+					namespaceNodeToTest = ( attrName === config.attr.lid ? entry.parentNode : entry )?.closest/*can be documentFragment when Shadow DOM*/?.( config.namespaceSelector ) || entry.getRootNode().host;
+					_namespaceNodesToTest.set( entry, namespaceNodeToTest );
+				}
+				if ( namespaceNodeToTest && !namespaceNodeToTest.isConnected ) return;
 				cleanupBinding( entry, attrName, () => entry.getAttribute( attrName )/* Current resolved value as-is */ );
 			} );
 			record.entrants.forEach( entry => {
@@ -352,6 +363,8 @@ function realtime( config ) {
 				setupBinding( entry, attrName, () => entry.getAttribute( attrName )/* Raw value (as-is) that will be saved as original */ );
 			} );
 		}
+		namespaceNodesToTest.forID.clear();
+		namespaceNodesToTest.forOther.clear();
 	}, { live: true, subtree: 'cross-roots', timing: 'sync' } );
 	// Attr realtime
 	realdom.realtime( window.document, 'attr' ).observe( attrList, records => {

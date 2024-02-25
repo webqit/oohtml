@@ -134,7 +134,7 @@ function realtime( config ) {
         record.entrants.forEach( entry => {
             if ( entry.matches( config.templateSelector ) ) {
                 const htmlModule = HTMLModule.instance( entry );
-                htmlModule.ownerContext = entry.scoped ? record.target : record.target.getRootNode();
+                htmlModule.ownerContext = entry.scoped ? entry.parentNode : entry.getRootNode();
                 const ownerContextModulesObj = getDefs( htmlModule.ownerContext );
                 if ( htmlModule.defId ) { Observer.set( ownerContextModulesObj, htmlModule.defId, entry ); }
                 // The ownerContext's defs - ownerContextModulesObj - has to be populated
@@ -149,13 +149,13 @@ function realtime( config ) {
             if ( entry.matches( config.templateSelector ) ) {
                 const htmlModule = HTMLModule.instance( entry );
                 const ownerContextModulesObj = getDefs( htmlModule.ownerContext );
-                if ( htmlModule.defId ) { Observer.deleteProperty( ownerContextModulesObj, htmlModule.defId ); }
+                if ( htmlModule.defId && htmlModule.ownerContext.isConnected ) { Observer.deleteProperty( ownerContextModulesObj, htmlModule.defId ); }
                 detachImportsContext( htmlModule.ownerContext );
             } else {
                 detachImportsContext( entry );
             }
         } );
-    }, { live: true, subtree: 'cross-roots', timing: 'sync', staticSensitivity: true } );
+    }, { live: true, subtree: 'cross-roots', timing: 'sync', staticSensitivity: true, eventDetails: true } );
     
     // ------------
     // IMPORTS
