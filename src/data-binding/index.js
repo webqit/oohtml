@@ -52,10 +52,18 @@ function createDynamicScope( config, root ) {
     if ( _( root ).has( 'data-binding' ) ) return _( root ).get( 'data-binding' );
     const scope = Object.create( null ), abortController = new AbortController;
     scope[ '$exec__' ] = ( target, prop, ...args ) => {
-        realdom.schedule( 'write', () => target[ prop ]( ...args ) );
+        const exec = () => {
+            try { target[ prop ]( ...args ); }
+            catch( e ) { console.error( `${ e.message } at ${ e.cause }` ); }
+        };
+        realdom.schedule( 'write', exec );
     };
     scope[ '$assign__' ] = ( target, prop, val ) => {
-        realdom.schedule( 'write', () => (target[ prop ] = val) );
+        const exec = () => {
+            try { target[ prop ] = val; }
+            catch( e ) { console.error( `${ e.message } at ${ e.cause }` ); }
+        };
+        realdom.schedule( 'write', exec );
     };
     Observer.intercept( scope, {
         get: ( e, recieved, next ) => {
@@ -126,7 +134,11 @@ async function mountDiscreteBindings( config, ...entries ) {
         const compiled = compileDiscreteBindings( config, template.expr );
         const { scope, bindings } = createDynamicScope.call( this, config, textNode.parentNode );
         Object.defineProperty( textNode, '$oohtml_internal_databinding_anchorNode', { value: anchorNode, configurable: true } );
-        bindings.set( textNode, { state: await ( await compiled.bind( textNode, scope ) ).execute(), } );
+        try {
+            bindings.set( textNode, { state: await ( await compiled.bind( textNode, scope ) ).execute(), } );
+        } catch( e ) {
+            console.log(e);
+        }
     }
 }
 
@@ -148,7 +160,11 @@ async function mountInlineBindings( config, ...entries ) {
         const { scope, bindings } = createDynamicScope.call( this, config, node );
         const signals = [];
         Object.defineProperty( node, '$oohtml_internal_databinding_signals', { value: signals, configurable: true } );
-        bindings.set( node, { signals, state: await ( await compiled.bind( node, scope ) ).execute(), } );
+        try {
+            bindings.set( node, { signals, state: await ( await compiled.bind( node, scope ) ).execute(), } );
+        } catch( e ) {
+            console.log(e);
+        }
     }
 }
 
