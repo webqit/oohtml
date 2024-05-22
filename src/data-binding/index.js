@@ -2,6 +2,7 @@
 /**
  * @imports
  */
+import { xpathQuery } from '@webqit/realdom/src/realtime/Util.js';
 import { _, _init, _splitOuter } from '../util.js';
 
 /**
@@ -38,12 +39,12 @@ function realtime( config ) {
     const window = this, { webqit: { realdom } } = window;
 	// ----------------
     realdom.realtime( window.document ).query( `(${ config.discreteBindingsSelector })`, record => {
-        cleanup.call( this, ...record.exits );  
-        mountDiscreteBindings.call( this, config, ...record.entrants );  
+        cleanup.call( this, ...record.exits );
+        mountDiscreteBindings.call( window, config, ...record.entrants );
     }, { live: true, subtree: 'cross-roots', timing: 'sync' } );
     realdom.realtime( window.document ).query( config.attrSelector, record => {
-        cleanup.call( this, ...record.exits );  
-        mountInlineBindings.call( this, config, ...record.entrants );  
+        cleanup.call( this, ...record.exits );
+        mountInlineBindings.call( window, config, ...record.entrants );
     }, { live: true, subtree: 'cross-roots', timing: 'sync', staticSensitivity: true } );
 }
 
@@ -97,21 +98,21 @@ function cleanup( ...entries ) {
     }
 }
 
+function patternMatch( config, str ) {
+    const tagStart = config.tokens.tagStart.split( '' ).map( x => `\\${ x }` ).join( '' );
+    const tagEnd = config.tokens.tagEnd.split( '' ).map( x => `\\${ x }` ).join( '' );
+    const stateStart = config.tokens.stateStart.split( '' ).map( x => x === ' ' ? `(?:\\s+)?` : `\\${ x }` ).join( '' );
+    const stateEnd = config.tokens.stateEnd.split( '' ).map( x => `\\${ x }` ).join( '' );
+    const pattern = `^${ tagStart }(.*?)(?:${ stateStart }(\\d+)${ stateEnd }(?:\\s+)?)?${ tagEnd }$`;
+    const [ /*raw*/, expr, span ] = str.match( new RegExp( pattern ) );
+    return { raw: str, expr, span: parseInt( span ?? 0 ) };
+}
+
 async function mountDiscreteBindings( config, ...entries ) {
     const window = this;
-    const patternMatch = str => {
-        const tagStart = config.tokens.tagStart.split( '' ).map( x => `\\${ x }` ).join( '' );
-        const tagEnd = config.tokens.tagEnd.split( '' ).map( x => `\\${ x }` ).join( '' );
-        const stateStart = config.tokens.stateStart.split( '' ).map( x => x === ' ' ? `(?:\\s+)?` : `\\${ x }` ).join( '' );
-        const stateEnd = config.tokens.stateEnd.split( '' ).map( x => `\\${ x }` ).join( '' );
-        const pattern = `^${ tagStart }(.*?)(?:${ stateStart }(\\d+)${ stateEnd }(?:\\s+)?)?${ tagEnd }$`;
-        const [ /*raw*/, expr, span ] = str.match( new RegExp( pattern ) );
-        return { raw: str, expr, span: parseInt( span ?? 0 ) };
-    };
-
     const instances = entries.reduce( ( instances, node ) => {
         if ( node.isBound ) return instances;
-        const template = patternMatch( node.nodeValue );
+        const template = patternMatch( config, node.nodeValue );
         let textNode = node;
         if ( template.span ) {
             textNode = node.nextSibling;
@@ -131,7 +132,7 @@ async function mountDiscreteBindings( config, ...entries ) {
     }, [] );
 
     for ( const { textNode, template, anchorNode } of instances ) {
-        const compiled = compileDiscreteBindings( config, template.expr );
+        const compiled = compileDiscreteBindings.call( window, config, template.expr );
         const { scope, bindings } = createDynamicScope.call( this, config, textNode.parentNode );
         Object.defineProperty( textNode, '$oohtml_internal_databinding_anchorNode', { value: anchorNode, configurable: true } );
         try {
@@ -156,7 +157,7 @@ function compileDiscreteBindings( config, str ) {
 
 async function mountInlineBindings( config, ...entries ) {
     for ( const node of entries ) {
-        const compiled = compileInlineBindings( config, node.getAttribute( config.attr.render ) );
+        const compiled = compileInlineBindings.call( this, config, node.getAttribute( config.attr.render ) );
         const { scope, bindings } = createDynamicScope.call( this, config, node );
         const signals = [];
         Object.defineProperty( node, '$oohtml_internal_databinding_signals', { value: signals, configurable: true } );
@@ -234,6 +235,12 @@ function compileInlineBindings( config, str ) {
                     $existing__.clear();
                 }`;
             }
+            return `
+                const handler = () => ${ arg };
+                this.addEventListener( '${ param }', handler );
+                const abort = () => this.removeEventListener( '${ param }', handler );
+                this.$oohtml_internal_databinding_signals?.push( { abort } );
+            `;
         }
         if ( str.trim() ) throw new Error( `Invalid binding: ${ str }.` );
     } ).join( `\n` );
@@ -244,3 +251,14 @@ function compileInlineBindings( config, str ) {
 }
 
 const escDouble = str => str.replace(/"/g, '\\"');
+
+export function idleCompiler( node ) {
+    const window = this, { webqit: { oohtml: { configs: { DATA_BINDING: config } } } } = window;
+    xpathQuery( window, node, `(${ config.discreteBindingsSelector })` ).forEach( node => {
+        const template = patternMatch( config, node.nodeValue );
+        compileDiscreteBindings.call( window, config, template.expr );
+    } );
+    ( node?.matches( config.attrSelector ) ? [ node ] : [] ).concat([ ...( node?.querySelectorAll( config.attrSelector ) || [] ) ]).forEach( node => {
+        compileInlineBindings.call( window, config, node.getAttribute( config.attr.render ) );
+    } );
+}

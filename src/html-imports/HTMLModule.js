@@ -2,7 +2,6 @@
 /**
  * @imports
  */
-import { _isNumeric } from '@webqit/util/js/index.js';
 import { getDefs } from './index.js';
 import { _, env } from '../util.js';
 
@@ -22,6 +21,7 @@ export default class HTMLModule {
         const { window } = env, { webqit: { realdom, oohtml: { configs } } } = window;
         _( host ).get( `defsmanager::instance` )?.dispose();
         _( host ).set( `defsmanager::instance`, this );
+        this.window = window;
         this.host = host;
         this.config = configs.HTML_IMPORTS;
         this.parent = parent;
@@ -31,8 +31,8 @@ export default class HTMLModule {
         this.validateDefId( this.defId );
         // ----------
         this.realtimeA = realdom.realtime( this.host.content ).children( record => {
-            this.export( record.entrants, true );
-            this.export( record.exits, false );
+            this.expose( record.entrants, true );
+            this.expose( record.exits, false );
         }, { live: true, timing: 'sync' } );
         // ----------
         this.realtimeB = realdom.realtime( this.host ).attr( [ 'src', 'loading' ], ( ...args ) => this.evaluateLoading( ...args ), {
@@ -67,7 +67,7 @@ export default class HTMLModule {
      *
      * @returns Void
      */
-    export( entries, isConnected ) {
+    expose( entries, isConnected ) {
         const { window } = env, { webqit: { Observer } } = window;
         let dirty, allFragments = this.defs[ '#' ] || [];
         Observer.batch( this.defs, () => {
@@ -76,10 +76,16 @@ export default class HTMLModule {
                 const isTemplate = entry.matches( this.config.templateSelector );
                 const defId = ( entry.getAttribute( isTemplate ? this.config.attr.def : this.config.attr.fragmentdef ) || '' ).trim();
                 if ( isConnected ) {
-                    if ( isTemplate && defId ) { new HTMLModule( entry, this.host, this.level + 1 ); }
-                    else {
+                    if ( isTemplate && defId ) {
+                        new HTMLModule( entry, this.host, this.level + 1 );
+                    } else {
                         allFragments.push( entry );
                         dirty = true;
+                        if ( typeof requestIdleCallback === 'function' ) {
+                            requestIdleCallback( () => {
+                                this.config.idleCompilers?.forEach( callback => callback.call( this.window, entry ) );
+                            } );
+                        }
                     }
                     if ( defId ) {
                         this.validateDefId( defId );

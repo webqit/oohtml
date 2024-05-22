@@ -91,30 +91,16 @@ async function execute( config, execHash ) {
  * @return Void
  */
 function realtime( config ) {
-    const window = this, { webqit: { oohtml, realdom, QuantumScript, AsyncQuantumScript, QuantumModule } } = window;
+    const window = this, { webqit: { oohtml, realdom } } = window;
     if ( !window.HTMLScriptElement.supports ) { window.HTMLScriptElement.supports = type => [ 'text/javascript', 'application/javascript' ].includes( type ); }
     const handled = new WeakSet;
     realdom.realtime( window.document ).query( config.scriptSelector, record => {
         record.entrants.forEach( script => {
             if ( handled.has( script ) ) return;
-            const textContent = ( script._ = script.textContent.trim() ) && script._.startsWith( '/*@oohtml*/if(false){' ) && script._.endsWith( '}/*@oohtml*/' ) ? script._.slice( 21, -12 ) : script.textContent;
-            if ( !script.scoped && !script.quantum && !textContent.includes( 'quantum' ) ) return;
-            handled.add( script );
             // Do compilation
-            const sourceHash = _toHash( textContent );
-            const compileCache = oohtml.Script.compileCache[ script.quantum ? 0 : 1 ];
-            let compiledScript;
-            if ( !( compiledScript = compileCache.get( sourceHash ) ) ) {
-                const { parserParams, compilerParams, runtimeParams } = config.advanced;
-                compiledScript = new ( script.type === 'module' ? QuantumModule : ( QuantumScript || AsyncQuantumScript ) )( textContent, {
-                    exportNamespace: `#${ script.id }`,
-                    fileName: `${ window.document.url?.split( '#' )?.[ 0 ] || '' }#${ script.id }`,
-                    parserParams: { ...parserParams, quantumMode: script.quantum },
-                    compilerParams,
-                    runtimeParams,
-                } );
-                compileCache.set( sourceHash, compiledScript );
-            }
+            const compiledScript = compileScript.call( window, config, script );
+            if ( !compiledScript ) return;
+            handled.add( script );
             // Run now!!!
             const thisContext = script.scoped ? script.parentNode || record.target : ( script.type === 'module' ? undefined : window );
             if ( script.scoped ) { thisContext[ config.api.scripts ].push( script ); }
@@ -126,4 +112,32 @@ function realtime( config ) {
         } );
     }, { live: true, subtree: 'cross-roots', timing: 'intercept', generation: 'entrants', eventDetails: true } );
     // ---
+}
+
+function compileScript( config, script ) {
+    const window = this, { webqit: { oohtml, QuantumScript, AsyncQuantumScript, QuantumModule } } = window;
+    const textContent = ( script._ = script.textContent.trim() ) && script._.startsWith( '/*@oohtml*/if(false){' ) && script._.endsWith( '}/*@oohtml*/' ) ? script._.slice( 21, -12 ) : script.textContent;
+    if ( !script.scoped && !script.quantum && !textContent.includes( 'quantum' ) ) return;
+    const sourceHash = _toHash( textContent );
+    const compileCache = oohtml.Script.compileCache[ script.quantum ? 0 : 1 ];
+    let compiledScript;
+    if ( !( compiledScript = compileCache.get( sourceHash ) ) ) {
+        const { parserParams, compilerParams, runtimeParams } = config.advanced;
+        compiledScript = new ( script.type === 'module' ? QuantumModule : ( QuantumScript || AsyncQuantumScript ) )( textContent, {
+            exportNamespace: `#${ script.id }`,
+            fileName: `${ window.document.url?.split( '#' )?.[ 0 ] || '' }#${ script.id }`,
+            parserParams: { ...parserParams, quantumMode: script.quantum },
+            compilerParams,
+            runtimeParams,
+        } );
+        compileCache.set( sourceHash, compiledScript );
+    }
+    return compiledScript;
+}
+
+export function idleCompiler( node ) {
+    const window = this, { webqit: { oohtml: { configs: { SCOPED_JS: config } } } } = window;
+    [ ...( node?.querySelectorAll( config.scriptSelector ) || [] ) ].forEach( script => {
+        compileScript.call( window, config, script );
+    } );
 }
