@@ -235,6 +235,7 @@ function compileInlineBindings( config, str ) {
                     $existing__.clear();
                 }`;
             }
+            // Treat other "@" directives as events
             return `
                 const handler = () => ${ arg };
                 this.addEventListener( '${ param }', handler );
