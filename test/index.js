@@ -27,8 +27,8 @@ export function createDocumentPrefixed( prefix, head = '', body = '', callback =
         <head>
         <meta name="$q-compiler-url" content="../quantum-js/dist/compiler.js">
         ${ prefix ? `<meta name="webqit" content="prefix=${ prefix };">` : `` }
-        <script ssr src="/dist/main.lite.js"></script>
         ${ head }
+        <script ssr src="/dist/main.lite.js"></script>
         </head>
         <body>${ body }</body>
     </html>`;

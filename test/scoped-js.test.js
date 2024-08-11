@@ -10,7 +10,8 @@ describe(`Test: Scoped JS`, function() {
     describe(`Scripts`, function() {
 
         it(`Should do basic observe`, async function() {
-            const head = '', body = `            
+            const head = ``;
+            const body = `            
             <h1>Hello World!</h1>
             <script scoped quantum>
                 testRecords.push( this );
@@ -19,7 +20,7 @@ describe(`Test: Scoped JS`, function() {
 
             const window = createDocument( head, body );
             window.testRecords = [];
-            await delay( 300 ); // Takes time to dynamically load Reflex compiler
+            await delay( 500 ); // Takes time to dynamically load Reflex compiler
 
             expect( window.testRecords ).to.have.length( 1 );
             expect( window.testRecords[ 0 ] ).to.eql( window.document.body );
