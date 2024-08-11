@@ -126,7 +126,7 @@ export default function() {
             priv.disconnectedCallback = () => {
                 priv.hydrationImportRequest?.abort();
                 priv.hydrationImportRequest = null;
-                if ( priv.anchorNode.isConnected ) return;
+                if ( priv.anchorNode?.isConnected ) return;
                 priv.moduleRefRealtime?.disconnect();
                 priv.moduleRefRealtime = null;
             };
