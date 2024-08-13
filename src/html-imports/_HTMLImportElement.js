@@ -54,7 +54,8 @@ export default function() {
                 const parentNode = this.el.isConnected ? this.el.parentNode : priv.anchorNode.parentNode;
                 priv.liveImportsRealtime = realdom.realtime( this.el ).attr( configs.HTML_IMPORTS.attr.ref, ( record, { signal } ) => {
                     priv.moduleRef = record.value;
-                    const request = { ...HTMLImportsContext.createRequest( priv.moduleRef?.includes( '#' ) ? priv.moduleRef : `${ priv.moduleRef }#`/* for live children */ ), live: signal && true, signal, diff: true };
+                    const moduleRef = priv.moduleRef.includes( '#' ) ? priv.moduleRef : `${ priv.moduleRef }#`/* for live children */;
+                    const request = { ...HTMLImportsContext.createRequest( moduleRef ), live: signal && true, signal, diff: !moduleRef.endsWith('#') };
                     parentNode[ configs.CONTEXT_API.api.contexts ].request( request, response => {
                         callback( ( response instanceof window.HTMLTemplateElement ? [ ...response.content.children ] : (
                             Array.isArray( response ) ? response : response && [ response ]

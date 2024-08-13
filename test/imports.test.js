@@ -15,7 +15,7 @@ describe(`HTML Imports`, function() {
             <p>Hellort</p>
         </template>`;
         const body = `
-        <import ref="temp0"></import>`;
+        <import ref="temp0#"></import>`;
         const { document } = createDocument( head, body );
 
         it ( `The document object and <template> elements should expose an "import" property`, async function() {
@@ -31,6 +31,7 @@ describe(`HTML Imports`, function() {
             const templateEl = document.querySelector( 'template' );
             let added = document.createElement( 'div' );
             templateEl.content.appendChild( added );
+            console.log('\n\n\n\n', document.body.outerHTML);
             expect( document.body.children ).to.have.length( 3 );
         } );
     } );
