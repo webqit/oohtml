@@ -49,51 +49,60 @@ export default function() {
                 return anchorNode;
             };
 
-            priv.importRequest = ( callback, signal = null ) => {
-                const request = { ...HTMLImportsContext.createRequest( priv.moduleRef?.includes( '#' ) ? priv.moduleRef : `${ priv.moduleRef }#`/* for live children */ ), live: signal && true, signal };
-                ( this.el.isConnected ? this.el.parentNode : priv.anchorNode.parentNode )[ configs.CONTEXT_API.api.contexts ].request( request, response => {
-                    callback( ( response instanceof window.HTMLTemplateElement ? [ ...response.content.children ] : (
-                        Array.isArray( response ) ? response : response && [ response ]
-                    ) ) || [] );
-                } );
+            priv.live = callback => {
+                if ( priv.liveImportsRealtime ) throw new Error(`Import element already in live mode.`);
+                const parentNode = this.el.isConnected ? this.el.parentNode : priv.anchorNode.parentNode;
+                priv.liveImportsRealtime = realdom.realtime( this.el ).attr( configs.HTML_IMPORTS.attr.ref, ( record, { signal } ) => {
+                    priv.moduleRef = record.value;
+                    const request = { ...HTMLImportsContext.createRequest( priv.moduleRef?.includes( '#' ) ? priv.moduleRef : `${ priv.moduleRef }#`/* for live children */ ), live: signal && true, signal, diff: true };
+                    parentNode[ configs.CONTEXT_API.api.contexts ].request( request, response => {
+                        callback( ( response instanceof window.HTMLTemplateElement ? [ ...response.content.children ] : (
+                            Array.isArray( response ) ? response : response && [ response ]
+                        ) ) || [] );
+                    } );
+                }, { live: true, timing: 'sync', lifecycleSignals: true } );
+                priv.autoDestroyRealtime = realdom.realtime( window.document ).track( parentNode, () => {
+                    priv.die();
+                }, { subtree: 'cross-roots', timing: 'sync', generation: 'exits' } );
+            };
+
+            priv.die = () => {
+                priv.autoDestroyRealtime?.disconnect();
+                priv.liveImportsRealtime?.disconnect();
+                priv.liveImportsRealtime = null;
             };
 
             priv.hydrate = ( anchorNode, slottedElements ) => {
-                // ----------------
-                priv.moduleRef = ( this.el.getAttribute( configs.HTML_IMPORTS.attr.ref ) || '' ).trim();
                 anchorNode.replaceWith( priv.setAnchorNode( this.createAnchorNode() ) );
-                priv.autoRestore( () => {
-                    slottedElements.forEach( slottedElement => {
-                        priv.slottedElements.add( slottedElement );
-                        _( slottedElement ).set( 'slot@imports', this.el );
-                    } );
-                } );
-                // ----------------
-                priv.hydrationImportRequest = new AbortController;
-                priv.importRequest( fragments => {
-                    if ( priv.originalsRemapped ) { return this.fill( fragments ); }
+                priv.live( fragments => {
+                    // The default action
+                    if ( priv.originalsRemapped ) return this.fill( fragments );
+                    // Initial remap action
                     const identifiersMap = fragments.map( ( fragment, i ) => ( { el: fragment, fragmentDef: fragment.getAttribute( configs.HTML_IMPORTS.attr.fragmentdef ) || '', tagName: fragment.tagName, i } ) );
-                    let i = -1;
-                    slottedElements.forEach( slottedElement => {
+                    slottedElements.forEach( ( slottedElement, i ) => {
                         const tagName = slottedElement.tagName, fragmentDef = slottedElement.getAttribute( configs.HTML_IMPORTS.attr.fragmentdef ) || '';
                         const originalsMatch = ( i ++, identifiersMap.find( fragmentIdentifiers => fragmentIdentifiers.tagName === tagName && fragmentIdentifiers.fragmentDef === fragmentDef && fragmentIdentifiers.i === i ) );
-                        if ( !originalsMatch ) return; // Or should we throw integrity error?
-                        _( slottedElement ).set( 'original@imports', originalsMatch.el );
+                        if ( originalsMatch ) _( slottedElement ).set( 'original@imports', originalsMatch.el ); // Or should we throw integrity error here?
+                        _( slottedElement ).set( 'slot@imports', this.el );
+                        priv.slottedElements.add( slottedElement );
                     } );
                     priv.originalsRemapped = true;
-                }, priv.hydrationImportRequest.signal );
+                });
             };
 
             priv.autoRestore = ( callback = null ) => {
                 priv.autoRestoreRealtime?.disconnect();
                 if ( callback ) callback();
                 const restore = () => {
-                    priv.anchorNode?.replaceWith( this.el );
-                    priv.anchorNode = null;
+                    if (this.el.isConnected) return;
                     this.el.setAttribute( 'data-nodecount', 0 );
+                    this.el.slottingAction = true;
+                    priv.anchorNode.replaceWith( this.el );
+                    this.el.slottingAction = false;
+                    priv.setAnchorNode( null );
                 };
                 if ( !priv.slottedElements.size ) return restore();
-                const autoRestoreRealtime = realdom.realtime( window.document ).observe( [ ...priv.slottedElements ], record => {
+                const autoRestoreRealtime = realdom.realtime( priv.anchorNode.parentNode ).observe( [ ...priv.slottedElements ], record => {
                     record.exits.forEach( outgoingNode => {
                         _( outgoingNode ).delete( 'slot@imports' );
                         priv.slottedElements.delete( outgoingNode );
@@ -109,26 +118,13 @@ export default function() {
             };
 
             priv.connectedCallback = () => {
-                // In case this is DOM node relocation or induced reinsertion into the DOM
-                if ( priv.slottedElements.size ) throw new Error( `Illegal reinsertion into the DOM; import slot is not empty!` );
-                // Totally initialize this instance?
-                if ( priv.moduleRefRealtime ) return;
-                priv.moduleRefRealtime = realdom.realtime( this.el ).attr( configs.HTML_IMPORTS.attr.ref, ( record, { signal } ) => {
-                    priv.moduleRef = record.value;
-                    // Below, we ignore first restore from hydration
-                    priv.importRequest( fragments => !priv.hydrationImportRequest && this.fill( fragments ), signal );
-                }, { live: true, timing: 'sync', lifecycleSignals: true } );
-                // Must come after
-                priv.hydrationImportRequest?.abort();
-                priv.hydrationImportRequest = null;
+                if ( this.el.slottingAction ) return;
+                priv.live( fragments => this.fill( fragments ) );
             };
 
             priv.disconnectedCallback = () => {
-                priv.hydrationImportRequest?.abort();
-                priv.hydrationImportRequest = null;
-                if ( priv.anchorNode?.isConnected ) return;
-                priv.moduleRefRealtime?.disconnect();
-                priv.moduleRefRealtime = null;
+                if ( this.el.slottingAction ) return;
+                priv.die();
             };
         }
 
@@ -153,7 +149,11 @@ export default function() {
          *
          * @return void
          */
-        fill( slottableElements ) {
+        fill( slottableElements, r ) {
+            if (!this.el.isConnected && (!this[ '#' ].anchorNode || !this[ '#' ].anchorNode.isConnected)) {
+                // LiveImports must be responding to an event that just removed the subtree from DOM
+                return;
+            }
             if ( Array.isArray( slottableElements ) ) { slottableElements = new Set( slottableElements ) }
             // This state must be set before the diffing below and the serialization done at createAnchorNode()
             this.el.setAttribute( 'data-nodecount', slottableElements.size );
@@ -172,10 +172,11 @@ export default function() {
                 } );
                 // Make sure anchor node is what's in place...
                 // not the import element itslef - but all only when we have slottableElements.size
-                if ( slottableElements.size ) {
-                    const currentAnchorNode = this[ '#' ].anchorNode;
-                    const anchorNode = this[ '#' ].setAnchorNode( this.createAnchorNode() );
-                    ( this.el.isConnected ? this.el : currentAnchorNode ).replaceWith( anchorNode );
+                if ( slottableElements.size && this.el.isConnected ) {
+                    const newAnchorNode = this[ '#' ].setAnchorNode( this.createAnchorNode() );
+                    this.el.slottingAction = true;
+                    this.el.replaceWith( newAnchorNode );
+                    this.el.slottingAction = false;
                 }
                 // Insert slottables now
                 slottableElements.forEach( slottableElement => {

@@ -84,6 +84,8 @@ export default class DOMContexts {
                 args[ args.indexOf( options ) ] = { ...options, signal: responseInstance.signal };
             }
             const event = new ( _DOMContextRequestEvent() )( ...args );
+            // Initally
+            event.meta.target = this[ '#' ].host;
 
             const rootNode = this[ '#' ].host.getRootNode();
             const temp = event => {

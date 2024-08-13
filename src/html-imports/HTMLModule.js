@@ -70,38 +70,36 @@ export default class HTMLModule {
     expose( entries, isConnected ) {
         const { window } = env, { webqit: { Observer } } = window;
         let dirty, allFragments = this.defs[ '#' ] || [];
-        Observer.batch( this.defs, () => {
-            entries.forEach( entry => {
-                if ( entry.nodeType !== 1 ) return;
-                const isTemplate = entry.matches( this.config.templateSelector );
-                const defId = ( entry.getAttribute( isTemplate ? this.config.attr.def : this.config.attr.fragmentdef ) || '' ).trim();
-                if ( isConnected ) {
-                    if ( isTemplate && defId ) {
-                        new HTMLModule( entry, this.host, this.level + 1 );
-                    } else {
-                        allFragments.push( entry );
-                        dirty = true;
-                        if ( typeof requestIdleCallback === 'function' ) {
-                            requestIdleCallback( () => {
-                                this.config.idleCompilers?.forEach( callback => callback.call( this.window, entry ) );
-                            } );
-                        }
-                    }
-                    if ( defId ) {
-                        this.validateDefId( defId );
-                        Observer.set( this.defs, ( !isTemplate && '#' || '' ) + defId, entry );
-                    }
+        entries.forEach( entry => {
+            if ( entry.nodeType !== 1 ) return;
+            const isTemplate = entry.matches( this.config.templateSelector );
+            const defId = ( entry.getAttribute( isTemplate ? this.config.attr.def : this.config.attr.fragmentdef ) || '' ).trim();
+            if ( isConnected ) {
+                if ( isTemplate && defId ) {
+                    new HTMLModule( entry, this.host, this.level + 1 );
                 } else {
-                    if ( isTemplate && defId ) { HTMLModule.instance( entry ).dispose(); }
-                    else {
-                        allFragments = allFragments.filter( x => x !== entry );
-                        dirty = true;
+                    allFragments.push( entry );
+                    dirty = true;
+                    if ( typeof requestIdleCallback === 'function' ) {
+                        requestIdleCallback( () => {
+                            this.config.idleCompilers?.forEach( callback => callback.call( this.window, entry ) );
+                        } );
                     }
-                    if ( defId ) Observer.deleteProperty( this.defs, ( !isTemplate && '#' || '' ) + defId );
                 }
-            } );
-            if ( dirty ) Observer.set( this.defs, '#', allFragments );
+                if ( defId ) {
+                    this.validateDefId( defId );
+                    Observer.set( this.defs, ( !isTemplate && '#' || '' ) + defId, entry );
+                }
+            } else {
+                if ( isTemplate && defId ) { HTMLModule.instance( entry ).dispose(); }
+                else {
+                    allFragments = allFragments.filter( x => x !== entry );
+                    dirty = true;
+                }
+                if ( defId ) Observer.deleteProperty( this.defs, ( !isTemplate && '#' || '' ) + defId );
+            }
         } );
+        if ( dirty ) Observer.set( this.defs, '#', allFragments );
     }
 
     /**

@@ -90,14 +90,17 @@ export default class HTMLImportsContext extends DOMContext {
         // Any existing this.refdSourceController? Abort!
         this.refdSourceController?.disconnect();
         const realdom = this.host.ownerDocument.defaultView.webqit.realdom;
+        let prevRef;
         this.refdSourceController = realdom.realtime( this.host ).attr( $config.attr.importscontext, ( record, { signal } ) => {
+            if (record.value === prevRef) return;
+            prevRef = record.value;
             // No importscontext attr set. But we're still watching
             if ( !record.value ) {
                 this.contextModules = undefined;
                 return update();
             }
             // This superModules contextrequest is automatically aborted by the injected signal below
-            const request = { ...this.constructor.createRequest( record.value.trim() ), live: true, signal };
+            const request = { ...this.constructor.createRequest( record.value.trim() ), live: true, signal, diff: true };
             this.host.parentNode[ this.configs.CONTEXT_API.api.contexts ].request( request, response => {
                 this.contextModules = !( response && Object.getPrototypeOf( response ) ) ? response : getDefs( response );
                 update();

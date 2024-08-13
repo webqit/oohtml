@@ -45,7 +45,7 @@ function realtime( config ) {
     realdom.realtime( window.document ).query( config.attrSelector, record => {
         cleanup.call( this, ...record.exits );
         mountInlineBindings.call( window, config, ...record.entrants );
-    }, { live: true, subtree: 'cross-roots', timing: 'sync', staticSensitivity: true } );
+    }, { live: true, subtree: 'cross-roots', timing: 'sync', eventDetails: true, staticSensitivity: true } );
 }
 
 function createDynamicScope( config, root ) {
