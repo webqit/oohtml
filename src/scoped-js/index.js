@@ -117,7 +117,7 @@ function realtime( config ) {
 function compileScript( config, script ) {
     const window = this, { webqit: { oohtml, QuantumScript, AsyncQuantumScript, QuantumModule } } = window;
     const textContent = ( script._ = script.textContent.trim() ) && script._.startsWith( '/*@oohtml*/if(false){' ) && script._.endsWith( '}/*@oohtml*/' ) ? script._.slice( 21, -12 ) : script.textContent;
-    if ( !script.scoped && !script.quantum && !textContent.includes( 'quantum' ) ) return;
+    if ( !textContent.trim().length ) return;
     const sourceHash = _toHash( textContent );
     const compileCache = oohtml.Script.compileCache[ script.quantum ? 0 : 1 ];
     let compiledScript;
