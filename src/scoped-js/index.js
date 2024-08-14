@@ -65,7 +65,7 @@ async function execute( config, execHash ) {
     // Honour retention flag
     if ( config.script.retention === 'dispose' ) {
         script.remove();
-    } else if ( config.script.retention === 'dispose' ) {
+    } else if ( config.script.retention === 'hidden' ) {
         script.textContent = `"source hidden"`;
     } else {
         script.textContent = await compiledScript.toString();
