@@ -54,8 +54,7 @@ function createDynamicScope( config, root ) {
     const scope = Object.create( null ), abortController = new AbortController;
     scope[ '$exec__' ] = ( target, prop, ...args ) => {
         const exec = () => {
-            target[ prop ]( ...args );
-            try { } catch( e ) { console.error( `${ e.message } at ${ e.cause }` ); }
+            try { target[ prop ]( ...args ); } catch( e ) { console.error( `Error executing "${ prop }": ${ e.message } at ${ e.cause }` ); }
         };
         realdom.schedule( 'write', exec );
     };
