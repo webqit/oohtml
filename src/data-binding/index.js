@@ -54,8 +54,8 @@ function createDynamicScope( config, root ) {
     const scope = Object.create( null ), abortController = new AbortController;
     scope[ '$exec__' ] = ( target, prop, ...args ) => {
         const exec = () => {
-            try { target[ prop ]( ...args ); }
-            catch( e ) { console.error( `${ e.message } at ${ e.cause }` ); }
+            target[ prop ]( ...args );
+            try { } catch( e ) { console.error( `${ e.message } at ${ e.cause }` ); }
         };
         realdom.schedule( 'write', exec );
     };
@@ -177,20 +177,24 @@ function compileInlineBindings( config, str ) {
         const [ left, right ] = _splitOuter( str, ':' ).map( x => x.trim() );
         const directive = left[ 0 ], param = left.slice( 1 ).trim();
         const arg = `(${ right })`, $arg = `(${ arg } ?? '')`;
+        // CSS
         if ( directive === '&' ) {
             if ( param.startsWith( '--' ) ) return `$exec__(this.style, 'setProperty', "${ escDouble( param ) }", ${ $arg });`;
             return `$assign__(this.style, "${ escDouble( param ) }", ${ $arg });`;
         }
+        // Class list
         if ( directive === '%' ) return `$exec__(this.classList, 'toggle', "${ escDouble( param ) }", !!${ arg });`;
+        // Attribute
         if ( directive === '~' ) {
             if ( param.startsWith( '?' ) ) return `$exec__(this, 'toggleAttribute', "${ escDouble( param.substring( 1 ).trim() ) }", !!${ arg });`;
             return `$exec__(this, 'setAttribute', "${ escDouble( param ) }", ${ $arg });`;
         }
-        if ( directive === '@' ) {
+        // Structure
+        if ( directive === '#' ) {
             if ( validation[ param ] ) throw new Error( `Duplicate binding: ${ left }.` );
             validation[ param ] = true;
             if ( param === 'text' ) return `$assign__(this, 'textContent', ${ $arg });`;
-            if ( param === 'html' ) return `$exec__(this, 'setHTML', ${ $arg });`;
+            if ( param === 'html' ) return `$exec__(this, 'setHTMLUnsafe', ${ $arg });`;
             if ( param === 'items' ) {
                 const [ iterationSpec, importSpec ] = _splitOuter( right, '/' );
                 if ( !importSpec ) throw new Error( `Invalid ${ directive }items spec: ${ str }; no import specifier.` );
@@ -235,13 +239,19 @@ function compileInlineBindings( config, str ) {
                     $existing__.clear();
                 }`;
             }
-            // Treat other "@" directives as events
+        }
+        // Events
+        if ( directive === '@' ) {
             return `
-                const handler = () => ${ arg };
+                const handler = event => ${ right.startsWith('{') ? right : arg };
                 this.addEventListener( '${ param }', handler );
                 const abort = () => this.removeEventListener( '${ param }', handler );
                 this.$oohtml_internal_databinding_signals?.push( { abort } );
             `;
+        }
+        // Functions
+        if ( directive === '$' ) {
+            return `$exec__(this, '${ param }', ${ arg });`;
         }
         if ( str.trim() ) throw new Error( `Invalid binding: ${ str }.` );
     } ).join( `\n` );

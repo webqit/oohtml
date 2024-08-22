@@ -75,7 +75,7 @@ async function execute( config, execHash ) {
     if ( !_( varScope ).has( 'scriptEnv' ) ) {
         _( varScope ).set( 'scriptEnv', Object.create( null ) );
     }
-    const state = ( await compiledScript.bind( thisContext, _( varScope ).get( 'scriptEnv' ) ) ).execute();
+    const state = await ( await compiledScript.bind( thisContext, _( varScope ).get( 'scriptEnv' ) ) ).execute();
     if ( script.quantum ) { Object.defineProperty( script, 'state', { value: state } ); }
     realdom.realtime( window.document ).observe( script, () => {
         if ( script.quantum ) { state.dispose(); }

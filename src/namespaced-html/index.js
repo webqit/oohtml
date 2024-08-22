@@ -297,7 +297,7 @@ function realtime( config ) {
 			} else {
 				const newAttrValue = _( entry, 'attrOriginals' ).get( attrName );// oldValue.split( ' ' ).map( lid => ( lid = lid.trim() ) && $lidUtil.uuidToLidref( lid ) ).join( ' ' );
 				entry.setAttribute( attrName, newAttrValue );
-				_( namespaceObj ).get( 'idrefs' ).delete( entry );
+				_( namespaceObj ).get( 'idrefs' )?.delete( entry );
 			}
 		} );
 	};
