@@ -172,6 +172,7 @@ const inlineParseCache = new Map;
 function compileInlineBindings( config, str ) {
     if ( inlineParseCache.has( str ) ) return inlineParseCache.get( str );
     const validation = {};
+    let $event_i = -1;
     const source = _splitOuter( str, ';' ).map( str => {
         const [ left, right ] = _splitOuter( str, ':' ).map( x => x.trim() );
         const directive = left[ 0 ], param = left.slice( 1 ).trim();
@@ -241,11 +242,12 @@ function compileInlineBindings( config, str ) {
         }
         // Events
         if ( directive === '@' ) {
+            $event_i++;
             return `
-                const handler = event => ${ right.startsWith('{') ? right : arg };
-                this.addEventListener( '${ param }', handler );
-                const abort = () => this.removeEventListener( '${ param }', handler );
-                this.$oohtml_internal_databinding_signals?.push( { abort } );
+                const handler${ $event_i } = event => ${ right.startsWith('{') ? right : arg };
+                this.addEventListener( '${ param }', handler${ $event_i } );
+                const abort${ $event_i } = () => this.removeEventListener( '${ param }', handler${ $event_i } );
+                this.$oohtml_internal_databinding_signals?.push( { abort: abort${ $event_i } } );
             `;
         }
         // Functions
