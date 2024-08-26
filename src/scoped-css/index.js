@@ -100,7 +100,7 @@ function realtime( config ) {
                 else { setTimeout( () => { transform(); }, 0 ); }
             }
         } );
-    }, { live: true, subtree: 'cross-roots', timing: 'intercept', generation: 'entrants' } );
+    }, { id: 'scoped-css', live: true, subtree: 'cross-roots', timing: 'intercept', generation: 'entrants' } );
     // ---
 }
 

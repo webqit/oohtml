@@ -19,10 +19,10 @@ export default function init( QuantumJS, configs = {} ) {
     // --------------
     ContextAPI.call( this, ( configs.CONTEXT_API || {} ) );
     BindingsAPI.call( this, ( configs.BINDINGS_API || {} ) ); // Depends on ContextAPI
-    NamespacedHTML.call( this, ( configs.NAMESPACED_HTML || {} ) ); // Depends on ContextAPI
+    // Imports must happen before the rest... structure must be flattened before the other things below which query the DOM
     HTMLImports.call( this, { ...( configs.HTML_IMPORTS || {} ), idleCompilers: [ idleCompiler1, idleCompiler2 ] } ); // Depends on ContextAPI
+    NamespacedHTML.call( this, ( configs.NAMESPACED_HTML || {} ) ); // Depends on ContextAPI
     DataBinding.call( this, ( configs.DATA_BINDING || {} ) ); // Depends on ContextAPI, BindingsAPI, HTMLImports
     ScopedCSS.call( this, ( configs.SCOPED_CSS || {} ) ); // Depends on NamespacedHTML
     ScopedJS.call( this, ( configs.SCOPED_JS || {} ) );
-    // --------------
 }

@@ -38,14 +38,20 @@ export default function init( $config = {} ) {
 function realtime( config ) {
     const window = this, { webqit: { realdom } } = window;
 	// ----------------
-    realdom.realtime( window.document ).query( `(${ config.discreteBindingsSelector })`, record => {
-        cleanup.call( this, ...record.exits );
-        mountDiscreteBindings.call( window, config, ...record.entrants );
-    }, { live: true, subtree: 'cross-roots', timing: 'sync' } );
+    /**
+     * For an element, render should happen first
+    <div render="">
+        <?{ content }?>
+    </div>
+     */
     realdom.realtime( window.document ).query( config.attrSelector, record => {
         cleanup.call( this, ...record.exits );
         mountInlineBindings.call( window, config, ...record.entrants );
-    }, { live: true, subtree: 'cross-roots', timing: 'sync', eventDetails: true, staticSensitivity: true } );
+    }, { id: 'data-binding:attr', live: true, subtree: 'cross-roots', timing: 'sync', eventDetails: true, staticSensitivity: true } );
+    realdom.realtime( window.document ).query( `(${ config.discreteBindingsSelector })`, record => {
+        cleanup.call( this, ...record.exits );
+        mountDiscreteBindings.call( window, config, ...record.entrants );
+    }, { id: 'data-binding:descrete', live: true, subtree: 'cross-roots', timing: 'sync' } );
 }
 
 function createDynamicScope( config, root ) {
@@ -54,16 +60,17 @@ function createDynamicScope( config, root ) {
     const scope = Object.create( null ), abortController = new AbortController;
     scope[ '$exec__' ] = ( target, prop, ...args ) => {
         const exec = () => {
-            try { target[ prop ]( ...args ); } catch( e ) { console.error( `Error executing "${ prop }": ${ e.message } at ${ e.cause }` ); }
+            try { target[ prop ]( ...args ); }
+            catch( e ) { console.error( `Error executing "${ prop }": ${ e.message } at ${ e.cause }` ); }
         };
-        realdom.schedule( 'write', exec );
+        exec();
     };
     scope[ '$assign__' ] = ( target, prop, val ) => {
         const exec = () => {
             try { target[ prop ] = val; }
             catch( e ) { console.error( `${ e.message } at ${ e.cause }` ); }
         };
-        realdom.schedule( 'write', exec );
+        exec();
     };
     Observer.intercept( scope, {
         get: ( e, recieved, next ) => {
@@ -266,11 +273,12 @@ const escDouble = str => str.replace(/"/g, '\\"');
 
 export function idleCompiler( node ) {
     const window = this, { webqit: { oohtml: { configs: { DATA_BINDING: config } } } } = window;
+    // Attr selector must also come first, as in above
+    ( node?.matches( config.attrSelector ) ? [ node ] : [] ).concat([ ...( node?.querySelectorAll( config.attrSelector ) || [] ) ]).forEach( node => {
+        compileInlineBindings.call( window, config, node.getAttribute( config.attr.render ) );
+    } );
     xpathQuery( window, node, `(${ config.discreteBindingsSelector })` ).forEach( node => {
         const template = patternMatch( config, node.nodeValue );
         compileDiscreteBindings.call( window, config, template.expr );
-    } );
-    ( node?.matches( config.attrSelector ) ? [ node ] : [] ).concat([ ...( node?.querySelectorAll( config.attrSelector ) || [] ) ]).forEach( node => {
-        compileInlineBindings.call( window, config, node.getAttribute( config.attr.render ) );
     } );
 }

@@ -16,10 +16,8 @@ export default function init({ advanced = {}, ...$config }) {
         api: { scripts: 'scripts' },
         advanced: resolveParams(advanced),
     } );
-    config.scriptSelector = ( Array.isArray( config.script.mimeTypes ) ? config.script.mimeTypes : config.script.mimeTypes.split( '|' ) ).concat( '' ).reduce( ( selector, mm ) => {
-        const qualifier = mm ? `[type="${ window.CSS.escape( mm ) }"]` : ':not([type])';
-        return selector.concat( `script${ qualifier }` );
-    }, [] ).join( ',' );
+    const customTypes = Array.isArray( config.script.mimeTypes ) ? config.script.mimeTypes : config.script.mimeTypes.split( '|' ).filter( t => t );
+    config.scriptSelector =  customTypes.map( t => `script[type="${ window.CSS.escape( t ) }"]`).concat(`script:not([type])`).join( ',' );
     window.webqit.oohtml.Script = {
         compileCache: [ new Map, new Map, ],
         execute: execute.bind( window, config ),
@@ -38,10 +36,12 @@ export default function init({ advanced = {}, ...$config }) {
 function exposeAPIs( config ) {
     const window = this, scriptsMap = new Map;
     if ( config.api.scripts in window.Element.prototype ) { throw new Error( `The "Element" class already has a "${ config.api.scripts }" property!` ); }
-    Object.defineProperty( window.Element.prototype, config.api.scripts, { get: function() {
-        if ( !scriptsMap.has( this ) ) { scriptsMap.set( this, [] ); }
-        return scriptsMap.get( this );
-    }, } );
+    [ window.ShadowRoot.prototype, window.Element.prototype ].forEach( proto => {
+        Object.defineProperty( proto, config.api.scripts, { get: function() {
+            if ( !scriptsMap.has( this ) ) { scriptsMap.set( this, [] ); }
+            return scriptsMap.get( this );
+        }, } );
+    } );
     Object.defineProperties( window.HTMLScriptElement.prototype, {
         scoped: {
             configurable: true,
@@ -80,7 +80,7 @@ async function execute( config, execHash ) {
     realdom.realtime( window.document ).observe( script, () => {
         if ( script.quantum ) { state.dispose(); }
         if ( thisContext instanceof window.Element ) { thisContext[ config.api.scripts ]?.splice( thisContext[ config.api.scripts ].indexOf( script, 1 ) ); }
-    }, { subtree: 'cross-roots', timing: 'sync', generation: 'exits' } );
+    }, { id: 'scoped-js:script-exits', subtree: 'cross-roots', timing: 'sync', generation: 'exits' } );
 }
 
 /**
@@ -105,12 +105,12 @@ function realtime( config ) {
             const thisContext = script.scoped ? script.parentNode || record.target : ( script.type === 'module' ? undefined : window );
             if ( script.scoped ) { thisContext[ config.api.scripts ].push( script ); }
             const execHash = _toHash( { script, compiledScript, thisContext } );
-            const manualHandling = record.type === 'query' || ( script.type && !window.HTMLScriptElement.supports( script.type ) );
+            const manualHandling = record.type === 'query' || ( script.type && !window.HTMLScriptElement.supports( script.type ) ) || script.getAttribute('data-handling') === 'manual';
             if ( manualHandling || config.script.timing === 'manual' ) { oohtml.Script.execute( execHash ); } else {
                 script.textContent = `webqit.oohtml.Script.execute( '${ execHash }' );`;
             }
         } );
-    }, { live: true, subtree: 'cross-roots', timing: 'intercept', generation: 'entrants', eventDetails: true } );
+    }, { id: 'scoped-js:script-entries', live: true, subtree: 'cross-roots', timing: 'intercept', generation: 'entrants', eventDetails: true } );
     // ---
 }
 

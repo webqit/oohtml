@@ -154,6 +154,7 @@ function realtime(config) {
         record.exits.forEach(entry => {
             if (entry.matches(config.templateSelector)) {
                 const htmlModule = HTMLModule.instance(entry);
+                //if (!htmlModule.ownerContext) return; // JSDOM sometimes
                 const ownerContextModulesObj = getDefs(htmlModule.ownerContext);
                 if (htmlModule.defId && htmlModule.ownerContext.isConnected) { Observer.deleteProperty(ownerContextModulesObj, htmlModule.defId); }
                 detachImportsContext(htmlModule.ownerContext);
@@ -161,7 +162,7 @@ function realtime(config) {
                 detachImportsContext(entry);
             }
         });
-    }, { live: true, subtree: 'cross-roots', timing: 'sync', staticSensitivity: true, eventDetails: true });
+    }, { id: 'imports:template/importscontext', live: true, subtree: 'cross-roots', timing: 'sync', staticSensitivity: true, recursiveOk: true, eventDetails: true });
 
     // ------------
     // IMPORTS
@@ -169,7 +170,7 @@ function realtime(config) {
     realdom.realtime(window.document).query(config.elements.import, record => {
         record.entrants.forEach(node => handleRealtime(node, true, record));
         record.exits.forEach(node => handleRealtime(node, false, record));
-    }, { live: true, subtree: 'cross-roots', timing: 'sync' });
+    }, { id: 'imports:import', live: true, subtree: 'cross-roots', timing: 'sync', recursiveOk: true });
     function handleRealtime(entry, connectedState) {
         const elInstance = HTMLImportElement.instance(entry);
         if (connectedState) { elInstance['#'].connectedCallback(); }
@@ -192,5 +193,5 @@ function realtime(config) {
             }
             HTMLImportElement.instance(importEl)['#'].hydrate(anchorNode, slottedElements);
         });
-    }, { live: true, subtree: 'cross-roots', timing: 'sync' });
+    }, { id: 'imports:hydration', live: true, subtree: 'cross-roots', timing: 'sync', recursiveOk: true });
 }

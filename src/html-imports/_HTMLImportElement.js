@@ -63,6 +63,7 @@ export default function() {
                     } );
                 }, { live: true, timing: 'sync', lifecycleSignals: true } );
                 priv.autoDestroyRealtime = realdom.realtime( window.document ).track( parentNode, () => {
+                    this.state = null;
                     priv.die();
                 }, { subtree: 'cross-roots', timing: 'sync', generation: 'exits' } );
             };
@@ -97,9 +98,8 @@ export default function() {
                 const restore = () => {
                     if (this.el.isConnected) return;
                     this.el.setAttribute( 'data-nodecount', 0 );
-                    this.el.slottingAction = true;
+                    this.state = 'restored';
                     priv.anchorNode.replaceWith( this.el );
-                    this.el.slottingAction = false;
                     priv.setAnchorNode( null );
                 };
                 if ( !priv.slottedElements.size ) return restore();
@@ -119,12 +119,12 @@ export default function() {
             };
 
             priv.connectedCallback = () => {
-                if ( this.el.slottingAction ) return;
+                if ( this.state === 'restored' ) return;
                 priv.live( fragments => this.fill( fragments ) );
             };
 
             priv.disconnectedCallback = () => {
-                if ( this.el.slottingAction ) return;
+                if ( this.state === 'resolved' ) return;
                 priv.die();
             };
         }
@@ -175,9 +175,8 @@ export default function() {
                 // not the import element itslef - but all only when we have slottableElements.size
                 if ( slottableElements.size && this.el.isConnected ) {
                     const newAnchorNode = this[ '#' ].setAnchorNode( this.createAnchorNode() );
-                    this.el.slottingAction = true;
+                    this.state = 'resolved';
                     this.el.replaceWith( newAnchorNode );
-                    this.el.slottingAction = false;
                 }
                 // Insert slottables now
                 slottableElements.forEach( slottableElement => {

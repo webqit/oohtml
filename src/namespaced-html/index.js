@@ -38,7 +38,7 @@ function lidUtil( config ) {
 		lidrefPrefix( escapeMode = 0 ) { return escapeMode ? this.escape( lidrefPrefix, escapeMode ) : lidrefPrefix; },
 		lidrefSeparator( escapeMode = 0 ) { return escapeMode ? this.escape( lidrefSeparator, escapeMode ) : lidrefSeparator; },
 		isUuid( str, escapeMode = 0 ) { return str.startsWith( this.lidrefPrefix( escapeMode ) ) && str.includes( this.lidrefSeparator( escapeMode ) ); },
-		isLidref( str, escapeMode = 0 ) { return str.startsWith( this.lidrefPrefix( escapeMode ) ) && !str.includes( this.lidrefSeparator( escapeMode ) ); },
+		//isLidref( str, escapeMode = 0 ) { return str.startsWith( this.lidrefPrefix( escapeMode ) ) && !str.includes( this.lidrefSeparator( escapeMode ) ); },
 		toUuid( hash, lid, escapeMode = 0 ) { return hash.endsWith( '-root' ) ? lid : `${ this.lidrefPrefix( escapeMode ) }${ hash }${ this.lidrefSeparator( escapeMode ) }${ lid }`; },
 		uuidToId( str, escapeMode = 0 ) { return this.isUuid( str ) ? str.split( this.lidrefSeparator( escapeMode ) )[ 1 ] : str; },
 		uuidToLidref( str, escapeMode = 0 ) { return this.isUuid( str ) ? `${ this.lidrefPrefix( escapeMode ) }${ str.split( this.lidrefSeparator( escapeMode ) )[ 1 ] }` : str; },
@@ -278,7 +278,7 @@ function realtime( config ) {
 				}
 			} else {
 				_( entry, 'attrOriginals' ).set( attrName, value ); // Save original before rewrite
-				const newAttrValue = value.split( ' ' ).map( idref => ( idref = idref.trim() ) && !$lidUtil.isLidref( idref ) ? idref : $lidUtil.toUuid( namespaceUUID, idref.replace( $lidUtil.lidrefPrefix(), '' ) ) ).join( ' ' );
+				const newAttrValue = value.split( ' ' ).map( idref => ( idref = idref.trim() ) && $lidUtil.isUuid( idref ) ? idref : $lidUtil.toUuid( namespaceUUID, idref ) ).join( ' ' );
 				entry.setAttribute( attrName, newAttrValue );
 				_( namespaceObj ).set( 'idrefs', _( namespaceObj ).get( 'idrefs' ) || new Set );
 				_( namespaceObj ).get( 'idrefs' ).add( entry );
@@ -296,7 +296,7 @@ function realtime( config ) {
 				}
 			} else {
 				const newAttrValue = _( entry, 'attrOriginals' ).get( attrName );// oldValue.split( ' ' ).map( lid => ( lid = lid.trim() ) && $lidUtil.uuidToLidref( lid ) ).join( ' ' );
-				entry.setAttribute( attrName, newAttrValue );
+				if ( entry.hasAttribute( attrName ) ) entry.setAttribute( attrName, newAttrValue );
 				_( namespaceObj ).get( 'idrefs' )?.delete( entry );
 			}
 		} );
@@ -338,9 +338,10 @@ function realtime( config ) {
 			const contextsApi = entry[ configs.CONTEXT_API.api.contexts ];
 			if ( !contextsApi.find( DOMNamingContext.kind ) ) { contextsApi.attach( new DOMNamingContext ); }
         } );
-    }, { live: true, subtree: 'cross-roots', timing: 'sync', staticSensitivity: true, eventDetails: true } );
+    }, { id: 'namespace-html:namespace', live: true, subtree: 'cross-roots', timing: 'sync', staticSensitivity: true, eventDetails: true } );
 
 	// DOM realtime
+	// ISSUE implied elements that are direct chidren of shadow roots not caught. Maybe try testing with params.recursiveOk to see.
 	realdom.realtime( window.document ).query( `[${ attrList.map( attrName => window.CSS.escape( attrName ) ).join( '],[' ) }]`, record => {
 		// We do some caching to prevent redundanct lookups
 		const namespaceNodesToTest = { forID: new Map, forOther: new Map, };
@@ -365,14 +366,14 @@ function realtime( config ) {
 		}
 		namespaceNodesToTest.forID.clear();
 		namespaceNodesToTest.forOther.clear();
-	}, { live: true, subtree: 'cross-roots', timing: 'sync' } );
+	}, { id: 'namespace-html:attrs', live: true, subtree: 'cross-roots', timing: 'sync' } );
 	// Attr realtime
 	realdom.realtime( window.document, 'attr' ).observe( attrList, records => {
 		for ( const record of records ) {
 			if ( record.oldValue ) { cleanupBinding( record.target, record.name, record.oldValue/* Current resolved value as-is */ ); }
 			if ( record.value ) { setupBinding( record.target, record.name, record.value/* Raw value (as-is) that will be saved as original */ ); }
 		}
-	}, { subtree: 'cross-roots', timing: 'sync', newValue: true, oldValue: true } );
+	}, { id: 'namespace-html:attr(attrs)', subtree: 'cross-roots', timing: 'sync', newValue: true, oldValue: true } );
 
     // ------------
 	// TARGETS
