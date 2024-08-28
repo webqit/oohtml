@@ -162,7 +162,7 @@ function realtime(config) {
                 detachImportsContext(entry);
             }
         });
-    }, { id: 'imports:template/importscontext', live: true, subtree: 'cross-roots', timing: 'sync', staticSensitivity: true, recursiveOk: true, eventDetails: true });
+    }, { id: 'imports:template/importscontext', live: true, subtree: 'cross-roots', timing: 'sync', staticSensitivity: true, eventDetails: true });
 
     // ------------
     // IMPORTS
@@ -170,7 +170,7 @@ function realtime(config) {
     realdom.realtime(window.document).query(config.elements.import, record => {
         record.entrants.forEach(node => handleRealtime(node, true, record));
         record.exits.forEach(node => handleRealtime(node, false, record));
-    }, { id: 'imports:import', live: true, subtree: 'cross-roots', timing: 'sync', recursiveOk: true });
+    }, { id: 'imports:import', live: true, subtree: 'cross-roots', timing: 'sync', deferred: true });
     function handleRealtime(entry, connectedState) {
         const elInstance = HTMLImportElement.instance(entry);
         if (connectedState) { elInstance['#'].connectedCallback(); }
@@ -193,5 +193,5 @@ function realtime(config) {
             }
             HTMLImportElement.instance(importEl)['#'].hydrate(anchorNode, slottedElements);
         });
-    }, { id: 'imports:hydration', live: true, subtree: 'cross-roots', timing: 'sync', recursiveOk: true });
+    }, { id: 'imports:hydration', live: true, subtree: 'cross-roots', timing: 'sync' });
 }

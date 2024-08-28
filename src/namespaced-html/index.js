@@ -341,7 +341,6 @@ function realtime( config ) {
     }, { id: 'namespace-html:namespace', live: true, subtree: 'cross-roots', timing: 'sync', staticSensitivity: true, eventDetails: true } );
 
 	// DOM realtime
-	// ISSUE implied elements that are direct chidren of shadow roots not caught. Maybe try testing with params.recursiveOk to see.
 	realdom.realtime( window.document ).query( `[${ attrList.map( attrName => window.CSS.escape( attrName ) ).join( '],[' ) }]`, record => {
 		// We do some caching to prevent redundanct lookups
 		const namespaceNodesToTest = { forID: new Map, forOther: new Map, };
