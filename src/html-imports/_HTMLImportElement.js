@@ -63,7 +63,6 @@ export default function() {
                     } );
                 }, { live: true, timing: 'sync', lifecycleSignals: true } );
                 priv.autoDestroyRealtime = realdom.realtime( window.document ).track( parentNode, () => {
-                    this.state = null;
                     priv.die();
                 }, { subtree: 'cross-roots', timing: 'sync', generation: 'exits' } );
             };
@@ -98,8 +97,9 @@ export default function() {
                 const restore = () => {
                     if (this.el.isConnected) return;
                     this.el.setAttribute( 'data-nodecount', 0 );
-                    this.state = 'restored';
+                    priv.internalMutation = true;
                     priv.anchorNode.replaceWith( this.el );
+                    priv.internalMutation = false;
                     priv.setAnchorNode( null );
                 };
                 if ( !priv.slottedElements.size ) return restore();
@@ -119,12 +119,12 @@ export default function() {
             };
 
             priv.connectedCallback = () => {
-                if ( this.state === 'restored' ) return;
+                if ( priv.internalMutation ) return;
                 priv.live( fragments => this.fill( fragments ) );
             };
 
             priv.disconnectedCallback = () => {
-                if ( this.state === 'resolved' ) return;
+                if ( priv.internalMutation ) return;
                 priv.die();
             };
         }
@@ -175,8 +175,9 @@ export default function() {
                 // not the import element itslef - but all only when we have slottableElements.size
                 if ( slottableElements.size && this.el.isConnected ) {
                     const newAnchorNode = this[ '#' ].setAnchorNode( this.createAnchorNode() );
-                    this.state = 'resolved';
+                    this[ '#' ].internalMutation = true;
                     this.el.replaceWith( newAnchorNode );
+                    this[ '#' ].internalMutation = false;
                 }
                 // Insert slottables now
                 slottableElements.forEach( slottableElement => {
