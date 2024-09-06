@@ -5,7 +5,7 @@
 
                 if ( $import__.value && $iteratee__ ) {
                     let $existing__ = new Map;
-                    this.querySelectorAll( '[${n.attr.itemIndex}]' ).forEach( x => {
+                    [ ...this.children ].filter( el => el.matches( '[${n.attr.itemIndex}]' ) ).forEach( x => {
                         $existing__.set( x.getAttribute( '${n.attr.itemIndex}' ), x );
                     } );
                     ${h?`let ${h} = -1;`:""}

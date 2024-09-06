@@ -120,6 +120,7 @@ export default class DOMContext {
             this.subscriptions.delete( subscriptionEvent );
             this.unsubscribed( subscriptionEvent );
             const { target } = subscriptionEvent;
+            subscriptionEvent.meta.answered = false;
             target.dispatchEvent( subscriptionEvent );
         } );
         return this;

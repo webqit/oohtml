@@ -44,7 +44,7 @@ export default class DOMContexts {
     find( ...args ) {
         return [ ...this[ '#' ].contexts ].find( ctx => {
             if ( typeof args[ 0 ] === 'function' ) return args[ 0 ]( ctx );
-            return ctx.constructor.kind === args[ 0 ] && ( args.length === 1 || ctx.detail === args[ 1 ] );
+            return ctx.constructor.kind === args[ 0 ] && ( !args[ 1 ] || ctx.detail === args[ 1 ] );
         } );
     }
 
@@ -84,32 +84,7 @@ export default class DOMContexts {
                 args[ args.indexOf( options ) ] = { ...options, signal: responseInstance.signal };
             }
             const event = new ( _DOMContextRequestEvent() )( ...args );
-            // Initally
-            event.meta.target = this[ '#' ].host;
-
-            const rootNode = this[ '#' ].host.getRootNode();
-            const temp = event => {
-                event.stopImmediatePropagation();
-                // Always set thus whether answered or not
-                event.meta.target = event.target;
-                if ( event.answered ) return;
-                if ( !waitListMappings.get( rootNode ) ) { waitListMappings.set( rootNode, new Set ); }
-                if ( event.type === 'contextrequest' && event.live ) {
-                    waitListMappings.get( rootNode ).add( event );
-                } else if ( event.type === 'contextclaim' ) {
-                    const claims = new Set;
-                    waitListMappings.get( rootNode ).forEach( subscriptionEvent => {
-                        if ( !this[ '#' ].host.contains( subscriptionEvent.target ) || !event.detail.matchEvent( subscriptionEvent ) ) return;
-                        waitListMappings.get( rootNode ).delete( subscriptionEvent );
-                        claims.add( subscriptionEvent );
-                    } );
-                    return event.respondWith( claims );
-                }
-            };
-
-            rootNode.addEventListener( event.type, temp );
-            this[ '#' ].host.dispatchEvent( event );            
-            rootNode.removeEventListener( event.type, temp );
+            this[ '#' ].host.dispatchEvent( event );
         } );
     }
 

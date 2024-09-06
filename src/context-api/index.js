@@ -21,6 +21,37 @@ export default function init( $config = {} ) {
         attr: { contextname: 'contextname', },
         api: { contexts: 'contexts', },
     } );
+    const waitListMappings = new Map, dispatchEvent = window.EventTarget.prototype.dispatchEvent;
+    Object.defineProperty( window.EventTarget.prototype, 'dispatchEvent', { value: function( ...args ) {
+        const event = args[0], rootNode = this.getRootNode?.();
+        if ( [ 'contextclaim', 'contextrequest' ].includes( event.type ) && rootNode ) {
+            if ( event.meta ) event.meta.target = this;
+            const temp = event => {
+                event.stopImmediatePropagation();
+                // Always set this whether answered or not
+                if ( event.meta ) event.meta.target = event.target;
+                if ( event.answered ) return;
+                if ( !waitListMappings.get( rootNode ) ) waitListMappings.set( rootNode, new Set );
+                if ( event.type === 'contextrequest' && event.live ) {
+                    waitListMappings.get( rootNode ).add( event );
+                } else if ( event.type === 'contextclaim' ) {
+                    const claims = new Set;
+                    waitListMappings.get( rootNode ).forEach( subscriptionEvent => {
+                        if ( !event.target.contains( subscriptionEvent.target ) || !event.detail?.matchEvent?.( subscriptionEvent ) ) return;
+                        waitListMappings.get( rootNode ).delete( subscriptionEvent );
+                        claims.add( subscriptionEvent );
+                    } );
+                    if ( !waitListMappings.get( rootNode ).size ) waitListMappings.delete( rootNode );
+                    return event.respondWith?.( claims );
+                }
+            };
+            rootNode.addEventListener( event.type, temp );
+            const returnValue = dispatchEvent.call( this, ...args );
+            rootNode.removeEventListener( event.type, temp );
+            return returnValue;
+        }
+        return dispatchEvent.call( this, ...args );
+    } } );
     window.webqit.DOMContexts = DOMContexts;
     window.webqit.DOMContext = DOMContext;
     window.webqit.DOMContextRequestEvent = _DOMContextRequestEvent();

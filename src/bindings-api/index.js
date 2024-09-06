@@ -3,7 +3,7 @@
  * @imports
  */
 import DOMBindingsContext from './DOMBindingsContext.js';
-import { _, _init } from '../util.js';
+import { _, _init, _splitOuter } from '../util.js';
 
 /**
  * @init
@@ -17,6 +17,7 @@ export default function init( $config = {} ) {
     } );
     window.webqit.DOMBindingsContext = DOMBindingsContext;
     exposeAPIs.call( window, config );
+    realtime.call(window, config);
 }
 
 /**
@@ -31,23 +32,27 @@ function getBindings( config, node ) {
 		const bindingsObj = Object.create( null );
 		_( node ).set( 'bindings', bindingsObj );
         Observer.observe( bindingsObj, mutations => {
-            // Reflection
-            const props = Object.keys( bindingsObj );
-            const reflectionTargetNode = node instanceof window.Document ? node.documentElement : node;
-            const bindingsReflection = config.attr.bindingsreflection;
-            if ( props.length && bindingsReflection && reflectionTargetNode.setAttribute ) {
-                reflectionTargetNode.setAttribute( config.attr.bindingsreflection, props.join( ' ') );
-            } else if ( bindingsReflection && reflectionTargetNode.setAttribute ) {
-                reflectionTargetNode.toggleAttribute( config.attr.bindingsreflection, false );
-            }
-            // Re: DOMBindingsContext
-            const contextsApi = node[ ctxConfig.api.contexts ];
-            for ( const mutation of mutations ) {
-                if ( mutation.type === 'delete' ) {
-                    const ctx = contextsApi.find( DOMBindingsContext.kind, mutation.key );
-                    if ( ctx ) contextsApi.detach( ctx );
-                } else if ( !contextsApi.find( DOMBindingsContext.kind, mutation.key ) ) {
-                    contextsApi.attach( new DOMBindingsContext( mutation.key ) );
+            if ( node instanceof window.Element ) {
+                const bindingsParse = parseBindingsAttr( node.getAttribute( config.attr.bindingsreflection ) || '' );
+                const bindingsParseBefore = new Map(bindingsParse);
+                for ( const m of mutations ) {
+                    if ( m.detail?.publish !== false ) {
+                        if ( m.type === 'delete' ) bindingsParse.delete( m.key );
+                        else bindingsParse.set( m.key, undefined );
+                    }
+                }
+                if ( bindingsParse.size && bindingsParse.size !== bindingsParseBefore.size ) {
+                    node.setAttribute( config.attr.bindingsreflection, `{ ${ [ ...bindingsParse.entries() ].map(([ key, value ]) => value === undefined ? key : `${ key }: ${ value }` ).join( ', ' ) } }` );
+                } else if ( !bindingsParse.size ) node.toggleAttribute( config.attr.bindingsreflection, false );
+            } else {
+                const contextsApi = node[ ctxConfig.api.contexts ];
+                for ( const m of mutations ) {
+                    if ( m.type === 'delete' ) {
+                        const ctx = contextsApi.find( DOMBindingsContext.kind, m.key );
+                        if ( ctx ) contextsApi.detach( ctx );
+                    } else if ( !contextsApi.find( DOMBindingsContext.kind, m.key ) ) {
+                        contextsApi.attach( new DOMBindingsContext( m.key ) );
+                    }
                 }
             }
         } );
@@ -90,13 +95,71 @@ function exposeAPIs( config ) {
  *
  * @return Void
  */
-function applyBindings( config, target, bindings, { merge, diff, namespace } = {} ) {
+function applyBindings( config, target, bindings, { merge, diff, publish, namespace } = {} ) {
     const window = this, { webqit: { Observer } } = window;
     const bindingsObj = getBindings.call( this, config, target );
-    const $params = { diff, namespace };
+    const $params = { diff, namespace, detail: { publish } };
     const exitingKeys = merge ? [] : Observer.ownKeys( bindingsObj, $params ).filter( key => !( key in bindings ) );
     return Observer.batch( bindingsObj, () => {
         if ( exitingKeys.length ) { Observer.deleteProperties( bindingsObj, exitingKeys, $params ); }
         return Observer.set( bindingsObj, bindings, $params );
     }, $params );
 }
+
+/**
+ * Performs realtime capture of elements and their attributes
+ * and their module query results; then resolves the respective import elements.
+ *
+ * @param Object config
+ *
+ * @return Void
+ */
+function realtime(config) {
+    const window = this, { webqit: { realdom, Observer, oohtml: { configs } } } = window;
+    // ------------
+    const attachBindingsContext = (host, key) => {
+        const contextsApi = host[configs.CONTEXT_API.api.contexts];
+        if ( !contextsApi.find( DOMBindingsContext.kind, key ) ) {
+            contextsApi.attach( new DOMBindingsContext( key ) );
+        }
+    };
+    const detachBindingsContext = (host, key) => {
+        let ctx, contextsApi = host[configs.CONTEXT_API.api.contexts];
+        while( ctx = contextsApi.find( DOMBindingsContext.kind, key ) ) contextsApi.detach(ctx);
+    };
+    // ------------
+    realdom.realtime(window.document).query( `[${window.CSS.escape(config.attr.bindingsreflection)}]`, record => {
+        record.exits.forEach( entry => detachBindingsContext( entry ) );
+        record.entrants.forEach(entry => {
+            const bindingsParse = parseBindingsAttr( entry.getAttribute( config.attr.bindingsreflection ) || '' );
+            const newData = [ ...bindingsParse.entries() ].filter(([ k, v ]) => v !== undefined );
+            if ( newData.length ) entry[ config.api.bind ]( Object.fromEntries( newData ), { merge: true, publish: false } );
+            for ( const [ key ] of bindingsParse ) {
+                attachBindingsContext( entry, key );
+            }
+        } );
+    }, { id: 'bindings:dom', live: true, subtree: 'cross-roots', timing: 'sync', eventDetails: true });
+	realdom.realtime( window.document, 'attr' ).observe( config.attr.bindingsreflection, record => {
+        const bindingsObj = getBindings.call( window, config, record.target );
+        const bindingsParse = parseBindingsAttr( record.value || '' );
+        const oldBindings = parseBindingsAttr( record.oldValue || '' );
+        for ( const key of new Set([ ...bindingsParse.keys(), ...oldBindings.keys() ]) ) {
+            if ( !oldBindings.has( key ) ) {
+                if ( bindingsParse.get( key ) !== undefined ) Observer.set( bindingsObj, key, bindingsParse.get( key ), { detail: { publish: false } } );
+                attachBindingsContext( record.target, key );
+            } else if ( !bindingsParse.has( key ) ) {
+                if ( oldBindings.get( key ) !== undefined ) Observer.deleteProperty( bindingsObj, key, { detail: { publish: false } } );
+                detachBindingsContext( record.target, key );
+            } else if ( bindingsParse.get( key ) !== oldBindings.get( key ) ) {
+                Observer.set( bindingsObj, key, bindingsParse.get( key ), { detail: { publish: false } } );
+            }
+        }
+	}, { id: 'bindings:attr', subtree: 'cross-roots', timing: 'sync', newValue: true, oldValue: true } );
+}
+
+const parseBindingsAttr = str => {
+    str = str.trim();
+    return new Map(_splitOuter( str.slice(1, -1), ',' ).filter( s => s.trim() ).map( _str => {
+        return _splitOuter( _str, ':' ).map( s => s.trim() );
+    }));
+};
