@@ -17,7 +17,7 @@ export default function init({ advanced = {}, ...$config }) {
         advanced: resolveParams(advanced),
     } );
     const customTypes = Array.isArray( config.script.mimeTypes ) ? config.script.mimeTypes : config.script.mimeTypes.split( '|' ).filter( t => t );
-    config.scriptSelector =  customTypes.map( t => `script[type="${ window.CSS.escape( t ) }"]`).concat(`script:not([type])`).join( ',' );
+    config.scriptSelector =  customTypes.map( t => `script[type="${ window.CSS.escape( t ) }"]:not([oohtmlignore])` ).concat(`script:not([type])`).join( ',' );
     window.webqit.oohtml.Script = {
         compileCache: [ new Map, new Map, ],
         execute: execute.bind( window, config ),
@@ -126,7 +126,7 @@ function compileScript( config, script ) {
         compiledScript = new ( script.type === 'module' ? QuantumModule : ( QuantumScript || AsyncQuantumScript ) )( textContent, {
             exportNamespace: `#${ script.id }`,
             fileName: `${ window.document.url?.split( '#' )?.[ 0 ] || '' }#${ script.id }`,
-            parserParams: { ...parserParams, quantumMode: script.quantum },
+            parserParams: { ...parserParams, executionMode: script.quantum && 'QuantumProgram' || 'RegularProgram' },
             compilerParams,
             runtimeParams,
         } );

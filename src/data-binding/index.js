@@ -1,7 +1,4 @@
-
-/**
- * @imports
- */
+import { resolveParams } from '@webqit/quantum-js/params';
 import { xpathQuery } from '@webqit/realdom/src/realtime/Util.js';
 import { _, _init, _splitOuter } from '../util.js';
 
@@ -16,6 +13,7 @@ export default function init( $config = {} ) {
     const { config, window } = _init.call( this, 'data-binding', $config, {
         attr: { render: 'render', itemIndex: 'data-key' },
         tokens: { nodeType: 'processing-instruction', tagStart: '?{', tagEnd: '}?', stateStart: '; [=', stateEnd: ']' },
+        advanced: resolveParams({ runtimeParams: { spec: { handler: e => {} } } }),
     } );
     ( { CONTEXT_API: config.CONTEXT_API, BINDINGS_API: config.BINDINGS_API, HTML_IMPORTS: config.HTML_IMPORTS } = window.webqit.oohtml.configs );
     config.attrSelector = `[${ window.CSS.escape( config.attr.render ) }]`;
@@ -61,14 +59,14 @@ function createDynamicScope( config, root ) {
     scope[ '$exec__' ] = ( target, prop, ...args ) => {
         const exec = () => {
             try { target[ prop ]( ...args ); }
-            catch( e ) { console.error( `Error executing "${ prop }": ${ e.message } at ${ e.cause }` ); }
+            catch( e ) { throw new Error( `Error executing "${ prop }()": ${ e.message } at ${ e.cause }` ); }
         };
         exec();
     };
     scope[ '$assign__' ] = ( target, prop, val ) => {
         const exec = () => {
             try { target[ prop ] = val; }
-            catch( e ) { console.error( `${ e.message } at ${ e.cause }` ); }
+            catch( e ) { throw new Error( `Error executing "${ prop } = ${ val }": ${ e.message } at ${ e.cause }` ); }
         };
         exec();
     };
@@ -156,7 +154,8 @@ function compileDiscreteBindings( config, str ) {
     source += `$assign__(this, 'nodeValue', content);`;
     source += `if ( this.$oohtml_internal_databinding_anchorNode ) { $assign__(this.$oohtml_internal_databinding_anchorNode, 'nodeValue', "${ config.tokens.tagStart }${ escDouble( str ) }${ config.tokens.stateStart }" + content.length + "${ config.tokens.stateEnd } ${ config.tokens.tagEnd }"); }`;
     const { webqit: { QuantumModule } } = this;
-    const compiled = new QuantumModule( source );
+    const { parserParams, compilerParams, runtimeParams } = config.advanced;
+    const compiled = new QuantumModule( source, { parserParams, compilerParams, runtimeParams } );
     discreteParseCache.set( str, compiled );
     return compiled;
 }
@@ -264,7 +263,8 @@ function compileInlineBindings( config, str ) {
         if ( str.trim() ) throw new Error( `Invalid binding: ${ str }.` );
     } ).join( `\n` );
     const { webqit: { QuantumModule } } = this;
-    const compiled = new QuantumModule( source );
+    const { parserParams, compilerParams, runtimeParams } = config.advanced;
+    const compiled = new QuantumModule( source, { parserParams, compilerParams, runtimeParams } );
     inlineParseCache.set( str, compiled );
     return compiled;
 }
