@@ -44,11 +44,15 @@ function realtime( config ) {
      */
     realdom.realtime( window.document ).query( config.attrSelector, record => {
         cleanup.call( this, ...record.exits );
-        mountInlineBindings.call( window, config, ...record.entrants );
+        setTimeout(() => {
+            mountInlineBindings.call( window, config, ...record.entrants );
+        }, 0);
     }, { id: 'data-binding:attr', live: true, subtree: 'cross-roots', timing: 'sync', eventDetails: true, staticSensitivity: true } );
     realdom.realtime( window.document ).query( `(${ config.discreteBindingsSelector })`, record => {
-        cleanup.call( this, ...record.exits );
-        mountDiscreteBindings.call( window, config, ...record.entrants );
+        setTimeout(() => {
+            cleanup.call( this, ...record.exits );
+            mountDiscreteBindings.call( window, config, ...record.entrants );
+        }, 0);
     }, { id: 'data-binding:descrete', live: true, subtree: 'cross-roots', timing: 'sync' } );
 }
 

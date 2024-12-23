@@ -31,7 +31,7 @@ export default class DOMContexts {
     /**
      * @Symbol.iterator
      */
-    get [ Symbol.iterator ] () { return this[ '#' ].contexts[ Symbol.iterator ]; }
+    [ Symbol.iterator ] () { return this[ '#' ].contexts[ Symbol.iterator ](); }
 
     /**
      * @length
