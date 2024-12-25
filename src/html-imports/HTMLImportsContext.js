@@ -110,7 +110,7 @@ export default class HTMLImportsContext extends DOMContext {
         // Parse and translate detail
         let path = ( event.detail || '' ).split( /\/|(?<=\w)(?=#)/g ).map( x => x.trim() ).filter( x => x );
         if ( !path.length ) return event.respondWith();
-        path = path.join( `/${ this.configs.HTML_IMPORTS.api.defs }/` )?.split( '/' ).map( x => x === '-' ? Infinity : x ) || [];
+        path = path.join( `/${ this.configs.HTML_IMPORTS.api.defs }/` )?.split( '/' ).map( x => x === '*' ? Infinity : x ) || [];
         // We'll now fulfill request
         const options = { live: event.live, signal: event.signal, descripted: true };
         event.meta.controller = Observer.reduce( this.#modules, path, Observer.get, ( m ) => {
@@ -162,7 +162,7 @@ export default class HTMLImportsContext extends DOMContext {
                 if ( moduleRef === prevRef ) return;
                 prevRef = moduleRef;
                 // This superModules contextrequest is automatically aborted by the injected signal below
-                const request = { ...this.constructor.createRequest( moduleRef ? `${moduleRef}/-` : '-' ), live: true, signal, diff: true };
+                const request = { ...this.constructor.createRequest( moduleRef ? `${moduleRef}/*` : '*' ), live: true, signal, diff: true };
                 this.host.parentNode[ this.configs.CONTEXT_API.api.contexts ].request( request, ( m ) => {
                     if ( m.type === 'delete' ) {
                         Reflect.deleteProperty( this.inheritedModules, m.key );
@@ -187,7 +187,7 @@ export default class HTMLImportsContext extends DOMContext {
      */
     dispose( host ) {
         // Stop listening for sources
-        this.#controller1?.disconnect();
+        this.#controller1?.abort();
         this.#controller2?.disconnect();
         // Now, stop listening for contextrequest and contextclaim events
         // And relinquish own subscribers to owner context
