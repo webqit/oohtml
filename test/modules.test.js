@@ -186,6 +186,7 @@ describe(`HTML Modules`, function() {
             // -------
             scoped.remove();
             expect( defsObjs ).to.have.length( 3 );
+
             expect( defsObjs[ 2 ] ).to.have.property( 'scoped', false );
             // -------
             document.body.appendChild( scoped );
