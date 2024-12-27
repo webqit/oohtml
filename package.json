@@ -40,7 +40,7 @@
   },
   "dependencies": {
     "@webqit/quantum-js": "^4.5.26",
-    "@webqit/realdom": "^2.1.32",
+    "@webqit/realdom": "^2.1.33",
     "@webqit/util": "^0.8.11"
   },
   "devDependencies": {

@@ -36,69 +36,6 @@ export default class HTMLImportsContext extends DOMContext {
     get inheritedModules() { return this.#inheritedModules; }
     #inheritedModules = {};
 
-
-    /**
-     * @handle()
-     */
-    handle__( event ) {
-        const { window: { webqit: { Observer } } } = env;
-        // Any existing event.meta.controller? Abort!
-        event.meta.controller?.abort();
-
-        // Parse and translate detail
-        if ( ( event.detail || '' ).trim() === '/' ) return event.respondWith( this.localModules );
-        let path = ( event.detail || '' ).split( /\/|(?<=\w)(?=#)/g ).map( x => x.trim() ).filter( x => x );
-        if ( !path.length ) return event.respondWith();
-        path = path.join( `/${ this.configs.HTML_IMPORTS.api.defs }/` )?.split( '/' ) || [];
-
-        // We'll now fulfill request
-        const options = { live: event.live, signal: event.signal, descripted: true };
-        // Find a way to resolve request against two sources
-        event.meta.controller = Observer.reduce( this.localModules, path, Observer.get, ( result, { signal } = {} ) => {
-            const _result = Array.isArray( result ) ? result : result.value;
-            const _isValidLocalResult = Array.isArray( result ) ? result.length : result.value;
-            if ( !_isValidLocalResult && this.host.isConnected === false ) return; // Subtree is being disposed
-            if ( _isValidLocalResult || !this.#inheritedModules ) {
-                event._isValidLocalResult = _isValidLocalResult;
-                return event.respondWith( _result );
-            }
-            // This superModules binding is automatically aborted by the injected control.signal; see below
-            return Observer.reduce( this.#inheritedModules, path, Observer.get, result => {
-                event._currentSource = 'context';
-                return event.respondWith( Array.isArray( result ) ? result : result.value );
-            }, { ...options, signal } );
-        }, { lifecycleSignals: true, ...options } );
-    }
-
-    /**
-     * @startRealtime()
-     */
-    realtimeSources__( host ) {
-        this.host = host;
-        // ----------------
-        const update = () => {
-            for ( const subscriptionEvent of this.subscriptions ) {
-                if ( subscriptionEvent._isValidLocalResult ) continue;
-                this.handle( subscriptionEvent );
-            }
-        };
-        // ----------------
-        const $config = this.configs.HTML_IMPORTS;
-        if ( !this.host.matches || !$config.attr.importscontext ) return;
-        const realdom = this.host.ownerDocument.defaultView.webqit.realdom;
-        let prevRef;
-        this.controller3 = realdom.realtime( this.host ).attr( $config.attr.importscontext, ( record, { signal } ) => {
-            if (record.value === prevRef) return;
-            prevRef = record.value;
-            // This superModules contextrequest is automatically aborted by the injected signal below
-            const request = { ...this.constructor.createRequest( record.value?.trim() ), live: true, signal, diff: true };
-            this.host.parentNode[ this.configs.CONTEXT_API.api.contexts ].request( request, response => {
-                this.#inheritedModules = !( response && Object.getPrototypeOf( response ) ) ? response : getDefs( response );
-                update();
-            } );
-        }, { live: true, timing: 'sync', lifecycleSignals: true } );
-    }
-
     /**
      * @handle()
      */
@@ -139,7 +76,7 @@ export default class HTMLImportsContext extends DOMContext {
         const { window: { webqit: { Observer } } } = env;
         // ----------------
         // Observe local
-        this.#modules = Object.assign( {}, this.localModules );
+        this.#modules = { ...this.localModules };
         this.#controller1?.abort();
         this.#controller1 = Observer.observe( this.localModules, ( mutations ) => {
             for ( const m of mutations ) {
@@ -157,7 +94,7 @@ export default class HTMLImportsContext extends DOMContext {
             const realdom = this.host.ownerDocument.defaultView.webqit.realdom;
             let prevRef;
             this.#controller2?.disconnect();
-            this.#controller2 = realdom.realtime( this.host ).attr( $config.attr.importscontext, ( record, { signal } ) => {            
+            this.#controller2 = realdom.realtime( this.host ).attr( $config.attr.importscontext, ( record, { signal } ) => { 
                 const moduleRef = ( record.value || '' ).trim();
                 if ( moduleRef === prevRef ) return;
                 prevRef = moduleRef;
@@ -176,7 +113,7 @@ export default class HTMLImportsContext extends DOMContext {
                         }
                     }
                 } );
-            }, { live: true, timing: 'sync', lifecycleSignals: true } );
+            }, { live: true, timing: 'sync', oldValue: true, lifecycleSignals: true } );
         }
         // ----------------
         return super.initialize( host );
