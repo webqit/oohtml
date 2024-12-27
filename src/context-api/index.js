@@ -18,15 +18,16 @@ import { _init } from '../util.js';
  */
 export default function init( $config = {} ) {
     const { config, window } = _init.call( this, 'context-api', $config, {
+        elements: { roots: 'root,webflo-embedded', },
         attr: { contextname: 'contextname', },
         api: { contexts: 'contexts', },
     } );
     const waitListMappings = new Map, dispatchEvent = window.EventTarget.prototype.dispatchEvent;
     Object.defineProperty( window.EventTarget.prototype, 'dispatchEvent', { value: function( ...args ) {
-        const event = args[0], rootNode = this.getRootNode?.();
+        const event = args[0], rootNode = this?.closest?.(config.elements.roots) || this.getRootNode?.();
         if ( [ 'contextclaim', 'contextrequest' ].includes( event.type ) && rootNode ) {
             if ( event.meta ) event.meta.target = this;
-            const temp = event => {
+            const temp = (event) => {
                 event.stopImmediatePropagation();
                 // Always set this whether answered or not
                 if ( event.meta ) event.meta.target = event.target;
