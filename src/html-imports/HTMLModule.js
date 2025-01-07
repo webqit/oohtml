@@ -168,7 +168,7 @@ export default class HTMLModule {
         if ( !this.parent ) return [];
         const { window: { webqit: { Observer } } } = env;
         let extendedId = ( this.host.getAttribute( this.config.attr.extends ) || '' ).trim();
-        let inheritedIds = ( this.host.getAttribute( this.config.attr.inherits ) || '' ).trim();
+        let inheritedIds = ( this.host.getAttribute( this.config.attr.inherits ) || '' ).trim().split( ' ' ).map( id => id.trim() ).filter( x => x );
         const handleInherited = records => {
             records.forEach( record => {
                 if ( Observer.get( this.defs, record.key ) !== record.oldValue ) return;
@@ -184,8 +184,8 @@ export default class HTMLModule {
         if ( extendedId ) {
             realtimes.push( Observer.reduce( parentDefsObj, [ extendedId, this.config.api.defs, Infinity ], Observer.get, handleInherited, { live: true } ) );
         }
-        if ( ( inheritedIds = inheritedIds.split( ' ' ).map( id => id.trim() ).filter( x => x ) ).length ) {
-            realtimes.push( Observer.get( parentDefsObj, inheritedIds, handleInherited, { live: true } ) );
+        if ( inheritedIds.length ) {
+            realtimes.push( Observer.get( parentDefsObj, inheritedIds.includes( '*' ) ? Infinity : inheritedIds, handleInherited, { live: true } ) );
         }
         return realtimes;
     }

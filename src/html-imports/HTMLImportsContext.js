@@ -52,11 +52,17 @@ export default class HTMLImportsContext extends DOMContext {
         const options = { live: event.live, signal: event.signal, descripted: true };
         event.meta.controller = Observer.reduce( this.#modules, path, Observer.get, ( m ) => {
             if ( Array.isArray( m ) ) {
+                if ( !m.length ) {
+                    event.respondWith( undefined );
+                    return;
+                }
                 // Paths with wildcard
                 for ( const n of m ) {
                     event.respondWith( n );
                 }
-            } else event.respondWith( m.value );
+            } else {
+                event.respondWith( m.value );
+            }
         }, options );
     }
 
@@ -101,16 +107,24 @@ export default class HTMLImportsContext extends DOMContext {
                 // This superModules contextrequest is automatically aborted by the injected signal below
                 const request = { ...this.constructor.createRequest( moduleRef ? `${moduleRef}/*` : '*' ), live: true, signal, diff: true };
                 this.host.parentNode[ this.configs.CONTEXT_API.api.contexts ].request( request, ( m ) => {
-                    if ( m.type === 'delete' ) {
-                        Reflect.deleteProperty( this.inheritedModules, m.key );
-                        if ( !Observer.has( this.localModules, m.key ) ) {
-                            Observer.deleteProperty( this.#modules, m.key );
+                    const _delete = ( key ) => {
+                        Reflect.deleteProperty( this.inheritedModules, key );
+                        if ( !Observer.has( this.localModules, key ) ) {
+                            Observer.deleteProperty( this.#modules, key );
                         }
+                    };
+                    const _set = ( key, value ) => {
+                        Reflect.set( this.inheritedModules, key, value );
+                        if ( !Observer.has( this.localModules, key ) ) {
+                            Observer.set( this.#modules, key, value );
+                        }
+                    };
+                    if ( !m ) {
+                        Object.keys( this.inheritedModules ).forEach( _delete );
                     } else {
-                        Reflect.set( this.inheritedModules, m.key, m.value );
-                        if ( !Observer.has( this.localModules, m.key ) ) {
-                            Observer.set( this.#modules, m.key, m.value );
-                        }
+                        if ( m.type === 'delete' ) {
+                            _delete( m.key );
+                        } else _set( m.key, m.value );
                     }
                 } );
             }, { live: true, timing: 'sync', oldValue: true, lifecycleSignals: true } );
