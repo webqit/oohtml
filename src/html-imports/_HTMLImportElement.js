@@ -158,7 +158,7 @@ export default function() {
             if ( Array.isArray( slottableElements ) ) { slottableElements = new Set( slottableElements ) }
             // This state must be set before the diffing below and the serialization done at createAnchorNode()
             this.el.setAttribute( 'data-nodecount', slottableElements.size );
-            this[ '#' ].autoRestore( () => {              
+            this[ '#' ].autoRestore( () => {
                 this[ '#' ].slottedElements.forEach( slottedElement => {
                     const slottedElementOriginal = _( slottedElement ).get( 'original@imports' );
                     // If still available in source, simply leave unchanged
