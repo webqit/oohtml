@@ -204,7 +204,7 @@ function compileInlineBindings( config, str ) {
             if ( validation[ param ] ) throw new Error( `Duplicate binding: ${ left }.` );
             validation[ param ] = true;
             if ( param === 'text' ) return `$assign__(this, 'textContent', ${ $arg });`;
-            if ( param === 'html' ) return `$exec__(this, 'setHTMLUnsafe', ${ $arg });`;
+            if ( param === 'html' ) return `$assign__(this, 'innerHTML', ${ $arg });`;
             if ( param === 'items' ) {
                 const [ iterationSpec, importSpec ] = _splitOuter( right, '/' );
                 if ( !importSpec ) throw new Error( `Invalid ${ directive }items spec: ${ str }; no import specifier.` );
