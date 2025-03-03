@@ -221,7 +221,7 @@ If you'll be going ahead to build a real app with OOHTML, you may want to consid
 
 <details><summary>Show</summary>
 
-Amidst a multitude of approaches, vanilla HTML remains an attractive option for the UI author! But the current authoring experience still leaves much to be desired in how the language lacks modularity, reusability, and certain modern paradigms like data binding! Authors still have to rely on tools - and, for the most part, have to do half of the work in HTML and half in JS - to express even basic concepts!
+Amidst a multitude of approaches, vanilla HTML remains an attractive option for authoring modern UI! But the current authoring experience still leaves much to be desired in how the language lacks modularity, reusability, and certain modern paradigms like data binding! Authors still have to rely on tools - and, for the most part, have to do half of the work in HTML and half in JS - to express even basic concepts!
 
 "As an author, I want to be able to do 'x' *declaratively* in HTML instead of *imperatively* in JavaScript or by means of a special Custom Element!" "As a Web Component author, I want to be able to leverage *conventions* that keep my component logic *concise*!" All such "user stories" represent important developer intuitions that has yet to be met in HTML; much of which belong under a broad subject: an object-oriented markup language! This subject is what we explore with OOHTML!
 
@@ -1033,7 +1033,7 @@ For attribute-based data binding, OOHTML deviates from the usual (and problemati
 **-->** *which would give us the following for a CSS property*:
 
 ```html
-<div render="& color:someColor; & backgroundColor:'red'"></div>
+<div render="&color:someColor; &backgroundColor:'red'"></div>
 ```
 
 **-->** *without being space-sensitive*:
@@ -1046,23 +1046,24 @@ For attribute-based data binding, OOHTML deviates from the usual (and problemati
 
 | Directive | Type | Usage |
 | :---- | :---- | :---- |
-| `&`  | CSS Property | `<div render="& color:someColor; & backgroundColor:someBgColor;"></div>` |
-| `%`  | Class Name | `<div render="% active:app.isActive; % expanded:app.isExpanded;"></div>` |
-| `~`  | Attribute Name | `<a render="~ href:person.profileUrl+'#bio'; ~ title:'Click me';"></a>` |
-|   | Boolean Attribute | `<a render="~ ?required:formField.required; ~ ?aria-checked: formField.checked"></a>` |
-| `@`  | Structural Directive: | *See below* |
-| `@text`   | Plain text content | `<span render="@text:firstName+' '+lastName;"></span>` |
-| `@html`   | Markup content | `<span render="@html: '<i>'+firstName+'</i>';"></span>` |
-|  `@items`  | A list, of the following format | `<declaration> <of\|in> <iterable> / <importRef>`<br>*See next two tables* |
+| `&`  | CSS Property | `<div render="&color:someColor; &backgroundColor:someBgColor;"></div>` |
+| `%`  | Class Name | `<div render="%active:app.isActive; %expanded:app.isExpanded;"></div>` |
+| `~`  | Attribute Name | `<a render="~href:person.profileUrl+'#bio'; ~title:'Click me';"></a>` |
+|   | Boolean Attribute | `<a render="~?required:formField.required; ~?aria-checked: formField.checked"></a>` |
+| `@`  | DOM Event | `<div render="@click: this.methodCall(); @change: { state.prop1 = this.value };"></div>` |
+| `#`  | Structural Directive: | *See below* |
+| `#text`   | Plain text content | `<span render="#text:firstName+' '+lastName;"></span>` |
+| `#html`   | Markup content | `<span render="#html: '<i>'+firstName+'</i>';"></span>` |
+|  `#items`  | A list, of the following format | `<declaration> <of\|in> <iterable> / <importRef>`<br>*See next two tables* |
 
 <details><summary><code>For ... Of</code> Loops</summary>
 
 |  Idea | Usage |
 | :---- | :---- |
-| A `for...of` loop over an array/iterable | `<ul render="@items: value of [1,2,3] / 'foo#fragment';"></ul>` |
-| Same as above but with a `key` declaration  | `<ul render="@items: (value,key) of [1,2,3] / 'foo#fragment';"></ul>` |
-| Same as above but with different variable names  | `<ul render="@items: (product,id) of store.products / 'foo#fragment';"></ul>` |
-| Same as above but with a dynamic `importRef`  | `<ul render="@items: (product,id) of store.products / store.importRef;"></ul>` |
+| A `for...of` loop over an array/iterable | `<ul render="#items: value of [1,2,3] / 'foo#fragment';"></ul>` |
+| Same as above but with a `key` declaration  | `<ul render="#items: (value,key) of [1,2,3] / 'foo#fragment';"></ul>` |
+| Same as above but with different variable names  | `<ul render="#items: (product,id) of store.products / 'foo#fragment';"></ul>` |
+| Same as above but with a dynamic `importRef`  | `<ul render="#items: (product,id) of store.products / store.importRef;"></ul>` |
 
 </details>
 
@@ -1070,8 +1071,8 @@ For attribute-based data binding, OOHTML deviates from the usual (and problemati
 
 | Idea | Usage |
 | :---- | :---- |
-| A `for...in` loop over an object | `<ul render="@items: key in {a:1,b:2} / 'foo#fragment';"></ul>` |
-| Same as above but with a `value` and `index` declaration | `<ul render="@items: (key,value,index) in {a:1, b:2} / 'foo#fragment';"></ul>` |
+| A `for...in` loop over an object | `<ul render="#items: key in {a:1,b:2} / 'foo#fragment';"></ul>` |
+| Same as above but with a `value` and `index` declaration | `<ul render="#items: (key,value,index) in {a:1, b:2} / 'foo#fragment';"></ul>` |
 
 </details>
 
@@ -1811,7 +1812,7 @@ The following is a hypothetical list page!
   </template>
 
   <!-- The loop -->
-  <ul render="@items: (name,index) of ['dog','cat','ram'] / 'item';"></ul>
+  <ul render="#items: (name,index) of ['dog','cat','ram'] / 'item';"></ul>
 
 </section>
 ```

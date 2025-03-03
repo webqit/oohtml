@@ -91,12 +91,13 @@ async function execute( config, execHash ) {
  * @return Void
  */
 function realtime( config ) {
+    const inBrowser = Object.getOwnPropertyDescriptor( globalThis, 'window' )?.get?.toString().includes( '[native code]' ) ?? false;
     const window = this, { webqit: { oohtml, realdom } } = window;
     if ( !window.HTMLScriptElement.supports ) { window.HTMLScriptElement.supports = type => [ 'text/javascript', 'application/javascript' ].includes( type ); }
     const handled = new WeakSet;
     realdom.realtime( window.document ).query( config.scriptSelector, record => {
         record.entrants.forEach( script => {
-            if ( handled.has( script ) ) return;
+            if ( handled.has( script ) || (!inBrowser && !script.hasAttribute('ssr')) ) return;
             // Do compilation
             const compiledScript = compileScript.call( window, config, script );
             if ( !compiledScript ) return;
