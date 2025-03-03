@@ -13,7 +13,7 @@ describe(`Test: Scoped JS`, function() {
             const head = ``;
             const body = `            
             <h1>Hello World!</h1>
-            <script scoped quantum>
+            <script scoped quantum ssr>
                 testRecords.push( this );
                 console.log('-------scoped JS here.', this);
             </script>`;
