@@ -1828,22 +1828,22 @@ The following is much like the above, but imperative. Additions and removals on 
 <section namespace>
 
   <!-- The "items" template -->
-  <template def="item" scoped>
-    <li><a>Item</a></li>
+  <template def="partials" scoped>
+    <li def="item"></li>
   </template>
 
   <!-- The loop -->
   <ul id="list"></ul>
 
-  <script scoped>
+  <script quantum scoped>
     // Import item template
-    let itemImport = this.import('item');
+    let itemImport = this.import('partials#item');
     let itemTemplate = itemImport.value;
 
     // Iterate
     let items = [ 'Item 1', 'Item 2', 'Item 3' ];
     for (let entry of items) {
-      const currentItem = itemTemplate.content.cloneNode(true);
+      const currentItem = itemTemplate.cloneNode(true);
       // Add to DOM
       this.namespace.list.appendChild(currentItem);
       // Remove from DOM whenever corresponding entry is removed
