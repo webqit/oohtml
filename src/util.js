@@ -3,11 +3,11 @@
  * @imports
  */
 import realdomInit from '@webqit/realdom';
-import { _internals } from '@webqit/util/js/index.js';
+import { _wq as __wq } from '@webqit/util/js/index.js';
 import { _merge } from '@webqit/util/obj/index.js';
 import { _toTitle } from '@webqit/util/str/index.js';
 
-export const _ = ( ...args ) => _internals( 'oohtml', ...args );
+export const _wq = ( target, ...args ) => __wq( target, 'oohtml', ...args );
 
 export const env = {};
 
@@ -43,13 +43,13 @@ export function _init( name, $config, $defaults ) {
 }
 
 export function getInternalAttrInteraction( node, attrName ) {
-	return _internals( node, 'internalAttrInteractions' ).get( attrName );
+	return _wq( node, 'internalAttrInteractions' ).get( attrName );
 }
 export function internalAttrInteraction( node, attrName, callback ) {
-	const savedAttrLocking = _internals( node, 'internalAttrInteractions' ).get( attrName );
-	_internals( node, 'internalAttrInteractions' ).set( attrName, true );
+	const savedAttrLocking = _wq( node, 'internalAttrInteractions' ).get( attrName );
+	_wq( node, 'internalAttrInteractions' ).set( attrName, true );
 	const value = callback();
-	_internals( node, 'internalAttrInteractions' ).set( attrName, savedAttrLocking );
+	_wq( node, 'internalAttrInteractions' ).set( attrName, savedAttrLocking );
 	return value;
 }
 

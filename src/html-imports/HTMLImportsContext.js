@@ -4,7 +4,7 @@
  */
 import DOMContext from '../context-api/DOMContext.js';
 import { getDefs } from './index.js';
-import { _, env } from '../util.js';
+import { _wq, env } from '../util.js';
 
 export default class HTMLImportsContext extends DOMContext {
 

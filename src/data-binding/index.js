@@ -1,6 +1,6 @@
 import { resolveParams } from '@webqit/quantum-js/params';
 import { xpathQuery } from '@webqit/realdom/src/realtime/Util.js';
-import { _, _init, _splitOuter } from '../util.js';
+import { _wq, _init, _splitOuter } from '../util.js';
 
 /**
  * Initializes DOM Parts.
@@ -58,7 +58,7 @@ function realtime( config ) {
 
 function createDynamicScope( config, root ) {
     const { webqit: { realdom, Observer, DOMBindingsContext } } = this;
-    if ( _( root ).has( 'data-binding' ) ) return _( root ).get( 'data-binding' );
+    if ( _wq( root ).has( 'data-binding' ) ) return _wq( root ).get( 'data-binding' );
     const scope = Object.create( null ), abortController = new AbortController;
     scope[ '$exec__' ] = ( target, prop, ...args ) => {
         const exec = () => {
@@ -87,21 +87,21 @@ function createDynamicScope( config, root ) {
         has: ( e, recieved, next ) => { return next( true ); }
     } );
     const instance = { scope, abortController, bindings: new Map };
-    _( root ).set( 'data-binding', instance );
+    _wq( root ).set( 'data-binding', instance );
     return instance;
 }
 
 function cleanup( ...entries ) {
     for ( const node of entries ) {
         const root = node.nodeName  === '#text' ? node.parentNode : node;
-        const { bindings, abortController } = _( root ).get( 'data-binding' ) || {};
+        const { bindings, abortController } = _wq( root ).get( 'data-binding' ) || {};
         if ( !bindings?.has( node ) ) return;
         bindings.get( node ).state.dispose();
         bindings.get( node ).signals?.forEach( s => s.abort() );
         bindings.delete( node );
         if ( !bindings.size ) {
             abortController.abort();
-            _( root ).delete( 'data-binding' );
+            _wq( root ).delete( 'data-binding' );
         }
     }
 }
@@ -155,8 +155,8 @@ const discreteParseCache = new Map;
 function compileDiscreteBindings( config, str ) {
     if ( discreteParseCache.has( str ) ) return discreteParseCache.get( str );
     let source = `let content = ((${ str }) ?? '') + '';`;
-    source += `$assign__(this, 'nodeValue', content);`;
-    source += `if ( this.$oohtml_internal_databinding_anchorNode ) { $assign__(this.$oohtml_internal_databinding_anchorNode, 'nodeValue', "${ config.tokens.tagStart }${ escDouble( str ) }${ config.tokens.stateStart }" + content.length + "${ config.tokens.stateEnd } ${ config.tokens.tagEnd }"); }`;
+    source += `$assign__wq(this, 'nodeValue', content);`;
+    source += `if ( this.$oohtml_internal_databinding_anchorNode ) { $assign__wq(this.$oohtml_internal_databinding_anchorNode, 'nodeValue', "${ config.tokens.tagStart }${ escDouble( str ) }${ config.tokens.stateStart }" + content.length + "${ config.tokens.stateEnd } ${ config.tokens.tagEnd }"); }`;
     const { webqit: { QuantumModule } } = this;
     const { parserParams, compilerParams, runtimeParams } = config.advanced;
     const compiled = new QuantumModule( source, { parserParams, compilerParams, runtimeParams } );
@@ -189,22 +189,22 @@ function compileInlineBindings( config, str ) {
         const arg = `(${ right })`, $arg = `(${ arg } ?? '')`;
         // CSS
         if ( directive === '&' ) {
-            if ( param.startsWith( '--' ) ) return `$exec__(this.style, 'setProperty', "${ escDouble( param ) }", ${ $arg });`;
-            return `$assign__(this.style, "${ escDouble( param ) }", ${ $arg });`;
+            if ( param.startsWith( '--' ) ) return `$exec__wq(this.style, 'setProperty', "${ escDouble( param ) }", ${ $arg });`;
+            return `$assign__wq(this.style, "${ escDouble( param ) }", ${ $arg });`;
         }
         // Class list
-        if ( directive === '%' ) return `$exec__(this.classList, 'toggle', "${ escDouble( param ) }", !!${ arg });`;
+        if ( directive === '%' ) return `$exec__wq(this.classList, 'toggle', "${ escDouble( param ) }", !!${ arg });`;
         // Attribute
         if ( directive === '~' ) {
-            if ( param.startsWith( '?' ) ) return `$exec__(this, 'toggleAttribute', "${ escDouble( param.substring( 1 ).trim() ) }", !!${ arg });`;
-            return `$exec__(this, 'setAttribute', "${ escDouble( param ) }", ${ $arg });`;
+            if ( param.startsWith( '?' ) ) return `$exec__wq(this, 'toggleAttribute', "${ escDouble( param.substring( 1 ).trim() ) }", !!${ arg });`;
+            return `$exec__wq(this, 'setAttribute', "${ escDouble( param ) }", ${ $arg });`;
         }
         // Structure
         if ( directive === '#' ) {
             if ( validation[ param ] ) throw new Error( `Duplicate binding: ${ left }.` );
             validation[ param ] = true;
-            if ( param === 'text' ) return `$assign__(this, 'textContent', ${ $arg });`;
-            if ( param === 'html' ) return `$assign__(this, 'innerHTML', ${ $arg });`;
+            if ( param === 'text' ) return `$assign__wq(this, 'textContent', ${ $arg });`;
+            if ( param === 'html' ) return `$assign__wq(this, 'innerHTML', ${ $arg });`;
             if ( param === 'items' ) {
                 const [ iterationSpec, importSpec ] = _splitOuter( right, '/' );
                 if ( !importSpec ) throw new Error( `Invalid ${ directive }items spec: ${ str }; no import specifier.` );
@@ -235,12 +235,12 @@ function compileInlineBindings( config, str ) {
                         let $itemNode__ = $existing__.get( $key___ );
                         if ( $itemNode__ ) {
                             $existing__.delete( $key___ );
-                            $exec__($itemNode__, '${ config.BINDINGS_API.api.bind }', $itemBinding__ );
+                            $exec__wq($itemNode__, '${ config.BINDINGS_API.api.bind }', $itemBinding__ );
                         } else {
                             $itemNode__ = ( Array.isArray( $import__.value ) ? $import__.value[ 0 ] : ( $import__.value instanceof window.HTMLTemplateElement ? $import__.value.content.firstElementChild : $import__.value ) ).cloneNode( true );
                             $itemNode__.setAttribute( "${ config.attr.itemIndex }", $key___ );
-                            $exec__($itemNode__, '${ config.BINDINGS_API.api.bind }', $itemBinding__ );
-                            $exec__(this, 'appendChild', $itemNode__ );
+                            $exec__wq($itemNode__, '${ config.BINDINGS_API.api.bind }', $itemBinding__ );
+                            $exec__wq(this, 'appendChild', $itemNode__ );
                         }
 
                         if ( ${ kind === 'in' ? `!( ${ production[ 0 ] } in $iteratee__ )` : `typeof ${ production[ 0 ] } === 'undefined'` } ) { $itemNode__.remove(); }
@@ -262,7 +262,7 @@ function compileInlineBindings( config, str ) {
         }
         // Functions
         if ( directive === '$' ) {
-            return `$exec__(this, '${ param }', ${ arg });`;
+            return `$exec__wq(this, '${ param }', ${ arg });`;
         }
         if ( str.trim() ) throw new Error( `Invalid binding: ${ str }.` );
     } ).join( `\n` );

@@ -5,7 +5,7 @@
 import HTMLModule from './HTMLModule.js';
 import HTMLImportsContext from './HTMLImportsContext.js';
 import _HTMLImportElement from './_HTMLImportElement.js';
-import { _, _init } from '../util.js';
+import { _wq, _init } from '../util.js';
 
 /**
  * Initializes HTML Modules.
@@ -45,11 +45,11 @@ export default function init($config = {}) {
  * @return Object
  */
 export function getDefs(node, autoCreate = true) {
-    if (!_(node).has('defs') && autoCreate) {
+    if (!_wq(node).has('defs') && autoCreate) {
         const defs = Object.create(null);
-        _(node).set('defs', defs);
+        _wq(node).set('defs', defs);
     }
-    return _(node).get('defs');
+    return _wq(node).get('defs');
 }
 
 /**
@@ -180,7 +180,7 @@ function realtime(config) {
     if (window.webqit.env === 'server') return;
     realdom.realtime(window.document).query(`(${config.anchorNodeSelector})`, record => {
         record.entrants.forEach(anchorNode => {
-            if (_(anchorNode).get('isAnchorNode')) return; // Doubling up on the early return above! Ignoring every just created anchorNode
+            if (_wq(anchorNode).get('isAnchorNode')) return; // Doubling up on the early return above! Ignoring every just created anchorNode
             const reviver = window.document.createElement('div');
             reviver.innerHTML = anchorNode.nodeValue;
             reviver.innerHTML = reviver.firstChild.textContent;

@@ -3,7 +3,7 @@
  * @imports
  */
 import DOMNamingContext from './DOMNamingContext.js';
-import { _, _init, _splitOuter, _fromHash, _toHash, getInternalAttrInteraction, internalAttrInteraction } from '../util.js';
+import { _wq, _init, _splitOuter, _fromHash, _toHash, getInternalAttrInteraction, internalAttrInteraction } from '../util.js';
 
 /**
  * @init
@@ -119,15 +119,15 @@ export function rewriteSelector( selectorText, namespaceUUID, scopeSelector = nu
  */
 export function getOwnNamespaceObject( node ) {
 	const window = this;
-	if ( !_( node ).has( 'namespace' ) ) {
+	if ( !_wq( node ).has( 'namespace' ) ) {
 		const namespaceObj = Object.create( null );
-		_( node ).set( 'namespace', namespaceObj );
+		_wq( node ).set( 'namespace', namespaceObj );
 		const isDocumentRoot = [ window.Document, window.ShadowRoot ].some( x => node instanceof x );
 		Object.defineProperty( namespaceObj, Symbol.toStringTag, { get() {
 			return isDocumentRoot ? 'RootNamespaceRegistry' : 'NamespaceRegistry';
 		} } );
 	}
-	return _( node ).get( 'namespace' );
+	return _wq( node ).get( 'namespace' );
 }
 
 /**
@@ -194,8 +194,8 @@ function realtime( config ) {
 	const relMap = { id: 'id'/* just in case it's in attrList */, for: 'htmlFor', 'aria-owns': 'ariaOwns', 'aria-controls': 'ariaControls', 'aria-labelledby': 'ariaLabelledBy', 'aria-describedby': 'ariaDescribedBy', 'aria-flowto': 'ariaFlowto', 'aria-activedescendant': 'ariaActiveDescendant', 'aria-details': 'ariaDetails', 'aria-errormessage': 'ariaErrorMessage' };
 	const $lidUtil = lidUtil( config );
 	const uuidsToLidrefs = ( node, attrName, getter ) => {
-		if ( !getInternalAttrInteraction( node, attrName ) && _( node, 'attrOriginals' ).has( attrName ) ) {
-			return _( node, 'attrOriginals' ).get( attrName );
+		if ( !getInternalAttrInteraction( node, attrName ) && _wq( node, 'attrOriginals' ).has( attrName ) ) {
+			return _wq( node, 'attrOriginals' ).get( attrName );
 		}
 		const value = getter();
 		if ( getInternalAttrInteraction( node, attrName ) ) return value;
@@ -220,7 +220,7 @@ function realtime( config ) {
 	const getAttributeDescr = Object.getOwnPropertyDescriptor( window.Element.prototype, 'getAttribute' );
 	Object.defineProperty( window.Element.prototype, 'getAttribute', { ...getAttributeDescr, value( attrName ) {
 		const getter = () => getAttributeDescr.value.call( this, attrName );
-		return attrList.includes( attrName ) && !_( this, 'lock' ).get( attrName ) ? uuidsToLidrefs( this, attrName, getter ) : getter();
+		return attrList.includes( attrName ) && !_wq( this, 'lock' ).get( attrName ) ? uuidsToLidrefs( this, attrName, getter ) : getter();
 	} } );
 	// Hide implementation details on the Attr node too.
 	const propertyDescr = Object.getOwnPropertyDescriptor( window.Attr.prototype, 'value' );
@@ -277,11 +277,11 @@ function realtime( config ) {
 					Observer.set( namespaceObj, id, entry );
 				}
 			} else {
-				_( entry, 'attrOriginals' ).set( attrName, value ); // Save original before rewrite
+				_wq( entry, 'attrOriginals' ).set( attrName, value ); // Save original before rewrite
 				const newAttrValue = value.split( ' ' ).map( idref => ( idref = idref.trim() ) && $lidUtil.isUuid( idref ) ? idref : $lidUtil.toUuid( namespaceUUID, idref ) ).join( ' ' );
 				entry.setAttribute( attrName, newAttrValue );
-				_( namespaceObj ).set( 'idrefs', _( namespaceObj ).get( 'idrefs' ) || new Set );
-				_( namespaceObj ).get( 'idrefs' ).add( entry );
+				_wq( namespaceObj ).set( 'idrefs', _wq( namespaceObj ).get( 'idrefs' ) || new Set );
+				_wq( namespaceObj ).get( 'idrefs' ).add( entry );
 			}
 		} );
 	};
@@ -295,9 +295,9 @@ function realtime( config ) {
 					Observer.deleteProperty( namespaceObj, id );
 				}
 			} else {
-				const newAttrValue = _( entry, 'attrOriginals' ).get( attrName );// oldValue.split( ' ' ).map( lid => ( lid = lid.trim() ) && $lidUtil.uuidToLidref( lid ) ).join( ' ' );
+				const newAttrValue = _wq( entry, 'attrOriginals' ).get( attrName );// oldValue.split( ' ' ).map( lid => ( lid = lid.trim() ) && $lidUtil.uuidToLidref( lid ) ).join( ' ' );
 				if ( entry.hasAttribute( attrName ) ) entry.setAttribute( attrName, newAttrValue );
-				_( namespaceObj ).get( 'idrefs' )?.delete( entry );
+				_wq( namespaceObj ).get( 'idrefs' )?.delete( entry );
 			}
 		} );
 	};
@@ -310,13 +310,13 @@ function realtime( config ) {
 			if ( !entry.hasAttribute( attrName ) ) return;
 			const attrValue = () => entry.getAttribute( attrName );
 			cleanupBinding( entry, attrName, attrValue/* Current resolved value as-is */, oldNamespaceObj );
-			if ( entry.isConnected ) { setupBinding( entry, attrName, _( entry, 'attrOriginals' ).get( attrName )/* Saved original value */ || attrValue/* Lest it's ID */, newNamespaceObj ); }
+			if ( entry.isConnected ) { setupBinding( entry, attrName, _wq( entry, 'attrOriginals' ).get( attrName )/* Saved original value */ || attrValue/* Lest it's ID */, newNamespaceObj ); }
 		};
         record.exits.forEach( entry => {
 			if ( entry.isConnected ) {
 				const namespaceObj = getOwnNamespaceObject.call( window, entry );
 				// Detach ID and IDREF associations
-				for ( const node of new Set( [ ...Object.values( namespaceObj ), ...( _( namespaceObj ).get( 'idrefs' ) || [] ) ] ) ) {
+				for ( const node of new Set( [ ...Object.values( namespaceObj ), ...( _wq( namespaceObj ).get( 'idrefs' ) || [] ) ] ) ) {
 					for ( const attrName of attrList ) { reAssociate( node, attrName, namespaceObj ); }
 				}
 			}
@@ -330,7 +330,7 @@ function realtime( config ) {
 			// Claim ID and IDREF associations
 			let newSuperNamespaceObj;
 			const superNamespaceObj = getOwnerNamespaceObject.call( window, entry, true );
-			for ( const node of new Set( [ ...Object.values( superNamespaceObj ), ...( _( superNamespaceObj ).get( 'idrefs' ) || [] ) ] ) ) {
+			for ( const node of new Set( [ ...Object.values( superNamespaceObj ), ...( _wq( superNamespaceObj ).get( 'idrefs' ) || [] ) ] ) ) {
 				if ( ( newSuperNamespaceObj = getOwnerNamespaceObject.call( window, node, true ) ) === superNamespaceObj ) continue;
 				for ( const attrName of attrList ) { reAssociate( node, attrName, superNamespaceObj, newSuperNamespaceObj ); }
 			}

@@ -3,7 +3,7 @@
  * @imports
  */
 import HTMLImportsContext from './HTMLImportsContext.js';
-import { _, env } from '../util.js';
+import { _wq, env } from '../util.js';
 
 /**
  * Creates the HTMLImportElement class.
@@ -27,7 +27,7 @@ export default function() {
          */
         static instance( node ) {
             if ( configs.HTML_IMPORTS.elements.import.includes( '-' ) && ( node instanceof this ) )  return node;
-            return _( node ).get( 'import::instance' ) || new this( node );
+            return _wq( node ).get( 'import::instance' ) || new this( node );
         }
 
         /**
@@ -37,7 +37,7 @@ export default function() {
             super();
             // --------
             const el = args[ 0 ] || this;
-            _( el ).set( 'import::instance', this );
+            _wq( el ).set( 'import::instance', this );
             Object.defineProperty( this, 'el', { get: () => el, configurable: false } );
 
             const priv = {};
@@ -83,8 +83,8 @@ export default function() {
                     slottedElements.forEach( ( slottedElement, i ) => {
                         const tagName = slottedElement.tagName, fragmentDef = slottedElement.getAttribute( configs.HTML_IMPORTS.attr.fragmentdef ) || '';
                         const originalsMatch = ( i ++, identifiersMap.find( fragmentIdentifiers => fragmentIdentifiers.tagName === tagName && fragmentIdentifiers.fragmentDef === fragmentDef && fragmentIdentifiers.i === i ) );
-                        if ( originalsMatch ) _( slottedElement ).set( 'original@imports', originalsMatch.el ); // Or should we throw integrity error here?
-                        _( slottedElement ).set( 'slot@imports', this.el );
+                        if ( originalsMatch ) _wq( slottedElement ).set( 'original@imports', originalsMatch.el ); // Or should we throw integrity error here?
+                        _wq( slottedElement ).set( 'slot@imports', this.el );
                         priv.slottedElements.add( slottedElement );
                     } );
                     priv.originalsRemapped = true;
@@ -105,7 +105,7 @@ export default function() {
                 if ( !priv.slottedElements.size ) return restore();
                 const autoRestoreRealtime = realdom.realtime( priv.anchorNode.parentNode ).observe( [ ...priv.slottedElements ], record => {
                     record.exits.forEach( outgoingNode => {
-                        _( outgoingNode ).delete( 'slot@imports' );
+                        _wq( outgoingNode ).delete( 'slot@imports' );
                         priv.slottedElements.delete( outgoingNode );
                     } );
                     if ( !priv.slottedElements.size ) {
@@ -139,7 +139,7 @@ export default function() {
             const escapeElement = window.document.createElement( 'div' );
             escapeElement.textContent = this.el.outerHTML;
             const anchorNode = window.document.createComment( escapeElement.innerHTML );
-            _( anchorNode ).set( 'isAnchorNode', true );
+            _wq( anchorNode ).set( 'isAnchorNode', true );
             return anchorNode;
         }
 
@@ -160,7 +160,7 @@ export default function() {
             this.el.setAttribute( 'data-nodecount', slottableElements.size );
             this[ '#' ].autoRestore( () => {
                 this[ '#' ].slottedElements.forEach( slottedElement => {
-                    const slottedElementOriginal = _( slottedElement ).get( 'original@imports' );
+                    const slottedElementOriginal = _wq( slottedElement ).get( 'original@imports' );
                     // If still available in source, simply leave unchanged
                     // otherwise remove it from slot... to reflect this change
                     if ( slottableElements.has( slottedElementOriginal ) ) {
@@ -187,8 +187,8 @@ export default function() {
                     if ( !slottableElementClone.hasAttribute( configs.HTML_IMPORTS.attr.fragmentdef ) ) {
                         slottableElementClone.toggleAttribute( configs.HTML_IMPORTS.attr.fragmentdef, true );
                     }
-                    _( slottableElementClone ).set( 'original@imports', slottableElement );
-                    _( slottableElementClone ).set( 'slot@imports', this.el );
+                    _wq( slottableElementClone ).set( 'original@imports', slottableElement );
+                    _wq( slottableElementClone ).set( 'slot@imports', this.el );
                     this[ '#' ].slottedElements.add( slottableElementClone );
                     this[ '#' ].anchorNode.before( slottableElementClone );
                 } );

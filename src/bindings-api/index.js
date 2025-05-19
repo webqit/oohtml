@@ -3,7 +3,7 @@
  * @imports
  */
 import DOMBindingsContext from './DOMBindingsContext.js';
-import { _, _init, _splitOuter } from '../util.js';
+import { _wq, _init, _splitOuter } from '../util.js';
 
 /**
  * @init
@@ -28,9 +28,9 @@ export default function init( $config = {} ) {
  */
 function getBindings( config, node ) {
     const window = this, { webqit: { Observer, oohtml: { configs: { CONTEXT_API: ctxConfig } } } } = window;
-	if ( !_( node ).has( 'bindings' ) ) {
+	if ( !_wq( node ).has( 'bindings' ) ) {
 		const bindingsObj = Object.create( null );
-		_( node ).set( 'bindings', bindingsObj );
+		_wq( node ).set( 'bindings', bindingsObj );
         Observer.observe( bindingsObj, mutations => {
             if ( node instanceof window.Element ) {
                 const bindingsParse = parseBindingsAttr( node.getAttribute( config.attr.bindingsreflection ) || '' );
@@ -57,7 +57,7 @@ function getBindings( config, node ) {
             }
         } );
 	}
-	return _( node ).get( 'bindings' );
+	return _wq( node ).get( 'bindings' );
 }
 
 /**

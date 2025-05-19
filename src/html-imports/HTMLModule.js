@@ -3,7 +3,7 @@
  * @imports
  */
 import { getDefs } from './index.js';
-import { _, env } from '../util.js';
+import { _wq, env } from '../util.js';
 
 export default class HTMLModule {
 
@@ -11,7 +11,7 @@ export default class HTMLModule {
      * @instance
      */
     static instance( host ) {
-        return _( host ).get( 'defsmanager::instance' ) || new this( host );
+        return _wq( host ).get( 'defsmanager::instance' ) || new this( host );
     }
 
     /**
@@ -19,8 +19,8 @@ export default class HTMLModule {
      */
     constructor( host, parent = null, level = 0 ) {
         const { window } = env, { webqit: { realdom, oohtml: { configs } } } = window;
-        _( host ).get( `defsmanager::instance` )?.dispose();
-        _( host ).set( `defsmanager::instance`, this );
+        _wq( host ).get( `defsmanager::instance` )?.dispose();
+        _wq( host ).set( `defsmanager::instance`, this );
         this.window = window;
         this.host = host;
         this.config = configs.HTML_IMPORTS;

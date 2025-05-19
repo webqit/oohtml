@@ -3,7 +3,7 @@
  * @imports
  */
 import { resolveParams } from '@webqit/quantum-js/params';
-import { _, _init, _toHash, _fromHash } from '../util.js';
+import { _wq, _init, _toHash, _fromHash } from '../util.js';
 
 /**
  * @init
@@ -72,10 +72,10 @@ async function execute( config, execHash ) {
     }
     // Execute and save state
     const varScope = script.scoped ? thisContext : script.getRootNode();
-    if ( !_( varScope ).has( 'scriptEnv' ) ) {
-        _( varScope ).set( 'scriptEnv', Object.create( null ) );
+    if ( !_wq( varScope ).has( 'scriptEnv' ) ) {
+        _wq( varScope ).set( 'scriptEnv', Object.create( null ) );
     }
-    const state = await ( await compiledScript.bind( thisContext, _( varScope ).get( 'scriptEnv' ) ) ).execute();
+    const state = await ( await compiledScript.bind( thisContext, _wq( varScope ).get( 'scriptEnv' ) ) ).execute();
     if ( script.quantum ) { Object.defineProperty( script, 'state', { value: state } ); }
     realdom.realtime( window.document ).observe( script, () => {
         if ( script.quantum ) { state.dispose(); }

@@ -15,15 +15,15 @@ export default class DOMContexts {
      * @instance
      */
     static instance( host ) {
-        return _( host ).get( 'contexts::instance' ) || new this( host );;
+        return _wq( host ).get( 'contexts::instance' ) || new this( host );;
     }
 
     /**
      * @constructor
      */
     constructor( host ) {
-        _( host ).get( `contexts::instance` )?.dispose();
-        _( host ).set( `contexts::instance`, this );
+        _wq( host ).get( `contexts::instance` )?.dispose();
+        _wq( host ).set( `contexts::instance`, this );
         const priv = { host, contexts: new Set };
         Object.defineProperty( this, '#', { get: () => priv } );
     }
