@@ -6,7 +6,7 @@ import _DOMContextRequestEvent from './_DOMContextRequestEvent.js';
 import DOMContextResponse from './DOMContextResponse.js';
 import DOMContext from './DOMContext.js';
 import DuplicateContextError from './DuplicateContextError.js';
-import { _ } from '../util.js';
+import { _wq } from '../util.js';
 
 const waitListMappings = new Map;
 export default class DOMContexts {

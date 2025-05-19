@@ -99,7 +99,7 @@ function applyBindings( config, target, bindings, { merge, diff, publish, namesp
     const window = this, { webqit: { Observer } } = window;
     const bindingsObj = getBindings.call( this, config, target );
     const $params = { diff, namespace, detail: { publish } };
-    const exitingKeys = merge ? [] : Observer.ownKeys( bindingsObj, $params ).filter( key => !( key in bindings ) );
+    const exitingKeys = merge ? [] : Object.keys( bindingsObj, $params ).filter( key => !( key in bindings ) );
     return Observer.batch( bindingsObj, () => {
         if ( exitingKeys.length ) { Observer.deleteProperties( bindingsObj, exitingKeys, $params ); }
         return Observer.set( bindingsObj, bindings, $params );
