@@ -228,10 +228,10 @@ function compileInlineBindings( config, str ) {
                     ${ indices ? `let ${ indices } = -1;` : '' }
                     for ( let ${ production[ 0 ] } ${ kind } $iteratee__ ) {
                         ${ indices ? `${ indices } ++;` : '' }
-                        ${ kind === 'in' && production[ 1 ] ? `let ${ production[ 1 ] } = $iteratee__[ ${ production[ 0 ] } ];` : '' }
-                        const $itemBinding__ = { ${ production.join( ', ' ) } };
+                        ${ kind === 'in' && production[ 1 ] ? `let /*value*/${ production[ 1 ] } = $iteratee__[ ${ production[ 0 ] } ];` : '' }
+                        let $itemBinding__ = { ${ production.join( ', ' ) } };
                         
-                        const $key___ = ( ${ kind === 'in' ? production[ 0 ] : indices } ) + '';
+                        let $key___ = ( ${ kind === 'in' ? production[ 0 ] : indices } ) + '';
                         let $itemNode__ = $existing__.get( $key___ );
                         if ( $itemNode__ ) {
                             $existing__.delete( $key___ );

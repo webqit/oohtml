@@ -369,8 +369,12 @@ function realtime( config ) {
 	// Attr realtime
 	realdom.realtime( window.document, 'attr' ).observe( attrList, records => {
 		for ( const record of records ) {
-			if ( record.oldValue ) { cleanupBinding( record.target, record.name, record.oldValue/* Current resolved value as-is */ ); }
-			if ( record.value ) { setupBinding( record.target, record.name, record.value/* Raw value (as-is) that will be saved as original */ ); }
+			if ( record.oldValue && record.value !== record.oldValue ) {
+				cleanupBinding( record.target, record.name, record.oldValue/* Current resolved value as-is */ );
+			}
+			if ( record.value && record.value !== record.oldValue ) {
+				setupBinding( record.target, record.name, record.value/* Raw value (as-is) that will be saved as original */ );
+			}
 		}
 	}, { id: 'namespace-html:attr(attrs)', subtree: 'cross-roots', timing: 'sync', newValue: true, oldValue: true } );
 
