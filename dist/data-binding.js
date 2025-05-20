@@ -14,7 +14,7 @@
                         ${b==="in"&&d[1]?`let /*value*/${d[1]} = $iteratee__[ ${d[0]} ];`:""}
                         let $itemBinding__ = { ${d.join(", ")} };
                         
-                        let $key___ = ( ${b==="in"?d[0]:A} ) + '';
+                        const $key___ = ( ${b==="in"?d[0]:A} ) + '';
                         let $itemNode__ = $existing__.get( $key___ );
                         if ( $itemNode__ ) {
                             $existing__.delete( $key___ );

@@ -231,7 +231,7 @@ function compileInlineBindings( config, str ) {
                         ${ kind === 'in' && production[ 1 ] ? `let /*value*/${ production[ 1 ] } = $iteratee__[ ${ production[ 0 ] } ];` : '' }
                         let $itemBinding__ = { ${ production.join( ', ' ) } };
                         
-                        let $key___ = ( ${ kind === 'in' ? production[ 0 ] : indices } ) + '';
+                        const $key___ = ( ${ kind === 'in' ? production[ 0 ] : indices } ) + '';
                         let $itemNode__ = $existing__.get( $key___ );
                         if ( $itemNode__ ) {
                             $existing__.delete( $key___ );
