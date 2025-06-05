@@ -71,7 +71,7 @@ export default class HTMLModule {
         const { window } = env, { webqit: { Observer } } = window;
         let dirty, allFragments = this.defs[ '#' ] || [];
         entries.forEach( entry => {
-            if ( entry.nodeType !== 1 ) return;
+            if ( !entry || entry.nodeType !== 1 ) return;
             const isTemplate = entry.matches( this.config.templateSelector );
             const defId = ( entry.getAttribute( isTemplate ? this.config.attr.def : this.config.attr.fragmentdef ) || '' ).trim();
             if ( isConnected ) {
@@ -133,13 +133,20 @@ export default class HTMLModule {
      *
      * @return Promise
      */
+    #fetchedURLs = new Set;
+    #fetchInFlight;
     load( src ) {
         const { window } = env;
-        if ( this.host.content.children.length ) return Promise.resolve();
+        if ( this.#fetchedURLs.has( src ) ) {
+            // Cache busting is needed to 
+            return Promise.resolve();
+        }
+        this.#fetchedURLs.add( src );
+        if ( this.#fetchedURLs.size === 1 && this.host.content.children.length ) {
+            return Promise.resolve();
+        }
         // Ongoing request?
-        if ( this.fetchInFlight?.src === src ) return this.fetchInFlight.request;
-        this.fetchInFlight?.controller.abort();
-
+        this.#fetchInFlight?.controller.abort();
         // The promise
         const controller = new AbortController();
         const fire = ( type, detail ) => this.host.dispatchEvent( new window.CustomEvent( type, { detail } ) );
@@ -151,11 +158,11 @@ export default class HTMLModule {
             return this.host;
         } ).catch( e => {
             console.error( `Error fetching the bundle at "${ src }": ${ e.message }` );
-            this.fetchInFlight = null;
+            this.#fetchInFlight = null;
             fire( 'loaderror' );
             return this.host;
         } );
-        this.fetchInFlight = { src, request, controller };
+        this.#fetchInFlight = { request, controller };
         return request;
     }
 
