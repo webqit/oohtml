@@ -31,8 +31,8 @@ export default class HTMLModule {
         this.validateDefId( this.defId );
         // ----------
         this.realtimeA = realdom.realtime( this.host.content ).children( record => {
+            this.expose( record.exits, false ); // Must come first
             this.expose( record.entrants, true );
-            this.expose( record.exits, false );
         }, { live: true, timing: 'sync' } );
         // ----------
         this.realtimeB = realdom.realtime( this.host ).attr( [ 'src', 'loading' ], ( ...args ) => this.evaluateLoading( ...args ), {
