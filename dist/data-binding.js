@@ -2,7 +2,6 @@
                 let $iteratee__ = ${D};
                 let $import__ = this.${n.HTML_IMPORTS.api.import}( ${y.trim()}, true );
                 this.$oohtml_internal_databinding_signals?.push( $import__ );
-
                 if ( $import__.value && $iteratee__ ) {
                     let $existing__ = new Map;
                     [ ...this.children ].filter( el => el.matches( '[${n.attr.itemIndex}]' ) ).forEach( x => {

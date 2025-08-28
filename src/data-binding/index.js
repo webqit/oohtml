@@ -219,7 +219,6 @@ function compileInlineBindings( config, str ) {
                 let $iteratee__ = ${ iteratee };
                 let $import__ = this.${ config.HTML_IMPORTS.api.import }( ${ importSpec.trim() }, true );
                 this.$oohtml_internal_databinding_signals?.push( $import__ );
-
                 if ( $import__.value && $iteratee__ ) {
                     let $existing__ = new Map;
                     [ ...this.children ].filter( el => el.matches( '[${ config.attr.itemIndex }]' ) ).forEach( x => {
