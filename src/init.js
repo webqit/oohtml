@@ -13,9 +13,9 @@ import ScopedCSS from './scoped-css/index.js';
 /**
  * @init
  */
-export default function init( QuantumJS, configs = {} ) {
+export default function init( UseLive, configs = {} ) {
     if ( !this.webqit ) { this.webqit = {}; }
-    Object.assign( this.webqit, QuantumJS );
+    Object.assign( this.webqit, UseLive );
     // --------------
     ContextAPI.call( this, ( configs.CONTEXT_API || {} ) );
     BindingsAPI.call( this, ( configs.BINDINGS_API || {} ) ); // Depends on ContextAPI

@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../d.js"],
+  "sourcesContent": ["console.log('hello', import.meta.url);"],
+  "mappings": "AAAA,QAAQ,IAAI,QAAS,YAAY,GAAG",
+  "names": []
+}

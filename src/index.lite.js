@@ -1,11 +1,4 @@
-
-/**
- * @imports
- */
-import * as QuantumJS from '@webqit/quantum-js/lite';
+import * as UseLive from '@webqit/use-live';
 import init from './init.js';
 
-/**
- * @init
- */
-init.call( window, QuantumJS );
+init.call( window, UseLive );

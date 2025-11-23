@@ -1,15 +1,6 @@
-
-/**
- * @imports
- */
-import { resolveParams } from '@webqit/quantum-js/params';
+import { resolveParams } from '@webqit/use-live/params';
 import { _wq, _init, _toHash, _fromHash } from '../util.js';
 
-/**
- * @init
- * 
- * @param Object $config
- */
 export default function init({ advanced = {}, ...$config }) {
     const { config, window } = _init.call( this, 'scoped-js', $config, {
         script: { retention: 'retain', mimeTypes: 'module|text/javascript|application/javascript', timing: 'auto' },
@@ -26,15 +17,9 @@ export default function init({ advanced = {}, ...$config }) {
     realtime.call( window, config );
 }
 
-/**
- * Exposes Bindings with native APIs.
- *
- * @param Object config
- *
- * @return Void
- */
 function exposeAPIs( config ) {
-    const window = this, scriptsMap = new Map;
+    const window = this, { webqit: { nextKeyword, matchPrologDirective } } = window;
+    const scriptsMap = new Map;
     if ( config.api.scripts in window.Element.prototype ) { throw new Error( `The "Element" class already has a "${ config.api.scripts }" property!` ); }
     [ window.ShadowRoot.prototype, window.Element.prototype ].forEach( proto => {
         Object.defineProperty( proto, config.api.scripts, { get: function() {
@@ -48,10 +33,13 @@ function exposeAPIs( config ) {
             get() { return this.hasAttribute( 'scoped' ); },
             set( value ) { this.toggleAttribute( 'scoped', value ); },
         },
-        quantum: {
+        live: {
             configurable: true,
-            get() { return this.hasAttribute( 'quantum' ); },
-            set( value ) { this.toggleAttribute( 'quantum', value ); },
+            get() {
+                if (this.liveMode) return true;
+                const scriptContents = nextKeyword(this.oohtml__textContent || this.textContent || '', 0, 0);
+                return matchPrologDirective(scriptContents, true);
+            },
         },
     } );
 }
@@ -68,28 +56,23 @@ async function execute( config, execHash ) {
     } else if ( config.script.retention === 'hidden' ) {
         script.textContent = `"source hidden"`;
     } else {
-        script.textContent = await compiledScript.toString();
+        setTimeout(async () => {
+            script.textContent = await compiledScript.toString();
+        }, 0); //Anti-eval hack
     }
     // Execute and save state
     const varScope = script.scoped ? thisContext : script.getRootNode();
     if ( !_wq( varScope ).has( 'scriptEnv' ) ) {
         _wq( varScope ).set( 'scriptEnv', Object.create( null ) );
     }
-    const state = await ( await compiledScript.bind( thisContext, _wq( varScope ).get( 'scriptEnv' ) ) ).execute();
-    if ( script.quantum ) { Object.defineProperty( script, 'state', { value: state } ); }
+    const liveMode = await ( await compiledScript.bind( thisContext, _wq( varScope ).get( 'scriptEnv' ) ) ).execute();
+    if ( script.live ) { Object.defineProperty( script, 'liveMode', { value: liveMode } ); }
     realdom.realtime( window.document ).observe( script, () => {
-        if ( script.quantum ) { state.dispose(); }
+        if ( script.live ) { liveMode.abort(); }
         if ( thisContext instanceof window.Element ) { thisContext[ config.api.scripts ]?.splice( thisContext[ config.api.scripts ].indexOf( script, 1 ) ); }
     }, { id: 'scoped-js:script-exits', subtree: 'cross-roots', timing: 'sync', generation: 'exits' } );
 }
 
-/**
- * Performs realtime capture of elements and builds their relationships.
- *
- * @param Object config
- *
- * @return Void
- */
 function realtime( config ) {
     const inBrowser = Object.getOwnPropertyDescriptor( globalThis, 'window' )?.get?.toString().includes( '[native code]' ) ?? false;
     const window = this, { webqit: { oohtml, realdom } } = window;
@@ -97,7 +80,7 @@ function realtime( config ) {
     const handled = new WeakSet;
     realdom.realtime( window.document ).query( config.scriptSelector, record => {
         record.entrants.forEach( script => {
-            if ( handled.has( script ) || (!inBrowser && !script.hasAttribute('ssr')) ) return;
+            if ( handled.has( script ) || script.hasAttribute('oohtmlno') || (!inBrowser && !script.hasAttribute('ssr')) ) return;
             // Do compilation
             const compiledScript = compileScript.call( window, config, script );
             if ( !compiledScript ) return;
@@ -116,18 +99,25 @@ function realtime( config ) {
 }
 
 function compileScript( config, script ) {
-    const window = this, { webqit: { oohtml, QuantumScript, AsyncQuantumScript, QuantumModule } } = window;
-    const textContent = ( script._ = script.textContent.trim() ) && script._.startsWith( '/*@oohtml*/if(false){' ) && script._.endsWith( '}/*@oohtml*/' ) ? script._.slice( 21, -12 ) : script.textContent;
+    const window = this, { webqit: { oohtml, LiveScript, AsyncLiveScript, LiveModule } } = window;
+    
+    let textContent = script.textContent.trim();
+    if ( textContent.startsWith( '/*@oohtml*/if(false){' ) && textContent.endsWith( '}/*@oohtml*/' ) ) {
+        textContent = textContent.slice( 21, -12 );
+        Object.defineProperty( script, 'oohtml__textContent', { value: textContent } );
+    }
     if ( !textContent.trim().length ) return;
+
     const sourceHash = _toHash( textContent );
-    const compileCache = oohtml.Script.compileCache[ script.quantum ? 0 : 1 ];
+    const compileCache = oohtml.Script.compileCache[ script.live ? 0 : 1 ];
     let compiledScript;
     if ( !( compiledScript = compileCache.get( sourceHash ) ) ) {
         const { parserParams, compilerParams, runtimeParams } = config.advanced;
-        compiledScript = new ( script.type === 'module' ? QuantumModule : ( QuantumScript || AsyncQuantumScript ) )( textContent, {
+        compiledScript = new ( script.type === 'module' ? LiveModule : ( LiveScript || AsyncLiveScript ) )( textContent, {
+            liveMode: script.live,
             exportNamespace: `#${ script.id }`,
             fileName: `${ window.document.url?.split( '#' )?.[ 0 ] || '' }#${ script.id }`,
-            parserParams: { ...parserParams, executionMode: script.quantum && 'QuantumProgram' || 'RegularProgram' },
+            parserParams,
             compilerParams,
             runtimeParams,
         } );

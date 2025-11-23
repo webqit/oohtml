@@ -209,7 +209,7 @@ function realtime( config ) {
 	} } );
 	// Intercept querySelector() and querySelectorAll()
 	for ( const queryApi of [ 'querySelector', 'querySelectorAll' ] ) {
-		for ( nodeApi of [ window.Document, window.Element ] ) {
+		for ( const nodeApi of [ window.Document, window.Element ] ) {
 			const querySelectorDescr = Object.getOwnPropertyDescriptor( nodeApi.prototype, queryApi );
 			Object.defineProperty( nodeApi.prototype, queryApi, { ...querySelectorDescr, value( selector ) {
 				return querySelectorDescr.value.call( this, rewriteSelector.call( window, selector, getNamespaceUUID( getOwnNamespaceObject.call( window, this ) ) ) );

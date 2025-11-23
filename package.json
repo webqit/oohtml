@@ -32,19 +32,18 @@
   },
   "scripts": {
     "test": "mocha --extension .test.js --exit",
-    "test:coverage": "c8 --reporter=text-lcov npm run test | coveralls",
-    "build": "esbuild main=src/index.js main.lite=src/index.lite.js context-api=src/context-api/targets.browser.js bindings-api=src/bindings-api/targets.browser.js namespaced-html=src/namespaced-html/targets.browser.js html-imports=src/html-imports/targets.browser.js data-binding=src/data-binding/targets.browser.js scoped-css=src/scoped-css/targets.browser.js scoped-js=src/scoped-js/targets.browser.js --bundle --minify --sourcemap --outdir=dist",
-    "preversion": "npm test && npm run build && git add -A dist",
-    "postversion": "npm publish",
-    "postpublish": "git push && git push --tags"
+    "build": "esbuild main=src/index.js main.lite=src/index.lite.js context-api=src/context-api/targets.browser.js bindings-api=src/bindings-api/targets.browser.js namespaced-html=src/namespaced-html/targets.browser.js html-imports=src/html-imports/targets.browser.js data-binding=src/data-binding/targets.browser.js scoped-css=src/scoped-css/targets.browser.js scoped-js=src/scoped-js/targets.browser.js --bundle --format=esm --minify --sourcemap --outdir=dist",
+    "preversion": "npm run test && npm run build && git add -A dist",
+    "postversion": "git push && git push --tags",
+    "version:next": "npm version prerelease --preid=next"
   },
   "dependencies": {
-    "@webqit/quantum-js": "^4.6.3",
     "@webqit/realdom": "^2.1.35",
+    "@webqit/use-live": "^0.5.41",
     "@webqit/util": "^0.8.16"
   },
   "devDependencies": {
-    "@webqit/oohtml-ssr": "^2.1.1",
+    "@webqit/oohtml-ssr": "^2.2.1",
     "chai": "^4.3.4",
     "coveralls": "^3.1.1",
     "esbuild": "^0.14.43",
@@ -54,23 +53,5 @@
   "author": "Oxford Harrison <oxharris.dev@gmail.com>",
   "maintainers": [
     "Oxford Harrison <oxharris.dev@gmail.com>"
-  ],
-  "contributors": [],
-  "funding": {
-    "type": "patreon",
-    "url": "https://patreon.com/ox_harris"
-  },
-  "badges": {
-    "list": [
-      "npmversion",
-      "npmdownloads"
-    ],
-    "config": {
-      "patreonUsername": "ox_harris",
-      "githubUsername": "webqit",
-      "githubRepository": "oohtml",
-      "githubSlug": "webqit/oohtml",
-      "npmPackageName": "@webqit/oohtml"
-    }
-  }
+  ]
 }

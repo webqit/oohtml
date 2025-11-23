@@ -1,14 +1,7 @@
-import { resolveParams } from '@webqit/quantum-js/params';
+import { resolveParams } from '@webqit/use-live/params';
 import { xpathQuery } from '@webqit/realdom/src/realtime/Util.js';
 import { _wq, _init, _splitOuter } from '../util.js';
 
-/**
- * Initializes DOM Parts.
- * 
- * @param $config  Object
- *
- * @return Void
- */
 export default function init( $config = {} ) {
     const { config, window } = _init.call( this, 'data-binding', $config, {
         attr: { render: 'render', itemIndex: 'data-key' },
@@ -26,22 +19,15 @@ export default function init( $config = {} ) {
     realtime.call( window, config );
 }
 
-/**
- * Performs realtime capture of elements and their attributes
- *
- * @param Object config
- *
- * @return Void
- */
 function realtime( config ) {
     const window = this, { webqit: { realdom } } = window;
 	// ----------------
-    /**
-     * For an element, render should happen first
-    <div render="">
-        <?{ content }?>
-    </div>
-     */
+    realdom.realtime( window.document ).query( config.attrSelector, record => {
+        cleanup.call( this, ...record.exits );
+        setTimeout(() => {
+            mountInlineBindings.call( window, config, ...record.entrants );
+        }, 0);
+    }, { id: 'data-binding:attr', live: true, subtree: 'cross-roots', timing: 'sync', eventDetails: true, staticSensitivity: true } );
     realdom.realtime( window.document ).query( config.attrSelector, record => {
         cleanup.call( this, ...record.exits );
         setTimeout(() => {
@@ -157,9 +143,9 @@ function compileDiscreteBindings( config, str ) {
     let source = `let content = ((${ str }) ?? '') + '';`;
     source += `$assign__(this, 'nodeValue', content);`;
     source += `if ( this.$oohtml_internal_databinding_anchorNode ) { $assign__(this.$oohtml_internal_databinding_anchorNode, 'nodeValue', "${ config.tokens.tagStart }${ escDouble( str ) }${ config.tokens.stateStart }" + content.length + "${ config.tokens.stateEnd } ${ config.tokens.tagEnd }"); }`;
-    const { webqit: { QuantumModule } } = this;
+    const { webqit: { LiveModule } } = this;
     const { parserParams, compilerParams, runtimeParams } = config.advanced;
-    const compiled = new QuantumModule( source, { parserParams, compilerParams, runtimeParams } );
+    const compiled = new LiveModule( source, { parserParams, compilerParams, runtimeParams } );
     discreteParseCache.set( str, compiled );
     return compiled;
 }
@@ -265,9 +251,9 @@ function compileInlineBindings( config, str ) {
         }
         if ( str.trim() ) throw new Error( `Invalid binding: ${ str }.` );
     } ).join( `\n` );
-    const { webqit: { QuantumModule } } = this;
+    const { webqit: { LiveModule } } = this;
     const { parserParams, compilerParams, runtimeParams } = config.advanced;
-    const compiled = new QuantumModule( source, { parserParams, compilerParams, runtimeParams } );
+    const compiled = new LiveModule( source, { parserParams, compilerParams, runtimeParams } );
     inlineParseCache.set( str, compiled );
     return compiled;
 }

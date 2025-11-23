@@ -13,9 +13,10 @@ describe(`Test: Scoped JS`, function() {
             const head = ``;
             const body = `            
             <h1>Hello World!</h1>
-            <script scoped quantum ssr>
+            <script scoped ssr>
+                "use live";
                 testRecords.push( this );
-                console.log('-------scoped JS here.', this);
+                console.log('-------scoped JS here.');
             </script>`;
 
             const window = createDocument( head, body );
