@@ -82,7 +82,7 @@ function cleanup( ...entries ) {
         const root = node.nodeName  === '#text' ? node.parentNode : node;
         const { bindings, abortController } = _wq( root ).get( 'data-binding' ) || {};
         if ( !bindings?.has( node ) ) return;
-        bindings.get( node ).state.dispose();
+        bindings.get( node ).liveMode.abort();
         bindings.get( node ).signals?.forEach( s => s.abort() );
         bindings.delete( node );
         if ( !bindings.size ) {
@@ -130,7 +130,7 @@ async function mountDiscreteBindings( config, ...entries ) {
         const { scope, bindings } = createDynamicScope.call( this, config, textNode.parentNode );
         Object.defineProperty( textNode, '$oohtml_internal_databinding_anchorNode', { value: anchorNode, configurable: true } );
         try {
-            bindings.set( textNode, { state: await ( await compiled.bind( textNode, scope ) ).execute(), } );
+            bindings.set( textNode, { liveMode: await ( await compiled.bind( textNode, scope ) ).execute(), } );
         } catch( e ) {
             console.log(e);
         }
@@ -157,7 +157,7 @@ async function mountInlineBindings( config, ...entries ) {
         const signals = [];
         Object.defineProperty( node, '$oohtml_internal_databinding_signals', { value: signals, configurable: true } );
         try {
-            bindings.set( node, { signals, state: await ( await compiled.bind( node, scope ) ).execute(), } );
+            bindings.set( node, { signals, liveMode: await ( await compiled.bind( node, scope ) ).execute(), } );
         } catch( e ) {
             console.log(e);
         }
