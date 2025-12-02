@@ -419,7 +419,7 @@ This README introduces the ideas.
 The full reference each lives in the Wiki.
 
 | Capability                  | Description                                                                                                                                       | Reference                                                                                |
-| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| :-------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------ | :--------------------------------------------------------------------------------------- |
 | **HTML Imports**            | Declarative & imperative module imports (`<template def>` · `<import ref>`) including remote modules, inheritance, contexts, and live resolution. | [HTML Imports](https://github.com/webqit/oohtml/wiki/HTML-Imports)                       |
 | **Data Binding**            | Comment-based bindings (`<?{ }?>`), attribute-based bindings (`render="…”`), list rendering, and runtime updates.                                 | [Data Binding](https://github.com/webqit/oohtml/wiki/Data-Binding)                       |
 | **Scoped Styles & Scripts** | Component-local `<style scoped>` and `<script scoped>` with DOM-attached execution semantics.                                                     | [Scoped Styles & Scripts](https://github.com/webqit/oohtml/wiki/Scoped-Styles-&-Scripts) |
@@ -436,7 +436,7 @@ The full reference each lives in the Wiki.
 
 OOHTML can be used in two ways:
 
-- Directly in the browser, by including a client-side script
+- Directly in the browser, via a client-side script
 - Via npm – for integration with bundlers, jsdom, SSR, etc.
 
 ### 1. Browser Setup
@@ -460,8 +460,8 @@ OOHTML needs to be present **while** the document is parsed so it can activate t
 
 OOHTML ships with two builds:
 
-* **`main.lite.js`** – the *lite* edition; the default and recommended. Provides async execution for scoped scripts and is ideal for web pages.
-* **`main.js`** – the *full* edition; only needed when you require synchronous script timing for scoped scripts and "live" scripts.
+* **`main.lite.js`** – the *lite* edition; the default and recommended. Provides async execution for scoped scripts and "live" scripts.
+* **`main.js`** – the *full* edition; needed when you require synchronous script timing for scoped scripts and "live" scripts.
 
 ### 2. Via npm
 
@@ -482,7 +482,7 @@ init.call(window, UseLive/*, options */);
 
 #### SSR with jsdom
 
-For pure server-side operations and SSR, install `jsdom` and use its `window` as OOHTML's `window` option:
+For pure server-side operations and SSR, install `jsdom` and use its `window` object as OOHTML's `window` option:
 
 ```js
 import { JSDOM } from "jsdom";
