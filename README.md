@@ -16,15 +16,15 @@ It comes as a script that plugs diretly into the DOM and have new semantics take
 
 ## Capabilities
 
-### `1. |` A component system
+### `1 | ` A component system
 
 OOHTML enables a simple "define-and-use" system in HTML that is based on two complementary elements — the `<template>` and `<import>` elements. It makes it really easy to share repeating structures and stay organized.
 
-### `2. |` Data-binding and reactivity
+### `2 | ` Data-binding and reactivity
 
 OOHTML gives HTML the concept of data-binding (`{ expression }`) and reactivity that lets you embed application data in markup and have them stay in sync with application state. You get framework-grade reactivity without the overhead.
 
-### `3. |` New scoping behaviours
+### `3 | ` New scoping behaviours
 
 OOHTML extends the existing CSS scoping system to support the familiar `<style scoped>` syntax, introduces scoping for scripts (`<script scoped>`), and solves namespacing for IDs (`namespace`). They form a complete scoping system that is both declarative and powerful.
 
@@ -32,11 +32,11 @@ OOHTML extends the existing CSS scoping system to support the familiar `<style s
 
 All of the above can be seen in a three-step tour. Each sample document below can be previewed directly in the browser:
 
-### `1. |` Write HTML as Reusable Components
+### `1 | ` Write HTML as Reusable Components
 
 At its core, OOHTML is a component system. It lets you write HTML as reusable components.
 
-The standard `<template>` element already lets you define reusable markup. OOHTML completes the idea by introducing the `<import>` element. Together, they form a declarative component system.
+The standard `<template>` element already lets you define reusable markup. OOHTML completes the idea by introducing the `<import>` element.
 
 You write the following:
 
@@ -98,7 +98,7 @@ It resolves to the following, at runtime:
 > [!NOTE]
 > Later we'll cover the various usage patterns supported by the `<template>` and `<import>` system. We will also introduce file-based components and remote imports.
 
-### `2. |` Do Data-Binding with Standard HTML Comments
+### `2 | ` Do Data-Binding with Standard HTML Comments
 
 As a complete component system, OOHTML extends the DOM to support data-binding and reactivity.
 
@@ -165,7 +165,7 @@ It resolves to the following, at runtime:
 > [!NOTE]
 > Later we'll cover OOHTML's attribute-based binding syntax. We'll also formally introduce Mutation-Based Reactivity – the form of reactivity that OOHTML is based on.
 
-### `3. |` More Typical Usage Patterns
+### `3 | ` More Typical Usage Patterns
 
 From the component and data-binding systems above to the scoping system yet to be discussed – OOHTML's features compose nicely into various usage patterns.
 
