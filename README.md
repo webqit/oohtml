@@ -16,17 +16,25 @@ It comes as a script that plugs diretly into the DOM and have new semantics take
 
 ## Capabilities
 
-OOHTML adds three new set of capabilities to HTML:
+### A component system
 
-- **A component system**. OOHTML enables a simple "define-and-use" system in HTML that is based on two complementary elements — the `<template def>` and `<import ref>` elements. It makes it really easy to share repeating structures and stay organized.
-- **Data-binding and reactivity**. OOHTML gives HTML the concept of data-binding (`{ expression }`) and reactivity that lets you embed application data in markup and have them stay in sync with application state. You get framework-grade reactivity without the overhead.
-- **New scoping behaviours**. OOHTML extends the standard CSS scoping syntax to support the familiar `<style scoped>` syntax, introduces scoping for scripts (`<script scoped>`), and solves namespacing for IDs (`namespace`). They form a complete scoping system that is both declarative and powerful.
+OOHTML enables a simple "define-and-use" system in HTML that is based on two complementary elements — the `<template def>` and `<import ref>` elements. It makes it really easy to share repeating structures and stay organized.
+
+### Data-binding and reactivity
+
+OOHTML gives HTML the concept of data-binding (`{ expression }`) and reactivity that lets you embed application data in markup and have them stay in sync with application state. You get framework-grade reactivity without the overhead.
+
+### New scoping behaviours
+
+OOHTML extends the existing CSS scoping system to support the familiar `<style scoped>` syntax, introduces scoping for scripts (`<script scoped>`), and solves namespacing for IDs (`namespace`). They form a complete scoping system that is both declarative and powerful.
 
 ## Overview
 
 All of the above can be seen in a three-step tour. Each sample document below can be previewed directly in the browser:
 
 ### 1. Write HTML as Reusable Components
+
+A good first thing about OOHTML is its component system. It lets you write HTML as reusable components.
 
 The standard `<template>` element already lets you define reusable markup. OOHTML completes the idea by introducing the `<import>` element. Together, they form a declarative component system.
 
@@ -91,6 +99,8 @@ It resolves to the following, at runtime:
 > Later we'll cover the various usage patterns supported by the `<template>` and `<import>` system. We will also introduce file-based components and remote imports.
 
 ### 2. Do Data-Binding with Standard HTML Comments
+
+A good next thing about OOHTML is its data-binding and reactivity features.
 
 OOHTML follows the conventional syntax for data-binding — `{ expression }` — but has that written inside HTML comments: `<?{ expression }?>` or `<!--?{ expression }?-->`. These start life as normal HTML comments but render application data at runtime.
 
