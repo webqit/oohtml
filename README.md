@@ -330,7 +330,7 @@ For a quick way to see OOHTML in the Shadow DOM, we could suppose the whole of [
 <html>
   <head>
     <script src="https://unpkg.com/@webqit/oohtml/dist/main.lite.js"></script>
-    <script>
+    <script type>
         customElements.define('demo-component', class extends HTMLElement {
             constructor() {
                 super();
