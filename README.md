@@ -148,7 +148,15 @@ It resolves to the following, at runtime:
     <!-- increments live -->
 
     <script>
-      …
+      document.bind({
+        title: "Hello OOHTML",
+        content: "Pure HTML, now reactive.",
+        count: 0,
+      });
+
+      setInterval(() => {
+        document.bindings.count++;
+      }, 1000);
     </script>
   </body>
 </html>
@@ -160,7 +168,7 @@ It resolves to the following, at runtime:
     - Both styles – `<? ?>` and `<!-- -->` – are valid HTML comments and are interchangeable.
 - `document.bind({ ... })` binds data to the DOM – at the document level.
     - The data converges to `document.bindings` – a reactive data interface.
-- Embedded expressions resolve from the bound data and stay in sync with it. Changes to data are automatically reflected in the DOM.
+- Embedded expressions resolve from the bound data and stay in sync with it. Changes to data are automatically reflected in the UI.
 
 > [!NOTE]
 > Later we'll cover OOHTML's attribute-based binding syntax. We'll also formally introduce Mutation-Based Reactivity – the form of reactivity that OOHTML is based on.
@@ -169,7 +177,9 @@ It resolves to the following, at runtime:
 
 From the component and data-binding systems above to the scoping system yet to be discussed – OOHTML's features compose nicely into various usage patterns.
 
-The document below brings some of that to life:
+The document below brings some of that to life.
+
+You write:
 
 ```html
 <!DOCTYPE html>
@@ -240,13 +250,13 @@ The document below brings some of that to life:
 </html>
 ```
 
-This resolves to the following at runtime:
+It resolves to the following, at runtime:
 
 ```html
 <!DOCTYPE html>
 <html>
   <head>
-    …
+    <!-- existing contents -->
   </head>
   <body>
     <h2 id="title">Card Demo</h2>
@@ -258,10 +268,10 @@ This resolves to the following at runtime:
       <p id="body">Rendered inside the component.</p>
       <p>Local count: 0</p>
       <style scoped>
-        /* contents */
+        /* existing contents */
       </style>
       <script scoped>
-        /* contents */
+        /* existing contents */
       </script>
     </article>
 
@@ -270,17 +280,17 @@ This resolves to the following at runtime:
       <p id="body">Rendered inside the component.</p>
       <p>Local count: 0</p>
       <style scoped>
-        /* contents */
+        /* existing contents */
       </style>
       <script scoped>
-        /* contents */
+        /* existing contents */
       </script>
     </article>
 
     <p class="footer">Footer: Rendered outside the component.</p>
 
     <script>
-      /* contents */
+      /* existing contents */
     </script>
   </body>
 </html>
@@ -289,7 +299,7 @@ This resolves to the following at runtime:
 #### Up there…
 
 - We have a single component imported twice.
-- Style, script, and IDs have been scoped to the component so that repeated structures in the DOM don't collide.
+- Style, script, and IDs scoped to the component so that repeating the structure in the DOM don't create collisions.
 - Bindings resolve seamlessly inside and outside the component.
 - The template ↔ import relationship hold live as before.
     - Such that if you located the original `<template def> → <article>` element in the browser's console and deleted the node, all imports would dissolve; restored, all imports would resolve.
@@ -297,17 +307,17 @@ This resolves to the following at runtime:
 
 ## HTML for the Modern UI
 
-By simply enhancing HTML, OOHTML makes it possible to directly author modern user interfaces in HTML and effectively removes the tooling tax traditionally associated with UI development. In plaxe of a compile step, you get a back-to-the-basics experience and an edit-in-the-browser workflow.
+By simply enhancing HTML, OOHTML makes it possible to directly author modern user interfaces in HTML and effectively removes the tooling tax traditionally associated with UI development. In place of a compile step, you get a back-to-the-basics experience and an edit-in-the-browser workflow.
 
 > [!TIP]
 > In addition to inline components, OOHTML also supports file-based components. It's companion CLI tool – [OOHTML CLI](https://github.com/webqit/oohtml-cli) – lets you define your components in files and have them come together into a single file that you can directly import into your page.
 
 > [!TIP]
-> OOHTML solves the UI side of your application. You would need a framework to build a complete app with OOHTML. [Webflo](https://github.com/webqit/webflo) is a modern fullstack framework that converges on OOHTML for the UI. You even get Hot Module Replacement (HMR) on top.
+> OOHTML solves the UI side of your application. You would need a framework to build a complete app with OOHTML. [Webflo](https://github.com/webqit/webflo) is a modern fullstack framework that converges on OOHTML for the UI. You even get Hot Module Replacement (HMR) on top as you edit your HTML components.
 
 ## Not a Replacement for Shadow DOM
 
-OOHTML comes as its own addition to the DOM – alongside Web Components and Shadow DOM. Far from an Anti-Shadow DOM effort, OOHTML complements the HTML authoring experience inside the Shadow DOM itself – as it does outside of it. When used in the Shadow DOM, the Shadow DOM simply becomes the document that OOHTML sees – the Shadow Root itself (`#shadow-root`) being the new `document` object that OOHTML sees.
+OOHTML comes as its own addition to the DOM – alongside Web Components and Shadow DOM. Far from an Anti-Shadow DOM effort, OOHTML complements the HTML authoring experience inside the Shadow DOM itself – as it does outside of it. When used in the Shadow DOM, the Shadow DOM simply becomes the document that OOHTML sees – the Shadow Root itself (`#shadow-root`) being the new `document` root that OOHTML works with.
 
 Leveraging OOHTML in the Shadow DOM requires no additional step. Simply have the OOHTML script loaded in the main document as before and write.
 
@@ -328,8 +338,8 @@ For a quick way to see OOHTML in the Shadow DOM, we could suppose the whole of [
             }
             
             connectedCallback() {
+                // Shadow DOM markup
                 this.shadowRoot.innerHTML = `
-                <!-- Shadow DOM markup -->
                 <template def="card" scoped>
                 <!-- Reusable markup -->
                 <article namespace>
@@ -376,16 +386,14 @@ For a quick way to see OOHTML in the Shadow DOM, we could suppose the whole of [
                 <p class="footer">Footer: <?{ footerNote }?></p>
 
                 <scri` + `pt>
-                const _this = document.querySelector('demo-component');
-                console.log(_this.shadowRoot);
-                _this.shadowRoot.bind({
+                this.shadowRoot.bind({
                     globalTitle: "Card Demo",
                     body: "Rendered outside the component.",
                     footerNote: "Rendered outside the component.",
                     count: 0,
                 });
 
-                setInterval(() => _this.shadowRoot.bindings.count++, 2000);
+                setInterval(() => this.shadowRoot.bindings.count++, 2000);
                 </scri` + `pt>`;
             }
         });
