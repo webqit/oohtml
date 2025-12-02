@@ -1,6 +1,6 @@
 # OOHTML — _HTML for the Modern UI_
 
-[![npm version][npm-version-src]][npm-version-href][![npm downloads][npm-downloads-src]][npm-downloads-href]<!---->
+[![npm version][npm-version-src]][npm-version-href]<!--[![npm downloads][npm-downloads-src]][npm-downloads-href]-->
 [![bundle][bundle-src]][bundle-href]
 [![License][license-src]][license-href]
 
@@ -16,15 +16,15 @@ It comes as a script that plugs diretly into the DOM and have new semantics take
 
 ## Capabilities
 
-### A component system
+### `1. | ` A component system
 
 OOHTML enables a simple "define-and-use" system in HTML that is based on two complementary elements — the `<template def>` and `<import ref>` elements. It makes it really easy to share repeating structures and stay organized.
 
-### Data-binding and reactivity
+### `2. | ` Data-binding and reactivity
 
 OOHTML gives HTML the concept of data-binding (`{ expression }`) and reactivity that lets you embed application data in markup and have them stay in sync with application state. You get framework-grade reactivity without the overhead.
 
-### New scoping behaviours
+### `3. | ` New scoping behaviours
 
 OOHTML extends the existing CSS scoping system to support the familiar `<style scoped>` syntax, introduces scoping for scripts (`<script scoped>`), and solves namespacing for IDs (`namespace`). They form a complete scoping system that is both declarative and powerful.
 
@@ -32,9 +32,9 @@ OOHTML extends the existing CSS scoping system to support the familiar `<style s
 
 All of the above can be seen in a three-step tour. Each sample document below can be previewed directly in the browser:
 
-### 1. Write HTML as Reusable Components
+### `1. | ` Write HTML as Reusable Components
 
-A good first thing about OOHTML is its component system. It lets you write HTML as reusable components.
+At its core, OOHTML is a component system. It lets you write HTML as reusable components.
 
 The standard `<template>` element already lets you define reusable markup. OOHTML completes the idea by introducing the `<import>` element. Together, they form a declarative component system.
 
@@ -98,9 +98,9 @@ It resolves to the following, at runtime:
 > [!NOTE]
 > Later we'll cover the various usage patterns supported by the `<template>` and `<import>` system. We will also introduce file-based components and remote imports.
 
-### 2. Do Data-Binding with Standard HTML Comments
+### `2. | ` Do Data-Binding with Standard HTML Comments
 
-A good next thing about OOHTML is its data-binding and reactivity features.
+As a complete component system, OOHTML extends the DOM to support data-binding and reactivity.
 
 OOHTML follows the conventional syntax for data-binding — `{ expression }` — but has that written inside HTML comments: `<?{ expression }?>` or `<!--?{ expression }?-->`. These start life as normal HTML comments but render application data at runtime.
 
@@ -165,7 +165,7 @@ It resolves to the following, at runtime:
 > [!NOTE]
 > Later we'll cover OOHTML's attribute-based binding syntax. We'll also formally introduce Mutation-Based Reactivity – the form of reactivity that OOHTML is based on.
 
-### 3. More Typical Usage Patterns
+### `3. | ` More Typical Usage Patterns
 
 From the component and data-binding systems above to the scoping system yet to be discussed – OOHTML's features compose nicely into various usage patterns.
 
@@ -311,7 +311,7 @@ OOHTML comes as its own addition to the DOM – alongside Web Components and Sha
 
 Leveraging OOHTML in the Shadow DOM requires no additional step. Simply have the OOHTML script loaded in the main document as before and write.
 
-For a quick way to see OOHTML in the Shadow DOM, we could suppose the whole of [example 3](#3-more-typical-usage-patterns) above as the Shadow DOM of a certain Web Component. It would look like this:
+For a quick way to see OOHTML in the Shadow DOM, we could suppose the whole of [example 3](#3---more-typical-usage-patterns) above as the Shadow DOM of a certain Web Component. It would look like this:
 
 <details><summary>Web Component + Shadow DOM + OOHTML – (Click to show)</summary>
 
