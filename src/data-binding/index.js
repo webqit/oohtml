@@ -1,6 +1,7 @@
 import { resolveParams } from '@webqit/use-live/params';
 import { xpathQuery } from '@webqit/realdom/src/realtime/Util.js';
 import { _wq, _init, _splitOuter } from '../util.js';
+import { LiveScript } from '@webqit/use-live';
 
 export default function init( $config = {} ) {
     const { config, window } = _init.call( this, 'data-binding', $config, {
@@ -24,21 +25,15 @@ function realtime( config ) {
 	// ----------------
     realdom.realtime( window.document ).query( config.attrSelector, record => {
         cleanup.call( this, ...record.exits );
-        setTimeout(() => {
-            mountInlineBindings.call( window, config, ...record.entrants );
-        }, 0);
-    }, { id: 'data-binding:attr', live: true, subtree: 'cross-roots', timing: 'sync', eventDetails: true, staticSensitivity: true } );
-    realdom.realtime( window.document ).query( config.attrSelector, record => {
-        cleanup.call( this, ...record.exits );
-        setTimeout(() => {
-            mountInlineBindings.call( window, config, ...record.entrants );
+        mountInlineBindings.call( window, config, ...record.entrants );
+        queueMicrotask(() => {
         }, 0);
     }, { id: 'data-binding:attr', live: true, subtree: 'cross-roots', timing: 'sync', eventDetails: true, staticSensitivity: true } );
     realdom.realtime( window.document ).query( `(${ config.discreteBindingsSelector })`, record => {
-        setTimeout(() => {
-            cleanup.call( this, ...record.exits );
-            mountDiscreteBindings.call( window, config, ...record.entrants );
-        }, 0);
+        cleanup.call( this, ...record.exits );
+        mountDiscreteBindings.call( window, config, ...record.entrants );
+        queueMicrotask(() => {
+        });
     }, { id: 'data-binding:descrete', live: true, subtree: 'cross-roots', timing: 'sync' } );
 }
 
@@ -82,7 +77,7 @@ function cleanup( ...entries ) {
         const root = node.nodeName  === '#text' ? node.parentNode : node;
         const { bindings, abortController } = _wq( root ).get( 'data-binding' ) || {};
         if ( !bindings?.has( node ) ) return;
-        bindings.get( node ).liveMode.abort();
+        bindings.get( node ).liveProgramHandle.abort();
         bindings.get( node ).signals?.forEach( s => s.abort() );
         bindings.delete( node );
         if ( !bindings.size ) {
@@ -130,7 +125,7 @@ async function mountDiscreteBindings( config, ...entries ) {
         const { scope, bindings } = createDynamicScope.call( this, config, textNode.parentNode );
         Object.defineProperty( textNode, '$oohtml_internal_databinding_anchorNode', { value: anchorNode, configurable: true } );
         try {
-            bindings.set( textNode, { liveMode: await ( await compiled.bind( textNode, scope ) ).execute(), } );
+            bindings.set( textNode, { liveProgramHandle: await ( await compiled.bind( textNode, scope ) ).execute(), } );
         } catch( e ) {
             console.log(e);
         }
@@ -143,9 +138,9 @@ function compileDiscreteBindings( config, str ) {
     let source = `let content = ((${ str }) ?? '') + '';`;
     source += `$assign__(this, 'nodeValue', content);`;
     source += `if ( this.$oohtml_internal_databinding_anchorNode ) { $assign__(this.$oohtml_internal_databinding_anchorNode, 'nodeValue', "${ config.tokens.tagStart }${ escDouble( str ) }${ config.tokens.stateStart }" + content.length + "${ config.tokens.stateEnd } ${ config.tokens.tagEnd }"); }`;
-    const { webqit: { LiveModule } } = this;
+    const { webqit: { LiveScript } } = this;
     const { parserParams, compilerParams, runtimeParams } = config.advanced;
-    const compiled = new LiveModule( source, { parserParams, compilerParams, runtimeParams } );
+    const compiled = new LiveScript( source, { parserParams, compilerParams, runtimeParams } );
     discreteParseCache.set( str, compiled );
     return compiled;
 }
@@ -157,7 +152,7 @@ async function mountInlineBindings( config, ...entries ) {
         const signals = [];
         Object.defineProperty( node, '$oohtml_internal_databinding_signals', { value: signals, configurable: true } );
         try {
-            bindings.set( node, { signals, liveMode: await ( await compiled.bind( node, scope ) ).execute(), } );
+            bindings.set( node, { signals, liveProgramHandle: await ( await compiled.bind( node, scope ) ).execute(), } );
         } catch( e ) {
             console.log(e);
         }
@@ -201,7 +196,7 @@ function compileInlineBindings( config, str ) {
                 } else { production = [ production ]; }
                 if ( production.length > ( kind === 'in' ? 3 : 2 ) ) throw new Error( `Invalid ${ directive }items spec: ${ str }.` );
                 const indices = kind === 'in' ? production[ 2 ] : ( production[ 1 ] || '$index__' );
-                return `
+                const src = `console.log('-|---|---||');
                 let $iteratee__ = ${ iteratee };
                 let $import__ = this.${ config.HTML_IMPORTS.api.import }( ${ importSpec.trim() }, true );
                 this.$oohtml_internal_databinding_signals?.push( $import__ );
@@ -233,6 +228,7 @@ function compileInlineBindings( config, str ) {
                     $existing__.forEach( x => x.remove() );
                     $existing__.clear();
                 }`;
+                return src;
             }
         }
         // Events
@@ -251,9 +247,9 @@ function compileInlineBindings( config, str ) {
         }
         if ( str.trim() ) throw new Error( `Invalid binding: ${ str }.` );
     } ).join( `\n` );
-    const { webqit: { LiveModule } } = this;
+    const { webqit: { LiveScript } } = this;
     const { parserParams, compilerParams, runtimeParams } = config.advanced;
-    const compiled = new LiveModule( source, { parserParams, compilerParams, runtimeParams } );
+    const compiled = new LiveScript( source, { parserParams, compilerParams, runtimeParams } );
     inlineParseCache.set( str, compiled );
     return compiled;
 }

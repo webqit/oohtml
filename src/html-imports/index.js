@@ -86,7 +86,13 @@ function exposeAPIs(config) {
         // No-conflict assertions
         const type = prototype === window.Document.prototype ? 'Document' : (prototype === window.ShadowRoot.prototype ? 'ShadowRoot' : 'Element');
         if (config.api.import in prototype) { throw new Error(`The ${type} prototype already has a "${config.api.import}" API!`); }
+        if (config.api.defs in prototype) { throw new Error(`The ${type} prototype already has a "${config.api.defs}" API!`); }
         // Definitions
+        Object.defineProperty(prototype, config.api.defs, {
+            get: function () {
+                return getDefs(this);
+            }
+        });
         Object.defineProperty(prototype, config.api.import, {
             value: function (ref, live = false, callback = null) {
                 return importRequest(this, ...arguments);
@@ -168,6 +174,7 @@ function realtime(config) {
     // IMPORTS
     // ------------
     realdom.realtime(window.document).query(config.elements.import, record => {
+        console.log('_________record');
         record.entrants.forEach(node => handleRealtime(node, true, record));
         record.exits.forEach(node => handleRealtime(node, false, record));
     }, { id: 'imports:import', live: true, subtree: 'cross-roots', timing: 'sync', deferred: true });

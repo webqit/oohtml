@@ -39,7 +39,7 @@
   },
   "dependencies": {
     "@webqit/realdom": "^2.1.35",
-    "@webqit/use-live": "^0.5.41",
+    "@webqit/use-live": "^0.5.42",
     "@webqit/util": "^0.8.16"
   },
   "devDependencies": {

@@ -36,7 +36,7 @@ function exposeAPIs( config ) {
         live: {
             configurable: true,
             get() {
-                if (this.liveMode) return true;
+                if (this.liveProgramHandle) return true;
                 const scriptContents = nextKeyword(this.oohtml__textContent || this.textContent || '', 0, 0);
                 return matchPrologDirective(scriptContents, true);
             },
@@ -65,10 +65,10 @@ async function execute( config, execHash ) {
     if ( !_wq( varScope ).has( 'scriptEnv' ) ) {
         _wq( varScope ).set( 'scriptEnv', Object.create( null ) );
     }
-    const liveMode = await ( await compiledScript.bind( thisContext, _wq( varScope ).get( 'scriptEnv' ) ) ).execute();
-    if ( script.live ) { Object.defineProperty( script, 'liveMode', { value: liveMode } ); }
+    const liveProgramHandle = await ( await compiledScript.bind( thisContext, _wq( varScope ).get( 'scriptEnv' ) ) ).execute();
+    if ( script.live ) { Object.defineProperty( script, 'liveProgramHandle', { value: liveProgramHandle } ); }
     realdom.realtime( window.document ).observe( script, () => {
-        if ( script.live ) { liveMode.abort(); }
+        if ( script.live ) { liveProgramHandle.abort(); }
         if ( thisContext instanceof window.Element ) { thisContext[ config.api.scripts ]?.splice( thisContext[ config.api.scripts ].indexOf( script, 1 ) ); }
     }, { id: 'scoped-js:script-exits', subtree: 'cross-roots', timing: 'sync', generation: 'exits' } );
 }
