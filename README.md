@@ -16,13 +16,6 @@ Building Single Page Applications? OOHTML is a special love letter! Writing Web 
 
 </details>
 
-## Status
-
-+ Actively maintained
-+ A working implementation
-+ [Proposed at the WICG](https://github.com/WICG/proposals/issues/137)
-+ Open to contributions
-
 ## Implementation
 
 OOHTML may be used today. This implementation adheres closely to the spec and helps evolve the proposal through a practice-driven process.
