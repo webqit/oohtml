@@ -174,7 +174,6 @@ function realtime(config) {
     // IMPORTS
     // ------------
     realdom.realtime(window.document).query(config.elements.import, record => {
-        console.log('_________record');
         record.entrants.forEach(node => handleRealtime(node, true, record));
         record.exits.forEach(node => handleRealtime(node, false, record));
     }, { id: 'imports:import', live: true, subtree: 'cross-roots', timing: 'sync', deferred: true });

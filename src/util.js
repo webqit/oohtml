@@ -43,13 +43,13 @@ export function _init( name, $config, $defaults ) {
 }
 
 export function getInternalAttrInteraction( node, attrName ) {
-	return _wq( node, 'internalAttrInteractions' ).get( attrName );
+	return __wq( node, 'realdom', 'internalAttrInteractions' ).get( attrName );
 }
 export function internalAttrInteraction( node, attrName, callback ) {
-	const savedAttrLocking = _wq( node, 'internalAttrInteractions' ).get( attrName );
-	_wq( node, 'internalAttrInteractions' ).set( attrName, true );
+	const savedAttrLocking = __wq( node, 'realdom', 'internalAttrInteractions' ).get( attrName );
+	__wq( node, 'realdom', 'internalAttrInteractions' ).set( attrName, true );
 	const value = callback();
-	_wq( node, 'internalAttrInteractions' ).set( attrName, savedAttrLocking );
+	__wq( node, 'realdom', 'internalAttrInteractions' ).set( attrName, savedAttrLocking );
 	return value;
 }
 

@@ -1,7 +1,6 @@
 import { resolveParams } from '@webqit/use-live/params';
 import { xpathQuery } from '@webqit/realdom/src/realtime/Util.js';
 import { _wq, _init, _splitOuter } from '../util.js';
-import { LiveScript } from '@webqit/use-live';
 
 export default function init( $config = {} ) {
     const { config, window } = _init.call( this, 'data-binding', $config, {
@@ -27,7 +26,7 @@ function realtime( config ) {
         cleanup.call( this, ...record.exits );
         mountInlineBindings.call( window, config, ...record.entrants );
         queueMicrotask(() => {
-        }, 0);
+        });
     }, { id: 'data-binding:attr', live: true, subtree: 'cross-roots', timing: 'sync', eventDetails: true, staticSensitivity: true } );
     realdom.realtime( window.document ).query( `(${ config.discreteBindingsSelector })`, record => {
         cleanup.call( this, ...record.exits );
@@ -138,9 +137,9 @@ function compileDiscreteBindings( config, str ) {
     let source = `let content = ((${ str }) ?? '') + '';`;
     source += `$assign__(this, 'nodeValue', content);`;
     source += `if ( this.$oohtml_internal_databinding_anchorNode ) { $assign__(this.$oohtml_internal_databinding_anchorNode, 'nodeValue', "${ config.tokens.tagStart }${ escDouble( str ) }${ config.tokens.stateStart }" + content.length + "${ config.tokens.stateEnd } ${ config.tokens.tagEnd }"); }`;
-    const { webqit: { LiveScript } } = this;
+    const { webqit: { LiveScript, AsyncLiveScript } } = this;
     const { parserParams, compilerParams, runtimeParams } = config.advanced;
-    const compiled = new LiveScript( source, { parserParams, compilerParams, runtimeParams } );
+    const compiled = new (LiveScript || AsyncLiveScript)( source, { parserParams, compilerParams, runtimeParams } );
     discreteParseCache.set( str, compiled );
     return compiled;
 }
@@ -196,7 +195,7 @@ function compileInlineBindings( config, str ) {
                 } else { production = [ production ]; }
                 if ( production.length > ( kind === 'in' ? 3 : 2 ) ) throw new Error( `Invalid ${ directive }items spec: ${ str }.` );
                 const indices = kind === 'in' ? production[ 2 ] : ( production[ 1 ] || '$index__' );
-                const src = `console.log('-|---|---||');
+                const src = `
                 let $iteratee__ = ${ iteratee };
                 let $import__ = this.${ config.HTML_IMPORTS.api.import }( ${ importSpec.trim() }, true );
                 this.$oohtml_internal_databinding_signals?.push( $import__ );
@@ -247,9 +246,9 @@ function compileInlineBindings( config, str ) {
         }
         if ( str.trim() ) throw new Error( `Invalid binding: ${ str }.` );
     } ).join( `\n` );
-    const { webqit: { LiveScript } } = this;
+    const { webqit: { LiveScript, AsyncLiveScript } } = this;
     const { parserParams, compilerParams, runtimeParams } = config.advanced;
-    const compiled = new LiveScript( source, { parserParams, compilerParams, runtimeParams } );
+    const compiled = new (LiveScript || AsyncLiveScript)( source, { parserParams, compilerParams, runtimeParams } );
     inlineParseCache.set( str, compiled );
     return compiled;
 }
