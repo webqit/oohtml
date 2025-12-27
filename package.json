@@ -38,8 +38,9 @@
     "version:next": "npm version prerelease --preid=next"
   },
   "dependencies": {
+    "@webqit/observer": "^3.8.14",
     "@webqit/realdom": "^2.1.35",
-    "@webqit/use-live": "^0.5.42",
+    "@webqit/use-live": "^0.5.46",
     "@webqit/util": "^0.8.16"
   },
   "devDependencies": {
