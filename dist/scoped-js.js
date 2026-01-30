@@ -488,7 +488,7 @@ var Realtime = class {
     } else {
       args[0] = from_default(args[0], false);
     }
-    if (args[0].filter((x) => typeof x !== "string" && !(x instanceof DOMSpec) && !(x instanceof this.window.Node)).length) {
+    if (args[0].filter((x) => typeof x !== "string" && !(x instanceof DOMSpec) && !(isObject_default(x) && typeof x.addEventListener === "function")).length) {
       throw new Error(`Argument #2 must be either a string or a Node object, or a list of those.`);
     }
     args[0] = args[0].map((s) => s instanceof DOMSpec ? s : new DOMSpec(s));
