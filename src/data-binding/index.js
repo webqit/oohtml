@@ -23,6 +23,11 @@ function realtime( config ) {
     const window = this, { webqit: { realdom } } = window;
 	// ----------------
     realdom.realtime( window.document ).query( config.attrSelector, record => {
+        record.exits.forEach(( e ) => {
+            if ( !e.isConnected && e.getAttribute( config.attr.render )?.includes( '@@disconnected' ) ) {
+                e.dispatchEvent( new Event( '@disconnected' ) );
+            }
+        } );
         cleanup.call( this, ...record.exits );
         mountInlineBindings.call( window, config, ...record.entrants );
         queueMicrotask(() => {
@@ -167,6 +172,10 @@ function compileInlineBindings( config, str ) {
         const [ left, right ] = _splitOuter( str, ':' ).map( x => x.trim() );
         const directive = left[ 0 ], param = left.slice( 1 ).trim();
         const arg = `(${ right })`, $arg = `(${ arg } ?? '')`;
+        // Functions
+        if ( directive === '$' ) {
+            return `$exec__(this, '${ param }', ${ arg });`;
+        }
         // CSS
         if ( directive === '&' ) {
             if ( param.startsWith( '--' ) ) return `$exec__(this.style, 'setProperty', "${ escDouble( param ) }", ${ $arg });`;
@@ -232,17 +241,16 @@ function compileInlineBindings( config, str ) {
         }
         // Events
         if ( directive === '@' ) {
+            if ( param === '@connected' ) {
+                return `${arg};`;
+            }
             $event_i++;
             return `
                 const handler${ $event_i } = event => ${ right.startsWith('{') ? right : arg };
-                this.addEventListener( '${ param }', handler${ $event_i } );
+                this.addEventListener( '${ param }', handler${ $event_i }${ param === '@disconnected' ? ', { once: true }' : '' } );
                 const abort${ $event_i } = () => this.removeEventListener( '${ param }', handler${ $event_i } );
                 this.$oohtml_internal_databinding_signals?.push( { abort: abort${ $event_i } } );
             `;
-        }
-        // Functions
-        if ( directive === '$' ) {
-            return `$exec__(this, '${ param }', ${ arg });`;
         }
         if ( str.trim() ) throw new Error( `Invalid binding: ${ str }.` );
     } ).join( `\n` );

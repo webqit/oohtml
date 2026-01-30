@@ -1,15 +1,2630 @@
-var Sr=Object.defineProperty;var fi=(i,t,e)=>t in i?Sr(i,t,{enumerable:!0,configurable:!0,writable:!0,value:e}):i[t]=e;var Pe=(i,t)=>{for(var e in t)Sr(i,e,{get:t[e],enumerable:!0})};var V=(i,t,e)=>(fi(i,typeof t!="symbol"?t+"":t,e),e),Or=(i,t,e)=>{if(!t.has(i))throw TypeError("Cannot "+e)};var U=(i,t,e)=>(Or(i,t,"read from private field"),e?e.call(i):t.get(i)),Ut=(i,t,e)=>{if(t.has(i))throw TypeError("Cannot add the same private member more than once");t instanceof WeakSet?t.add(i):t.set(i,e)},It=(i,t,e,r)=>(Or(i,t,"write to private field"),r?r.call(i,e):t.set(i,e),e);var Ke={};Pe(Ke,{AsyncLiveFunction:()=>Fi,AsyncLiveScript:()=>ne,LiveFunction:()=>Hi,LiveModule:()=>oe,LiveProgramHandle:()=>vt,LiveScript:()=>Wi,Observer:()=>C,compile:()=>Dr,matchPrologDirective:()=>jr,nextKeyword:()=>Rr,parse:()=>ge,serialize:()=>be,transform:()=>ye});var Xe={};Pe(Xe,{any:()=>Pi,apply:()=>We,batch:()=>Ge,construct:()=>Fe,defineProperties:()=>Mi,defineProperty:()=>Zt,deleteProperties:()=>qi,deleteProperty:()=>Kt,get:()=>ut,getOwnPropertyDescriptor:()=>de,getOwnPropertyDescriptors:()=>Ci,getPrototypeOf:()=>Ne,has:()=>he,intercept:()=>Ti,isExtensible:()=>Le,map:()=>Ii,observe:()=>Ve,ownKeys:()=>He,path:()=>Ei,preventExtensions:()=>Be,reduce:()=>Ue,set:()=>xt,setPrototypeOf:()=>ze,subtree:()=>Ai});function q(i){return!Array.isArray(i)&&typeof i=="object"&&i}function Mt(i){return typeof i}function M(i){return Array.isArray(i)}function qt(i){return typeof i=="function"}function Vt(i){return i===null||i===""}function at(i){return arguments.length&&(i===void 0||typeof i>"u")}function j(i){return Array.isArray(i)||typeof i=="object"&&i||qt(i)}function Te(i){return Vt(i)||at(i)||i===!1||i===0||j(i)&&!Object.keys(i).length}function k(i){return qt(i)||i&&{}.toString.call(i)==="[object function]"}function Gt(i){return i instanceof Number||typeof i=="number"}function Z(i){return Gt(i)||i!==!0&&i!==!1&&i!==null&&i!==""&&!isNaN(i*1)}function kt(i){return i instanceof String||typeof i=="string"&&i!==null}function Ce(i){return!kt(i)&&!at(i.length)}function ue(i,...t){return t.forEach(e=>{i.indexOf(e)<0&&i.push(e)}),i}function Ie(r,t){t=t||Object.prototype,t=t&&!M(t)?[t]:t;for(var e=[],r=r;r&&(!t||t.indexOf(r)<0)&&r.name!=="default";)e.push(r),r=r?Object.getPrototypeOf(r):null;return e}function Me(i,t){var e=[];return Ie(i,t).forEach(r=>{ue(e,...Object.getOwnPropertyNames(r))}),e}function it(i,t,e=!1,r=!1,n=!1){var o=0,s=i.shift();if((Z(s)||s===!0||s===!1)&&(o=s,s=i.shift()),!i.length)throw new Error("_merge() requires two or more array/objects.");return i.forEach((a,c)=>{!j(a)&&!k(a)||(e?Me(a):Object.keys(a)).forEach(l=>{if(!!t(l,s,a,c)){var u=s[l],p=a[l];if((M(u)&&M(p)||q(u)&&q(p))&&(o===!0||o>0))s[l]=M(u)&&M(p)?[]:{},it([Z(o)?o-1:o,s[l],u,p],t,e,r,n);else if(M(s)&&M(a))r?s[l]=p:s.push(p);else try{n?Object.defineProperty(s,l,Object.getOwnPropertyDescriptor(a,l)):s[l]=a[l]}catch{}}})}),s}function Xt(...i){return it(i,(t,e,r)=>!0,!1,!1,!1)}function W(i,...t){if(!i||!["object","function"].includes(typeof i))throw new Error("Argument #1 must be of type object");let e=i[Symbol.for("wq")];if(e||(e=new fe,Object.defineProperty(i,Symbol.for("wq"),{value:e,enumerable:!1,configurable:!1,writable:!1})),!t.length)return e;let r,n;for(;r=t.shift();)(n=e)&&!(e=e.get(r))&&(e=new fe,n.set(r,e));return e}var fe=class extends Map{};function F(i,t=!0){return M(i)?i:!t&&q(i)?[i]:i!==!1&&i!==0&&Te(i)?[]:Ce(i)?Array.prototype.slice.call(i):q(i)?Object.values(i):[i]}var L=(i,...t)=>W(i,"observerAPI",...t),jt=(i,t)=>i instanceof Promise?i.then(t):t(i),pe={};var bt=class{constructor(t,e){this.registry=t,Object.assign(this,{...e,target:t.target}),this.params.signal&&this.params.signal.addEventListener("abort",()=>this.remove())}remove(){return this.removed=!0,this.registry.removeRegistration(this)}};var Jt=class extends bt{constructor(){super(...arguments),this.emit.currentRegistration=this,Object.defineProperty(this,"abortController",{value:new AbortController}),Object.defineProperty(this,"signal",{value:this.abortController.signal}),pe.setMaxListeners?.(0,this.signal)}remove(){this.abortController.abort(),super.remove()}fire(t){if(this.emit.recursionTarget&&!["inject","force-async","force-sync"].includes(this.params.recursions))return;let e=t,r=this.filter;if(r!==1/0&&(r=F(r,!1))&&(e=t.filter(o=>r.includes(o.key))),this.params.diff&&(e=e.filter(o=>o.type!=="set"||o.value!==o.oldValue)),!e.length)return;if(["inject","defer"].includes(this.params.recursions)){if(this.emit.recursionTarget){this.emit.recursionTarget.push(...e);return}this.emit.recursionTarget=this.params.recursions==="inject"?e:[]}let n=this.filter===1/0||Array.isArray(this.filter)?this.emit(e,this):this.emit(e[0],this);return jt(n,o=>{let s=this.emit.recursionTarget;return delete this.emit.recursionTarget,this.params.recursions==="defer"&&s?.length?this.emit.currentRegistration.fire(s):o})}};var wt=class{constructor(t){this.target=t,this.entries=[]}addRegistration(t){return this.entries.push(t),t}removeRegistration(t){this.entries=this.entries.filter(e=>e!==t)}static _getInstance(t,e,r=!0,n=this.__namespace){if(!j(e))throw new Error(`Subject must be of type object; "${Mt(e)}" given!`);let o=this;return n&&L(globalThis,"observerAPI","namespaces").has(t+"-"+n)&&(o=L(globalThis,"observerAPI","namespaces").get(t+"-"+n),t+="-"+n),!L(e,"registry").has(t)&&r&&L(e,"registry").set(t,new o(e)),L(e,"registry").get(t)}static _namespace(t,e,r=null){if(t+="-"+e,arguments.length===2)return L(globalThis,"observerAPI","namespaces").get(t);if(!(r.prototype instanceof this))throw new Error(`The implementation of the namespace ${this.name}.${e} must be a subclass of ${this.name}.`);L(globalThis,"observerAPI","namespaces").set(t,r),r.__namespace=e}};var z=class{constructor(t,e){if(this.target=t,!e.operation)throw new Error("Descriptor operation must be given in definition!");Object.assign(this,e)}get[Symbol.toStringTag](){return"Descriptor"}static[Symbol.hasInstance](t){return t?.[Symbol.toStringTag]==="Descriptor"&&t.operation}};var lt=class extends wt{static getInstance(t,e=!0,r=null){return super._getInstance("listeners",...arguments)}static namespace(t,e=null){return super._namespace("listeners",...arguments)}constructor(t){super(t),this.batches=[]}addRegistration(t,e,r){return super.addRegistration(new Jt(this,{filter:t,emit:e,params:r}))}emit(t,{eventsArePropertyDescriptors:e=!1,eventIsArrayMethodDescriptor:r=!1}={}){if(this.batches.length){let n=this.batches[0].params.arrayMethodName;this.batches[0].snapshots.push({events:[...t],arrayMethodName:n,eventsArePropertyDescriptors:e,eventIsArrayMethodDescriptor:r});return}this.$emit(this.entries,[{events:t,eventsArePropertyDescriptors:e,eventIsArrayMethodDescriptor:r}])}$emit(t,e){let r=0,n=0,o=0;for(let u of t)r+=1,u.params.withPropertyDescriptors&&(n+=1),u.params.withArrayMethodDescriptors&&(o+=1);let s=[],a=[],c=[],l=[];for(let u of e){let p=u.arrayMethodName,f=u.eventsArePropertyDescriptors,d=u.eventIsArrayMethodDescriptor;for(let m of u.events)if(p&&(m.operation=p),n&&(o&&s.push(m),d||o!==r&&a.push(m)),n!==r){let w=m;if(f){let{target:v,type:g,...y}=m;w=new z(v,{type:"set",...y}),Object.defineProperty(w,"value","get"in y.value?{get:()=>y.value.get()}:{value:y.value.value}),y.oldValue&&Object.defineProperty(w,"oldValue","get"in y.oldValue?{get:()=>y.oldValue.get()}:{value:y.oldValue.value})}o&&c.push(w),d||o!==r&&l.push(w)}}for(let u of t)u.params.withPropertyDescriptors?u.params.withArrayMethodDescriptors?s.length&&u.fire(s):a.length&&u.fire(a):u.params.withArrayMethodDescriptors?c.length&&u.fire(c):l.length&&u.fire(l)}batch(t,e={}){this.batches.unshift({entries:[...this.entries],snapshots:[],params:e});let r=t();return jt(r,n=>{let o=this.batches.shift();return o.snapshots.length&&this.$emit(o.entries,o.snapshots),n})}};var Qt=class extends bt{exec(t,e,r){return this.running||!this.traps[t.operation]?e(...Array.prototype.slice.call(arguments,2)):(this.running=!0,this.traps[t.operation](t,r,(...n)=>(this.running=!1,e(...n))))}};var ct=class extends wt{static getInstance(t,e=!0,r=null){return super._getInstance("traps",...arguments)}static namespace(t,e=null){return super._namespace("traps",...arguments)}addRegistration(t){return super.addRegistration(new Qt(this,t))}emit(t,e=null){let r=this;return function n(o,...s){let a=r.entries[o];return a?a.exec(t,(...c)=>n(o+1,...c),...s):e?e(t,...s):s[0]}(0)}};var De={};Pe(De,{accessorize:()=>Oi,proxy:()=>je,unaccessorize:()=>$i,unproxy:()=>Yt});var Ir=Symbol("wqOriginal");function Oi(i,t,e={}){i=Re(i);let r=L(i,"accessorizedProps");function n(c){let l,u=i;do l=Object.getOwnPropertyDescriptor(u,c);while(!l&&(u=Object.getPrototypeOf(u)));return l?{proto:u,descriptor:l}:{descriptor:{value:void 0,configurable:!0,enumerable:!0,writable:!0}}}function o(c){if(r.has(c+""))return!0;let l=n(c);l.getValue=function(f=!1){return f?this.descriptor:this.descriptor.get?this.descriptor.get():this.descriptor.value},l.setValue=function(f,d=!1){if(this.dirty=!0,d){this.descriptor=f;return}return this.descriptor.set?this.descriptor.set(f)!==!1:(this.descriptor.value=f,!0)},l.intact=function(){let f=Object.getOwnPropertyDescriptor(i,c);return f?.get===p.get&&f?.set===p.set&&r.get(c+"")===this},l.restore=function(){return this.intact()?(this.proto&&this.proto!==i||!this.proto&&!this.dirty?delete i[c]:Object.defineProperty(i,c,this.descriptor),r.delete(c+""),!0):!1},r.set(isNaN(c)?c:parseInt(c),l);let{enumerable:u=!0}=l.descriptor,p={enumerable:u,configurable:!0};("value"in l.descriptor||l.descriptor.set)&&(p.set=function(f){return xt(this,c,f,e)}),("value"in l.descriptor||l.descriptor.get)&&(p.get=function(){return ut(this,c,e)});try{return Object.defineProperty(i,c,p),!0}catch{return r.delete(c+""),!1}}let a=(Array.isArray(t)?t:t===void 0?Object.keys(i):[t]).map(o);return t===void 0||Array.isArray(t)?a:a[0]}function $i(i,t,e={}){i=Re(i);let r=L(i,"accessorizedProps");function n(a){return r.has(a+"")?r.get(a+"").restore():!0}let s=(Array.isArray(t)?t:t===void 0?Object.keys(i):[t]).map(n);return t===void 0||Array.isArray(t)?s:s[0]}function je(i,t={},e=void 0){let r=Re(i);if(typeof t.membrane=="boolean")throw new Error("The params.membrane parameter cannot be of type boolean.");if(t.membrane&&L(r,"membraneRef").has(t.membrane))return L(r,"membraneRef").get(t.membrane);let n={apply:(a,c,l)=>We(a,c,l,void 0,t),construct:(a,c,l=null)=>Fe(a,c,l,t),defineProperty:(a,c,l)=>Zt(a,c,l,t),deleteProperty:(a,c)=>Kt(a,c,t),get:(a,c,l=null)=>{if(c===Ir)return r;let u={...t,receiver:l},p=ut(a,c,u);return Array.isArray(a)&&typeof p=="function"&&!/^class\s?/.test(Function.prototype.toString.call(p))?je(p,{...t,arrayMethodName:c,membrane:l},e):t.chainable&&j(p)&&c!=="prototype"&&!(typeof p=="function"&&/^class\s?|\{\s\[native\scode\]\s\}$/.test(Function.prototype.toString.call(p)))?je(p,t,e):p},getOwnPropertyDescriptor:(a,c)=>de(a,c,t),getPrototypeOf:a=>Ne(a,t),has:(a,c)=>he(a,c,t),isExtensible:a=>Le(a,t),ownKeys:a=>He(a,t),preventExtensions:a=>Be(a,t),set:(a,c,l,u=null)=>xt(a,c,l,{...t,receiver:u}),setPrototypeOf:(a,c)=>ze(a,c,t)},o=e?.(n)||n,s=new Proxy(r,o);return t.membrane&&L(r,"membraneRef").set(t.membrane,s),s}function Yt(i){return i&&i[Ir]||i}function Re(i){if(!i||!j(i))throw new Error("Target must be of type object!");return Yt(i)}var te=class extends Array{get[Symbol.toStringTag](){return"Path"}static[Symbol.hasInstance](t){return Array.isArray(t)&&t[Symbol.toStringTag]==="Path"}};function Ei(...i){return new te(...i)}var _t=class extends Array{get[Symbol.toStringTag](){return"Subtree"}static[Symbol.hasInstance](t){return Array.isArray(t)&&t[Symbol.toStringTag]==="Subtree"}};function Ai(){return new _t}function Pi(){return 1/0}function Ue(i,t,e,r=o=>o,n={}){let o=t instanceof _t;if(!(!o&&!t?.length))return function s(a,c,l,u){let p=u||c[l.level]instanceof _t,f=p?1/0:c[l.level],d=p?!1:l.level===c.length-1;return a instanceof z&&a.operation!=="get"?l={...l,probe:"always"}:l.probe!=="always"&&(l={...l,probe:!d}),e(a,f,(m,...w)=>{let v=x=>{x instanceof z&&(x.path="key"in x?[x.key]:[],a instanceof z&&(x.path="key"in x?a.path.concat(x.key):a.path.slice(0),Object.defineProperty(x,"context",{get:()=>a,configurable:!0})))},g=w[0]||{},y=x=>{if(x instanceof z&&"argumentsList"in x)return;let S=nt(x,!1);return jt(S,h=>(x instanceof z?x.value=h:x=h,s(x,c,{...l,...g,keyInParent:x.key,level:l.level+1},p)))};if(ee(f)&&Array.isArray(m)){if(m.forEach(v),d)return r(m,...w);p&&m[0]instanceof z&&(m[0].operation!=="get"||n.asGet)&&r(m,...w);for(let x of m)y(x);return}return v(m),d?r(m,...w):y(m)},l)}(i,t.slice(0),{...n,level:0},o)}function Ve(i,t,e,r={}){let n=nt(i,!r.level);if(k(arguments[1])&&([,e,r={}]=arguments,t=1/0),!k(e))throw new Error(`Handler must be a function; "${Mt(e)}" given!`);if(t instanceof te||t instanceof _t)return Ue(n,t,Ve,e,r);if(r={...r,descripted:!0},delete r.live,!j(n))return r.probe&&ut(n,t,e,r)||void 0;let o=Mr(n,t,e,r);return r.probe?ut(n,t,o,r):o()}function Ti(i,t,e={}){let r=nt(i);return q(t)||([,,,e={}]=arguments,t={[arguments[1]]:arguments[2]}),ct.getInstance(r,!0,e.namespace).addRegistration({traps:t,params:e})}function de(i,t,e=n=>n,r={}){return rt(i,"getOwnPropertyDescriptor",{key:t},e,r)}function Ci(i,t,e=n=>n,r={}){return rt(i,"getOwnPropertyDescriptors",{key:t},e,r)}function Ne(i,t=r=>r,e={}){return rt(i,"getPrototypeOf",{},t,e)}function Le(i,t=r=>r,e={}){return rt(i,"isExtensible",{},t,e)}function He(i,t=r=>r,e={}){return rt(i,"ownKeys",{},t,e)}function he(i,t,e=n=>n,r={}){return rt(i,"has",{key:t},e,r)}function ut(i,t,e=n=>n,r={}){let n,o=nt(i,!r.level);return q(e)?[r,e]=[e,s=>s]:r.live&&(n=!0),t instanceof te||t instanceof _t?Ue(o,t,ut,e,{...r,asGet:!0}):ki(o,t,s=>{let a=[...s];return function c(l,u,p){if(!u.length)return p(l);let f=u.shift();if(!["string","number","symbol"].includes(typeof f))throw new Error(`Property name/key ${f} invalid.`);function d(v,g=void 0){let y=h=>(v.value=h,c([...l,r.live||r.descripted?v:h],u,p));if(arguments.length>1)return y(g);if(!j(o))return y(o?.[v.key]);let x=L(o,"accessorizedProps",!1),S=x&&x.get(v.key);if(S&&S.intact())return y(S.getValue(r.withPropertyDescriptors));if(r.withPropertyDescriptors){let h=Object.getOwnPropertyDescriptor(o,v.key);return y(h)}return y(Reflect.get(o,v.key))}let m=new z(o,{type:"get",key:f,value:void 0,operation:"get",related:a});if(!j(o))return d(m);let w=ct.getInstance(o,!1,r.namespace);return w?w.emit(m,d):d(m)}([],s.slice(0),c=>{let l=ee(t)?c:c[0];return n&&j(o)?Mr(o,t,e,r,i.key)(l):e(l)})},r)}function Ge(i,t,e={}){let r=nt(i);return lt.getInstance(r,!0,e.namespace).batch(t,e)}function Ii(i,t,e={}){t=nt(t),i=nt(i);let r=(e.only||[]).slice(0),n=(e.except||[]).slice(0),o=Object.keys(e.spread?[...i]:i).map(l=>isNaN(l)?l:parseInt(l)),s=r.length?r.filter(l=>o.includes(l)):o.filter(l=>!n.includes(l)),a=l=>!Array.isArray(t)||isNaN(l)?l:l-n.filter(u=>u<l).length,c=l=>{let u=de(i,l,e);"value"in u&&u.writable&&u.enumerable&&u.configurable?xt(t,a(l),u.value,e):(u.enumerable||e.onlyEnumerable===!1)&&Zt(t,l,{...u,configurable:!0},e)};return Ge(t,()=>{s.forEach(c)}),Ve(i,l=>{l.filter(u=>r.length?r.includes(u.key):!n.includes(u.key)).forEach(u=>{if(u.type==="delete")return Kt(t,a(u.key),e);if(u.type==="def"){(u.value.enumerable||e.onlyEnumerable===!1)&&Zt(t,a(u.key),{...u.value,configurable:!0},e);return}c(u.key)})},{...e,withPropertyDescriptors:!0})}function xt(i,t,e,r=s=>s,n={},o=!1){let s=nt(i),a=[[t,e]];q(t)&&([,,r=l=>l,n={},o=!1]=arguments,a=Object.entries(t)),q(r)&&([o,n,r]=[typeof n=="boolean"?n:o,r,l=>l]);let c=a.map(([l])=>l);return function l(u,p,f){if(!p.length)return f(u);let[d,m]=p.shift();function w(g,y=void 0){let x=b=>(g.status=b,l(u.concat(g),p,f));if(arguments.length>1)return x(g,y);let S=L(s,"accessorizedProps",!1),h=S&&S.get(g.key);return g.type==="def"?(h&&!h.restore()&&x(!1),Object.defineProperty(s,g.key,g.value),x(!0)):h&&h.intact()?x(h.setValue(g.value)):x(Reflect.set(s,g.key,g.value))}function v(g,y){if(n.diff&&m===y)return l(u,p,f);let x=new z(s,{type:o?"def":"set",key:d,value:m,isUpdate:g,oldValue:y,related:[...c],operation:o?"defineProperty":"set",detail:n.detail}),S=ct.getInstance(s,!1,n.namespace);return S?S.emit(x,w):w(x)}return he(s,d,g=>{if(!g)return v(g);if(d==="length"&&Array.isArray(s)&&L(s).has("$length"))return v(!0,L(s).get("$length"));let y={...n,withPropertyDescriptors:o};return ut(s,d,x=>v(g,x),y)},n)}([],a.slice(0),l=>{let u=lt.getInstance(s,!1,n.namespace);return u&&u.emit(l,{eventsArePropertyDescriptors:!!o}),r(ee(t)?l.map(p=>p.status):l[0]?.status)})}function Zt(i,t,e,r=o=>o,n={}){return xt(i,t,e,r,n,!0)}function Mi(i,t,e=n=>n,r={}){return xt(i,t,e,r,!0)}function Kt(i,t,e=n=>n,r={}){let n=nt(i);q(e)&&([r,e]=[e,a=>a]);let o=F(t,!1),s=[...o];return function a(c,l,u){if(!l.length)return u(c);let p=l.shift();function f(m,w=void 0){let v=x=>(m.status=x,a(c.concat(m),l,u));if(arguments.length>1)return v(m,w);let g=L(n,"accessorizedProps",!1),y=g&&g.get(m.key);return y&&!y.restore()&&v(!1),v(Reflect.deleteProperty(n,m.key))}function d(m){let w=new z(n,{type:"delete",key:p,oldValue:m,related:[...s],operation:"deleteProperty",detail:r.detail}),v=ct.getInstance(n,!1,r.namespace);return v?v.emit(w,f):f(w)}return ut(n,p,d,r)}([],o.slice(0),a=>{let c=lt.getInstance(n,!1,r.namespace);return c&&c.emit(a),e(ee(t)?a.map(l=>l.status):a[0].status)})}function qi(i,t,e=n=>n,r={}){return Kt(...arguments)}function Fe(i,t,e=null,r=o=>o,n={}){return rt(i,"construct",arguments.length>2?{argumentsList:t,newTarget:e}:{argumentsList:t},r,n)}function We(i,t,e,r=o=>o,n={}){let o=Yt(t),s;if(Array.isArray(t)){if(n.arrayMethodName){let a=new z(o,{operation:n.arrayMethodName,argumentsList:e});lt.getInstance(o,!1,n.namespace)?.emit([a],{eventIsArrayMethodDescriptor:!0})}L(o).set("$length",o.length),s=Ge(o,()=>rt(i,"apply",{thisArgument:t,argumentsList:e},r,n),n),L(o).delete("$length")}else s=rt(i,"apply",{thisArgument:o,argumentsList:e},r,n);return s}function ze(i,t,e=n=>n,r={}){return rt(i,"setPrototypeOf",{proto:t},e,r)}function Be(i,t=r=>r,e={}){return rt(i,"preventExtensions",{},t,e)}function Mr(i,t,e,r={}){let n=new AbortController;pe.setMaxListeners?.(0,n.signal),r.signal&&r.signal.addEventListener("abort",()=>n.abort());let o={...r,signal:n.signal},s=lt.getInstance(i,!0,o.namespace),a=new Map;return function c(l=[],u=null){let p,f,d;if(ee(t)){if(u){d=!0,f=u;for(let m of l)a.get(m.key)?.remove(),a.delete(m.key)}else f=s.addRegistration(t,c,o);p={signal:f.signal,childRegistrations:a}}else u?.remove(),f=s.addRegistration(t,c,o),p={signal:f.signal};if(o.childRegistrations&&o.keyInParent&&o.childRegistrations.set(o.keyInParent,f),arguments.length){let m=e(l,p);if(arguments.length>1)return m}return n}}function rt(i,t,e={},r=o=>o,n={}){i=nt(i),q(r)&&([n,r]=[r,c=>c]);function o(c,l){return arguments.length>1?r(l):r((Reflect[t]||Object[t])(i,...Object.values(e)))}let s=new z(i,{operation:t,...e}),a=ct.getInstance(i,!1,n.namespace);return a?a.emit(s,o):o(s)}function ee(i){return i===1/0||Array.isArray(i)}function nt(i,t=!0,e=!0){if((!i||!j(i))&&t)throw new Error(`Object must be of type object or array! "${Mt(i)}" given.`);return i instanceof z&&(i.type==="def"&&e?i=typeof i.value.get=="function"?i.value.get():i.value.value:i=i.value),i&&Yt(i)}function ki(i,t,e,r={}){return t===1/0?r.level&&!j(i)?e([]):e(Object.entries(Object.getOwnPropertyDescriptors(i)).filter(([,n])=>n.writable!==!1&&!n.get&&!n.set).map(([n])=>n)):e(F(t,!1))}var C={...Xe,...De};var vt=class{constructor(t){Object.defineProperty(this,Symbol.toStringTag,{value:"LiveProgramHandle"}),Object.defineProperty(this,"runtime",{value:t});let e={statechange:()=>{C.defineProperty(this,"value",{value:t.flowControl.get("return")?.arg,enumerable:!0,configurable:!0})}};for(let r in e)t.on(r,e[r]),e[r]();t.$params.sourceType==="module"&&Object.defineProperty(this,"exports",{value:t.exports})}abort(){return this.runtime.abort(!0)}};var Je=(i,...t)=>{let e=t.pop();if(i.constructor.name==="AsyncFunction")return G(i.call(...t),e);try{return e(i.call(...t))}catch(r){return e(void 0,r)}},G=(i,t)=>i instanceof Promise?i.then(t).catch(e=>t(void 0,e)):t(i),Qe=i=>typeof i=="object"&&i||typeof i=="function";function qr(i){let t=typeof i[i.length-1]=="object"?i.pop():{};return{source:i.pop()||"",args:i,params:t}}var kr={};function jr(i,t=!1){return t?/^(["'])use live\1\s*(;|$)/.test(i):/(["'])use live\1\s*(;|$)/.test(i)}function Rr(i,t=0,e=null){let r=t,n=i.length,o=()=>{for(;r<n&&/\s/.test(i[r]);)r++},s=()=>{for(r+=2;r<n&&i[r]!==`
-`&&i[r]!=="\r";)r++},a=()=>{for(r+=2;r<n&&!(i[r]==="*"&&i[r+1]==="/");)r++;r<n&&(r+=2)};for(;r<n;){if(o(),i[r]==="/"&&i[r+1]==="/"){s();continue}if(i[r]==="/"&&i[r+1]==="*"){a();continue}break}if(e===0)return i.slice(r);let c=r;if(r<n&&/[A-Za-z$_]/.test(i[r])){for(r++;r<n&&/[A-Za-z0-9$_]/.test(i[r]);)r++;return i.slice(c,r)}return e===1&&r<n?i[r]:null}function Rt(...i){let t,e={runtimeParams:Di,transformerParams:Ri,parserParams:ji};for(;t=i.shift();){let{runtimeParams:r={},transformerParams:{globalsNoObserve:n=[],globalsOnlyPathsExcept:o=[],...s}={},parserParams:a={}}=t;e={runtimeParams:{...e.runtimeParams,...r},transformerParams:{...e.transformerParams,globalsNoObserve:[...e.transformerParams.globalsNoObserve,...n],globalsOnlyPathsExcept:[...e.transformerParams.globalsOnlyPathsExcept,...o],...s},parserParams:{...e.parserParams,...a}},i.devMode}return e}var ji={ecmaVersion:"latest",allowReturnOutsideFunction:!0,allowAwaitOutsideFunction:!1,allowSuperOutsideMethod:!1,preserveParens:!1,locations:!0},Ri={globalsNoObserve:["arguments","debugger"],globalsOnlyPathsExcept:[],originalSource:!0,locations:!0,compact:2},Di={apiVersion:3};var Dt={throwStmt(i){return{type:"ThrowStatement",argument:i}},tryStmt(i,t,e,r){return{type:"TryStatement",block:i,handler:t,finalizer:e,guardedHandlers:r}},catchClause(i,t){return{type:"CatchClause",param:i,body:t}},exprStmt(i){return{type:"ExpressionStatement",expression:i}},blockStmt(i){return{type:"BlockStatement",body:i}},labeledStmt(i,t){return{type:"LabeledStatement",label:i,body:t}},withStmt(i,t){return{type:"WithStatement",object:i,body:t}},ifStmt(i,t,e){return this.conditionalExpr(i,t,e,"IfStatement")},switchStmt(i,t,e=!1){return{type:"SwitchStatement",discriminant:i,cases:t}},switchCase(i,t){return{type:"SwitchCase",test:i,consequent:t}},whileStmt(i,t){return{type:"WhileStatement",test:i,body:t}},doWhileStmt(i,t){return{type:"DoWhileStatement",test:i,body:t}},forStmt(i,t,e,r){return{type:"ForStatement",init:i,test:t,update:e,body:r}},forInStmt(i,t,e){return{type:"ForInStatement",left:i,right:t,body:e}},forOfStmt(i,t,e){return{type:"ForOfStatement",left:i,right:t,body:e}},breakStmt(i=null){return{type:"BreakStatement",label:i}},continueStmt(i=null){return{type:"ContinueStatement",label:i}},returnStmt(i){return{type:"ReturnStatement",argument:i}},yieldExpr(i,t=!1){return{type:"YieldExpression",argument:i,delegate:t}},awaitExpr(i){return{type:"AwaitExpression",argument:i}},varDeclaration(i,t){return{type:"VariableDeclaration",kind:i,declarations:t}},varDeclarator(i,t=null){return{type:"VariableDeclarator",id:i,init:t}},funcDeclaration(i,t,e,r=!1,n=!1,o=!1){return this.func("FunctionDeclaration",...arguments)},sequenceExpr(i){return{type:"SequenceExpression",expressions:i}},parensExpr(i){return{type:"ParenthesizedExpression",expression:i}},logicalExpr(i,t,e){return{type:"LogicalExpression",operator:i,left:t,right:e}},binaryExpr(i,t,e){return{type:"BinaryExpression",operator:i,left:t,right:e}},unaryExpr(i,t,e=!0){return{type:"UnaryExpression",operator:i,argument:t,prefix:e}},updateExpr(i,t,e=!1){return{type:"UpdateExpression",operator:i,argument:t,prefix:e}},assignmentExpr(i,t,e="="){return{type:"AssignmentExpression",operator:e,left:i,right:t}},assignmentPattern(i,t){return{type:"AssignmentPattern",left:i,right:t}},thisExpr(){return{type:"ThisExpression"}},conditionalExpr(i,t,e,r="ConditionalExpression"){return{type:r,test:i,consequent:t,alternate:e}},arrayExpr(i){return{type:"ArrayExpression",elements:i}},arrayPattern(i){return{type:"ArrayPattern",elements:i}},objectExpr(i){return{type:"ObjectExpression",properties:i}},objectPattern(i){return{type:"ObjectPattern",properties:i}},chainExpr(i){return{type:"ChainExpression",expression:i}},callExpr(i,t,e=!1){return{type:"CallExpression",callee:i,arguments:t,optional:e}},newExpr(i,t){return{type:"NewExpression",callee:i,arguments:t}},taggedTemplateExpr(i,t){return{type:"TaggedTemplateExpression",tag:i,quasi:t}},memberExpr(i,t,e=!1,r=!1){return{type:"MemberExpression",object:i,property:t,computed:e,optional:r}},funcExpr(i,t,e,r=!1,n=!1,o=!1){return this.func("FunctionExpression",...arguments)},arrowFuncExpr(i,t,e,r=!1,n=!1,o=!1){return this.func("ArrowFunctionExpression",...arguments)},func(i,t,e,r,n=!1,o=!1,s=!1){return{type:i,id:t,params:e,body:r,async:n,expression:o,generator:s}},identifier(i){return{type:"Identifier",name:i}},property(i,t,e="init",r=!1,n=!1,o=!1){return{type:"Property",key:i,value:t,kind:e,shorthand:r,computed:n,method:o}},classDeclaration(i,t,e=null){return this.class("ClassDeclaration",...arguments)},classExpression(i,t,e=null){return this.class("ClassExpression",...arguments)},class(i,t,e,r=null){return{type:i,id:t,body:e,superClass:r}},methodDefinition(i,t,e="method",r=!1,n=!1){return{type:"MethodDefinition",key:i,value:t,kind:e,static:r,computed:n}},propertyDefinition(i,t,e=!1,r=!1){return{type:"PropertyDefinition",key:i,value:t,static:e,computed:r}},spreadElement(i){return{type:"SpreadElement",argument:i}},literal(i){if(typeof i=="object"&&!("name"in i)&&!("value"in i))throw new Error('Objects that convert to literals must have a "name" or "value" property.');return typeof i=="object"?{type:"Literal",get value(){return"name"in i?i.name:i.value}}:{type:"Literal",value:i}},templateLiteral(i,t){return{type:"TemplateLiteral",quasis:i,expressions:t}},comments(i){let t={};return Object.defineProperty(t,"toString",{value:()=>i}),Object.defineProperty(t,"trim",{value:function(){return this.toString()}}),[{type:"Line",value:t}]},withLoc(i,...t){return["start","end"].forEach(e=>{let r=e==="start"?t[0]:t[t.length-1];i[e]=r[e],r.loc&&(i.loc=i.loc||{},i.loc[e]=r.loc?.[e])}),i},invert(i){return this.unaryExpr("!",i)},clone(i){return i={...i},delete i.start,delete i.end,i}};var re=Object.create(null);var St=class extends EventTarget{managedAlways=new Set;managedOnce=new Set;constructor(){super(),kr.setMaxListeners?.(0,this)}fire(t){return this.dispatchEvent(new Event(t,{cancelable:!0}))}on(...t){return this.addEventListener(...t),()=>this.removeEventListener(...t)}abort(t=!1){this.managedAlways.forEach(e=>e.abort?e.abort(t):e(t)),this.managedOnce.forEach(e=>e.abort?e.abort(t):e(t)),this.managedOnce.clear(),this.fire("abort")}manage(t){this.managedAlways.add(t)}once(t){this.managedOnce.add(t)}};var Ot=class extends St{subscribers=new Set;signals=new Map;constructor(t,e,r){super(),this.context=t,this.context?.once(()=>this.abort()),this.once(()=>this.watchMode(!1)),this.type=e,this.state=r}get name(){return[...this.context?.signals.keys()||[]].find(t=>this.context.signals.get(t)===this)}signal(t,e="prop"){let r=this.signals.get(t);return r||(r=new Ot(this,e,e==="object"?t:Qe(this.state)?C.get(this.state,t):void 0),this.signals.set(t,r),this.signals.size===1&&this.watchMode(),r.once(()=>{this.signals.delete(t),this.signals.size||this.watchMode(!1)})),r}subscribe(t){this.subscribers.add(t),t.once(()=>{this.subscribers.delete(t),this.subscribers.size||this.abort()})}watchMode(t=!0){this.mutationsWatch?.abort(),!(!t||!this.signals.size||!Qe(this.state))&&(this.mutationsWatch=C.observe(this.state,e=>{let r={map:new Map,add(o,s,a){for(let c of o)c.runtime.thread.includes(c),c.spec.beforeSchedule?.(s)!==!1&&(this.map.has(c.runtime)||this.map.set(c.runtime,new Set),this.map.get(c.runtime).add(c))}};for(let o of e){let s=this.signals.get(o.key);!s||(r.add(s.subscribers,o,s),s.refresh(o.value))}let n=r.map.size?[...r.map].sort((o,s)=>o[0].$serial>s[0].$serial?1:-1):r.map;for(let[o,s]of n)o.state!=="aborted"&&o.schedule(...s)},{recursions:"force-sync"}))}refresh(t){this.state=t;for(let[e,r]of this.signals)r.refresh(C.get(this.state??{},e));this.watchMode()}};var K=class extends Ot{symbols=new Map;constructor(t,e,r=void 0){super(t,e,r||Object.create(null))}};var ot=class extends St{state;constructor(t,e,r,n,o,s){super(),t?.once(this),this.context=t,this.type=e,this.spec=r||{},this.scope=o,t?.scope!==o&&this.manage(o),this.serial=n,s&&(this.closure=s),t?.type==="iteration"?this.path=t.path.concat(this.spec.index):t?.type==="round"?this.path=t.path.concat(this.serial):this.path=(t?.path||[]).slice(0,-1).concat(this.serial),this.flowControl=new Map}get runtime(){return this.context.runtime}contains(t){return this===t.context||t.context&&this.contains(t.context)}order(t){if(!t)return this;let[e,r]=t.path.length<this.path.length?[t,this]:[this,t];return e.path.reduce((n,o,s)=>n&&o<=r.path[s],!0)&&e||r}beforeExecute(){this.state="running";let t=this.flowControl;return this.flowControl=new Map,t}execute(t=null){return this.runtime.thread.unshift(this),G(this.beforeExecute(),e=>Je(this.closure,this,this,(r,n)=>n?this.throw(n,[this.serial,this.context?.serial],n.code):(this.spec.complete&&(r=this.spec.complete(r,this)),this.afterExecute(e),this.runtime.thread.shift(),t?t(r,this):r)))}throw(t,e,r){if(this.type==="function"&&["HandlerFunction","FinalizerFunction"].includes(this.$params.executionMode))return this.$params.lexicalContext.throw(t,e,r);if(this.spec.handler)return this.spec.handler(t);if(this.type!=="function"&&this.context)return this.context.throw(t,e,r);if(t.cause)throw t;let n=`${t.message||t}`,o=r!==null?`[${r}]: ${n}`:n,s=e.map(u=>u!==-1&&this.extractSource(u,!0)).filter(u=>u);s.push({source:this.runtime.$params.originalSource});let a=globalThis[t.name],c=new(a||Error)(o,{cause:s}),l=this.runtime.$params.sourceType==="module"&&this.$params.experimentalFeatures!==!1&&this.$params.exportNamespace||this.$params.fileName;throw l&&(c.fileName=l),r&&(c.code=r),c}afterExecute(t){this.state="complete";let e=this.flowControl;this.spec.finalizer&&this.spec.finalizer(),this.handleDownstream(e.size,t.size),this.handleRightstream(e.size,t.size);for(let r of["break","continue","return"])e.has(r)&&!e.get(r).endpoint?this.hoistFlowControl(r,e.get(r).arg):t.has(r)&&!t.get(r).endpoint&&this.hoistFlowControl(r,t.get(r).arg,!0)}typed(t,e,r=void 0){let n=Array.isArray(e)?"array":e===null?"null":typeof e;if(n===t||t==="iterable"&&e?.[Symbol.iterator]||t==="desctructurable"&&!["undefined","null"].includes(n))return e;throw t==="iterable"?new Error("value is not iterable."):t==="desctructurable"?new Error((r?`Cannot access ${r}; `:"")+"object not desctructurable."):new Error(`value must be of type ${t}.`)}let(t,e,r,n={}){return this.var(t,e,r,{...n,kind:"let"})}const(t,e,r,n={}){return this.var(t,e,r,{...n,kind:"const"})}var(t,e,r,n={}){n={kind:"var",...n},r||(r=()=>{});let o=n.restOf?(...a)=>{try{return r(...a)}catch(c){throw new Error(`Cannot declare ${t}; ${c.message}`)}}:r,s=(a,c)=>{let l=c.scope;if(n.kind==="var")for(;!["module","function"].includes(l.type)&&!C.has(l.state,t)&&l.context;)l=l.context;else l.type==="this"&&l.context&&(l=l.context);let u=l.symbols.get(t);if(u&&(u.kind!==n.kind||n.kind==="let"&&u.serial!==e))throw new Error(`Identifier "${t}" has already been declared.`);u?.reader?.abort(),u={serial:e,kind:n.kind};let p=a;return n.restOf&&(n.type==="array"?p=[]:p={},u.reader=C.map(a,p,{except:n.restOf,spread:n.type==="array"}),c.once(u.reader)),l.symbols.set(t,u),C.set(l.state,t,p),p};return this.autorun(n.kind,{complete:s,...n},e,o)}update(t,e,r={}){let n=this.scope;for(;n&&!C.has(n.state,t);)n=n.context;if(!n)throw new ReferenceError(`${t} is not defined.`);let o=n.symbols.get(t);if(o?.kind==="const")throw new ReferenceError(`Assignment to constant variable "${t}".`);let s=C.get(n.state,t),a=r.restOf?(...c)=>{try{return e(...c)}catch(l){throw new Error(`Cannot update ${t}; ${l.message}`)}}:e;return Je(a,void 0,s,(c,l)=>{if(l)return this.throw(l,[this.serial]);o?.reader?.abort();let u=c;r.restOf&&(o=o||{},r.type==="array"?u=[]:u={},o.reader=C.map(c,u,{except:r.restOf,spread:r.type==="array"}),this.once(o.reader));let p=this.spec.static||this.type==="function"&&this.$params?.executionMode==="RegularFunction";return C.set(n.state,t,u),["postinc","postdec"].includes(r.kind)?s:u})}ref(t,...e){let r=0,n={};typeof e[0]=="number"?(r=e.shift(),n=e.shift()||{}):typeof e[0]=="object"&&(n=e.shift());let o=this.scope;for(;o&&!C.has(o.state,t);)o=o.context;if(!o){if(n.isTypeCheck)return;throw new Error(`${t} is not defined.`)}let s=o.symbols.get(t)?.kind,a=o.signal(t,s);return n.typed&&this.typed(n.typed,a.state,t),this.autobind(a,r,n)}obj(t,...e){let r=0,n={};return typeof e[0]=="number"?(r=e.shift(),n=e.shift()||{}):typeof e[0]=="object"&&(n=e.shift()),this.autobind(this.runtime.$objects.signal(t,"object"),r,n)}autobind(t,e,r){let n=["LiveProgram","LiveFunction"].includes(this.runtime.$params.executionMode),o=t.type==="const",s=this===this.runtime,a=this.state==="aborted",c=this.spec.static,l=this.spec.isWrite,u=this;return function p(f,d={},m){if(n&&!c&&!l&&!r?.isLeft&&!o&&!s&&!a&&f.subscribe(u),!m||!f.state||typeof f.state!="object"){let v=f.state;return typeof f.state=="function"&&!/^class\s?/.test(Function.prototype.toString.call(f.state))&&(v=C.proxy(f.state,{...d,membrane:f})),v}let w;return C.proxy(f.state,d,v=>({...v,get(g,y,x=null){if(w)return v.get(g,y,x);w=!0;let S={...d};return Array.isArray(g)&&(S.arrayMethodName=y),p(f.signal(y),S,m-1)}}))}(t,{},e)}autorun(t,...e){let r=e.pop(),n=e.pop(),o=e.pop()||{},s=ot,a=this.scope;if(t==="iteration"){let l=this.runtime.constructor;s=r.constructor.name==="AsyncFunction"?l.AutoAsyncIterator:l.AutoIterator}["block","switch","iteration"].includes(t)&&(a=new K(a,t));let c=new s(this,t,o,n,a,r);if(t==="downstream"){if(this.downstream=c,this.flowControlApplied())return}else if(this.type==="switch"&&this.breakpoint)return;return c.execute()}function(t,e,r,n){if(e==="Declaration"){let s=this.scope.type==="this"?this.scope.context:this.scope;C.set(s.state,n.name,n)}let o=this;return Object.defineProperty(n,"toString",{value:function(s=!1){if(s&&t==="LiveFunction")return Function.prototype.toString.call(n);let a=o.runtime.extractSource(r);return a.startsWith("static ")?a.replace("static ",""):a}}),n}class(t,e,r){if(t==="Declaration"){let n=this.scope.type==="this"?this.scope.context:this.scope;C.set(this.scope.state,e.name,e)}return r.forEach(({name:n,isLiveFunction:o,static:s,serial:a})=>{this.function(o&&"LiveFunction"||"RegularFunction","Expression",a,s?e[n]:e.prototype[n])}),e}async import(...t){return this.runtime.import(...t)}async export(...t){return this.runtime.export(...t)}continue(t){return this.applyFlowControl("continue",t)}break(t){return this.applyFlowControl("break",t)}return(t){return this.applyFlowControl("return",t)}applyFlowControl(t,e,r=!1){let n=this.flowControl.size;if(r?this.flowControl.delete(t):this.flowControl.set(t,{arg:e}),this.type==="round"&&(this.context.breakpoint=this),this.type==="round"&&["break","continue"].includes(t)&&e===this.context?.spec.label){r||(this.flowControl.get(t).endpoint=!0),this.state!=="running"&&this.handleRightstream(this.flowControl.size,n);return}if(this.context?.type==="switch"&&t==="break"&&!e){r||(this.flowControl.get(t).endpoint=!0),this.context.breakpoint=this;return}this.state!=="running"&&(this.handleDownstream(this.flowControl.size,n),this.hoistFlowControl(...arguments))}hoistFlowControl(...t){return this.context?.applyFlowControl(...t)}flowControlApplied(t,e){return arguments.length?arguments.length===1?this.flowControl.has(t):this.flowControl.get(t)?.arg===e:this.flowControl.size||!1}handleDownstream(t,e){let r;!["block"].includes(this.type)||!(r=this.context?.downstream)||(t?r.abort():e&&(r.state="resuming",this.runtime.schedule(r)))}handleRightstream(t,e){if(this.type!=="round")return;let r=this,n=new Set;for(;r=r.nextRound;)t?r.abort():e&&r.state!=="inert"&&(r.state="resuming",n.add(r));n.size&&this.runtime.schedule(...n),!t&&e&&this.runtime.on("reflection",()=>{this.context.iterating||this.context.iterate()},{once:!0})}abort(t=!1){return t&&(this.context?.breakpoint===this&&delete this.context.breakpoint,this.flowControl.clear()),this.state=t?"inert":"aborted",super.abort(t)}};var $t=class extends ot{rounds=new Map;constructor(t,e,r,n,o,s){r.$closure=s,super(t,e,r,n,o),this.manage(()=>{delete this.breakpoint,this.rounds.clear()})}pseudorun(t){return this.runtime.iThread.unshift(this),G(t(),e=>(this.runtime.iThread.pop(),e))}createIterator(){return this.spec.kind==="for-in"?function*(){for(let t in this.iteratee)yield t}.call(this):this.spec.kind==="for-of"?function*(){for(let t of this.iteratee)yield t}.call(this):{next:()=>({done:!this.pseudorun(()=>this.spec.test(this))})}}closure(){["for-of","for-in"].includes(this.spec.kind)?([this.production,this.iteratee]=this.spec.parameters(this),this.iterator=this.createIterator(),this.iterator.original=!0,this.watchMode()):(this.spec.kind==="for"&&this.spec.init(this),this.iterator=this.createIterator()),this.iterate()}terminated(){return this.breakpoint&&!this.breakpoint.flowControlApplied("continue",this.spec.label)&&this.breakpoint.flowControlApplied()}advance(){this.spec.kind==="for"&&this.pseudorun(()=>this.spec.advance(this))}iterate(){this.iterating=!0;let t=()=>!this.terminated()&&!(this.cursor=this.iterator.next()).done,e=()=>{this.createRound(this.cursor.value).execute(),this.advance()};if(this.spec.kind==="do-while")do e();while(t());else for(;t();)e();this.iterating=!1}createRound(t){let e=this.rounds.size,r={index:e},n=["for-in","for-of"].includes(this.spec.kind)?{[this.production]:t}:{...this.scope.state},o=new K(this.scope,"round",n);this.scope.symbols.forEach((c,l)=>{o.symbols.set(l,c)});let s=new ot(this,"round",r,this.serial,o,this.spec.$closure),a=this.spec.kind==="for-in"?t:e;return this.rounds.set(a,s),this.lastRound&&(this.lastRound.nextRound=s,s.prevRound=this.lastRound),this.lastRound=s,s}watchMode(){if(this.spec.static)return;let t=(e,r)=>{let n=new Set,o=new Set;for(let s of e){if(Array.isArray(this.iteratee)&&s.key==="length")continue;let a=this.spec.kind==="for-in"?s.key:s.value,c=this.spec.kind==="for-in"?s.key:parseInt(s.key),l=this.rounds.get(c);if(l)C.set(l.scope.state,this.production,a),s.type==="delete"&&(this.rounds.set(c,void 0),l.prevRound&&(l.prevRound.nextRound=l.nextRound),l.nextRound&&(l.nextRound.prevRound=l.prevRound),n.add(l));else if(s.type!=="delete"&&!s.isUpdate){if(this.spec.kind==="for-of"&&this.iterator.original&&!r.done)continue;o.add(a)}}this.runtime.on("reflection",()=>{n.forEach(s=>s.abort(!0))},{once:!0}),o.size&&(this.iterator=function*(s){yield*s,yield*o}(this.iterator),r.done&&this.iterate())};this.once(C.observe(this.iteratee,e=>{G(this.cursor,r=>t(e,r))}))}};var ie=class extends $t{async createIterator(){return this.spec.kind==="for-in"?function*(){for(let t in this.iteratee)yield t}.call(this):this.spec.kind==="for-of"?function*(){for(let t of this.iteratee)yield t}.call(this):{next:async()=>({done:!await this.pseudorun(()=>this.spec.test(this))})}}async closure(){["for-of","for-in"].includes(this.spec.kind)?([this.production,this.iteratee]=await this.spec.parameters(this),this.iterator=await this.createIterator(),this.iterator.original=!0,this.watchMode()):(this.spec.kind==="for"&&await this.spec.init(this),this.iterator=await this.createIterator()),await this.iterate()}async iterate(){let t;this.iterating=!0;let e=async()=>!this.terminated()&&(this.cursor=this.iterator.next())&&(t=await this.cursor)&&!t.done,r=async()=>{await this.createRound(t.value).execute(),await this.advance()};if(this.spec.kind==="do-while")do await r();while(await e());else for(;await e();)await r();this.iterating=!1}};var Et=class extends ot{locations=[];queue=new Set;thread=[];iThread=[];constructor(t,e,r,n,o){let{$serial:s=0,spec:a,...c}=r;super(t,e,a,-1,n,o),this.$serial=s,this.$params=c,this.$objects=new K(void 0,"objects"),this.manage(this.$objects),this.exports=Object.create(null),this.$promises={imports:[],exports:[]},this.manage(()=>{C.deleteProperties(this.exports,Object.keys(this.exports)),this.$promises.imports.splice(0),this.$promises.exports.splice(0)})}extractSource(t,e=!1){let[[r,n,o],[s]]=this.locations[t],a=this.$params.originalSource.slice(r,s);return e?{expr:a,line:n,column:o}:a}get runtime(){return this}get nowRunning(){return this.thread[0]}schedule(...t){let e=this.queue.size;for(let r of t)this.queue.add(r);if(!e)return this.flowControlDirty=!1,function r(n,o){let s;for(let a of this.queue){if(o&&o.order(a)!==o||["aborted","running"].includes(a.state)||this.iThread[0]?.contains(a)){this.queue.delete(a);continue}s=s?s.order(a):a,o||(o=s)}return s?(s.abort(),s.execute(a=>(this.queue.delete(s),r.call(this,a,s)))):(this.fire("reflection"),this.flowControlApplied()&&this.fire("statechange"),n)}.call(this,void 0,this.nowRunning)}execute(t=null){return super.execute(e=>{let r=["LiveProgram","LiveFunction"].includes(this.$params.executionMode),n=this.$params.sourceType==="module"||this.$params.sourceType==="script",o=r||this.$params.executionMode==="RegularProgram"&&n?new vt(this):this.flowControl.get("return")?.arg;return t?t(o,this):o})}spawn(t,e,r,n=null){let o=this.nowRunning||n||this,s={...this.$params,$serial:this.$serial+1,executionMode:t,lexicalContext:n},a=new K(o.scope,"function",e?{this:e}:{});return new this.constructor(o,"function",s,a,r).execute()}async import(...t){let e=t.pop(),r=typeof e=="string"?{source:e}:e,n=s=>{if(r.forExport||r.isDynamic)return s;this.assignModules(t,this.scope.state,s,e.serial)};if(this.$params.experimentalFeatures!==!1&&re[r.source])return n(re[r.source]);let o=(async()=>{let s=this.$params.sourceType==="module"&&this.$params.experimentalFeatures!==!1&&this.$params.exportNamespace||this.$params.fileName;try{return n({...await import(r.source)})}catch(a){a.code==="ERR_MODULE_NOT_FOUND"?this.throw(new Error(`Cannot find module "${r.source}"${s?` imported at "${s}"`:""}.`),[r.serial],a.code):this.throw(a,[r.serial],a.code)}})();return r.isDynamic||this.$promises[r.forExport?"exports":"imports"].push(o),o}async export(...t){let e=Array.isArray(t[t.length-1])?null:t.pop(),r=e?await this.import({...e,forExport:!0}):this.scope.type==="this"?this.scope.context.state:this.scope.state;this.assignModules(t,this.exports,r,e?.serial)}assignModules(t,e,r,n=null){let o=[],s=["LiveProgram","LiveFunction"].includes(this.$params.executionMode);for(let[a,c,l,u]of t){if(a===null){(s?C:Reflect).set(e,l,u);continue}if(a==="*"&&l){(s?C:Reflect).set(e,l,r);continue}C.has(r,a)||this.throw(new Error(`The requested module does not provide an export named "${a}".`),[c,n]),(s?C:Reflect).set(e,l||a,C.get(r,a)),o.push([a,c,l])}!o.length||!s||this.once(C.observe(r,a=>{for(let[c,,l]of o)for(let u of a)c==="*"?C.set(e,u.key,u.value):u.key===c&&C.set(e,l||c,u.value)}))}afterExecute(...t){return this.$params.sourceType==="module"&&this.$params.experimentalFeatures!==!1&&this.$params.exportNamespace&&(re[this.$params.exportNamespace]=this.exports,this.once(()=>{delete re[this.$params.exportNamespace]})),super.afterExecute(...t)}};V(Et,"AutoAsyncIterator",ie),V(Et,"AutoIterator",$t);function me(i,t,e,r=[],n={}){typeof r=="object"&&r&&!Array.isArray(r)&&(n=r,r=[]);let{liveMode:o=!0,thisContext:s,env:a,exportNamespace:c,fileName:l,base64:u,compileFunction:p,forDynamicBinding:f=!1,...d}=n,{parserParams:m,transformerParams:w,runtimeParams:v}=Rt(d),g=/module/.test(i),y=/script/.test(i),x=/function/.test(i),S=/async/.test(i)||/module/.test(i),h=/source/.test(i),b=/file/.test(i),_=typeof e=="object"&&e?.type==="Program";_||(e=e+"");let O=e;if(g)m.sourceType="module",m.allowAwaitOutsideFunction=!0,m.executionMode=o?"LiveProgram":"RegularProgram";else if(y)m.executionMode=o?"LiveProgram":"RegularProgram";else if(x){if(h)if(_)e=Dt.funcExpr(null,r.map(I=>Dt.identifier(I)),Dt.blockStmt(o?[Dt.literal("use live"),...e.body]:e.body),S),e.isLiveFunction=O.isLiveProgram;else{let I="  "+e.split(`
+var __defProp = Object.defineProperty;
+var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+var __publicField = (obj, key, value) => {
+  __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
+  return value;
+};
+var __accessCheck = (obj, member, msg) => {
+  if (!member.has(obj))
+    throw TypeError("Cannot " + msg);
+};
+var __privateGet = (obj, member, getter) => {
+  __accessCheck(obj, member, "read from private field");
+  return getter ? getter.call(obj) : member.get(obj);
+};
+var __privateAdd = (obj, member, value) => {
+  if (member.has(obj))
+    throw TypeError("Cannot add the same private member more than once");
+  member instanceof WeakSet ? member.add(obj) : member.set(obj, value);
+};
+var __privateSet = (obj, member, value, setter) => {
+  __accessCheck(obj, member, "write to private field");
+  setter ? setter.call(obj, value) : member.set(obj, value);
+  return value;
+};
+
+// node_modules/@webqit/use-live/src/index.lite.js
+var index_lite_exports = {};
+__export(index_lite_exports, {
+  AsyncLiveFunction: () => AsyncLiveFunction,
+  AsyncLiveScript: () => AsyncLiveScript,
+  LiveFunction: () => LiveFunction,
+  LiveModule: () => LiveModule,
+  LiveProgramHandle: () => LiveProgramHandle,
+  LiveScript: () => LiveScript,
+  Observer: () => Observer,
+  compile: () => compile2,
+  matchPrologDirective: () => matchPrologDirective,
+  nextKeyword: () => nextKeyword,
+  parse: () => parse,
+  serialize: () => serialize,
+  transform: () => transform
+});
+
+// node_modules/@webqit/observer/src/main.js
+var main_exports = {};
+__export(main_exports, {
+  any: () => any,
+  apply: () => apply,
+  batch: () => batch,
+  construct: () => construct,
+  defineProperties: () => defineProperties,
+  defineProperty: () => defineProperty,
+  deleteProperties: () => deleteProperties,
+  deleteProperty: () => deleteProperty,
+  get: () => get,
+  getOwnPropertyDescriptor: () => getOwnPropertyDescriptor,
+  getOwnPropertyDescriptors: () => getOwnPropertyDescriptors,
+  getPrototypeOf: () => getPrototypeOf,
+  has: () => has,
+  intercept: () => intercept,
+  isExtensible: () => isExtensible,
+  map: () => map,
+  observe: () => observe,
+  ownKeys: () => ownKeys,
+  path: () => path,
+  preventExtensions: () => preventExtensions,
+  reduce: () => reduce,
+  set: () => set,
+  setPrototypeOf: () => setPrototypeOf,
+  subtree: () => subtree
+});
+
+// node_modules/@webqit/util/js/isObject.js
+function isObject_default(val) {
+  return !Array.isArray(val) && typeof val === "object" && val;
+}
+
+// node_modules/@webqit/util/js/getType.js
+function getType_default(val) {
+  return typeof val;
+}
+
+// node_modules/@webqit/util/js/isArray.js
+function isArray_default(val) {
+  return Array.isArray(val);
+}
+
+// node_modules/@webqit/util/js/isTypeFunction.js
+function isTypeFunction_default(val) {
+  return typeof val === "function";
+}
+
+// node_modules/@webqit/util/js/isNull.js
+function isNull_default(val) {
+  return val === null || val === "";
+}
+
+// node_modules/@webqit/util/js/isUndefined.js
+function isUndefined_default(val) {
+  return arguments.length && (val === void 0 || typeof val === "undefined");
+}
+
+// node_modules/@webqit/util/js/isTypeObject.js
+function isTypeObject_default(val) {
+  return Array.isArray(val) || typeof val === "object" && val || isTypeFunction_default(val);
+}
+
+// node_modules/@webqit/util/js/isEmpty.js
+function isEmpty_default(val) {
+  return isNull_default(val) || isUndefined_default(val) || val === false || val === 0 || isTypeObject_default(val) && !Object.keys(val).length;
+}
+
+// node_modules/@webqit/util/js/isFunction.js
+function isFunction_default(val) {
+  return isTypeFunction_default(val) || val && {}.toString.call(val) === "[object function]";
+}
+
+// node_modules/@webqit/util/js/isNumber.js
+function isNumber_default(val) {
+  return val instanceof Number || typeof val === "number";
+}
+
+// node_modules/@webqit/util/js/isNumeric.js
+function isNumeric_default(val) {
+  return isNumber_default(val) || val !== true && val !== false && val !== null && val !== "" && !isNaN(val * 1);
+}
+
+// node_modules/@webqit/util/js/isString.js
+function isString_default(val) {
+  return val instanceof String || typeof val === "string" && val !== null;
+}
+
+// node_modules/@webqit/util/js/isTypeArray.js
+function isTypeArray_default(val) {
+  return !isString_default(val) && !isUndefined_default(val.length);
+}
+
+// node_modules/@webqit/util/arr/pushUnique.js
+function pushUnique_default(arr, ...items) {
+  items.forEach((itm) => {
+    if (arr.indexOf(itm) < 0) {
+      arr.push(itm);
+    }
+  });
+  return arr;
+}
+
+// node_modules/@webqit/util/obj/getPrototypeChain.js
+function getPrototypeChain_default(obj, until) {
+  until = until || Object.prototype;
+  until = until && !isArray_default(until) ? [until] : until;
+  var prototypalChain = [];
+  var obj = obj;
+  while (obj && (!until || until.indexOf(obj) < 0) && obj.name !== "default") {
+    prototypalChain.push(obj);
+    obj = obj ? Object.getPrototypeOf(obj) : null;
+  }
+  return prototypalChain;
+}
+
+// node_modules/@webqit/util/obj/getAllPropertyNames.js
+function getAllPropertyNames_default(obj, until) {
+  var keysAll = [];
+  getPrototypeChain_default(obj, until).forEach((obj2) => {
+    pushUnique_default(keysAll, ...Object.getOwnPropertyNames(obj2));
+  });
+  return keysAll;
+}
+
+// node_modules/@webqit/util/obj/mergeCallback.js
+function mergeCallback(objs, callback, deepProps = false, isReplace = false, withSymbols = false) {
+  var depth = 0;
+  var obj1 = objs.shift();
+  if (isNumeric_default(obj1) || obj1 === true || obj1 === false) {
+    depth = obj1;
+    obj1 = objs.shift();
+  }
+  if (!objs.length) {
+    throw new Error("_merge() requires two or more array/objects.");
+  }
+  objs.forEach((obj2, i) => {
+    if (!isTypeObject_default(obj2) && !isFunction_default(obj2)) {
+      return;
+    }
+    (deepProps ? getAllPropertyNames_default(obj2) : Object.keys(obj2)).forEach((key) => {
+      if (!callback(key, obj1, obj2, i)) {
+        return;
+      }
+      var valAtObj1 = obj1[key];
+      var valAtObj2 = obj2[key];
+      if ((isArray_default(valAtObj1) && isArray_default(valAtObj2) || isObject_default(valAtObj1) && isObject_default(valAtObj2)) && (depth === true || depth > 0)) {
+        obj1[key] = isArray_default(valAtObj1) && isArray_default(valAtObj2) ? [] : {};
+        mergeCallback([isNumeric_default(depth) ? depth - 1 : depth, obj1[key], valAtObj1, valAtObj2], callback, deepProps, isReplace, withSymbols);
+      } else {
+        if (isArray_default(obj1) && isArray_default(obj2)) {
+          if (isReplace) {
+            obj1[key] = valAtObj2;
+          } else {
+            obj1.push(valAtObj2);
+          }
+        } else {
+          try {
+            if (withSymbols) {
+              Object.defineProperty(obj1, key, Object.getOwnPropertyDescriptor(obj2, key));
+            } else {
+              obj1[key] = obj2[key];
+            }
+          } catch (e) {
+          }
+        }
+      }
+    });
+  });
+  return obj1;
+}
+
+// node_modules/@webqit/util/obj/merge.js
+function merge_default(...objs) {
+  return mergeCallback(objs, (k, obj1, obj2) => {
+    return true;
+  }, false, false, false);
+}
+
+// node_modules/@webqit/util/js/wq.js
+function wq(obj, ...namespaces) {
+  if (!obj || !["object", "function"].includes(typeof obj)) {
+    throw new Error(`Argument #1 must be of type object`);
+  }
+  let wq2 = obj[Symbol.for("wq")];
+  if (!wq2) {
+    wq2 = new WQInternals();
+    Object.defineProperty(obj, Symbol.for("wq"), {
+      value: wq2,
+      enumerable: false,
+      configurable: false,
+      writable: false
+    });
+  }
+  if (!namespaces.length) {
+    return wq2;
+  }
+  let _ns, _wq3;
+  while (_ns = namespaces.shift()) {
+    if ((_wq3 = wq2) && !(wq2 = wq2.get(_ns))) {
+      wq2 = new WQInternals();
+      _wq3.set(_ns, wq2);
+    }
+  }
+  return wq2;
+}
+var WQInternals = class extends Map {
+};
+
+// node_modules/@webqit/util/arr/from.js
+function from_default(val, castObject = true) {
+  if (isArray_default(val)) {
+    return val;
+  }
+  ;
+  if (!castObject && isObject_default(val)) {
+    return [val];
+  }
+  ;
+  if (val !== false && val !== 0 && isEmpty_default(val)) {
+    return [];
+  }
+  ;
+  if (isTypeArray_default(val)) {
+    return Array.prototype.slice.call(val);
+  }
+  ;
+  if (isObject_default(val)) {
+    return Object.values(val);
+  }
+  ;
+  return [val];
+}
+
+// node_modules/@webqit/observer/src/util.js
+var _wq = (target, ...args) => wq(target, "observerAPI", ...args);
+var _await = (value, callback) => value instanceof Promise ? value.then(callback) : callback(value);
+var env = {};
+
+// node_modules/@webqit/observer/src/core/Registration.js
+var Registration = class {
+  constructor(registry2, dfn) {
+    this.registry = registry2;
+    Object.assign(this, { ...dfn, target: registry2.target });
+    if (this.params.signal) {
+      this.params.signal.addEventListener("abort", () => this.remove());
+    }
+  }
+  remove() {
+    this.removed = true;
+    return this.registry.removeRegistration(this);
+  }
+};
+
+// node_modules/@webqit/observer/src/core/ListenerRegistration.js
+var ListenerRegistration = class extends Registration {
+  constructor() {
+    super(...arguments);
+    this.emit.currentRegistration = this;
+    Object.defineProperty(this, "abortController", { value: new AbortController() });
+    Object.defineProperty(this, "signal", { value: this.abortController.signal });
+    env.setMaxListeners?.(0, this.signal);
+  }
+  remove() {
+    this.abortController.abort();
+    super.remove();
+  }
+  fire(events) {
+    if (this.emit.recursionTarget && !["inject", "force-async", "force-sync"].includes(this.params.recursions))
+      return;
+    let matches = events, filter = this.filter;
+    if (filter !== Infinity && (filter = from_default(filter, false))) {
+      matches = events.filter((event) => filter.includes(event.key));
+    }
+    if (this.params.diff) {
+      matches = matches.filter((event) => event.type !== "set" || event.value !== event.oldValue);
+    }
+    if (!matches.length)
+      return;
+    if (["inject", "defer"].includes(this.params.recursions)) {
+      if (this.emit.recursionTarget) {
+        this.emit.recursionTarget.push(...matches);
+        return;
+      }
+      this.emit.recursionTarget = this.params.recursions === "inject" ? matches : [];
+    }
+    const $ret = this.filter === Infinity || Array.isArray(this.filter) ? this.emit(matches, this) : this.emit(matches[0], this);
+    return _await($ret, (ret) => {
+      const recursions = this.emit.recursionTarget;
+      delete this.emit.recursionTarget;
+      if (this.params.recursions === "defer") {
+        if (recursions?.length)
+          return this.emit.currentRegistration.fire(recursions);
+      }
+      return ret;
+    });
+  }
+};
+
+// node_modules/@webqit/observer/src/core/Registry.js
+var Registry = class {
+  constructor(target) {
+    this.target = target;
+    this.entries = [];
+  }
+  addRegistration(registration) {
+    this.entries.push(registration);
+    return registration;
+  }
+  removeRegistration(registration) {
+    this.entries = this.entries.filter((_entry) => _entry !== registration);
+  }
+  static _getInstance(type, target, createIfNotExists = true, namespace = this.__namespace) {
+    if (!isTypeObject_default(target))
+      throw new Error(`Subject must be of type object; "${getType_default(target)}" given!`);
+    let ImplementationClass = this;
+    if (namespace && _wq(globalThis, "observerAPI", "namespaces").has(type + "-" + namespace)) {
+      ImplementationClass = _wq(globalThis, "observerAPI", "namespaces").get(type + "-" + namespace);
+      type += "-" + namespace;
+    }
+    if (!_wq(target, "registry").has(type) && createIfNotExists) {
+      _wq(target, "registry").set(type, new ImplementationClass(target));
+    }
+    return _wq(target, "registry").get(type);
+  }
+  static _namespace(type, namespace, ImplementationClass = null) {
+    type += "-" + namespace;
+    if (arguments.length === 2)
+      return _wq(globalThis, "observerAPI", "namespaces").get(type);
+    if (!(ImplementationClass.prototype instanceof this)) {
+      throw new Error(`The implementation of the namespace ${this.name}.${namespace} must be a subclass of ${this.name}.`);
+    }
+    _wq(globalThis, "observerAPI", "namespaces").set(type, ImplementationClass);
+    ImplementationClass.__namespace = namespace;
+  }
+};
+
+// node_modules/@webqit/observer/src/core/Descriptor.js
+var Descriptor = class {
+  constructor(target, dfn) {
+    this.target = target;
+    if (!dfn.operation)
+      throw new Error("Descriptor operation must be given in definition!");
+    Object.assign(this, dfn);
+  }
+  get [Symbol.toStringTag]() {
+    return "Descriptor";
+  }
+  static [Symbol.hasInstance](instance) {
+    return instance?.[Symbol.toStringTag] === "Descriptor" && instance.operation;
+  }
+};
+
+// node_modules/@webqit/observer/src/core/ListenerRegistry.js
+var ListenerRegistry = class extends Registry {
+  static getInstance(target, createIfNotExists = true, namespace = null) {
+    return super._getInstance("listeners", ...arguments);
+  }
+  static namespace(namespace, ImplementationClass = null) {
+    return super._namespace("listeners", ...arguments);
+  }
+  constructor(target) {
+    super(target);
+    this.batches = [];
+  }
+  addRegistration(filter, emit, params) {
+    return super.addRegistration(new ListenerRegistration(this, { filter, emit, params }));
+  }
+  emit(events, { eventsArePropertyDescriptors = false, eventIsArrayMethodDescriptor = false } = {}) {
+    if (this.batches.length) {
+      const arrayMethodName = this.batches[0].params.arrayMethodName;
+      this.batches[0].snapshots.push({
+        events: [...events],
+        arrayMethodName,
+        eventsArePropertyDescriptors,
+        eventIsArrayMethodDescriptor
+      });
+      return;
+    }
+    this.$emit(this.entries, [{
+      events,
+      eventsArePropertyDescriptors,
+      eventIsArrayMethodDescriptor
+    }]);
+  }
+  $emit(listeners, snapshots) {
+    let listenersLength = 0, listenersAskingEventsWithPropertyDescriptors = 0, listenersAskingArrayMethodDescriptors = 0;
+    for (const listener of listeners) {
+      listenersLength += 1;
+      if (listener.params.withPropertyDescriptors) {
+        listenersAskingEventsWithPropertyDescriptors += 1;
+      }
+      if (listener.params.withArrayMethodDescriptors) {
+        listenersAskingArrayMethodDescriptors += 1;
+      }
+    }
+    const events_with_PropertyDescriptors_with_ArrayMethodDescriptors = [], events_with_PropertyDescriptors_without_ArrayMethodDescriptors = [];
+    const events_without_PropertyDescriptors_with_ArrayMethodDescriptors = [], events_without_PropertyDescriptors_without_ArrayMethodDescriptors = [];
+    for (const snapshot of snapshots) {
+      const arrayMethodName = snapshot.arrayMethodName;
+      const eventsArePropertyDescriptors = snapshot.eventsArePropertyDescriptors;
+      const eventIsArrayMethodDescriptor = snapshot.eventIsArrayMethodDescriptor;
+      for (const event of snapshot.events) {
+        if (arrayMethodName) {
+          event.operation = arrayMethodName;
+        }
+        if (listenersAskingEventsWithPropertyDescriptors) {
+          listenersAskingArrayMethodDescriptors && events_with_PropertyDescriptors_with_ArrayMethodDescriptors.push(event);
+          if (!eventIsArrayMethodDescriptor) {
+            listenersAskingArrayMethodDescriptors !== listenersLength && events_with_PropertyDescriptors_without_ArrayMethodDescriptors.push(event);
+          }
+        }
+        if (listenersAskingEventsWithPropertyDescriptors !== listenersLength) {
+          let $event = event;
+          if (eventsArePropertyDescriptors) {
+            const { target, type, ...details } = event;
+            $event = new Descriptor(target, { type: "set", ...details });
+            Object.defineProperty($event, "value", "get" in details.value ? { get: () => details.value.get() } : { value: details.value.value });
+            if (details.oldValue) {
+              Object.defineProperty($event, "oldValue", "get" in details.oldValue ? { get: () => details.oldValue.get() } : { value: details.oldValue.value });
+            }
+          }
+          listenersAskingArrayMethodDescriptors && events_without_PropertyDescriptors_with_ArrayMethodDescriptors.push($event);
+          if (!eventIsArrayMethodDescriptor) {
+            listenersAskingArrayMethodDescriptors !== listenersLength && events_without_PropertyDescriptors_without_ArrayMethodDescriptors.push($event);
+          }
+        }
+      }
+    }
+    for (const listener of listeners) {
+      if (listener.params.withPropertyDescriptors) {
+        if (listener.params.withArrayMethodDescriptors) {
+          events_with_PropertyDescriptors_with_ArrayMethodDescriptors.length && listener.fire(events_with_PropertyDescriptors_with_ArrayMethodDescriptors);
+        } else {
+          events_with_PropertyDescriptors_without_ArrayMethodDescriptors.length && listener.fire(events_with_PropertyDescriptors_without_ArrayMethodDescriptors);
+        }
+      } else {
+        if (listener.params.withArrayMethodDescriptors) {
+          events_without_PropertyDescriptors_with_ArrayMethodDescriptors.length && listener.fire(events_without_PropertyDescriptors_with_ArrayMethodDescriptors);
+        } else {
+          events_without_PropertyDescriptors_without_ArrayMethodDescriptors.length && listener.fire(events_without_PropertyDescriptors_without_ArrayMethodDescriptors);
+        }
+      }
+    }
+  }
+  batch(callback, params = {}) {
+    this.batches.unshift({ entries: [...this.entries], snapshots: [], params });
+    const returnValue = callback();
+    return _await(returnValue, (returnValue2) => {
+      const batch2 = this.batches.shift();
+      if (!batch2.snapshots.length)
+        return returnValue2;
+      this.$emit(batch2.entries, batch2.snapshots);
+      return returnValue2;
+    });
+  }
+};
+
+// node_modules/@webqit/observer/src/core/TrapsRegistration.js
+var TrapsRegistration = class extends Registration {
+  exec(descriptor, next, recieved) {
+    if (this.running || !this.traps[descriptor.operation]) {
+      return next(...Array.prototype.slice.call(arguments, 2));
+    }
+    this.running = true;
+    return this.traps[descriptor.operation](descriptor, recieved, (...args) => {
+      this.running = false;
+      return next(...args);
+    });
+  }
+};
+
+// node_modules/@webqit/observer/src/core/TrapsRegistry.js
+var TrapsRegistry = class extends Registry {
+  static getInstance(target, createIfNotExists = true, namespace = null) {
+    return super._getInstance("traps", ...arguments);
+  }
+  static namespace(namespace, ImplementationClass = null) {
+    return super._namespace("traps", ...arguments);
+  }
+  addRegistration(dfn) {
+    return super.addRegistration(new TrapsRegistration(this, dfn));
+  }
+  emit(descriptor, defaultHandler = null) {
+    const $this = this;
+    return function next(index, ..._args) {
+      const registration = $this.entries[index];
+      if (registration) {
+        return registration.exec(descriptor, (...args) => {
+          return next(index + 1, ...args);
+        }, ..._args);
+      }
+      return defaultHandler ? defaultHandler(descriptor, ..._args) : _args[0];
+    }(0);
+  }
+};
+
+// node_modules/@webqit/observer/src/actors.js
+var actors_exports = {};
+__export(actors_exports, {
+  accessorize: () => accessorize,
+  proxy: () => proxy,
+  unaccessorize: () => unaccessorize,
+  unproxy: () => unproxy
+});
+var symWQOriginal = Symbol("wqOriginal");
+function accessorize(target, props, params = {}) {
+  target = resolveTarget(target);
+  const accessorizedProps = _wq(target, "accessorizedProps");
+  function getDescriptorDeep(prop) {
+    let descriptor, proto = target;
+    do {
+      descriptor = Object.getOwnPropertyDescriptor(proto, prop);
+    } while (!descriptor && (proto = Object.getPrototypeOf(proto)));
+    return descriptor ? { proto, descriptor } : { descriptor: { value: void 0, configurable: true, enumerable: true, writable: true } };
+  }
+  function accessorizeProp(prop) {
+    if (accessorizedProps.has(prop + ""))
+      return true;
+    const currentDescriptorRecord = getDescriptorDeep(prop);
+    currentDescriptorRecord.getValue = function(withPropertyDescriptors = false) {
+      if (withPropertyDescriptors)
+        return this.descriptor;
+      return this.descriptor.get ? this.descriptor.get() : this.descriptor.value;
+    };
+    currentDescriptorRecord.setValue = function(value, withPropertyDescriptors = false) {
+      this.dirty = true;
+      if (withPropertyDescriptors) {
+        this.descriptor = value;
+        return;
+      }
+      return this.descriptor.set ? this.descriptor.set(value) !== false : (this.descriptor.value = value, true);
+    };
+    currentDescriptorRecord.intact = function() {
+      const currentDescriptor = Object.getOwnPropertyDescriptor(target, prop);
+      return currentDescriptor?.get === accessorization.get && currentDescriptor?.set === accessorization.set && accessorizedProps.get(prop + "") === this;
+    };
+    currentDescriptorRecord.restore = function() {
+      if (!this.intact())
+        return false;
+      if (this.proto && this.proto !== target || !this.proto && !this.dirty) {
+        delete target[prop];
+      } else {
+        Object.defineProperty(target, prop, this.descriptor);
+      }
+      accessorizedProps.delete(prop + "");
+      return true;
+    };
+    accessorizedProps.set(!isNaN(prop) ? parseInt(prop) : prop, currentDescriptorRecord);
+    const { enumerable = true } = currentDescriptorRecord.descriptor;
+    const accessorization = { enumerable, configurable: true };
+    if ("value" in currentDescriptorRecord.descriptor || currentDescriptorRecord.descriptor.set) {
+      accessorization.set = function(value) {
+        return set(this, prop, value, params);
+      };
+    }
+    if ("value" in currentDescriptorRecord.descriptor || currentDescriptorRecord.descriptor.get) {
+      accessorization.get = function() {
+        return get(this, prop, params);
+      };
+    }
+    try {
+      Object.defineProperty(target, prop, accessorization);
+      return true;
+    } catch (e) {
+      accessorizedProps.delete(prop + "");
+      return false;
+    }
+  }
+  const _props = Array.isArray(props) ? props : props === void 0 ? Object.keys(target) : [props];
+  const statuses = _props.map(accessorizeProp);
+  return props === void 0 || Array.isArray(props) ? statuses : statuses[0];
+}
+function unaccessorize(target, props, params = {}) {
+  target = resolveTarget(target);
+  const accessorizedProps = _wq(target, "accessorizedProps");
+  function unaccessorizeProp(prop) {
+    if (!accessorizedProps.has(prop + ""))
+      return true;
+    return accessorizedProps.get(prop + "").restore();
+  }
+  const _props = Array.isArray(props) ? props : props === void 0 ? Object.keys(target) : [props];
+  const statuses = _props.map(unaccessorizeProp);
+  return props === void 0 || Array.isArray(props) ? statuses : statuses[0];
+}
+function proxy(target, params = {}, extendCallback = void 0) {
+  const originalTarget = resolveTarget(target);
+  if (typeof params.membrane === "boolean")
+    throw new Error(`The params.membrane parameter cannot be of type boolean.`);
+  if (params.membrane && _wq(originalTarget, "membraneRef").has(params.membrane)) {
+    return _wq(originalTarget, "membraneRef").get(params.membrane);
+  }
+  const traps = {
+    apply: (target2, thisArgument, argumentsList) => apply(target2, thisArgument, argumentsList, void 0, params),
+    construct: (target2, argumentsList, newTarget = null) => construct(target2, argumentsList, newTarget, params),
+    defineProperty: (target2, propertyKey, attributes) => defineProperty(target2, propertyKey, attributes, params),
+    deleteProperty: (target2, propertyKey) => deleteProperty(target2, propertyKey, params),
+    get: (target2, propertyKey, receiver = null) => {
+      if (propertyKey === symWQOriginal) {
+        return originalTarget;
+      }
+      const $params = { ...params, receiver };
+      const returnValue = get(target2, propertyKey, $params);
+      if (Array.isArray(target2) && typeof returnValue === "function" && !/^class\s?/.test(Function.prototype.toString.call(returnValue))) {
+        return proxy(returnValue, { ...params, arrayMethodName: propertyKey, membrane: receiver }, extendCallback);
+      }
+      if (params.chainable && isTypeObject_default(returnValue) && propertyKey !== "prototype" && !(typeof returnValue === "function" && /^class\s?|\{\s\[native\scode\]\s\}$/.test(Function.prototype.toString.call(returnValue)))) {
+        return proxy(returnValue, params, extendCallback);
+      }
+      return returnValue;
+    },
+    getOwnPropertyDescriptor: (target2, propertyKey) => getOwnPropertyDescriptor(target2, propertyKey, params),
+    getPrototypeOf: (target2) => getPrototypeOf(target2, params),
+    has: (target2, propertyKey) => has(target2, propertyKey, params),
+    isExtensible: (target2) => isExtensible(target2, params),
+    ownKeys: (target2) => ownKeys(target2, params),
+    preventExtensions: (target2) => preventExtensions(target2, params),
+    set: (target2, propertyKey, value, receiver = null) => set(target2, propertyKey, value, { ...params, receiver }),
+    setPrototypeOf: (target2, prototype) => setPrototypeOf(target2, prototype, params)
+  };
+  const $traps = extendCallback?.(traps) || traps;
+  const $proxy = new Proxy(originalTarget, $traps);
+  if (params.membrane) {
+    _wq(originalTarget, "membraneRef").set(params.membrane, $proxy);
+  }
+  return $proxy;
+}
+function unproxy(target) {
+  return target && target[symWQOriginal] || target;
+}
+function resolveTarget(target) {
+  if (!target || !isTypeObject_default(target))
+    throw new Error("Target must be of type object!");
+  return unproxy(target);
+}
+
+// node_modules/@webqit/observer/src/main.js
+var Path = class extends Array {
+  get [Symbol.toStringTag]() {
+    return "Path";
+  }
+  static [Symbol.hasInstance](instance) {
+    return Array.isArray(instance) && instance[Symbol.toStringTag] === "Path";
+  }
+};
+function path(...segments) {
+  return new Path(...segments);
+}
+var Subtree = class extends Array {
+  get [Symbol.toStringTag]() {
+    return "Subtree";
+  }
+  static [Symbol.hasInstance](instance) {
+    return Array.isArray(instance) && instance[Symbol.toStringTag] === "Subtree";
+  }
+};
+function subtree() {
+  return new Subtree();
+}
+function any() {
+  return Infinity;
+}
+function reduce(target, path2, receiver, final = (x) => x, params = {}) {
+  const _isSubtree = path2 instanceof Subtree;
+  if (!_isSubtree && !path2?.length)
+    return;
+  return function eat(target2, path3, $params, $isSubtree) {
+    const isSubtree = $isSubtree || path3[$params.level] instanceof Subtree;
+    const segment = isSubtree ? Infinity : path3[$params.level];
+    const isLastSegment = isSubtree ? false : $params.level === path3.length - 1;
+    if (target2 instanceof Descriptor && target2.operation !== "get") {
+      $params = { ...$params, probe: "always" };
+    } else if ($params.probe !== "always") {
+      $params = { ...$params, probe: !isLastSegment };
+    }
+    return receiver(target2, segment, (result, ...args) => {
+      const addTrail = (desc) => {
+        if (!(desc instanceof Descriptor))
+          return;
+        desc.path = "key" in desc ? [desc.key] : [];
+        if (target2 instanceof Descriptor) {
+          desc.path = "key" in desc ? target2.path.concat(desc.key) : target2.path.slice(0);
+          Object.defineProperty(desc, "context", { get: () => target2, configurable: true });
+        }
+      };
+      const flags = args[0] || {};
+      const advance = (result2) => {
+        if (result2 instanceof Descriptor && "argumentsList" in result2) {
+          return;
+        }
+        const $value = resolveObj(result2, false);
+        return _await($value, ($value2) => {
+          if (result2 instanceof Descriptor) {
+            result2.value = $value2;
+          } else {
+            result2 = $value2;
+          }
+          return eat(result2, path3, { ...$params, ...flags, keyInParent: result2.key, level: $params.level + 1 }, isSubtree);
+        });
+      };
+      if (isPropsList(segment) && Array.isArray(result)) {
+        result.forEach(addTrail);
+        if (isLastSegment) {
+          return final(result, ...args);
+        }
+        if (isSubtree && result[0] instanceof Descriptor && (result[0].operation !== "get" || params.asGet)) {
+          final(result, ...args);
+        }
+        for (const entry of result) {
+          advance(entry);
+        }
+        return;
+      }
+      addTrail(result);
+      if (isLastSegment) {
+        return final(result, ...args);
+      }
+      return advance(result);
+    }, $params);
+  }(target, path2.slice(0), { ...params, level: 0 }, _isSubtree);
+}
+function observe(target, prop, receiver, params = {}) {
+  const originalTarget = resolveObj(target, !params.level);
+  if (isFunction_default(arguments[1])) {
+    [, receiver, params = {}] = arguments;
+    prop = Infinity;
+  }
+  if (!isFunction_default(receiver))
+    throw new Error(`Handler must be a function; "${getType_default(receiver)}" given!`);
+  if (prop instanceof Path || prop instanceof Subtree)
+    return reduce(originalTarget, prop, observe, receiver, params);
+  params = { ...params, descripted: true };
+  delete params.live;
+  if (!isTypeObject_default(originalTarget))
+    return params.probe && get(originalTarget, prop, receiver, params) || void 0;
+  const emit = bind(originalTarget, prop, receiver, params);
+  if (params.probe) {
+    return get(originalTarget, prop, emit, params);
+  }
+  return emit();
+}
+function intercept(target, traps, params = {}) {
+  const originalTarget = resolveObj(target);
+  if (!isObject_default(traps)) {
+    [, , , params = {}] = arguments;
+    traps = { [arguments[1]]: arguments[2] };
+  }
+  return TrapsRegistry.getInstance(originalTarget, true, params.namespace).addRegistration({ traps, params });
+}
+function getOwnPropertyDescriptor(target, prop, receiver = (x) => x, params = {}) {
+  return exec(target, "getOwnPropertyDescriptor", { key: prop }, receiver, params);
+}
+function getOwnPropertyDescriptors(target, prop, receiver = (x) => x, params = {}) {
+  return exec(target, "getOwnPropertyDescriptors", { key: prop }, receiver, params);
+}
+function getPrototypeOf(target, receiver = (x) => x, params = {}) {
+  return exec(target, "getPrototypeOf", {}, receiver, params);
+}
+function isExtensible(target, receiver = (x) => x, params = {}) {
+  return exec(target, "isExtensible", {}, receiver, params);
+}
+function ownKeys(target, receiver = (x) => x, params = {}) {
+  return exec(target, "ownKeys", {}, receiver, params);
+}
+function has(target, prop, receiver = (x) => x, params = {}) {
+  return exec(target, "has", { key: prop }, receiver, params);
+}
+function get(target, prop, receiver = (x) => x, params = {}) {
+  let isLive;
+  const originalTarget = resolveObj(target, !params.level);
+  if (isObject_default(receiver)) {
+    [params, receiver] = [receiver, (x) => x];
+  } else if (params.live) {
+    isLive = true;
+  }
+  if (prop instanceof Path || prop instanceof Subtree)
+    return reduce(originalTarget, prop, get, receiver, { ...params, asGet: true });
+  return resolveProps(originalTarget, prop, (props) => {
+    const related = [...props];
+    return function next(results, _props, _done) {
+      if (!_props.length)
+        return _done(results);
+      const prop2 = _props.shift();
+      if (!["string", "number", "symbol"].includes(typeof prop2)) {
+        throw new Error(`Property name/key ${prop2} invalid.`);
+      }
+      function defaultGet(descriptor2, value = void 0) {
+        const _next = (value2) => (descriptor2.value = value2, next([...results, params.live || params.descripted ? descriptor2 : value2], _props, _done));
+        if (arguments.length > 1)
+          return _next(value);
+        if (!isTypeObject_default(originalTarget))
+          return _next(originalTarget?.[descriptor2.key]);
+        const accessorizedProps = _wq(originalTarget, "accessorizedProps", false);
+        const accessorization = accessorizedProps && accessorizedProps.get(descriptor2.key);
+        if (accessorization && accessorization.intact()) {
+          return _next(accessorization.getValue(params.withPropertyDescriptors));
+        }
+        if (params.withPropertyDescriptors) {
+          const desc = Object.getOwnPropertyDescriptor(originalTarget, descriptor2.key);
+          return _next(desc);
+        }
+        return _next(Reflect.get(originalTarget, descriptor2.key));
+      }
+      const descriptor = new Descriptor(originalTarget, {
+        type: "get",
+        key: prop2,
+        value: void 0,
+        operation: "get",
+        related
+      });
+      if (!isTypeObject_default(originalTarget))
+        return defaultGet(descriptor);
+      const trapsRegistry = TrapsRegistry.getInstance(originalTarget, false, params.namespace);
+      if (trapsRegistry) {
+        return trapsRegistry.emit(descriptor, defaultGet);
+      }
+      return defaultGet(descriptor);
+    }([], props.slice(0), (results) => {
+      const result_s = isPropsList(prop) ? results : results[0];
+      if (isLive && isTypeObject_default(originalTarget)) {
+        const emit = bind(originalTarget, prop, receiver, params, target.key);
+        return emit(result_s);
+      }
+      return receiver(result_s);
+    });
+  }, params);
+}
+function batch(target, callback, params = {}) {
+  const originalTarget = resolveObj(target);
+  return ListenerRegistry.getInstance(originalTarget, true, params.namespace).batch(callback, params);
+}
+function map(source, target, params = {}) {
+  target = resolveObj(target);
+  source = resolveObj(source);
+  const only = (params.only || []).slice(0), except = (params.except || []).slice(0);
+  const sourceKeys = Object.keys(params.spread ? [...source] : source).map((k) => !isNaN(k) ? parseInt(k) : k);
+  const filteredKeys = only.length ? only.filter((k) => sourceKeys.includes(k)) : sourceKeys.filter((k) => !except.includes(k));
+  const resolveKey = (k) => {
+    if (!Array.isArray(target) || isNaN(k))
+      return k;
+    return k - except.filter((i) => i < k).length;
+  };
+  const doSet = (key) => {
+    const descriptor = getOwnPropertyDescriptor(source, key, params);
+    if ("value" in descriptor && descriptor.writable && descriptor.enumerable && descriptor.configurable) {
+      set(target, resolveKey(key), descriptor.value, params);
+    } else if (descriptor.enumerable || params.onlyEnumerable === false) {
+      defineProperty(target, key, { ...descriptor, configurable: true }, params);
+    }
+  };
+  batch(target, () => {
+    filteredKeys.forEach(doSet);
+  });
+  return observe(source, (mutations) => {
+    mutations.filter((m) => only.length ? only.includes(m.key) : !except.includes(m.key)).forEach((m) => {
+      if (m.type === "delete")
+        return deleteProperty(target, resolveKey(m.key), params);
+      if (m.type === "def") {
+        if (m.value.enumerable || params.onlyEnumerable === false) {
+          defineProperty(target, resolveKey(m.key), { ...m.value, configurable: true }, params);
+        }
+        return;
+      }
+      doSet(m.key);
+    });
+  }, { ...params, withPropertyDescriptors: true });
+}
+function set(target, prop, value, receiver = (x) => x, params = {}, def = false) {
+  const originalTarget = resolveObj(target);
+  let entries = [[prop, value]];
+  if (isObject_default(prop)) {
+    [, , receiver = (x) => x, params = {}, def = false] = arguments;
+    entries = Object.entries(prop);
+  }
+  if (isObject_default(receiver)) {
+    [def, params, receiver] = [typeof params === "boolean" ? params : def, receiver, (x) => x];
+  }
+  const related = entries.map(([prop2]) => prop2);
+  return function next(descriptors, entries2, _done) {
+    if (!entries2.length)
+      return _done(descriptors);
+    const [prop2, value2] = entries2.shift();
+    function defaultSet(descriptor, status = void 0) {
+      const _next = (status2) => (descriptor.status = status2, next(descriptors.concat(descriptor), entries2, _done));
+      if (arguments.length > 1)
+        return _next(descriptor, status);
+      const accessorizedProps = _wq(originalTarget, "accessorizedProps", false);
+      const accessorization = accessorizedProps && accessorizedProps.get(descriptor.key);
+      if (descriptor.type === "def") {
+        if (accessorization && !accessorization.restore())
+          _next(false);
+        Object.defineProperty(originalTarget, descriptor.key, descriptor.value);
+        return _next(true);
+      }
+      if (accessorization && accessorization.intact()) {
+        return _next(accessorization.setValue(descriptor.value));
+      }
+      return _next(Reflect.set(originalTarget, descriptor.key, descriptor.value));
+    }
+    function exec3(isUpdate, oldValue) {
+      if (params.diff && value2 === oldValue)
+        return next(descriptors, entries2, _done);
+      const descriptor = new Descriptor(originalTarget, {
+        type: def ? "def" : "set",
+        key: prop2,
+        value: value2,
+        isUpdate,
+        oldValue,
+        related: [...related],
+        operation: def ? "defineProperty" : "set",
+        detail: params.detail
+      });
+      const trapsRegistry = TrapsRegistry.getInstance(originalTarget, false, params.namespace);
+      return trapsRegistry ? trapsRegistry.emit(descriptor, defaultSet) : defaultSet(descriptor);
+    }
+    return has(originalTarget, prop2, (exists) => {
+      if (!exists)
+        return exec3(exists);
+      if (prop2 === "length" && Array.isArray(originalTarget) && _wq(originalTarget).has("$length")) {
+        return exec3(true, _wq(originalTarget).get("$length"));
+      }
+      const $params = { ...params, withPropertyDescriptors: def };
+      return get(originalTarget, prop2, (oldValue) => exec3(exists, oldValue), $params);
+    }, params);
+  }([], entries.slice(0), (descriptors) => {
+    const listenerRegistry = ListenerRegistry.getInstance(originalTarget, false, params.namespace);
+    if (listenerRegistry)
+      listenerRegistry.emit(descriptors, { eventsArePropertyDescriptors: !!def });
+    return receiver(isPropsList(prop) ? descriptors.map((opr) => opr.status) : descriptors[0]?.status);
+  });
+}
+function defineProperty(target, prop, descriptor, receiver = (x) => x, params = {}) {
+  return set(target, prop, descriptor, receiver, params, true);
+}
+function defineProperties(target, descriptors, receiver = (x) => x, params = {}) {
+  return set(target, descriptors, receiver, params, true);
+}
+function deleteProperty(target, prop, receiver = (x) => x, params = {}) {
+  const originalTarget = resolveObj(target);
+  if (isObject_default(receiver)) {
+    [params, receiver] = [receiver, (x) => x];
+  }
+  const props = from_default(prop, false), related = [...props];
+  return function next(descriptors, props2, _done) {
+    if (!props2.length)
+      return _done(descriptors);
+    const prop2 = props2.shift();
+    function defaultDel(descriptor, status = void 0) {
+      const _next = (status2) => (descriptor.status = status2, next(descriptors.concat(descriptor), props2, _done));
+      if (arguments.length > 1)
+        return _next(descriptor, status);
+      const accessorizedProps = _wq(originalTarget, "accessorizedProps", false);
+      const accessorization = accessorizedProps && accessorizedProps.get(descriptor.key);
+      if (accessorization && !accessorization.restore())
+        _next(false);
+      return _next(Reflect.deleteProperty(originalTarget, descriptor.key));
+    }
+    function exec3(oldValue) {
+      const descriptor = new Descriptor(originalTarget, {
+        type: "delete",
+        key: prop2,
+        oldValue,
+        related: [...related],
+        operation: "deleteProperty",
+        detail: params.detail
+      });
+      const trapsRegistry = TrapsRegistry.getInstance(originalTarget, false, params.namespace);
+      return trapsRegistry ? trapsRegistry.emit(descriptor, defaultDel) : defaultDel(descriptor);
+    }
+    return get(originalTarget, prop2, exec3, params);
+  }([], props.slice(0), (descriptors) => {
+    const listenerRegistry = ListenerRegistry.getInstance(originalTarget, false, params.namespace);
+    if (listenerRegistry)
+      listenerRegistry.emit(descriptors);
+    return receiver(isPropsList(prop) ? descriptors.map((opr) => opr.status) : descriptors[0].status);
+  });
+}
+function deleteProperties(target, props, receiver = (x) => x, params = {}) {
+  return deleteProperty(...arguments);
+}
+function construct(target, argumentsList, newTarget = null, receiver = (x) => x, params = {}) {
+  return exec(target, "construct", arguments.length > 2 ? { argumentsList, newTarget } : { argumentsList }, receiver, params);
+}
+function apply(target, thisArgument, argumentsList, receiver = (x) => x, params = {}) {
+  const originalThis = unproxy(thisArgument);
+  let returnValue;
+  if (Array.isArray(thisArgument)) {
+    if (params.arrayMethodName) {
+      const descriptor = new Descriptor(originalThis, {
+        operation: params.arrayMethodName,
+        argumentsList
+      });
+      const listenerRegistry = ListenerRegistry.getInstance(originalThis, false, params.namespace);
+      listenerRegistry?.emit([descriptor], { eventIsArrayMethodDescriptor: true });
+    }
+    _wq(originalThis).set("$length", originalThis.length);
+    returnValue = batch(originalThis, () => exec(target, "apply", { thisArgument, argumentsList }, receiver, params), params);
+    _wq(originalThis).delete("$length");
+  } else {
+    returnValue = exec(target, "apply", { thisArgument: originalThis, argumentsList }, receiver, params);
+  }
+  return returnValue;
+}
+function setPrototypeOf(target, proto, receiver = (x) => x, params = {}) {
+  return exec(target, "setPrototypeOf", { proto }, receiver, params);
+}
+function preventExtensions(target, receiver = (x) => x, params = {}) {
+  return exec(target, "preventExtensions", {}, receiver, params);
+}
+function bind(target, prop, receiver, params = {}) {
+  const controller = new AbortController();
+  env.setMaxListeners?.(0, controller.signal);
+  if (params.signal) {
+    params.signal.addEventListener("abort", () => controller.abort());
+  }
+  const $params = { ...params, signal: controller.signal };
+  const listenerRegistry = ListenerRegistry.getInstance(target, true, $params.namespace);
+  const childRegistrations = /* @__PURE__ */ new Map();
+  return function emit(descriptor_s = [], prevRegistration = null) {
+    let flags, registrationNext, isExisting;
+    if (isPropsList(prop)) {
+      if (prevRegistration) {
+        isExisting = true;
+        registrationNext = prevRegistration;
+        for (const descriptor of descriptor_s) {
+          childRegistrations.get(descriptor.key)?.remove();
+          childRegistrations.delete(descriptor.key);
+        }
+      } else {
+        registrationNext = listenerRegistry.addRegistration(prop, emit, $params);
+      }
+      flags = { signal: registrationNext.signal, childRegistrations };
+    } else {
+      prevRegistration?.remove();
+      registrationNext = listenerRegistry.addRegistration(prop, emit, $params);
+      flags = { signal: registrationNext.signal };
+    }
+    if ($params.childRegistrations && $params.keyInParent) {
+      $params.childRegistrations.set($params.keyInParent, registrationNext);
+    }
+    if (arguments.length) {
+      const handlerReturnValue = receiver(descriptor_s, flags);
+      if (arguments.length > 1)
+        return handlerReturnValue;
+    }
+    return controller;
+  };
+}
+function exec(target, operation, payload = {}, receiver = (x) => x, params = {}) {
+  target = resolveObj(target);
+  if (isObject_default(receiver)) {
+    [params, receiver] = [receiver, (x) => x];
+  }
+  function defaultExec(descriptor2, result) {
+    if (arguments.length > 1)
+      return receiver(result);
+    return receiver((Reflect[operation] || Object[operation])(target, ...Object.values(payload)));
+  }
+  const descriptor = new Descriptor(target, { operation, ...payload });
+  const trapsRegistry = TrapsRegistry.getInstance(target, false, params.namespace);
+  if (trapsRegistry) {
+    return trapsRegistry.emit(descriptor, defaultExec);
+  }
+  return defaultExec(descriptor);
+}
+function isPropsList(prop) {
+  return prop === Infinity || Array.isArray(prop);
+}
+function resolveObj(obj, assert = true, probePropertyDescriptors = true) {
+  if ((!obj || !isTypeObject_default(obj)) && assert)
+    throw new Error(`Object must be of type object or array! "${getType_default(obj)}" given.`);
+  if (obj instanceof Descriptor) {
+    if (obj.type === "def" && probePropertyDescriptors) {
+      obj = typeof obj.value.get === "function" ? obj.value.get() : obj.value.value;
+    } else {
+      obj = obj.value;
+    }
+  }
+  return obj && unproxy(obj);
+}
+function resolveProps(obj, prop, receiver, params = {}) {
+  if (prop === Infinity) {
+    if (params.level && !isTypeObject_default(obj))
+      return receiver([]);
+    return receiver(Object.entries(Object.getOwnPropertyDescriptors(obj)).filter(([, p]) => p.writable !== false && !p.get && !p.set).map(([name]) => name));
+  }
+  return receiver(from_default(prop, false));
+}
+
+// node_modules/@webqit/observer/src/index.js
+var Observer = { ...main_exports, ...actors_exports };
+
+// node_modules/@webqit/use-live/src/runtime/LiveProgramHandle.js
+var LiveProgramHandle = class {
+  constructor(runtime) {
+    Object.defineProperty(this, Symbol.toStringTag, { value: "LiveProgramHandle" });
+    Object.defineProperty(this, "runtime", { value: runtime });
+    const events = {
+      statechange: () => {
+        Observer.defineProperty(this, "value", { value: runtime.flowControl.get("return")?.arg, enumerable: true, configurable: true });
+      }
+    };
+    for (const name in events) {
+      runtime.on(name, events[name]);
+      events[name]();
+    }
+    if (runtime.$params.sourceType === "module") {
+      Object.defineProperty(this, "exports", { value: runtime.exports });
+    }
+  }
+  abort() {
+    return this.runtime.abort(true);
+  }
+};
+
+// node_modules/@webqit/use-live/src/util.js
+var _call = (_function, ...args) => {
+  const callback = args.pop();
+  if (_function.constructor.name === "AsyncFunction")
+    return _await2(_function.call(...args), callback);
+  try {
+    return callback(_function.call(...args));
+  } catch (e) {
+    return callback(void 0, e);
+  }
+};
+var _await2 = (maybePromise, callback) => {
+  return maybePromise instanceof Promise ? maybePromise.then(callback).catch((e) => callback(void 0, e)) : callback(maybePromise);
+};
+var _isTypeObject = (val) => {
+  return typeof val === "object" && val || typeof val === "function";
+};
+function _$functionArgs(args) {
+  const params = typeof args[args.length - 1] === "object" ? args.pop() : {};
+  const source = args.pop() || "";
+  return { source, args, params };
+}
+var env2 = {};
+function matchPrologDirective(str, strictStart = false) {
+  if (strictStart)
+    return /^(["'])use live\1\s*(;|$)/.test(str);
+  return /(["'])use live\1\s*(;|$)/.test(str);
+}
+function nextKeyword(input, start = 0, mode = null) {
+  let i = start;
+  const l = input.length;
+  const skipWS = () => {
+    while (i < l && /\s/.test(input[i]))
+      i++;
+  };
+  const skipLineComment = () => {
+    i += 2;
+    while (i < l && input[i] !== "\n" && input[i] !== "\r")
+      i++;
+  };
+  const skipBlockComment = () => {
+    i += 2;
+    while (i < l && !(input[i] === "*" && input[i + 1] === "/"))
+      i++;
+    if (i < l)
+      i += 2;
+  };
+  while (i < l) {
+    skipWS();
+    if (input[i] === "/" && input[i + 1] === "/") {
+      skipLineComment();
+      continue;
+    }
+    if (input[i] === "/" && input[i + 1] === "*") {
+      skipBlockComment();
+      continue;
+    }
+    break;
+  }
+  if (mode === 0)
+    return input.slice(i);
+  const startIdent = i;
+  if (i < l && /[A-Za-z$_]/.test(input[i])) {
+    i++;
+    while (i < l && /[A-Za-z0-9$_]/.test(input[i]))
+      i++;
+    return input.slice(startIdent, i);
+  }
+  if (mode === 1 && i < l) {
+    return input[i];
+  }
+  return null;
+}
+
+// node_modules/@webqit/use-live/src/params.js
+function resolveParams(...extensions) {
+  let extension, params = { runtimeParams, transformerParams, parserParams };
+  while (extension = extensions.shift()) {
+    const {
+      runtimeParams: _runtimeParams = {},
+      transformerParams: { globalsNoObserve: _globalsNoObserve = [], globalsOnlyPathsExcept: _globalsOnlyPathsExcept = [], ..._transformerParams } = {},
+      parserParams: _parserParams = {}
+    } = extension;
+    params = {
+      runtimeParams: { ...params.runtimeParams, ..._runtimeParams },
+      transformerParams: { ...params.transformerParams, globalsNoObserve: [...params.transformerParams.globalsNoObserve, ..._globalsNoObserve], globalsOnlyPathsExcept: [...params.transformerParams.globalsOnlyPathsExcept, ..._globalsOnlyPathsExcept], ..._transformerParams },
+      parserParams: { ...params.parserParams, ..._parserParams }
+    };
+    if (extensions.devMode) {
+    }
+  }
+  return params;
+}
+var parserParams = {
+  ecmaVersion: "latest",
+  allowReturnOutsideFunction: true,
+  allowAwaitOutsideFunction: false,
+  allowSuperOutsideMethod: false,
+  preserveParens: false,
+  locations: true
+};
+var transformerParams = {
+  globalsNoObserve: ["arguments", "debugger"],
+  globalsOnlyPathsExcept: [],
+  originalSource: true,
+  locations: true,
+  compact: 2
+};
+var runtimeParams = {
+  apiVersion: 3
+};
+
+// node_modules/@webqit/use-live/src/transformer/Node.js
+var Node_default = {
+  throwStmt(argument) {
+    return { type: "ThrowStatement", argument };
+  },
+  tryStmt(block, handler, finalizer, guardedHandlers) {
+    return { type: "TryStatement", block, handler, finalizer, guardedHandlers };
+  },
+  catchClause(param, body) {
+    return { type: "CatchClause", param, body };
+  },
+  exprStmt(expression) {
+    return { type: "ExpressionStatement", expression };
+  },
+  blockStmt(body) {
+    return { type: "BlockStatement", body };
+  },
+  labeledStmt(label, body) {
+    return { type: "LabeledStatement", label, body };
+  },
+  withStmt(object, body) {
+    return { type: "WithStatement", object, body };
+  },
+  ifStmt(test, consequent, alternate) {
+    return this.conditionalExpr(test, consequent, alternate, "IfStatement");
+  },
+  switchStmt(discriminant, cases, lexical = false) {
+    return { type: "SwitchStatement", discriminant, cases };
+  },
+  switchCase(test, consequent) {
+    return { type: "SwitchCase", test, consequent };
+  },
+  whileStmt(test, body) {
+    return { type: "WhileStatement", test, body };
+  },
+  doWhileStmt(test, body) {
+    return { type: "DoWhileStatement", test, body };
+  },
+  forStmt(init9, test, update, body) {
+    return { type: "ForStatement", init: init9, test, update, body };
+  },
+  forInStmt(left, right, body) {
+    return { type: "ForInStatement", left, right, body };
+  },
+  forOfStmt(left, right, body) {
+    return { type: "ForOfStatement", left, right, body };
+  },
+  breakStmt(label = null) {
+    return { type: "BreakStatement", label };
+  },
+  continueStmt(label = null) {
+    return { type: "ContinueStatement", label };
+  },
+  returnStmt(argument) {
+    return { type: "ReturnStatement", argument };
+  },
+  yieldExpr(argument, delegate = false) {
+    return { type: "YieldExpression", argument, delegate };
+  },
+  awaitExpr(argument) {
+    return { type: "AwaitExpression", argument };
+  },
+  varDeclaration(kind, declarations) {
+    return { type: "VariableDeclaration", kind, declarations };
+  },
+  varDeclarator(id, init9 = null) {
+    return { type: "VariableDeclarator", id, init: init9 };
+  },
+  funcDeclaration(id, params, body, async = false, expression = false, generator = false) {
+    return this.func("FunctionDeclaration", ...arguments);
+  },
+  sequenceExpr(expressions) {
+    return { type: "SequenceExpression", expressions };
+  },
+  parensExpr(expression) {
+    return { type: "ParenthesizedExpression", expression };
+  },
+  logicalExpr(operator, left, right) {
+    return { type: "LogicalExpression", operator, left, right };
+  },
+  binaryExpr(operator, left, right) {
+    return { type: "BinaryExpression", operator, left, right };
+  },
+  unaryExpr(operator, argument, prefix = true) {
+    return { type: "UnaryExpression", operator, argument, prefix };
+  },
+  updateExpr(operator, argument, prefix = false) {
+    return { type: "UpdateExpression", operator, argument, prefix };
+  },
+  assignmentExpr(left, right, operator = "=") {
+    return { type: "AssignmentExpression", operator, left, right };
+  },
+  assignmentPattern(left, right) {
+    return { type: "AssignmentPattern", left, right };
+  },
+  thisExpr() {
+    return { type: "ThisExpression" };
+  },
+  conditionalExpr(test, consequent, alternate, type = "ConditionalExpression") {
+    return { type, test, consequent, alternate };
+  },
+  arrayExpr(elements) {
+    return { type: "ArrayExpression", elements };
+  },
+  arrayPattern(elements) {
+    return { type: "ArrayPattern", elements };
+  },
+  objectExpr(properties) {
+    return { type: "ObjectExpression", properties };
+  },
+  objectPattern(properties) {
+    return { type: "ObjectPattern", properties };
+  },
+  chainExpr(expression) {
+    return { type: "ChainExpression", expression };
+  },
+  callExpr(callee, args, optional = false) {
+    return { type: "CallExpression", callee, arguments: args, optional };
+  },
+  newExpr(callee, args) {
+    return { type: "NewExpression", callee, arguments: args };
+  },
+  taggedTemplateExpr(tag, quasi) {
+    return { type: "TaggedTemplateExpression", tag, quasi };
+  },
+  memberExpr(object, property, computed = false, optional = false) {
+    return { type: "MemberExpression", object, property, computed, optional };
+  },
+  funcExpr(id, params, body, async = false, expression = false, generator = false) {
+    return this.func("FunctionExpression", ...arguments);
+  },
+  arrowFuncExpr(id, params, body, async = false, expression = false, generator = false) {
+    return this.func("ArrowFunctionExpression", ...arguments);
+  },
+  func(type, id, params, body, async = false, expression = false, generator = false) {
+    return { type, id, params, body, async, expression, generator };
+  },
+  identifier(name) {
+    return { type: "Identifier", name };
+  },
+  property(key, value, kind = "init", shorthand = false, computed = false, method = false) {
+    return { type: "Property", key, value, kind, shorthand, computed, method };
+  },
+  classDeclaration(id, body, superClass = null) {
+    return this.class("ClassDeclaration", ...arguments);
+  },
+  classExpression(id, body, superClass = null) {
+    return this.class("ClassExpression", ...arguments);
+  },
+  class(type, id, body, superClass = null) {
+    return { type, id, body, superClass };
+  },
+  methodDefinition(key, value, kind = "method", $static = false, computed = false) {
+    return { type: "MethodDefinition", key, value, kind, static: $static, computed };
+  },
+  propertyDefinition(key, value, $static = false, computed = false) {
+    return { type: "PropertyDefinition", key, value, static: $static, computed };
+  },
+  spreadElement(argument) {
+    return { type: "SpreadElement", argument };
+  },
+  literal(value) {
+    if (typeof value === "object" && !("name" in value) && !("value" in value))
+      throw new Error(`Objects that convert to literals must have a "name" or "value" property.`);
+    return typeof value === "object" ? { type: "Literal", get value() {
+      return "name" in value ? value.name : value.value;
+    } } : { type: "Literal", value };
+  },
+  templateLiteral(quasis, expressions) {
+    return { type: "TemplateLiteral", quasis, expressions };
+  },
+  comments(comments) {
+    const valueObject = {};
+    Object.defineProperty(valueObject, "toString", { value: () => comments });
+    Object.defineProperty(valueObject, "trim", { value: function() {
+      return this.toString();
+    } });
+    return [{ type: "Line", value: valueObject }];
+  },
+  withLoc(target, ...sources) {
+    ["start", "end"].forEach((offset) => {
+      const sourceNode = offset === "start" ? sources[0] : sources[sources.length - 1];
+      target[offset] = sourceNode[offset];
+      if (sourceNode.loc) {
+        target.loc = target.loc || {};
+        target.loc[offset] = sourceNode.loc?.[offset];
+      }
+    });
+    return target;
+  },
+  invert(expr) {
+    return this.unaryExpr("!", expr);
+  },
+  clone(expr) {
+    expr = { ...expr };
+    delete expr.start;
+    delete expr.end;
+    return expr;
+  }
+};
+
+// node_modules/@webqit/use-live/src/runtime/hot-module-registry.js
+var registry = /* @__PURE__ */ Object.create(null);
+
+// node_modules/@webqit/use-live/src/runtime/EventTarget.js
+var _EventTarget = class extends EventTarget {
+  managedAlways = /* @__PURE__ */ new Set();
+  managedOnce = /* @__PURE__ */ new Set();
+  constructor() {
+    super();
+    env2.setMaxListeners?.(0, this);
+  }
+  fire(evenName) {
+    return this.dispatchEvent(new Event(evenName, { cancelable: true }));
+  }
+  on(...args) {
+    this.addEventListener(...args);
+    return () => this.removeEventListener(...args);
+  }
+  abort(total = false) {
+    this.managedAlways.forEach((x) => x.abort ? x.abort(total) : x(total));
+    this.managedOnce.forEach((x) => x.abort ? x.abort(total) : x(total));
+    this.managedOnce.clear();
+    this.fire("abort");
+  }
+  manage(x) {
+    this.managedAlways.add(x);
+  }
+  once(x) {
+    this.managedOnce.add(x);
+  }
+};
+
+// node_modules/@webqit/use-live/src/runtime/Signal.js
+var Signal = class extends _EventTarget {
+  subscribers = /* @__PURE__ */ new Set();
+  signals = /* @__PURE__ */ new Map();
+  constructor(context, type, state) {
+    super();
+    this.context = context;
+    this.context?.once(() => this.abort());
+    this.once(() => this.watchMode(false));
+    this.type = type;
+    this.state = state;
+  }
+  get name() {
+    return [...this.context?.signals.keys() || []].find((k) => this.context.signals.get(k) === this);
+  }
+  signal(name, type = "prop") {
+    let signal = this.signals.get(name);
+    if (!signal) {
+      signal = new Signal(this, type, type === "object" ? name : _isTypeObject(this.state) ? Observer.get(this.state, name) : void 0);
+      this.signals.set(name, signal);
+      if (this.signals.size === 1) {
+        this.watchMode();
+      }
+      signal.once(() => {
+        this.signals.delete(name);
+        if (!this.signals.size) {
+          this.watchMode(false);
+        }
+      });
+    }
+    return signal;
+  }
+  subscribe(autorun) {
+    this.subscribers.add(autorun);
+    autorun.once(() => {
+      this.subscribers.delete(autorun);
+      if (!this.subscribers.size) {
+        this.abort();
+      }
+    });
+  }
+  watchMode(flag = true) {
+    this.mutationsWatch?.abort();
+    if (!flag || !this.signals.size || !_isTypeObject(this.state))
+      return;
+    this.mutationsWatch = Observer.observe(this.state, (mutations) => {
+      const groupings = {
+        map: /* @__PURE__ */ new Map(),
+        add(autoruns, mutation, signal) {
+          for (const autorun of autoruns) {
+            if (autorun.runtime.thread.includes(autorun)) {
+            }
+            if (autorun.spec.beforeSchedule?.(mutation) === false)
+              continue;
+            if (!this.map.has(autorun.runtime)) {
+              this.map.set(autorun.runtime, /* @__PURE__ */ new Set());
+            }
+            this.map.get(autorun.runtime).add(autorun);
+          }
+        }
+      };
+      for (const mutation of mutations) {
+        const signal = this.signals.get(mutation.key);
+        if (!signal)
+          continue;
+        groupings.add(signal.subscribers, mutation, signal);
+        signal.refresh(mutation.value);
+      }
+      const runtimesMap = !groupings.map.size ? groupings.map : [...groupings.map].sort((a, b) => a[0].$serial > b[0].$serial ? 1 : -1);
+      for (const [runtime, autoruns] of runtimesMap) {
+        if (runtime.state === "aborted")
+          continue;
+        runtime.schedule(...autoruns);
+      }
+    }, { recursions: "force-sync" });
+  }
+  refresh(newState) {
+    this.state = newState;
+    for (const [name, signal] of this.signals) {
+      signal.refresh(Observer.get(this.state ?? {}, name));
+    }
+    this.watchMode();
+  }
+};
+
+// node_modules/@webqit/use-live/src/runtime/Scope.js
+var Scope = class extends Signal {
+  symbols = /* @__PURE__ */ new Map();
+  constructor(context, type, state = void 0) {
+    super(context, type, state || /* @__PURE__ */ Object.create(null));
+  }
+};
+
+// node_modules/@webqit/use-live/src/runtime/Autorun.js
+var Autorun = class extends _EventTarget {
+  state;
+  constructor(context, type, spec, serial, scope, closure) {
+    super();
+    context?.once(this);
+    this.context = context;
+    this.type = type;
+    this.spec = spec || {};
+    this.scope = scope;
+    if (context?.scope !== scope) {
+      this.manage(scope);
+    }
+    this.serial = serial;
+    if (closure) {
+      this.closure = closure;
+    }
+    if (context?.type === "iteration") {
+      this.path = context.path.concat(this.spec.index);
+    } else if (context?.type === "round") {
+      this.path = context.path.concat(this.serial);
+    } else {
+      this.path = (context?.path || []).slice(0, -1).concat(this.serial);
+    }
+    this.flowControl = /* @__PURE__ */ new Map();
+  }
+  get runtime() {
+    return this.context.runtime;
+  }
+  contains(node) {
+    return this === node.context || node.context && this.contains(node.context);
+  }
+  order(node) {
+    if (!node)
+      return this;
+    const [a, b] = node.path.length < this.path.length ? [node, this] : [this, node];
+    return a.path.reduce((prev, key, i) => {
+      return prev && key <= b.path[i];
+    }, true) && a || b;
+  }
+  beforeExecute() {
+    this.state = "running";
+    const flowControlBefore = this.flowControl;
+    this.flowControl = /* @__PURE__ */ new Map();
+    return flowControlBefore;
+  }
+  execute(callback = null) {
+    this.runtime.thread.unshift(this);
+    return _await2(this.beforeExecute(), (stateBefore) => {
+      return _call(this.closure, this, this, (returnValue, exception) => {
+        if (exception)
+          return this.throw(exception, [this.serial, this.context?.serial], exception.code);
+        if (this.spec.complete) {
+          returnValue = this.spec.complete(returnValue, this);
+        }
+        this.afterExecute(stateBefore);
+        this.runtime.thread.shift();
+        return callback ? callback(returnValue, this) : returnValue;
+      });
+    });
+  }
+  throw(e, serials, errorCode) {
+    if (this.type === "function" && ["HandlerFunction", "FinalizerFunction"].includes(this.$params.executionMode)) {
+      return this.$params.lexicalContext.throw(e, serials, errorCode);
+    } else if (this.spec.handler)
+      return this.spec.handler(e);
+    else if (this.type !== "function" && this.context)
+      return this.context.throw(e, serials, errorCode);
+    if (e.cause)
+      throw e;
+    const message = `${e.message || e}`;
+    const $message = errorCode !== null ? `[${errorCode}]: ${message}` : message;
+    const cause = serials.map((serial) => serial !== -1 && this.extractSource(serial, true)).filter((x) => x);
+    cause.push({ source: this.runtime.$params.originalSource });
+    const ErrorClass = globalThis[e.name];
+    const error = new (ErrorClass || Error)($message, { cause });
+    const fileName = this.runtime.$params.sourceType === "module" && this.$params.experimentalFeatures !== false && this.$params.exportNamespace || this.$params.fileName;
+    if (fileName) {
+      error.fileName = fileName;
+    }
+    if (errorCode) {
+      error.code = errorCode;
+    }
+    throw error;
+  }
+  afterExecute(flowControlBefore) {
+    this.state = "complete";
+    const flowControlAfter = this.flowControl;
+    if (this.spec.finalizer)
+      this.spec.finalizer();
+    this.handleDownstream(flowControlAfter.size, flowControlBefore.size);
+    this.handleRightstream(flowControlAfter.size, flowControlBefore.size);
+    for (const cmd of ["break", "continue", "return"]) {
+      if (flowControlAfter.has(cmd) && !flowControlAfter.get(cmd).endpoint) {
+        this.hoistFlowControl(cmd, flowControlAfter.get(cmd).arg);
+      } else if (flowControlBefore.has(cmd) && !flowControlBefore.get(cmd).endpoint) {
+        this.hoistFlowControl(cmd, flowControlBefore.get(cmd).arg, true);
+      }
+    }
+  }
+  typed(as, value, name = void 0) {
+    const valueType = Array.isArray(value) ? "array" : value === null ? "null" : typeof value;
+    if (valueType === as || as === "iterable" && value?.[Symbol.iterator] || as === "desctructurable" && !["undefined", "null"].includes(valueType))
+      return value;
+    if (as === "iterable") {
+      throw new Error(`value is not iterable.`);
+    }
+    if (as === "desctructurable") {
+      throw new Error((name ? `Cannot access ${name}; ` : "") + `object not desctructurable.`);
+    }
+    throw new Error(`value must be of type ${as}.`);
+  }
+  let(name, serial, closure, spec = {}) {
+    return this.var(name, serial, closure, { ...spec, kind: "let" });
+  }
+  const(name, serial, closure, spec = {}) {
+    return this.var(name, serial, closure, { ...spec, kind: "const" });
+  }
+  var(name, serial, closure, spec = {}) {
+    spec = { kind: "var", ...spec };
+    if (!closure)
+      closure = () => void 0;
+    const $closure = !spec.restOf ? closure : (...args) => {
+      try {
+        return closure(...args);
+      } catch (e) {
+        throw new Error(`Cannot declare ${name}; ${e.message}`);
+      }
+    };
+    const complete = (returnValue, autorun) => {
+      let scope = autorun.scope;
+      if (spec.kind === "var") {
+        while (!["module", "function"].includes(scope.type) && !Observer.has(scope.state, name) && scope.context) {
+          scope = scope.context;
+        }
+      } else if (scope.type === "this" && scope.context) {
+        scope = scope.context;
+      }
+      let symbolState = scope.symbols.get(name);
+      if (symbolState && (symbolState.kind !== spec.kind || spec.kind === "let" && symbolState.serial !== serial)) {
+        throw new Error(`Identifier "${name}" has already been declared.`);
+      }
+      symbolState?.reader?.abort();
+      symbolState = { serial, kind: spec.kind };
+      let assignedValue = returnValue;
+      if (spec.restOf) {
+        if (spec.type === "array") {
+          assignedValue = [];
+        } else {
+          assignedValue = {};
+        }
+        symbolState.reader = Observer.map(returnValue, assignedValue, { except: spec.restOf, spread: spec.type === "array" });
+        autorun.once(symbolState.reader);
+      }
+      scope.symbols.set(name, symbolState);
+      Observer.set(scope.state, name, assignedValue);
+      return assignedValue;
+    };
+    return this.autorun(spec.kind, { complete, ...spec }, serial, $closure);
+  }
+  update(name, closure, spec = {}) {
+    let lexicalScope = this.scope;
+    while (lexicalScope && !Observer.has(lexicalScope.state, name)) {
+      lexicalScope = lexicalScope.context;
+    }
+    if (!lexicalScope) {
+      throw new ReferenceError(`${name} is not defined.`);
+    }
+    let symbolState = lexicalScope.symbols.get(name);
+    if (symbolState?.kind === "const") {
+      throw new ReferenceError(`Assignment to constant variable "${name}".`);
+    }
+    const valueBefore = Observer.get(lexicalScope.state, name);
+    const $closure = !spec.restOf ? closure : (...args) => {
+      try {
+        return closure(...args);
+      } catch (e) {
+        throw new Error(`Cannot update ${name}; ${e.message}`);
+      }
+    };
+    return _call($closure, void 0, valueBefore, (returnValue, exception) => {
+      if (exception)
+        return this.throw(exception, [this.serial]);
+      symbolState?.reader?.abort();
+      let assignedValue = returnValue;
+      if (spec.restOf) {
+        symbolState = symbolState || {};
+        if (spec.type === "array") {
+          assignedValue = [];
+        } else {
+          assignedValue = {};
+        }
+        symbolState.reader = Observer.map(returnValue, assignedValue, { except: spec.restOf, spread: spec.type === "array" });
+        this.once(symbolState.reader);
+      }
+      const isStatic = this.spec.static || this.type === "function" && this.$params?.executionMode === "RegularFunction";
+      Observer.set(lexicalScope.state, name, assignedValue);
+      return ["postinc", "postdec"].includes(spec.kind) ? valueBefore : assignedValue;
+    });
+  }
+  ref(name, ...rest) {
+    let depth = 0, hint = {};
+    if (typeof rest[0] === "number") {
+      depth = rest.shift();
+      hint = rest.shift() || {};
+    } else if (typeof rest[0] === "object") {
+      hint = rest.shift();
+    }
+    let lexicalScope = this.scope;
+    while (lexicalScope && !Observer.has(lexicalScope.state, name)) {
+      lexicalScope = lexicalScope.context;
+    }
+    if (!lexicalScope) {
+      if (hint.isTypeCheck)
+        return;
+      throw new Error(`${name} is not defined.`);
+    }
+    const kind = lexicalScope.symbols.get(name)?.kind;
+    const baseSignal = lexicalScope.signal(name, kind);
+    if (hint.typed) {
+      this.typed(hint.typed, baseSignal.state, name);
+    }
+    return this.autobind(baseSignal, depth, hint);
+  }
+  obj(val, ...rest) {
+    let depth = 0, hint = {};
+    if (typeof rest[0] === "number") {
+      depth = rest.shift();
+      hint = rest.shift() || {};
+    } else if (typeof rest[0] === "object") {
+      hint = rest.shift();
+    }
+    return this.autobind(this.runtime.$objects.signal(val, "object"), depth, hint);
+  }
+  autobind(baseSignal, depth, hint) {
+    const liveMode = ["LiveProgram", "LiveFunction"].includes(this.runtime.$params.executionMode);
+    const isConst = baseSignal.type === "const";
+    const isRuntime = this === this.runtime;
+    const isAborted = this.state === "aborted";
+    const isStatic = this.spec.static;
+    const isWrite = this.spec.isWrite;
+    const nowRunning = this;
+    return function proxy2(signal, params = {}, depth2) {
+      if (liveMode && !isStatic && !isWrite && !hint?.isLeft && !isConst && !isRuntime && !isAborted) {
+        signal.subscribe(nowRunning);
+      }
+      if (!depth2 || !signal.state || typeof signal.state !== "object") {
+        let returnValue = signal.state;
+        if (typeof signal.state === "function" && !/^class\s?/.test(Function.prototype.toString.call(signal.state))) {
+          returnValue = Observer.proxy(signal.state, { ...params, membrane: signal });
+        }
+        return returnValue;
+      }
+      let propertyAlreadyBound;
+      return Observer.proxy(signal.state, params, (traps) => ({
+        ...traps,
+        get(target, name, receiver = null) {
+          if (propertyAlreadyBound) {
+            return traps.get(target, name, receiver);
+          }
+          propertyAlreadyBound = true;
+          let $params = { ...params };
+          if (Array.isArray(target)) {
+            $params.arrayMethodName = name;
+          }
+          return proxy2(signal.signal(name), $params, depth2 - 1);
+        }
+      }));
+    }(baseSignal, {}, depth);
+  }
+  autorun(type, ...rest) {
+    let closure = rest.pop();
+    const serial = rest.pop();
+    const spec = rest.pop() || {};
+    let AutorunClass = Autorun, scope = this.scope;
+    if (type === "iteration") {
+      const staticDefs = this.runtime.constructor;
+      AutorunClass = closure.constructor.name === "AsyncFunction" ? staticDefs.AutoAsyncIterator : staticDefs.AutoIterator;
+    }
+    if (["block", "switch", "iteration"].includes(type)) {
+      scope = new Scope(scope, type);
+    }
+    const autorun = new AutorunClass(this, type, spec, serial, scope, closure);
+    if (type === "downstream") {
+      this.downstream = autorun;
+      if (this.flowControlApplied())
+        return;
+    } else if (this.type === "switch" && this.breakpoint) {
+      return;
+    }
+    return autorun.execute();
+  }
+  function(executionMode, functionKind, serial, $qFunction) {
+    if (functionKind === "Declaration") {
+      const declarationScope = this.scope.type === "this" ? this.scope.context : this.scope;
+      Observer.set(declarationScope.state, $qFunction.name, $qFunction);
+    }
+    const _this = this;
+    Object.defineProperty($qFunction, "toString", { value: function($qSource = false) {
+      if ($qSource && executionMode === "LiveFunction")
+        return Function.prototype.toString.call($qFunction);
+      const originalSource = _this.runtime.extractSource(serial);
+      return originalSource.startsWith("static ") ? originalSource.replace("static ", "") : originalSource;
+    } });
+    return $qFunction;
+  }
+  class(classKind, $class, methodsSpec) {
+    if (classKind === "Declaration") {
+      const declarationScope = this.scope.type === "this" ? this.scope.context : this.scope;
+      Observer.set(this.scope.state, $class.name, $class);
+    }
+    methodsSpec.forEach(({ name, isLiveFunction, static: isStatic, serial }) => {
+      this.function(isLiveFunction && "LiveFunction" || "RegularFunction", "Expression", serial, isStatic ? $class[name] : $class.prototype[name]);
+    });
+    return $class;
+  }
+  async import(...args) {
+    return this.runtime.import(...args);
+  }
+  async export(...args) {
+    return this.runtime.export(...args);
+  }
+  continue(label) {
+    return this.applyFlowControl("continue", label);
+  }
+  break(label) {
+    return this.applyFlowControl("break", label);
+  }
+  return(arg) {
+    return this.applyFlowControl("return", arg);
+  }
+  applyFlowControl(cmd, arg, unset = false) {
+    const sizeBefore = this.flowControl.size;
+    if (unset) {
+      this.flowControl.delete(cmd);
+    } else {
+      this.flowControl.set(cmd, { arg });
+    }
+    if (this.type === "round") {
+      this.context.breakpoint = this;
+    }
+    if (this.type === "round" && ["break", "continue"].includes(cmd) && arg === this.context?.spec.label) {
+      if (!unset) {
+        this.flowControl.get(cmd).endpoint = true;
+      }
+      if (this.state !== "running") {
+        this.handleRightstream(this.flowControl.size, sizeBefore);
+      }
+      return;
+    }
+    if (this.context?.type === "switch" && cmd === "break" && !arg) {
+      if (!unset) {
+        this.flowControl.get(cmd).endpoint = true;
+      }
+      this.context.breakpoint = this;
+      return;
+    }
+    if (this.state !== "running") {
+      this.handleDownstream(this.flowControl.size, sizeBefore);
+      this.hoistFlowControl(...arguments);
+    }
+  }
+  hoistFlowControl(...args) {
+    return this.context?.applyFlowControl(...args);
+  }
+  flowControlApplied(cmd, arg) {
+    if (!arguments.length)
+      return this.flowControl.size || false;
+    if (arguments.length === 1)
+      return this.flowControl.has(cmd);
+    return this.flowControl.get(cmd)?.arg === arg;
+  }
+  handleDownstream(sizeAfter, sizeBefore) {
+    let downstream;
+    if (!["block"].includes(this.type) || !(downstream = this.context?.downstream))
+      return;
+    if (sizeAfter) {
+      downstream.abort();
+    } else if (sizeBefore) {
+      downstream.state = "resuming";
+      this.runtime.schedule(downstream);
+    }
+  }
+  handleRightstream(sizeAfter, sizeBefore) {
+    if (this.type !== "round")
+      return;
+    let nextRound = this, returnees = /* @__PURE__ */ new Set();
+    while (nextRound = nextRound.nextRound) {
+      if (sizeAfter) {
+        nextRound.abort();
+      } else if (sizeBefore && nextRound.state !== "inert") {
+        nextRound.state = "resuming";
+        returnees.add(nextRound);
+      }
+    }
+    if (returnees.size) {
+      this.runtime.schedule(...returnees);
+    }
+    if (!sizeAfter && sizeBefore) {
+      this.runtime.on("reflection", () => {
+        if (this.context.iterating)
+          return;
+        this.context.iterate();
+      }, { once: true });
+    }
+  }
+  abort(total = false) {
+    if (total) {
+      if (this.context?.breakpoint === this) {
+        delete this.context.breakpoint;
+      }
+      this.flowControl.clear();
+    }
+    this.state = total ? "inert" : "aborted";
+    return super.abort(total);
+  }
+};
+
+// node_modules/@webqit/use-live/src/runtime/AutoIterator.js
+var AutoIterator = class extends Autorun {
+  rounds = /* @__PURE__ */ new Map();
+  constructor(context, type, spec, serial, scope, closure) {
+    spec.$closure = closure;
+    super(context, type, spec, serial, scope);
+    this.manage(() => {
+      delete this.breakpoint;
+      this.rounds.clear();
+    });
+  }
+  pseudorun(callback) {
+    this.runtime.iThread.unshift(this);
+    return _await2(callback(), (returnValue) => {
+      this.runtime.iThread.pop();
+      return returnValue;
+    });
+  }
+  createIterator() {
+    if (this.spec.kind === "for-in")
+      return function* () {
+        for (let key in this.iteratee)
+          yield key;
+      }.call(this);
+    if (this.spec.kind === "for-of")
+      return function* () {
+        for (let val of this.iteratee)
+          yield val;
+      }.call(this);
+    return { next: () => ({ done: !this.pseudorun(() => this.spec.test(this)) }) };
+  }
+  closure() {
+    if (["for-of", "for-in"].includes(this.spec.kind)) {
+      [this.production, this.iteratee] = this.spec.parameters(this);
+      this.iterator = this.createIterator();
+      this.iterator.original = true;
+      this.watchMode();
+    } else {
+      if (this.spec.kind === "for") {
+        this.spec.init(this);
+      }
+      this.iterator = this.createIterator();
+    }
+    this.iterate();
+  }
+  terminated() {
+    return this.breakpoint && !this.breakpoint.flowControlApplied("continue", this.spec.label) && this.breakpoint.flowControlApplied();
+  }
+  advance() {
+    if (this.spec.kind === "for") {
+      this.pseudorun(() => this.spec.advance(this));
+    }
+  }
+  iterate() {
+    this.iterating = true;
+    const $test = () => !this.terminated() && !(this.cursor = this.iterator.next()).done;
+    const $round = () => {
+      const round = this.createRound(this.cursor.value);
+      round.execute();
+      this.advance();
+    };
+    if (this.spec.kind === "do-while") {
+      do
+        $round();
+      while ($test());
+    } else {
+      while ($test())
+        $round();
+    }
+    this.iterating = false;
+  }
+  createRound(production) {
+    const index = this.rounds.size, spec = { index };
+    const state = ["for-in", "for-of"].includes(this.spec.kind) ? { [this.production]: production } : { ...this.scope.state };
+    const scope = new Scope(this.scope, "round", state);
+    this.scope.symbols.forEach((meta2, name) => {
+      scope.symbols.set(name, meta2);
+    });
+    const round = new Autorun(this, "round", spec, this.serial, scope, this.spec.$closure);
+    const key = this.spec.kind === "for-in" ? production : index;
+    this.rounds.set(key, round);
+    if (this.lastRound) {
+      this.lastRound.nextRound = round;
+      round.prevRound = this.lastRound;
+    }
+    this.lastRound = round;
+    return round;
+  }
+  watchMode() {
+    if (this.spec.static)
+      return;
+    const handleMutations = (mutations, currentCursor) => {
+      const deletions = /* @__PURE__ */ new Set(), extension = /* @__PURE__ */ new Set();
+      for (const mutation of mutations) {
+        if (Array.isArray(this.iteratee) && mutation.key === "length")
+          continue;
+        const production = this.spec.kind === "for-in" ? mutation.key : mutation.value;
+        const key = this.spec.kind === "for-in" ? mutation.key : parseInt(mutation.key);
+        const existingRound = this.rounds.get(key);
+        if (existingRound) {
+          Observer.set(existingRound.scope.state, this.production, production);
+          if (mutation.type === "delete") {
+            this.rounds.set(key, void 0);
+            if (existingRound.prevRound) {
+              existingRound.prevRound.nextRound = existingRound.nextRound;
+            }
+            if (existingRound.nextRound) {
+              existingRound.nextRound.prevRound = existingRound.prevRound;
+            }
+            deletions.add(existingRound);
+          }
+        } else if (mutation.type !== "delete" && !mutation.isUpdate) {
+          if (this.spec.kind === "for-of" && this.iterator.original && !currentCursor.done)
+            continue;
+          extension.add(production);
+        }
+      }
+      this.runtime.on("reflection", () => {
+        deletions.forEach((deletion) => deletion.abort(true));
+      }, { once: true });
+      if (extension.size) {
+        this.iterator = function* (parent) {
+          yield* parent;
+          yield* extension;
+        }(this.iterator);
+        if (currentCursor.done) {
+          this.iterate();
+        }
+      }
+    };
+    this.once(Observer.observe(this.iteratee, (mutations) => {
+      _await2(this.cursor, (currentCursor) => handleMutations(mutations, currentCursor));
+    }));
+  }
+};
+
+// node_modules/@webqit/use-live/src/runtime/AutoAsyncIterator.js
+var AutoAsyncIterator = class extends AutoIterator {
+  async createIterator() {
+    if (this.spec.kind === "for-in")
+      return function* () {
+        for (let key in this.iteratee)
+          yield key;
+      }.call(this);
+    if (this.spec.kind === "for-of")
+      return function* () {
+        for (let val of this.iteratee)
+          yield val;
+      }.call(this);
+    return { next: async () => ({ done: !await this.pseudorun(() => this.spec.test(this)) }) };
+  }
+  async closure() {
+    if (["for-of", "for-in"].includes(this.spec.kind)) {
+      [this.production, this.iteratee] = await this.spec.parameters(this);
+      this.iterator = await this.createIterator();
+      this.iterator.original = true;
+      this.watchMode();
+    } else {
+      if (this.spec.kind === "for") {
+        await this.spec.init(this);
+      }
+      this.iterator = await this.createIterator();
+    }
+    await this.iterate();
+  }
+  async iterate() {
+    let cursor;
+    this.iterating = true;
+    const $test = async () => !this.terminated() && (this.cursor = this.iterator.next()) && (cursor = await this.cursor) && !cursor.done;
+    const $round = async () => {
+      const round = this.createRound(cursor.value);
+      await round.execute();
+      await this.advance();
+    };
+    if (this.spec.kind === "do-while") {
+      do
+        await $round();
+      while (await $test());
+    } else {
+      while (await $test())
+        await $round();
+    }
+    this.iterating = false;
+  }
+};
+
+// node_modules/@webqit/use-live/src/runtime/Runtime.js
+var Runtime = class extends Autorun {
+  locations = [];
+  queue = /* @__PURE__ */ new Set();
+  thread = [];
+  iThread = [];
+  constructor(context, type, params, scope, closure) {
+    const { $serial = 0, spec, ...$params } = params;
+    super(context, type, spec, -1, scope, closure);
+    this.$serial = $serial;
+    this.$params = $params;
+    this.$objects = new Scope(void 0, "objects");
+    this.manage(this.$objects);
+    this.exports = /* @__PURE__ */ Object.create(null);
+    this.$promises = { imports: [], exports: [] };
+    this.manage(() => {
+      Observer.deleteProperties(this.exports, Object.keys(this.exports));
+      this.$promises.imports.splice(0);
+      this.$promises.exports.splice(0);
+    });
+  }
+  extractSource(serial, full = false) {
+    const [[locStart, line, column], [locEnd]] = this.locations[serial];
+    const expr = this.$params.originalSource.slice(locStart, locEnd);
+    return full ? { expr, line, column } : expr;
+  }
+  get runtime() {
+    return this;
+  }
+  get nowRunning() {
+    return this.thread[0];
+  }
+  schedule(...autoruns) {
+    const isActive = this.queue.size;
+    for (const autorun of autoruns) {
+      this.queue.add(autorun);
+    }
+    if (isActive)
+      return;
+    this.flowControlDirty = false;
+    return function nextTick(prevReturn, current) {
+      let following;
+      for (const autorun of this.queue) {
+        if (current && current.order(autorun) !== current || ["aborted", "running"].includes(autorun.state) || this.iThread[0]?.contains(autorun)) {
+          this.queue.delete(autorun);
+          continue;
+        }
+        following = following ? following.order(autorun) : autorun;
+        if (!current) {
+          current = following;
+        }
+      }
+      if (!following) {
+        this.fire("reflection");
+        if (this.flowControlApplied()) {
+          this.fire("statechange");
+        }
+        return prevReturn;
+      }
+      following.abort();
+      return following.execute((returnValue) => {
+        this.queue.delete(following);
+        return nextTick.call(this, returnValue, following);
+      });
+    }.call(this, void 0, this.nowRunning);
+  }
+  execute(callback = null) {
+    return super.execute((returnValue) => {
+      const liveMode = ["LiveProgram", "LiveFunction"].includes(this.$params.executionMode);
+      const isScript = this.$params.sourceType === "module" || this.$params.sourceType === "script";
+      const actualReturnValue = liveMode || this.$params.executionMode === "RegularProgram" && isScript ? new LiveProgramHandle(this) : this.flowControl.get("return")?.arg;
+      return callback ? callback(actualReturnValue, this) : actualReturnValue;
+    });
+  }
+  spawn(executionMode, thisContext, closure, lexicalContext = null) {
+    const context = this.nowRunning || lexicalContext || this;
+    const params = { ...this.$params, $serial: this.$serial + 1, executionMode, lexicalContext };
+    const scope = new Scope(context.scope, "function", thisContext ? { ["this"]: thisContext } : {});
+    const subRuntime = new this.constructor(context, "function", params, scope, closure);
+    return subRuntime.execute();
+  }
+  async import(...args) {
+    const source = args.pop();
+    const $source = typeof source === "string" ? { source } : source;
+    const onload = (modules) => {
+      if ($source.forExport || $source.isDynamic)
+        return modules;
+      this.assignModules(args, this.scope.state, modules, source.serial);
+    };
+    if (this.$params.experimentalFeatures !== false && registry[$source.source]) {
+      return onload(registry[$source.source]);
+    }
+    const promise = (async () => {
+      const moduleName = this.$params.sourceType === "module" && this.$params.experimentalFeatures !== false && this.$params.exportNamespace || this.$params.fileName;
+      try {
+        return onload({ ...await import($source.source) });
+      } catch (e) {
+        if (e.code === "ERR_MODULE_NOT_FOUND") {
+          this.throw(new Error(`Cannot find module "${$source.source}"${moduleName ? ` imported at "${moduleName}"` : ""}.`), [$source.serial], e.code);
+        } else
+          this.throw(e, [$source.serial], e.code);
+      }
+    })();
+    if (!$source.isDynamic) {
+      this.$promises[$source.forExport ? "exports" : "imports"].push(promise);
+    }
+    return promise;
+  }
+  async export(...args) {
+    const source = !Array.isArray(args[args.length - 1]) ? args.pop() : null;
+    const modules = source ? await this.import({ ...source, forExport: true }) : this.scope.type === "this" ? this.scope.context.state : this.scope.state;
+    this.assignModules(args, this.exports, modules, source?.serial);
+  }
+  assignModules(specifiers, target, source, sourceSerial = null) {
+    const observeList = [];
+    const liveMode = ["LiveProgram", "LiveFunction"].includes(this.$params.executionMode);
+    for (const [local, serial, alias, literal] of specifiers) {
+      if (local === null) {
+        (liveMode ? Observer : Reflect).set(target, alias, literal);
+        continue;
+      }
+      if (local === "*" && alias) {
+        (liveMode ? Observer : Reflect).set(target, alias, source);
+        continue;
+      }
+      if (!Observer.has(source, local)) {
+        this.throw(new Error(`The requested module does not provide an export named "${local}".`), [serial, sourceSerial]);
+      }
+      (liveMode ? Observer : Reflect).set(target, alias || local, Observer.get(source, local));
+      observeList.push([local, serial, alias]);
+    }
+    if (!observeList.length || !liveMode)
+      return;
+    this.once(Observer.observe(source, (mutations) => {
+      for (const [local, , alias] of observeList) {
+        for (const mutation of mutations) {
+          if (local === "*") {
+            Observer.set(target, mutation.key, mutation.value);
+          } else if (mutation.key === local) {
+            Observer.set(target, alias || local, mutation.value);
+          }
+        }
+      }
+    }));
+  }
+  afterExecute(...args) {
+    if (this.$params.sourceType === "module" && this.$params.experimentalFeatures !== false && this.$params.exportNamespace) {
+      registry[this.$params.exportNamespace] = this.exports;
+      this.once(() => {
+        delete registry[this.$params.exportNamespace];
+      });
+    }
+    return super.afterExecute(...args);
+  }
+};
+__publicField(Runtime, "AutoAsyncIterator", AutoAsyncIterator);
+__publicField(Runtime, "AutoIterator", AutoIterator);
+
+// node_modules/@webqit/use-live/src/runtime/index.js
+function compile(sourceType, astTools, source, functionParams = [], params = {}) {
+  if (typeof functionParams === "object" && functionParams && !Array.isArray(functionParams)) {
+    params = functionParams;
+    functionParams = [];
+  }
+  const { liveMode = true, thisContext, env: env4, exportNamespace, fileName, base64, compileFunction, forDynamicBinding = false, ...$params } = params;
+  const { parserParams: parserParams2, transformerParams: transformerParams2, runtimeParams: runtimeParams2 } = resolveParams($params);
+  const isModule = /module/.test(sourceType);
+  const isScript = /script/.test(sourceType);
+  const isFunction = /function/.test(sourceType);
+  const isAsync = /async/.test(sourceType) || /module/.test(sourceType);
+  const isSource = /source/.test(sourceType);
+  const isFile = /file/.test(sourceType);
+  const sourceIsProgram = typeof source === "object" && source?.type === "Program";
+  if (!sourceIsProgram) {
+    source = source + "";
+  }
+  const originalProgram = source;
+  if (isModule) {
+    parserParams2.sourceType = "module";
+    parserParams2.allowAwaitOutsideFunction = true;
+    parserParams2.executionMode = liveMode ? "LiveProgram" : "RegularProgram";
+  } else if (isScript) {
+    parserParams2.executionMode = liveMode ? "LiveProgram" : "RegularProgram";
+  } else if (isFunction) {
+    if (isSource) {
+      if (sourceIsProgram) {
+        source = Node_default.funcExpr(null, functionParams.map((param) => Node_default.identifier(param)), Node_default.blockStmt(liveMode ? [Node_default.literal("use live"), ...source.body] : source.body), isAsync);
+        source.isLiveFunction = originalProgram.isLiveProgram;
+      } else {
+        const body = `  ` + source.split(`
 `).join(`
-  `);e=`${S?"async function":"function"}(${r.join(", ")}) {
-${o?`  "use live";
-`:""}${I}
-}`}else _&&(e=e.body[0]);_?e={type:"Program",body:[Dt.returnStmt(e)],start:O.start,end:O.end,hasLiveFunctions:O.hasLiveFunctions,originalSource:O.originalSource}:e=`return ${e}`,m.executionMode="RegularProgram"}else throw new Error(`Unrecognized sourceType specified: "${i}".`);let $=g?"module":y?"script":"function",T=g&&b&&u&&"export default async function(%0) {%1}";w.sourceType=$,w.base64=T,v.sourceType=$,v.fileName=l,g&&(v.exportNamespace=c);let R=t.transform(e,{...m,...w,astResult:_});function N(I,P=!1){let A=I.join(`
-`);return _?G(t.parse(A,m),H=>(H.body.find(Q=>Q.type==="ExpressionStatement"&&Q.expression?.type==="AssignmentExpression"&&Q.expression.left.type==="MemberExpression"&&Q.expression.left.object.type==="Identifier"&&Q.expression.left.property.type==="Identifier"&&Q.expression.left.property.name==="main"&&Q.expression.right.type==="FunctionExpression").expression.right.body.body.push(...R.transformedSource.body),P?G(H,Q=>t.serialize(Q)):H)):A}return G(R,I=>{if(!I)return;let P=[],A=I.identifier2,H;if(b&&Ye)P.push(`const { Scope, Runtime } = await import('${Ye}/index.js');`),P.push(`const ${A} = { Scope, Runtime, params: { ...(${JSON.stringify(v)}), executionMode: '${I.isLiveProgram&&"LiveProgram"||"RegularProgram"}', originalSource: \`${I.originalSource.replace(/`/g,"\\`")}\`, }, };`);else{let yt={Scope:K,Runtime:Et,params:{...v,originalSource:I.originalSource,executionMode:I.isLiveProgram&&"LiveProgram"||"RegularProgram"},thisContext:s,env:a};b?(globalThis.webqit||(globalThis.webqit={}),globalThis.webqit.UseLive||(globalThis.webqit.UseLive={}),globalThis.webqit.UseLive.Script||(globalThis.webqit.UseLive.Script=yt),P.push(`const ${A} = globalThis.webqit.UseLive.Script;`)):H=yt}P.push(`${A}.main = ${g?"async ":""}function(${I.identifier}) {${_?"":`
-  ${I.transformedSource.replace(/\n/g,`
-  `)}
-`}};`);let B="global";if(P.push(`${A}.scope = new ${A}.Scope(undefined, '${B}', globalThis);`),(y||H?.env||H&&f)&&(B="env",P.push(`${A}.scope = new ${A}.Scope(${A}.scope, '${B}', ${A}.env);`)),g&&(B="module",P.push(`${A}.scope = new ${A}.Scope(${A}.scope, '${B}');`)),(typeof H?.thisContext<"u"||H&&f)&&P.push(`${A}.scope = new ${A}.Scope(${A}.scope, 'this', { ['this']: ${A}.thisContext });`),P.push(`${A}.runtime = new ${A}.Runtime(undefined, '${B}', ${A}.params, ${A}.scope, ${A}.main);`),g&&b){P.push(`${A}.result = await ${A}.runtime.execute();`);let[yt,_r]=I.exportIds.reduce(([,vr],Ae)=>Ae==="default"?[Ae,vr]:[,vr.concat(Ae)],[null,[]]);return _r.length&&P.push(`export const { ${_r.join(", ")} } = ${A}.result.exports;`),yt&&P.push(`export default ${A}.result.exports.default;`),N(P)}if(b)return P.push(`${A}.result = ${A}.runtime.execute();`),x&&P.push(`return ${A}.result;`),N(P);P.push(x?`return ${A}.runtime.execute();`:`return ${A}.runtime;`);let Q=N(P,!0),xr=p||Function;return G(Q,yt=>f?[xr(A,yt),H]:xr(A,yt)(H))})}var Ye;try{Ye=eval("import.meta.url")}catch(i){}function Nu(i){let t=Ni(i);return Li(t)}function Ni(i){if(typeof i!="string")throw new TypeError("URL must be a string");if(!i.startsWith("file://"))return i;let t=i.slice(7);return t=t.replace(/^\/([A-Za-z]:)/,"$1"),t=decodeURIComponent(t),t}function Li(i){if(typeof i!="string")throw new TypeError("path must be a string");let t=i.includes("\\")?"\\":"/",e=i.lastIndexOf(t);return e===-1?i:e===0?t:i.slice(0,e)}var Nt=class{constructor(...t){let e=this.constructor,r=typeof t[t.length-1]=="object"?t.pop():{};this.source=t.pop()||"",this.$program=me(e.sourceType,e.astTools,this.source,{...r,forDynamicBinding:!0})}execute(){return G(this.$program,([t,e])=>G(t(e),r=>r.execute()))}bind(t,e=void 0){return G(this.$program,([r,n])=>r({...n,thisContext:t,env:e}))}toString(t=!1){return t?G(this.$program,([e])=>e+""):this.source}};var Hi;function Fi(...i){let{source:t,args:e,params:r}=qr(i),n=Dr("async-function-source",t,e,r);if(!(n instanceof Promise))return n;let o=async function(...s){return(await n).call(this,...s)};return Object.defineProperty(o,"toString",{value:async function(...s){return(await n).toString(...s)}}),o}var Wi,ne=class extends Nt{};V(ne,"sourceType","async-script-source"),V(ne,"astTools",{parse:ge,transform:ye,serialize:be});var oe=class extends Nt{};V(oe,"sourceType","module"),V(oe,"astTools",{parse:ge,transform:ye,serialize:be});function Dr(i,t,...e){return me(i,{parse:ge,transform:ye,serialize:be},t,...e)}function ge(i,t){return Ze("parse",i,t)}function ye(i,t){return Ze("transform",i,t)}function be(i,t){return Ze("serialize",i,t)}function Ze(i,t,e){let r=n=>(Object.defineProperty(n,"toString",{value:o=>o==="base64"?n.transformedSourceBase64:n.transformedSource}),n);if(globalThis.webqit?.$useLiveT){let{parse:n,transform:o,serialize:s}=globalThis.webqit.$useLiveT;if(i==="serialize")return s(t,e);if(i==="parse")return n(t,e);if(i==="transform"){let a=o(t,e);return r(a)}}if(globalThis.webqit=globalThis.webqit||{},!globalThis.webqit.$useLiveTWorker){let s=`
-        const transformerUrls = [ '${(document.querySelector('meta[name="$q-transformer-url"]')?.content.split(",")||[]).concat("https://unpkg.com/@webqit/use-live/dist/transformer.js").join("','")}' ];
+  `);
+        source = `${isAsync ? "async function" : "function"}(${functionParams.join(", ")}) {
+${liveMode ? '  "use live";\n' : ""}${body}
+}`;
+      }
+    } else if (sourceIsProgram) {
+      source = source.body[0];
+    }
+    if (sourceIsProgram) {
+      source = {
+        type: "Program",
+        body: [Node_default.returnStmt(source)],
+        start: originalProgram.start,
+        end: originalProgram.end,
+        hasLiveFunctions: originalProgram.hasLiveFunctions,
+        originalSource: originalProgram.originalSource
+      };
+    } else {
+      source = `return ${source}`;
+    }
+    parserParams2.executionMode = "RegularProgram";
+  } else {
+    throw new Error(`Unrecognized sourceType specified: "${sourceType}".`);
+  }
+  const $sourceType = isModule ? "module" : isScript ? "script" : "function";
+  const $base64 = isModule && isFile && base64 && `export default async function(%0) {%1}`;
+  transformerParams2.sourceType = $sourceType;
+  transformerParams2.base64 = $base64;
+  runtimeParams2.sourceType = $sourceType;
+  runtimeParams2.fileName = fileName;
+  if (isModule) {
+    runtimeParams2.exportNamespace = exportNamespace;
+  }
+  const transformResult = astTools.transform(source, { ...parserParams2, ...transformerParams2, astResult: sourceIsProgram });
+  function finalBootstrapSource(bootstrapSource, forceStringify = false) {
+    const result = bootstrapSource.join("\n");
+    if (sourceIsProgram) {
+      return _await2(astTools.parse(result, parserParams2), (result2) => {
+        const insertionPoint = result2.body.find((m) => {
+          return m.type === `ExpressionStatement` && m.expression?.type === "AssignmentExpression" && m.expression.left.type === "MemberExpression" && m.expression.left.object.type === "Identifier" && m.expression.left.property.type === "Identifier" && m.expression.left.property.name === "main" && m.expression.right.type === "FunctionExpression";
+        }).expression.right.body;
+        insertionPoint.body.push(...transformResult.transformedSource.body);
+        return forceStringify ? _await2(result2, (result3) => astTools.serialize(result3)) : result2;
+      });
+    }
+    return result;
+  }
+  return _await2(transformResult, (transformResult2) => {
+    if (!transformResult2)
+      return;
+    const bootstrapSource = [];
+    const $q2 = transformResult2.identifier2;
+    let $$cx;
+    if (isFile && importDir) {
+      bootstrapSource.push(`const { Scope, Runtime } = await import('${importDir}/index.js');`);
+      bootstrapSource.push(`const ${$q2} = { Scope, Runtime, params: { ...(${JSON.stringify(runtimeParams2)}), executionMode: '${transformResult2.isLiveProgram && "LiveProgram" || "RegularProgram"}', originalSource: \`${transformResult2.originalSource.replace(/`/g, "\\`")}\`, }, };`);
+    } else {
+      const $$$cx = {
+        Scope,
+        Runtime,
+        params: { ...runtimeParams2, originalSource: transformResult2.originalSource, executionMode: transformResult2.isLiveProgram && "LiveProgram" || "RegularProgram" },
+        thisContext,
+        env: env4
+      };
+      if (isFile) {
+        if (!globalThis.webqit)
+          globalThis.webqit = {};
+        if (!globalThis.webqit.UseLive)
+          globalThis.webqit.UseLive = {};
+        if (!globalThis.webqit.UseLive.Script)
+          globalThis.webqit.UseLive.Script = $$$cx;
+        bootstrapSource.push(`const ${$q2} = globalThis.webqit.UseLive.Script;`);
+      } else {
+        $$cx = $$$cx;
+      }
+    }
+    bootstrapSource.push(`${$q2}.main = ${isModule ? "async " : ""}function(${transformResult2.identifier}) {${sourceIsProgram ? "" : `
+  ${transformResult2.transformedSource.replace(/\n/g, "\n  ")}
+`}};`);
+    let contextType = "global";
+    bootstrapSource.push(`${$q2}.scope = new ${$q2}.Scope(undefined, '${contextType}', globalThis);`);
+    if (isScript || $$cx?.env || $$cx && forDynamicBinding) {
+      contextType = "env";
+      bootstrapSource.push(`${$q2}.scope = new ${$q2}.Scope(${$q2}.scope, '${contextType}', ${$q2}.env);`);
+    }
+    if (isModule) {
+      contextType = "module";
+      bootstrapSource.push(`${$q2}.scope = new ${$q2}.Scope(${$q2}.scope, '${contextType}');`);
+    }
+    if (typeof $$cx?.thisContext !== "undefined" || $$cx && forDynamicBinding) {
+      bootstrapSource.push(`${$q2}.scope = new ${$q2}.Scope(${$q2}.scope, 'this', { ['this']: ${$q2}.thisContext });`);
+    }
+    bootstrapSource.push(`${$q2}.runtime = new ${$q2}.Runtime(undefined, '${contextType}', ${$q2}.params, ${$q2}.scope, ${$q2}.main);`);
+    if (isModule && isFile) {
+      bootstrapSource.push(`${$q2}.result = await ${$q2}.runtime.execute();`);
+      const [_default, exports] = transformResult2.exportIds.reduce(([, acc], id) => {
+        if (id === "default")
+          return [id, acc];
+        return [, acc.concat(id)];
+      }, [null, []]);
+      if (exports.length)
+        bootstrapSource.push(`export const { ${exports.join(", ")} } = ${$q2}.result.exports;`);
+      if (_default)
+        bootstrapSource.push(`export default ${$q2}.result.exports.default;`);
+      return finalBootstrapSource(bootstrapSource);
+    }
+    if (isFile) {
+      bootstrapSource.push(`${$q2}.result = ${$q2}.runtime.execute();`);
+      if (isFunction) {
+        bootstrapSource.push(`return ${$q2}.result;`);
+      }
+      return finalBootstrapSource(bootstrapSource);
+    }
+    bootstrapSource.push(isFunction ? `return ${$q2}.runtime.execute();` : `return ${$q2}.runtime;`);
+    const result = finalBootstrapSource(bootstrapSource, true);
+    const fn = compileFunction || Function;
+    return _await2(result, (result2) => forDynamicBinding ? [fn($q2, result2), $$cx] : fn($q2, result2)($$cx));
+  });
+}
+var importDir;
+try {
+  importDir = eval("import.meta.url");
+} catch (e) {
+}
+function fileURLToDirname(url) {
+  const path2 = fileURLToPath(url);
+  return dirname(path2);
+}
+function fileURLToPath(url) {
+  if (typeof url !== "string")
+    throw new TypeError("URL must be a string");
+  if (!url.startsWith("file://"))
+    return url;
+  let path2 = url.slice("file://".length);
+  path2 = path2.replace(/^\/([A-Za-z]:)/, "$1");
+  path2 = decodeURIComponent(path2);
+  return path2;
+}
+function dirname(path2) {
+  if (typeof path2 !== "string")
+    throw new TypeError("path must be a string");
+  const slash = path2.includes("\\") ? "\\" : "/";
+  const idx = path2.lastIndexOf(slash);
+  if (idx === -1)
+    return path2;
+  if (idx === 0)
+    return slash;
+  return path2.slice(0, idx);
+}
+
+// node_modules/@webqit/use-live/src/AbstractLiveScript.js
+var AbstractLiveScript = class {
+  constructor(...args) {
+    const $static = this.constructor;
+    const params = typeof args[args.length - 1] === "object" ? args.pop() : {};
+    this.source = args.pop() || "";
+    this.$program = compile($static.sourceType, $static.astTools, this.source, { ...params, forDynamicBinding: true });
+  }
+  execute() {
+    return _await2(this.$program, ([precompiled, $$cx]) => _await2(precompiled($$cx), (runtime) => runtime.execute()));
+  }
+  bind(thisContext, env4 = void 0) {
+    return _await2(this.$program, ([precompiled, $$cx]) => precompiled({ ...$$cx, thisContext, env: env4 }));
+  }
+  toString($qSource = false) {
+    if (!$qSource)
+      return this.source;
+    return _await2(this.$program, ([precompiled]) => precompiled + "");
+  }
+};
+
+// node_modules/@webqit/use-live/src/index.lite.js
+var LiveFunction;
+function AsyncLiveFunction(...$args) {
+  const { source, args, params } = _$functionArgs($args);
+  const transformedFunction = compile2("async-function-source", source, args, params);
+  if (!(transformedFunction instanceof Promise))
+    return transformedFunction;
+  const wrapperFunction = async function(...args2) {
+    return (await transformedFunction).call(this, ...args2);
+  };
+  Object.defineProperty(wrapperFunction, "toString", { value: async function(...args2) {
+    return (await transformedFunction).toString(...args2);
+  } });
+  return wrapperFunction;
+}
+var LiveScript;
+var AsyncLiveScript = class extends AbstractLiveScript {
+};
+__publicField(AsyncLiveScript, "sourceType", "async-script-source");
+__publicField(AsyncLiveScript, "astTools", { parse, transform, serialize });
+var LiveModule = class extends AbstractLiveScript {
+};
+__publicField(LiveModule, "sourceType", "module");
+__publicField(LiveModule, "astTools", { parse, transform, serialize });
+function compile2(sourceType, source, ...params) {
+  return compile(sourceType, { parse, transform, serialize }, source, ...params);
+}
+function parse(input, params) {
+  return exec2("parse", input, params);
+}
+function transform(input, params) {
+  return exec2("transform", input, params);
+}
+function serialize(input, params) {
+  return exec2("serialize", input, params);
+}
+function exec2(action, input, params) {
+  const patchToString = (result) => {
+    Object.defineProperty(result, "toString", {
+      value: (base64) => base64 === "base64" ? result.transformedSourceBase64 : result.transformedSource
+    });
+    return result;
+  };
+  if (globalThis.webqit?.$useLiveT) {
+    const { parse: parse2, transform: transform2, serialize: serialize2 } = globalThis.webqit.$useLiveT;
+    if (action === "serialize")
+      return serialize2(input, params);
+    if (action === "parse")
+      return parse2(input, params);
+    if (action === "transform") {
+      const result = transform2(input, params);
+      return patchToString(result);
+    }
+  }
+  globalThis.webqit = globalThis.webqit || {};
+  if (!globalThis.webqit.$useLiveTWorker) {
+    const customUrl = document.querySelector('meta[name="$q-transformer-url"]');
+    const transformerUrls = (customUrl?.content.split(",") || []).concat("https://unpkg.com/@webqit/use-live/dist/transformer.js");
+    const workerScriptText = `
+        const transformerUrls = [ '${transformerUrls.join(`','`)}' ];
         ( function importScript() {
             try { importScripts( transformerUrls.shift().trim() ) } catch( e ) { if ( transformerUrls.length ) { importScript(); } }
         } )();
@@ -26,46 +2641,3223 @@ ${o?`  "use live";
                 result = compilation;
             }
             e.ports[0]?.postMessage(result);
-        };`;globalThis.webqit.$useLiveTWorker=new Worker(`data:text/javascript;base64,${btoa(s)}`)}return new Promise(n=>{let o=new MessageChannel;webqit.$useLiveTWorker.postMessage({action:i,input:t,params:e},[o.port2]),o.port1.onmessage=s=>{let a=s.data;i==="transform"&&r(a),n(a)}})}function se(i,t,e={},r={}){t=F(t).slice();for(var n=i;!at(n)&&!Vt(n)&&t.length;){var o=t.shift();if(!(e.get?e.get(n,o):j(n)?o in n:n[o])){r.exists=!1;return}n=e.get?e.get(n,o):n[o]}return r.exists=!0,n}function tr(i,t,e,r={},n={}){let o=(u,p,f)=>n.set?n.set(u,p,f):(Z(t[a])&&M(u)?u.push(f):u[p]=f,!0);t=F(t);for(var s=i,a=0;a<t.length;a++)if(a<t.length-1){if(!s||!j(s)&&!k(s))return!1;var c=se(s,t[a],n);if(!j(c)){if(n.buildTree===!1)return!1;c=k(n.buildTree)?n.buildTree(a):Z(t[a+1])?[]:{};var l=o(s,t[a],c);if(!l)return!1}s=c}else return o(s,t[a],e)}var ae=class{constructor(t,e=!1){Object.defineProperty(this,"window",{value:t}),Object.defineProperty(this,"readCallbacks",{value:new Set}),Object.defineProperty(this,"writeCallbacks",{value:new Set}),Object.defineProperty(this,"_synthesis",{value:0,writable:!0}),!e&&this.window.requestAnimationFrame?this._loop():this._synthesis++}get synthesis(){return this._synthesis}async synthesizeWhile(t){this._synthesis++,this._fulfill();let e=await t();return this._synthesis--,e}_fulfill(){for(let t of this.readCallbacks)t(),this.readCallbacks.delete(t);for(let t of this.writeCallbacks)t(),this.writeCallbacks.delete(t)}_loop(){this.window.requestAnimationFrame(()=>{this._fulfill(),this._loop()})}onread(t,e=!1){if(e)return new Promise(r=>{this.synthesis?r(t()):this.readCallbacks.add(()=>{r(t())})});this.synthesis?Promise.resolve().then(t):this.readCallbacks.add(t)}onwrite(t,e=!1){if(e)return new Promise(r=>{this.synthesis?r(t()):this.writeCallbacks.add(()=>{r(t())})});this.synthesis?Promise.resolve().then(t):this.writeCallbacks.add(t)}cycle(t,e,r){this.onread(()=>{let n=t(r),o=s=>{s!==void 0&&this.onwrite(()=>{let a=e(s,r),c=l=>{l!==void 0&&this.cycle(t,e,l)};a instanceof Promise?a.then(c):c(a)})};n instanceof Promise?n.then(o):o(n)})}};function Nr(i){return(i=i.trim())&&i.startsWith("(")&&i.endsWith(")")}function Lt(i,t,e,r=!0){e=(Array.isArray(e)?e:[e]).map(s=>(s+"").replace("(",r?"(.//":"(./")).join("|");let n=[],o;try{let s=i.document.evaluate(e,t,null,i.XPathResult.ANY_TYPE);for(;o=s.iterateNext();)n.push(o)}catch{}return n}function Lr(i,t,e){e=(Array.isArray(e)?e:[e]).map(r=>(r+"").replace("(","(self::")).join("|");try{return i.document.evaluate(`${e}`,t,null,i.XPathResult.BOOLEAN_TYPE).booleanValue}catch{}}function le(i,t,e,r=!1,n=null){let o=n?.get(t)?.get(e);if(typeof o<"u")return o;let s=l=>(n?.has(t)||n?.set(t,new WeakMap),n?.get(t)?.set(e,l),l),a=t.getRootNode(),c=e.getRootNode();return a===c?s(t.contains(e)):r&&c instanceof i.ShadowRoot?s(le(i,t,c.host,r,n)):s(!1)}function Hr(i,t="|"){return[...i].reduce(([e,r,n,o],s)=>!e&&r===0&&(Array.isArray(t)?t:[t]).includes(s)?[e,r,[""].concat(n)]:(!e&&["(","[","{"].includes(s)&&!n[0].endsWith("\\")&&r++,!e&&[")","]","}"].includes(s)&&!n[0].endsWith("\\")&&r--,['"',"'","`"].includes(s)&&!n[0].endsWith("\\")&&(e=e===s?null:e||s),n[0]+=s,[e,r,n]),[null,0,[""]])[2].reverse()}var tt=class{constructor(t){this.content=t,this.type=typeof t=="string"?"selector":"instance",this.kind=this.type==="instance"?null:Nr(t)?"xpath":"css",this.kind==="xpath"&&(this.isXpathAttr=Hr(t.trim().slice(1,-1),"@").length>1)}toString(){return this.content}};var At=class{constructor(t,e,r){this.context=t,this.namespace=e,this.window=t.defaultView||t.ownerDocument?.defaultView||r,this.document=this.window.document,this.webqit=this.window.webqit,Object.defineProperty(this,"#",{value:{}})}resolveArgs(t){if(k(t[0])?t=[[],...t]:q(t[0])&&!(t[0]instanceof tt)&&t.length===1?t=[[],void 0,t[0]]:q(t[1])&&t.length===2?t=[F(t[0],!1),void 0,t[1]]:t[0]=F(t[0],!1),t[0].filter(e=>typeof e!="string"&&!(e instanceof tt)&&!(e instanceof this.window.Node)).length)throw new Error("Argument #2 must be either a string or a Node object, or a list of those.");return t[0]=t[0].map(e=>e instanceof tt?e:new tt(e)),t}registry(...t){return W(this.window,"realdom",this.namespace,...t)}createSignalGenerator(){return{generate(){return this.lastController?.abort(),this.lastController=new AbortController,{signal:this.lastController.signal}},disconnect(){this.lastController?.abort()}}}forEachMatchingContext(t,e,r){let{window:n}=this,o=new Set,s=new WeakMap;for(let[a,c]of this.registry(t)){let l=[].concat(e).filter(p=>le(n,a.context,p.target,a.params.subtree==="cross-roots",s));if(!l.length)continue;let u=[a,Array.isArray(e)?l:l[0]];c?o.add(u):r.call(n,...u)}for(let a of o)r.call(n,...a);o.clear()}disconnectables(t,...e){let r={disconnect(){e.forEach(n=>n&&k(n.disconnect)&&n.disconnect()||k(n)&&n()||q(n)&&(n.disconnected=!0))}};return t&&t.addEventListener("abort",()=>r.disconnect()),r}};var ht=class extends At{type="attr";constructor(t,...e){super(t,"attr",...e)}get(t,e=void 0,r={}){let n=typeof t=="string"||t instanceof tt;[t=[],e=void 0,r={}]=this.resolveArgs(arguments);let{context:o}=this,s=Br(o,t);if(!e)return s;let a=r.lifecycleSignals&&this.createSignalGenerator();if(n)for(let c of s){let l=a?a.generate():{};e(c,l,o)}else{let c=a?.generate()||{};e(s,c,o)}if(r.live){a&&(r={...r,signalGenerator:a});let c=this.observe(n?t[0]:t,e,{newValue:!0,...r});return this.disconnectables(r.signal,c)}}observe(t,e,r={}){let n=typeof t=="string"||t instanceof tt;if([t=[],e,r={}]=this.resolveArgs(arguments),["sync","intercept"].includes(r.timing))return this.observeSync(n?t[0]:t,e,r);if(r.timing&&r.timing!=="async")throw new Error(`Timing option "${r.timing}" invalid.`);let{context:o,window:s,webqit:a}=this;r.eventDetails&&!a.realdom.attrInterceptionHooks?.intercepting&&Wr.call(s,"intercept",()=>{});let c=new s.MutationObserver(f=>{f=zr(f).map(d=>Ur.call(s,d)),Fr.call(s,p,f,o)}),l={attributes:!0,attributeOldValue:r.oldValue,subtree:r.subtree&&!0};t.length&&(l.attributeFilter=t.map(f=>f+"")),c.observe(o,l);let u=r.signalGenerator||r.lifecycleSignals&&this.createSignalGenerator(),p={context:o,spec:t,callback:e,params:r,atomics:new Map,originalFilterIsString:n,signalGenerator:u,disconnectable:c};return this.disconnectables(r.signal,c,u)}observeSync(t,e,r={}){let n=typeof t=="string"||t instanceof tt;[t,e,r={}]=this.resolveArgs(arguments);let{context:o,window:s}=this;if(r.timing&&!["sync","intercept"].includes(r.timing))throw new Error(`Timing option "${r.timing}" invalid.`);let a=r.timing==="intercept"?"intercept":"sync";this.registry(a).size||Wr.call(s,a,f=>{this.forEachMatchingContext(a,f,Fr)});let c={disconnect(){p.delete(u)}},l=r.signalGenerator||r.lifecycleSignals&&this.createSignalGenerator(),u={context:o,spec:t,callback:e,params:r,atomics:new Map,originalFilterIsString:n,signalGenerator:l,disconnectable:c},p=this.registry(a);return p.set(u,!!u.params.deferred),this.disconnectables(r.signal,c,l)}};function zr(i){return i.reduce((t,e,r)=>t[r-1]?.attributeName===e.attributeName||W(e.target,"realdom","internalAttrInteractions").get(e.attributeName)?t:t.concat(e),[])}function Fr(i,t){let{context:e,spec:r,callback:n,params:o,atomics:s,originalFilterIsString:a,signalGenerator:c}=i;if(o.subtree||(t=t.filter(f=>f.target===e)),!t.length)return;let l=r.map(f=>f+"");if(o.atomic&&!s.size?t=Br(e,r,t):o.timing!=="async"&&r.length&&(t=t.filter(f=>l.includes(f.name))),!t.length)return;o.newValue===null&&o.oldValue===null&&o.eventDetails||(t=t.map(f=>{let d;return o.eventDetails||({event:d,...f}=f),!o.oldValue&&"oldValue"in f&&({oldValue:d,...f}=f),!o.newValue&&"value"in f?{value:d,...f}=f:o.newValue&&typeof f.value>"u"&&(f={...f,value:xe(f.target,f.name,()=>f.target.getAttribute(f.name))}),f})),o.atomic&&(t.forEach(f=>s.set(f.name,f)),t=Array.from(s.entries()).map(([,f])=>f));let u=a?t[0]:t,p=c?c.generate():{};n(u,p,e)}function xe(i,t,e){let r=W(i,"realdom","internalAttrInteractions").get(t);W(i,"realdom","internalAttrInteractions").set(t,!0);let n=e();return W(i,"realdom","internalAttrInteractions").set(t,r),n}function Br(i,t,e=[]){let r={event:null,type:"attribute"};return t.length?t.map(o=>(o=o+"",e.find(s=>s.name===o)||{target:i,name:o,value:xe(i,o,()=>i.getAttribute(o)),...r})):Array.from(i.attributes).map(o=>e.find(s=>s.name===o.nodeName)||{target:i,name:o.nodeName,value:xe(i,o.nodeName,()=>o.nodeValue),...r})}function Ur({target:i,attributeName:t,value:e,oldValue:r}){let s=(this.webqit.realdom.attrInterceptionRecords?.get(i)||{})[t]?.[0]||"mutation";return{target:i,name:t,value:e,oldValue:r,type:"observation",event:s}}function Wr(i,t){let e=this,{webqit:r,document:n,Element:o}=e;r.realdom.attrInterceptionHooks||Object.defineProperty(r.realdom,"attrInterceptionHooks",{value:new Map}),r.realdom.attrInterceptionHooks.has(i)||r.realdom.attrInterceptionHooks.set(i,new Set),r.realdom.attrInterceptionHooks.get(i).add(t);let s=()=>r.realdom.attrInterceptionHooks.get(i).delete(t);if(r.realdom.attrInterceptionHooks?.intercepting)return s;console.warn("Attr mutation APIs are now being intercepted."),r.realdom.attrInterceptionHooks.intercepting=!0,Object.defineProperty(r.realdom,"attrInterceptionRecords",{value:new Map});let a=(u,p)=>{r.realdom.attrInterceptionRecords.has(u.target)||r.realdom.attrInterceptionRecords.set(u.target,{});let f=r.realdom.attrInterceptionRecords.get(u.target);if(f[u.name]=f[u.name]||[],f[u.name].unshift(u.event),W(u.target,"realdom","internalAttrInteractions").get(u.name))return p();r.realdom.attrInterceptionHooks.get("intercept")?.forEach(m=>m([u]));let d=p();return r.realdom.attrInterceptionHooks.get("sync")?.forEach(m=>m([u])),d};new e.MutationObserver(u=>{u=u.filter(p=>!(e.webqit.realdom.attrInterceptionRecords?.get(p.target)||{})[p.attributeName]?.shift()),u=zr(u).map(p=>Ur.call(e,p)),u.length&&(r.realdom.attrInterceptionHooks.get("intercept")?.forEach(p=>p(u)),r.realdom.attrInterceptionHooks.get("sync")?.forEach(p=>p(u)))}).observe(n,{attributes:!0,subtree:!0,attributeOldValue:!0});let l=Object.create(null);return["setAttribute","removeAttribute","toggleAttribute"].forEach(u=>{l[u]=o.prototype[u],o.prototype[u]=function(...p){let f,d=xe(this,p[0],()=>this.getAttribute(p[0]));["setAttribute","toggleAttribute"].includes(u)&&(f=p[1]),u==="toggleAttribute"&&f===void 0&&(f=d===null);let m={target:this,name:p[0],value:f,oldValue:d,type:"interception",event:[this,u]};return a(m,()=>l[u].call(this,...p))}}),s}var ce=class extends At{constructor(t,...e){super(t,"tree",...e)}attr(t,e=void 0,r={}){let{context:n,window:o}=this;return new ht(n,o).get(...arguments)}query(t,e=void 0,r={}){[t,e=void 0,r={}]=this.resolveArgs(arguments);let{context:n}=this,o=new Map,s=l=>(o.has(l)||o.set(l,{target:l,entrants:[],exits:[],type:"query",event:null}),o.get(l));if(!r.generation||r.generation==="entrants"){if(!t.length)[...n.children].forEach(l=>s(n).entrants.push(l));else if(t.every(l=>l.type==="selector")){let[l,u]=t.reduce(([f,d],m)=>m.kind==="xpath"?[f,d.concat(m)]:[f.concat(m),d],[[],[]]),p=[];r.subtree?(l.length&&p.push(...n.querySelectorAll(l.join(","))),u.length&&p.push(...Lt(this.window,n,u))):(l.length&&p.push(...[...n.children].filter(f=>f.matches(l))),u.length&&p.push(...Lt(this.window,n,u,!1))),p.forEach(f=>s(f.parentNode||n).entrants.push(f))}}if(!e)return o;let a={disconnected:!1},c=e&&r.lifecycleSignals&&this.createSignalGenerator();for(let[,l]of o){if(a.disconnected)break;let u=c?.generate()||{};e(l,u,n)}if(r.live){c&&(r={...r,signalGenerator:c});let l=this.observe(t,e,r);return this.disconnectables(r.signal,a,l)}return this.disconnectables(r.signal,a,c)}children(t,e=void 0,r={}){return[t,e=void 0,r={}]=this.resolveArgs(arguments),this.query(t,e,{...r,subtree:!1})}subtree(t,e=void 0,r={}){return[t,e=void 0,r={}]=this.resolveArgs(arguments),this.query(t,e,{...r,subtree:!0})}observe(t,e,r={}){if([t,e,r={}]=this.resolveArgs(arguments),["sync","intercept"].includes(r.timing))return this.observeSync(t,e,r);if(r.timing&&r.timing!=="async")throw new Error(`Timing option "${r.timing}" invalid.`);let{context:n,window:o,webqit:s,document:a}=this;r.eventDetails&&(s.realdom.domInterceptionRecordsAlwaysOn=!0),(a.readyState==="loading"||s.realdom.domInterceptionRecordsAlwaysOn)&&!s.realdom.domInterceptionHooks?.intercepting&&Xr.call(o,"sync",()=>{});let c=new o.MutationObserver(p=>p.forEach(f=>{rr.call(o,u,Gr.call(o,f),n)}));c.observe(n,{childList:!0,subtree:r.subtree&&!0});let l=r.signalGenerator||r.lifecycleSignals&&this.createSignalGenerator(),u={context:n,spec:t,callback:e,params:r,signalGenerator:l,disconnectable:c};if(r.staticSensitivity){let p=Vr.call(o,u);return this.disconnectables(r.signal,c,l,p)}return this.disconnectables(r.signal,c,l)}observeSync(t,e,r={}){[t,e,r={}]=this.resolveArgs(arguments);let{context:n,window:o}=this;if(r.timing&&!["sync","intercept"].includes(r.timing))throw new Error(`Timing option "${r.timing}" invalid.`);let s=r.timing==="intercept"?"intercept":"sync";this.registry(s).size||Xr.call(o,s,f=>{this.forEachMatchingContext(s,f,rr)});let a=new o.MutationObserver(f=>f.forEach(d=>{Array.isArray((d=Gr.call(o,d)).event)||rr.call(o,u,d,n)}));a.observe(n,{childList:!0,subtree:r.subtree&&!0});let c={disconnect(){p.delete(u),a.disconnect()}},l=r.signalGenerator||r.lifecycleSignals&&this.createSignalGenerator(),u={context:n,spec:t,callback:e,params:r,signalGenerator:l,disconnectable:c},p=this.registry(s);if(p.set(u,!!u.params.deferred),r.staticSensitivity){let f=Vr.call(o,u);return this.disconnectables(r.signal,c,l,f)}return this.disconnectables(r.signal,c,l)}track(t,e,r={}){return r={subtree:!0,...r},this.observe(t,n=>{n.entrants.length&&e(!0,Array.isArray(t)?n.entrants:n.entrants[0]),n.exits.length&&e(!1,Array.isArray(t)?n.exits:n.exits[0])},r)}};function Vr(i){let t=this,{context:e,spec:r,callback:n,params:o,signalGenerator:s}=i,a=r.filter(d=>d.kind==="css"),c=d=>d.match(/\.([\w-]+)/g)?.length?["class"]:[],l=d=>d.match(/#([\w-]+)/g)?.length?["id"]:[],u=d=>[...d.matchAll(/\[([^\=\]]+)(\=[^\]]+)?\]/g)].map(m=>m[1]).concat(c(d)).concat(l(d));if(!(i.$attrs=Array.from(new Set(a.filter(d=>(d+"").includes("[")).reduce((d,m)=>d.concat(u(m+"")),[])))).length)return;let p=new Set,f=new Set;return p.push=d=>(f.delete(d),p.add(d)),f.push=d=>(p.delete(d),f.add(d)),i.$deliveryCache={entrants:p,exits:f},new ht(e,t).observe(i.$attrs,d=>{let m=new Map,w=y=>(m.has(y)||m.set(y,{target:y,entrants:[],exits:[],type:"static",event:null}),m.get(y)),v=new WeakMap,g=y=>(v.has(y)||v.set(y,a.some(x=>y.matches(x+""))),v.get(y));for(let y of d)["entrants","exits"].forEach(x=>{o.generation&&x!==o.generation||i.$deliveryCache[x].has(y.target)||(x==="entrants"?!g(y.target):g(y.target))||(i.$deliveryCache[x].push(y.target),w(y.target)[x].push(y.target),w(y.target).event=y.event)});for(let[,y]of m){let x=s?.generate()||{};n(y,x,e)}},{subtree:o.subtree,timing:o.timing,eventDetails:o.eventDetails})}function rr(i,t){let{context:e,spec:r,callback:n,params:o,signalGenerator:s,$deliveryCache:a}=i,c={...t,entrants:[],exits:[]};if(o.eventDetails||delete c.event,["entrants","exits"].forEach(u=>{if(!(o.generation&&u!==o.generation)&&(r.length?c[u]=Vi.call(this,r,o.subtree==="cross-roots",t[u],t.event!=="parse"):c[u]=[...t[u]],!!a))for(let p of c[u])a[u].push(p)}),!c.entrants.length&&!c.exits.length)return;let l=s?.generate()||{};n(c,l,e)}function Vi(i,t,e,r){e=Array.isArray(e)?e:[...e];let n=(o,s)=>{if(s.type==="selector"){let a=s.isXpathAttr?[]:o.filter(c=>s.kind==="xpath"?Lr(this,c,s+""):c.matches&&c.matches(s+""));if((r||s.isXpathAttr)&&(a=o.reduce((c,l)=>s.kind==="xpath"?[...c,...Lt(this,l,s,r)]:l.querySelectorAll?[...c,...l.querySelectorAll(s+"")]:c,a)),a.length)return a}else if(o.includes(s.content)||r&&o.some(a=>le(this,a,s.content,t)))return[s.content]};return e.$$searchCache||(e.$$searchCache=new Map),i.reduce((o,s)=>{let a;return e.$$searchCache.has(s.content)?a=e.$$searchCache.get(s.content):(a=n(e,s)||[],s.type==="instance"&&e.$$searchCache.set(s.content,a)),o.concat(a)},[])}function Gr({target:i,addedNodes:t,removedNodes:e}){let r=this,n;return n=F(t).reduce((o,s)=>o||r.webqit.realdom.domInterceptionRecords?.get(s),null),n=F(e).reduce((o,s)=>o||r.webqit.realdom.domInterceptionRecords?.get(s),n),n=n||r.document.readyState==="loading"&&"parse"||"mutation",{target:i,entrants:t,exits:e,type:"observation",event:n}}function Xr(i,t){let e=this,{webqit:r,document:n,Node:o,CharacterData:s,Element:a,HTMLElement:c,HTMLTemplateElement:l,DocumentFragment:u}=e;r.realdom.domInterceptionHooks||Object.defineProperty(r.realdom,"domInterceptionHooks",{value:new Map}),r.realdom.domInterceptionNoRecurse||Object.defineProperty(r.realdom,"domInterceptionNoRecurse",{value:new Map}),r.realdom.domInterceptionHooks.has(i)||r.realdom.domInterceptionHooks.set(i,new Set),r.realdom.domInterceptionHooks.get(i).add(t);let p=()=>r.realdom.domInterceptionHooks.get(i).delete(t);if(r.realdom.domInterceptionHooks?.intercepting)return p;console.warn("DOM mutation APIs are now being intercepted."),r.realdom.domInterceptionHooks.intercepting=!0,Object.defineProperty(r.realdom,"domInterceptionRecords",{value:new Map});let f=(g,y,x)=>{r.realdom.domInterceptionNoRecurse.set(g,y);let S=x();return r.realdom.domInterceptionNoRecurse.delete(g),S},d=(g,y)=>{g.entrants.concat(g.exits).forEach(S=>{clearTimeout(r.realdom.domInterceptionRecords.get(S)?.timeout),r.realdom.domInterceptionRecords.set(S,g.event);let h=setTimeout(()=>{r.realdom.domInterceptionRecords.delete(S)},0);Object.defineProperty(g.event,"timeout",{value:h,configurable:!0})}),r.realdom.domInterceptionHooks.get("intercept")?.forEach(S=>S(g));let x=y();return r.realdom.domInterceptionHooks.get("sync")?.forEach(S=>S(g)),x},m={ShadowRoot:["innerHTML","setHTMLUnsafe"],DocumentFragment:["replaceChildren","append","prepend"],Document:["replaceChildren","append","prepend"],HTMLElement:["outerText","innerText"],Element:["append","prepend","before","after","insertAdjacentElement","insertAdjacentHTML","remove","replaceChildren","replaceWith","setHTMLUnsafe","innerHTML","outerHTML"],CharacterData:["before","after","remove","replaceWith"],Node:["insertBefore","replaceChild","removeChild","appendChild","textContent","nodeValue"]},w={ShadowRoot:Object.create(null),DocumentFragment:Object.create(null),Document:Object.create(null),HTMLElement:Object.create(null),Element:Object.create(null),CharacterData:Object.create(null),Node:Object.create(null)};return new Set(Object.values(m).reduce((g,y)=>g.concat(y),[])).forEach(g=>{Object.keys(m).forEach(S=>{if(!m[S].includes(g))return;let h=Object.getOwnPropertyDescriptor(e[S].prototype,g);!h||(Object.defineProperty(e[S].prototype,g,"value"in h?{...h,value:y}:{...h,set:x}),w[S][g]=h)});function y(...S){let h=Object.keys(w).find(I=>this instanceof e[I]&&g in w[I]),b=w[h],_=()=>b[g].value.call(this,...S);if(r.realdom.domInterceptionNoRecurse.get(this)===g)return _();let O=[],$=[],T=this;["insertBefore"].includes(g)?$=[S[0]]:["insertAdjacentElement","insertAdjacentHTML"].includes(g)?($=[S[1]],["beforebegin","afterend"].includes(S[0])&&(T=this.parentNode)):["setHTMLUnsafe","replaceChildren"].includes(g)?(O=[...this.childNodes],$=g==="replaceChildren"?[...S]:[S[0]]):["replaceWith","remove"].includes(g)?(O=[this],$=g==="replaceWith"?[...S]:[],T=this.parentNode):["replaceChild"].includes(g)?(O=[S[1]],$=[S[0]]):["removeChild"].includes(g)?O=[...S]:($=[...S],["before","after"].includes(g)&&(T=this.parentNode));let R=g;if(["insertAdjacentHTML","setHTMLUnsafe"].includes(g)){let I=this.nodeName;if(g==="insertAdjacentHTML"&&["beforebegin","afterend"].includes(S[0])){if(!this.parentNode)return b[g].value.call(this,...S);I=this.parentNode.nodeName}let P=n.createElement(I.includes("-")?"div":I);b.setHTMLUnsafe.value.call(P,$[0],g==="setHTMLUnsafe"?S[1]:{}),$=[...P.childNodes],g==="insertAdjacentHTML"?(R="insertAdjacentElement",S[1]=new u,f(S[1],"append",()=>S[1].append(...P.childNodes))):(R="replaceChildren",S=[...P.childNodes])}return T?d({target:T,entrants:$,exits:O,type:"interception",event:[this,g]},()=>b[R].value.call(this,...S)):_()}function x(S){let h=Object.keys(w).find(N=>this instanceof e[N]&&g in w[N]),b=w[h],_=()=>b[g].set.call(this,S);if(this instanceof HTMLScriptElement||r.realdom.domInterceptionNoRecurse.get(this)===g)return _();let O=[],$=[],T=this;if(["outerHTML","outerText"].includes(g)?(O=[this],T=this.parentNode):this instanceof l?(T=this.content,O=[...this.content.childNodes]):O=[...this.childNodes],["outerHTML","innerHTML"].includes(g)){let N=this.nodeName;if(g==="outerHTML"){if(!this.parentNode)return _();N=this.parentNode.nodeName}let I=n.createElement(N.includes("-")?"div":N);if(f(I,g,()=>I[g]=S),$=this instanceof l?[...I.content.childNodes]:[...I.childNodes],this instanceof l&&this.hasAttribute("src")||this instanceof ShadowRoot){let P=A=>A.reduce((H,B)=>B instanceof HTMLScriptElement?H.concat(B):B instanceof l?H.concat(P([B.content])):(H=H.concat(P([...B.querySelectorAll?.("template")||[]].map(Q=>Q.content))),H.concat(...B.querySelectorAll?.("script")||[])),[]);for(let A of P($)){if(this instanceof ShadowRoot){A.setAttribute("data-handling","manual");continue}let H=n.createElement("script");[...A.attributes].forEach(B=>H.setAttribute(B.name,B.value)),H.textContent=A.textContent,f(A,"replaceWith",()=>A.replaceWith(H))}}g==="outerHTML"?(S=new u,f(S,"append",()=>S.append(...$)),_=()=>f(this,"replaceWith",()=>a.prototype.replaceWith.call(this,S))):this instanceof l?_=()=>f(this.content,"replaceChildren",()=>this.content.replaceChildren(...$)):_=()=>f(this,"replaceChildren",()=>a.prototype.replaceChildren.call(this,...$))}return d({target:T,entrants:$,exits:O,type:"interception",event:[this,g]},_)}}),p}function Jr(){Gi.call(this),Xi.call(this),Ji.call(this)}function Gi(){let i=this;i.CSS||(i.CSS={}),i.CSS.escape||(i.CSS.escape=t=>t.replace(/([\:@\~\$\&])/g,"\\$1"))}function Xi(){let i=this;"isConnected"in i.Node.prototype||Object.defineProperty(i.Node.prototype,"isConnected",{get:function(){return!this.ownerDocument||!(this.ownerDocument.compareDocumentPosition(this)&this.DOCUMENT_POSITION_DISCONNECTED)}})}function Ji(){let i=this;i.Element.prototype.matches||(i.Element.prototype.matches=i.Element.prototype.matchesSelector||i.Element.prototype.mozMatchesSelector||i.Element.prototype.msMatchesSelector||i.Element.prototype.oMatchesSelector||i.Element.prototype.webkitMatchesSelector||function(t){for(var e=(this.document||this.ownerDocument).querySelectorAll(t),r=e.length;--r>=0&&e.item(r)!==this;);return r>-1})}function Qr(){let i=this;if(i.webqit||(i.webqit={}),i.webqit.realdom)return i.webqit.realdom;i.webqit.realdom={},Jr.call(i),i.webqit.realdom.meta=(...e)=>Qi.call(i,...e),i.webqit.realdom.ready=(...e)=>ir.call(i,...e),i.webqit.realdom.realtime=(e,r="dom")=>{if(r==="dom")return new ce(e,i);if(r==="attr")return new ht(e,i)};let t=new ae(i);return i.webqit.realdom.schedule=(e,...r)=>t[`on${e}`](...r),i.webqit.realdom.synthesizeWhile=(...e)=>t.synthesizeWhile(...e),i.webqit.realdom}function ir(...i){let t="interactive",e;kt(i[0])?(t=i[0],k(i[1])&&(e=i[1])):k(i[0])&&(e=i[0]);let r={interactive:["interactive","complete"],complete:["complete"]};if(!r[t])throw new Error(`Invalid ready-state timing: ${t}.`);let n=this;if(!e)return n.webqit.realdom.readyStatePromises||(n.webqit.realdom.readyStatePromises={interactive:new Promise(o=>ir.call(this,"interactive",o)),complete:new Promise(o=>ir.call(this,"complete",o))}),n.webqit.realdom.readyStatePromises[t];if(r[t].includes(n.document.readyState))return e(n);n.webqit.realdom.readyStateCallbacks||(n.webqit.realdom.readyStateCallbacks={interactive:[],complete:[]},n.document.addEventListener("readystatechange",()=>{let o=n.document.readyState;for(let s of n.webqit.realdom.readyStateCallbacks[o].splice(0))s(n)},!1)),n.webqit.realdom.readyStateCallbacks[t].push(e)}function Qi(i){let t=this,e={},r;return(r=t.document.querySelector(`meta[name="${i}"]`))&&(e=(r.content||"").split(";").filter(n=>n).reduce((n,o)=>{let s=o.split("=").map(a=>a.trim());return tr(n,s[0].split("."),s[1]==="true"?!0:s[1]==="false"?!1:Z(s[1])?parseInt(s[1]):s[1]),n},{})),{get name(){return i},get content(){return r.content},json(){return JSON.parse(JSON.stringify(e))}}}function _e(i,t){return typeof i!="string"?i:i.replace(/\w\S*/g,function(e){return e.charAt(0).toUpperCase()+(typeof t!==void 0&&t?e.substr(1).toLowerCase():e.substr(1))})}var E=(i,...t)=>W(i,"oohtml",...t),D={};function X(i,t,e){let r=this,n=Qr.call(r);D.window=r,r.webqitConfig||(r.webqitConfig=n.meta("webqit").json()),r.webqit||(r.webqit={}),r.webqit.oohtml||(r.webqit.oohtml={}),r.webqit.oohtml.configs||(r.webqit.oohtml.configs={});let o=i.toUpperCase().replace("-","_");if(!r.webqit.oohtml.configs[o]){r.webqit.oohtml.configs[o]={};let s=r.webqit.oohtml.configs[o];Xt(2,s,e,t,n.meta(i).json()),r.webqitConfig.prefix&&Object.keys(s).forEach(a=>{Object.keys(s[a]).forEach(c=>{a==="api"&&typeof s[a][c]=="string"?s[a][c]=`${r.webqitConfig.prefix}${_e(s[a][c])}`:["attr","elements"].includes(a)&&s[a][c]?.startsWith("data-")===!1&&(s[a][c]=`${r.webqitConfig.prefix}-${s[a][c]}`)})})}return{config:r.webqit.oohtml.configs[o],realdom:n,window:r}}function or(i,t){return W(i,"realdom","internalAttrInteractions").get(t)}function Zr(i,t,e){let r=W(i,"realdom","internalAttrInteractions").get(t);W(i,"realdom","internalAttrInteractions").set(t,!0);let n=e();return W(i,"realdom","internalAttrInteractions").set(t,r),n}function ft(i,t){return[...i].reduce(([e,r,n],o)=>!e&&r===0&&(Array.isArray(t)?t:[t]).includes(o)?[e,r,[""].concat(n)]:(!e&&["(","[","{"].includes(o)&&!n[0].endsWith("\\")&&r++,!e&&[")","]","}"].includes(o)&&!n[0].endsWith("\\")&&r--,['"',"'","`"].includes(o)&&!n[0].endsWith("\\")&&(e=e===o?null:e||o),n[0]+=o,[e,r,n]),[null,0,[""]])[2].reverse()}var Ki=()=>(0|Math.random()*9e6).toString(36),nr=new Map;function Pt(i){let t;return(t=nr.get(i))||(t=Ki(),nr.set(i,t)),t}function ve(i){let t;return nr.forEach((e,r)=>{e===i&&(t=r)}),t}function Se(){let{window:i}=D,{webqit:t}=i;if(t.DOMContextRequestEvent)return t.DOMContextRequestEvent;class e extends i.Event{constructor(...n){let o=n.pop();if(typeof o!="function")throw new Error("Callback must be provided.");let s=n.pop();if(!s?.kind)throw new Error('"options.kind" must be specified.');let a=["contextrequest","contextclaim"],c=n.pop()||a[0];if(!a.includes(c))throw new Error(`Invalid event type. Must be one of: ${a.join(",")}`);let{kind:l,detail:u,targetContext:p,live:f,signal:d,diff:m,...w}=s;super(c,{...w,bubbles:w.bubbles!==!1}),Object.defineProperty(this,"callback",{get:()=>o}),Object.defineProperty(this,"kind",{get:()=>l}),Object.defineProperty(this,"targetContext",{get:()=>p}),Object.defineProperty(this,"detail",{get:()=>u}),Object.defineProperty(this,"live",{get:()=>f}),Object.defineProperty(this,"signal",{get:()=>d}),Object.defineProperty(this,"diff",{get:()=>m}),Object.defineProperty(this,"options",{get:()=>w}),Object.defineProperty(this,"meta",{value:{}})}get target(){return super.target||this.meta.target}get answered(){return this.meta.answered||!1}respondWith(n){if(this.meta.answered=!0,this.diff){if("_prevValue"in this&&this._prevValue===n)return;Object.defineProperty(this,"_prevValue",{value:n,configurable:!0})}return this.callback(n)}}return t.DOMContextRequestEvent=e,e}var Tt=class extends AbortController{constructor(t){super(),t(e=>{let{window:{webqit:{Observer:r}}}=D;r.defineProperty(this,"value",{value:e,configurable:!0,enumerable:!0})},this)}};var Ct=class extends Error{};var mt=class{static instance(t){return E(t).get("contexts::instance")||new this(t)}constructor(t){E(t).get("contexts::instance")?.dispose(),E(t).set("contexts::instance",this);let e={host:t,contexts:new Set};Object.defineProperty(this,"#",{get:()=>e})}[Symbol.iterator](){return this["#"].contexts[Symbol.iterator]()}get length(){return this["#"].contexts.size}find(...t){return[...this["#"].contexts].find(e=>typeof t[0]=="function"?t[0](e):e.constructor.kind===t[0]&&(!t[1]||e.detail===t[1]))}attach(t){if(!(t instanceof J))throw new TypeError("Context is not a valid DOMContext instance.");if(this.find(t.constructor.kind,t.detail))throw new Ct(`Context of same kind "${t.constructor.kind}"${t.detail?` and detail "${t.detail}"`:""} already exists.`);this["#"].contexts.add(t),t.initialize(this["#"].host)}detach(t){t.dispose(this["#"].host),this["#"].contexts.delete(t)}request(...t){return new Tt((e,r)=>{typeof t[t.length-1]!="function"&&(t[t.length-1]?t.push(e):t[t.length-1]=e);let n;(n=t.find(s=>typeof s=="object"&&s))&&n.live&&(n.signal&&n.signal.addEventListener("abort",()=>r.abort()),t[t.indexOf(n)]={...n,signal:r.signal});let o=new(Se())(...t);this["#"].host.dispatchEvent(o)})}};var sr=class{static createRequest(){return{kind:this.kind}}constructor(t=null){Object.defineProperty(this,"detail",{get:()=>t}),Object.defineProperty(this,"subscriptions",{value:new Set})}get configs(){let{window:{webqit:{oohtml:{configs:t}}}}=D;return t}get name(){return[D.window.Document,D.window.ShadowRoot].some(t=>this.host instanceof t)?1/0:this.host.getAttribute(this.configs.CONTEXT_API.attr.contextname)}subscribed(t){}handle(t){}unsubscribed(t){}matchEvent(t){return t.kind===this.constructor.kind&&(!t.targetContext||t.targetContext===this.name)}handleEvent(t){if(!(this.disposed||typeof t.respondWith!="function")){if(t.type==="contextclaim"){if(!(t.detail instanceof sr)||t.target===this.host)return;let e=new Set;if(this.subscriptions.forEach(r=>{!t.target.contains(r.target)||!t.detail.matchEvent(r)||(this.subscriptions.delete(r),this.unsubscribed(r),e.add(r))}),e.size)return t.respondWith(e)}if(t.type==="contextrequest")return this.matchEvent(t)?(t.live&&(this.subscriptions.add(t),this.subscribed(t),t.signal?.addEventListener("abort",()=>{this.subscriptions.delete(t),this.unsubscribed(t)})),t.stopPropagation(),this.handle(t)):void 0}}initialize(t){this.host=t,this.disposed=!1,t.addEventListener("contextrequest",this),t.addEventListener("contextclaim",this);let{value:e}=mt.instance(t).request("contextclaim",{kind:this.constructor.kind,detail:this});return e?.forEach(r=>{this.subscriptions.add(r),this.subscribed(r),this.handle(r)}),this}dispose(t){return this.disposed=!0,t.removeEventListener("contextrequest",this),t.removeEventListener("contextclaim",this),this.subscriptions.forEach(e=>{this.subscriptions.delete(e),this.unsubscribed(e);let{target:r}=e;e.meta.answered=!1,r.dispatchEvent(e)}),this}},J=sr;V(J,"kind");var Ht=class extends J{static createRequest(t=null){let e=super.createRequest();if(t?.startsWith("@")){let[r,...n]=n.slice(1).split("/").map(o=>o.trim());e.targetContext=r,e.detail=n.join("/")}else e.detail=t;return e}get namespaceObj(){return this.host[this.configs.NAMESPACED_HTML.api.namespace]}handle(t){let{window:{webqit:{Observer:e}}}=D;if(t.meta.controller?.abort(),!(t.detail||"").trim())return t.respondWith(e.unproxy(this.namespaceObj));let r=(t.detail||"").split("/").map(n=>n.trim()).filter(n=>n);if(!r.length)return t.respondWith();r=r.join(`/${this.configs.NAMESPACED_HTML.api.namespace}/`)?.split("/")||[],t.meta.controller=e.reduce(this.namespaceObj,r,e.get,n=>{this.disposed||t.respondWith(n.value)},{live:t.live,signal:t.signal,descripted:!0})}unsubscribed(t){t.meta.controller?.abort()}};V(Ht,"kind","namespace");function ar(i={}){let{config:t,window:e}=X.call(this,"namespaced-html",i,{attr:{namespace:"namespace",lid:"id"},api:{namespace:"namespace"},tokens:{lidrefPrefix:"~",lidrefSeparator:":"},target:{className:":target",eventName:":target",scrolling:!0}});t.lidSelector=`[${e.CSS.escape(t.attr.lid)}]`,t.namespaceSelector=`[${e.CSS.escape(t.attr.namespace)}]`,e.webqit.DOMNamingContext=Ht,tn.call(e,t),en.call(e,t)}function Kr(i){let{lidrefPrefix:t,lidrefSeparator:e}=i.tokens;return{escape(r,n=1){return[...r].map(o=>/\w/.test(o)?o:n===2?`\\\\${o}`:`\\${o}`).join("")},lidrefPrefix(r=0){return r?this.escape(t,r):t},lidrefSeparator(r=0){return r?this.escape(e,r):e},isUuid(r,n=0){return r.startsWith(this.lidrefPrefix(n))&&r.includes(this.lidrefSeparator(n))},toUuid(r,n,o=0){return r.endsWith("-root")?n:`${this.lidrefPrefix(o)}${r}${this.lidrefSeparator(o)}${n}`},uuidToId(r,n=0){return this.isUuid(r)?r.split(this.lidrefSeparator(n))[1]:r},uuidToLidref(r,n=0){return this.isUuid(r)?`${this.lidrefPrefix(n)}${r.split(this.lidrefSeparator(n))[1]}`:r}}}function lr(i,t,e=null,r=0){let n=this,{webqit:{oohtml:{configs:{NAMESPACED_HTML:o}}}}=n,s=Kr(o),a=new RegExp(`${e?":scope|":""}#(${s.lidrefPrefix(r+1)})?([\\w]+${s.lidrefSeparator(r+1)})?((?:[\\w-]|\\\\.)+)`,"g"),[c,l]=ft(i,",").reduce(([p,f],d)=>{let m,w;return d=d.replace(a,(v,g,y,x,S)=>{if(m||(m=[...d.matchAll(/(["'])(?:(?=(\\?))\2.)*?\1/g)]),m.some(O=>S>O.index&&S+v.length<O.index+O[0].length))return v;if(v===":scope")return w=!0,e;let h=g&&!y;if(g&&y)return`#${s.escape(v.replace("#",""),1)}`;if(h&&o.attr.lid==="id"&&t&&!t.endsWith("-root"))return`#${s.toUuid(t,x,1)}`;let _;return o.attr.lid==="id"?_=`:is(#${x},[id^="${s.lidrefPrefix(r)}"][id$="${s.lidrefSeparator(r)}${x}"])`:_=`:is(#${x},[${n.CSS.escape(o.attr.lid)}="${x}"])`,h?`:is(${_}):not(${e?e+" ":""}${o.namespaceSelector} *)`:_}),w?[p,f.concat(d)]:[p.concat(d),f]},[[],[]]),u;return e&&c.length?u=[c.length>1?`${e} :is(${c.join(", ")})`:`${e} ${c[0]}`,l.join(", ")].filter(p=>p).join(", "):u=[...c,...l].join(", "),u}function Oe(i){let t=this;if(!E(i).has("namespace")){let e=Object.create(null);E(i).set("namespace",e);let r=[t.Document,t.ShadowRoot].some(n=>i instanceof n);Object.defineProperty(e,Symbol.toStringTag,{get(){return r?"RootNamespaceRegistry":"NamespaceRegistry"}})}return E(i).get("namespace")}function Ft(i,t=!1){let e=this,{webqit:{oohtml:{configs:{NAMESPACED_HTML:r}}}}=e,n=[e.Document,e.ShadowRoot].some(o=>i instanceof o);return Oe.call(e,n?i:(t?i.parentNode:i)?.closest?.(r.namespaceSelector)||i.getRootNode())}function $e(i){let t=Object.prototype.toString.call(i)==="[object RootNamespaceRegistry]";return(ve(i)||Pt(i))+(t?"-root":"")}function tn(i){let t=this,{webqit:{Observer:e}}=t;[t.Document.prototype,t.Element.prototype,t.ShadowRoot.prototype].forEach(r=>{let n=r===t.Document.prototype?"Document":r===t.ShadowRoot.prototype?"ShadowRoot":"Element";if(i.api.namespace in r)throw new Error(`The ${n} prototype already has a "${i.api.namespace}" API!`);Object.defineProperty(r,i.api.namespace,{get:function(){return e.proxy(Oe.call(t,this))}})})}function en(i){let t=this,{webqit:{Observer:e,realdom:r,oohtml:{configs:n},DOMNamingContext:o}}=t,s=["aria-owns","aria-controls","aria-labelledby","aria-describedby","aria-flowto"],a=["for","list","form","aria-activedescendant","aria-details","aria-errormessage","popovertarget"],c=[i.attr.lid,...s,...a],l={id:"id",for:"htmlFor","aria-owns":"ariaOwns","aria-controls":"ariaControls","aria-labelledby":"ariaLabelledBy","aria-describedby":"ariaDescribedBy","aria-flowto":"ariaFlowto","aria-activedescendant":"ariaActiveDescendant","aria-details":"ariaDetails","aria-errormessage":"ariaErrorMessage",popovertarget:"popoverTargetElement"},u=Kr(i),p=(h,b,_)=>{if(!or(h,b)&&E(h,"attrOriginals").has(b))return E(h,"attrOriginals").get(b);let O=_();return or(h,b)?O:O&&O.split(" ").map($=>($=$.trim())&&(b===i.attr.lid?u.uuidToId:u.uuidToLidref).call(u,$)).join(" ")},f=Object.getOwnPropertyDescriptor(t.Document.prototype,"getElementById");Object.defineProperty(t.Document.prototype,"getElementById",{...f,value(h){return this.querySelector(`#${h}`)}});for(let h of["querySelector","querySelectorAll"])for(let b of[t.Document,t.Element]){let _=Object.getOwnPropertyDescriptor(b.prototype,h);Object.defineProperty(b.prototype,h,{..._,value(O){return _.value.call(this,lr.call(t,O,$e(Oe.call(t,this))))}})}let d=Object.getOwnPropertyDescriptor(t.Element.prototype,"getAttribute");Object.defineProperty(t.Element.prototype,"getAttribute",{...d,value(h){let b=()=>d.value.call(this,h);return c.includes(h)&&!E(this,"lock").get(h)?p(this,h,b):b()}});let m=Object.getOwnPropertyDescriptor(t.Attr.prototype,"value");Object.defineProperty(t.Attr.prototype,"value",{...m,get(){let h=()=>m.get.call(this);return c.includes(this.name)?p(this.ownerElement,this.name,h):h()}});let w=Object.getOwnPropertyDescriptor(t.Node.prototype,"nodeValue");Object.defineProperty(t.Node.prototype,"nodeValue",{...w,get(){let h=()=>w.get.call(this);return this instanceof t.Attr&&c.includes(this.name)?p(this.ownerElement,this.name,h):h()}});for(let h of c){if(!(h in l))continue;let b=h==="for"?[t.HTMLLabelElement,t.HTMLOutputElement]:h==="popovertarget"?[t.HTMLButtonElement,t.HTMLInputElement]:[t.Element];for(let _ of b){let O=Object.getOwnPropertyDescriptor(_.prototype,l[h]);!O||Object.defineProperty(_.prototype,l[h],{...O,get(){return p(this,h,()=>O.get.call(this,h))}})}}i.attr.lid!=="id"&&Object.defineProperty(t.Element.prototype,i.attr.lid,{configurable:!0,enumerable:!0,get(){return this.getAttribute(i.attr.lid)},set(h){return this.setAttribute(i.attr.lid,h)}});let v=(h,b,_,O)=>Zr(h,b,()=>(typeof _=="function"&&(_=_()),O(_))),g=(h,b,_,O=null)=>{v(h,b,_,$=>{let T=b===i.attr.lid,R=O||Ft.call(t,h,T),N=$e(R);if(T){let I=u.uuidToId($);if(e.get(R,I)!==h){let P=u.toUuid(N,I);P!==$&&h.setAttribute("id",P),e.set(R,I,h)}}else{E(h,"attrOriginals").set(b,$);let I=$.split(" ").map(P=>(P=P.trim())&&u.isUuid(P)?P:u.toUuid(N,P)).join(" ");h.setAttribute(b,I),E(R).set("idrefs",E(R).get("idrefs")||new Set),E(R).get("idrefs").add(h)}})},y=(h,b,_,O=null)=>{v(h,b,_,$=>{let T=b===i.attr.lid,R=O||Ft.call(t,h,T);if(T){let N=u.uuidToId($);e.get(R,N)===h&&e.deleteProperty(R,N)}else{let N=E(h,"attrOriginals").get(b);h.hasAttribute(b)&&h.setAttribute(b,N),E(R).get("idrefs")?.delete(h)}})};r.realtime(t.document).query(i.namespaceSelector,h=>{let b=(_,O,$,T)=>{if(!_.hasAttribute(O))return;let R=()=>_.getAttribute(O);y(_,O,R,$),_.isConnected&&g(_,O,E(_,"attrOriginals").get(O)||R,T)};h.exits.forEach(_=>{if(_.isConnected){let T=Oe.call(t,_);for(let R of new Set([...Object.values(T),...E(T).get("idrefs")||[]]))for(let N of c)b(R,N,T)}let O=_[n.CONTEXT_API.api.contexts],$=O.find(o.kind);$&&O.detach($)}),h.entrants.forEach(_=>{let O,$=Ft.call(t,_,!0);for(let R of new Set([...Object.values($),...E($).get("idrefs")||[]]))if((O=Ft.call(t,R,!0))!==$)for(let N of c)b(R,N,$,O);let T=_[n.CONTEXT_API.api.contexts];T.find(o.kind)||T.attach(new o)})},{id:"namespace-html:namespace",live:!0,subtree:"cross-roots",timing:"sync",staticSensitivity:!0,eventDetails:!0}),r.realtime(t.document).query(`[${c.map(h=>t.CSS.escape(h)).join("],[")}]`,h=>{let b={forID:new Map,forOther:new Map};for(let _ of c){let O=_===i.attr.lid?b.forID:b.forOther;h.exits.forEach($=>{if(!$.hasAttribute(_))return;let T=O.get($);typeof T>"u"&&(T=(_===i.attr.lid?$.parentNode:$)?.closest?.(i.namespaceSelector)||$.getRootNode().host,O.set($,T)),!(T&&!T.isConnected)&&y($,_,()=>$.getAttribute(_))}),h.entrants.forEach($=>{!$.hasAttribute(_)||g($,_,()=>$.getAttribute(_))})}b.forID.clear(),b.forOther.clear()},{id:"namespace-html:attrs",live:!0,subtree:"cross-roots",timing:"sync"}),r.realtime(t.document,"attr").observe(c,h=>{for(let b of h)b.oldValue&&b.value!==b.oldValue&&y(b.target,b.name,b.oldValue),b.value&&b.value!==b.oldValue&&g(b.target,b.name,b.value)},{id:"namespace-html:attr(attrs)",subtree:"cross-roots",timing:"sync",newValue:!0,oldValue:!0});let x,S=()=>{if(!t.location.hash?.startsWith(`#${u.lidrefPrefix()}`))return;let h=t.location.hash?.substring(`#${u.lidrefPrefix()}`.length).split("/").map(_=>_.trim()).filter(_=>_)||[],b=h.reduce((_,O)=>_&&_[i.api.namespace][O],t.document);x&&i.target.className&&x.classList.toggle(i.target.className,!1),b&&b!==t.document&&(i.target.className&&b.classList.toggle(i.target.className,!0),i.target.eventName&&b.dispatchEvent(new t.CustomEvent(i.target.eventName)),i.target.scrolling&&h.length>1&&b.scrollIntoView(),x=b)};t.addEventListener("hashchange",S),r.ready(S)}function cr({advanced:i={},...t}){let{config:e,window:r}=X.call(this,"scoped-js",t,{script:{retention:"retain",mimeTypes:"module|text/javascript|application/javascript",timing:"auto"},api:{scripts:"scripts"},advanced:Rt(i)}),n=Array.isArray(e.script.mimeTypes)?e.script.mimeTypes:e.script.mimeTypes.split("|").filter(o=>o);e.scriptSelector=n.map(o=>`script[type="${r.CSS.escape(o)}"]:not([oohtmlignore])`).concat("script:not([type])").join(","),r.webqit.oohtml.Script={compileCache:[new Map,new Map],execute:nn.bind(r,e)},rn.call(r,e),on.call(r,e)}function rn(i){let t=this,{webqit:{nextKeyword:e,matchPrologDirective:r}}=t,n=new Map;if(i.api.scripts in t.Element.prototype)throw new Error(`The "Element" class already has a "${i.api.scripts}" property!`);[t.ShadowRoot.prototype,t.Element.prototype].forEach(o=>{Object.defineProperty(o,i.api.scripts,{get:function(){return n.has(this)||n.set(this,[]),n.get(this)}})}),Object.defineProperties(t.HTMLScriptElement.prototype,{scoped:{configurable:!0,get(){return this.hasAttribute("scoped")},set(o){this.toggleAttribute("scoped",o)}},live:{configurable:!0,get(){if(this.liveProgramHandle)return!0;let o=e(this.oohtml__textContent||this.textContent||"",0,0);return r(o,!0)}}})}async function nn(i,t){let e=this,{realdom:r}=e.webqit,n=ve(t);if(!n)throw new Error("Argument must be a valid exec hash.");let{script:o,compiledScript:s,thisContext:a}=n;i.script.retention==="dispose"?o.remove():i.script.retention==="hidden"?o.textContent='"source hidden"':setTimeout(async()=>{o.textContent=await s.toString()},0);let c=o.scoped?a:o.getRootNode();E(c).has("scriptEnv")||E(c).set("scriptEnv",Object.create(null));let l=await(await s.bind(a,E(c).get("scriptEnv"))).execute();o.live&&Object.defineProperty(o,"liveProgramHandle",{value:l}),r.realtime(e.document).observe(o,()=>{o.live&&l.abort(),a instanceof e.Element&&a[i.api.scripts]?.splice(a[i.api.scripts].indexOf(o,1))},{id:"scoped-js:script-exits",subtree:"cross-roots",timing:"sync",generation:"exits"})}function on(i){let t=Object.getOwnPropertyDescriptor(globalThis,"window")?.get?.toString().includes("[native code]")??!1,e=this,{webqit:{oohtml:r,realdom:n}}=e;e.HTMLScriptElement.supports||(e.HTMLScriptElement.supports=s=>["text/javascript","application/javascript"].includes(s));let o=new WeakSet;n.realtime(e.document).query(i.scriptSelector,s=>{s.entrants.forEach(a=>{if(o.has(a)||a.hasAttribute("oohtmlno")||!t&&!a.hasAttribute("ssr"))return;let c=ti.call(e,i,a);if(!c)return;o.add(a);let l=a.scoped?a.parentNode||s.target:a.type==="module"?void 0:e;a.scoped&&l[i.api.scripts].push(a);let u=Pt({script:a,compiledScript:c,thisContext:l});s.type==="query"||a.type&&!e.HTMLScriptElement.supports(a.type)||a.getAttribute("data-handling")==="manual"||i.script.timing==="manual"?r.Script.execute(u):a.textContent=`webqit.oohtml.Script.execute( '${u}' );`})},{id:"scoped-js:script-entries",live:!0,subtree:"cross-roots",timing:"intercept",generation:"entrants",eventDetails:!0})}function ti(i,t){let e=this,{webqit:{oohtml:r,LiveScript:n,AsyncLiveScript:o,LiveModule:s}}=e,a=t.textContent.trim();if(a.startsWith("/*@oohtml*/if(false){")&&a.endsWith("}/*@oohtml*/")&&(a=a.slice(21,-12),Object.defineProperty(t,"oohtml__textContent",{value:a})),!a.trim().length)return;let c=Pt(a),l=r.Script.compileCache[t.live?0:1],u;if(!(u=l.get(c))){let{parserParams:p,compilerParams:f,runtimeParams:d}=i.advanced;u=new(t.type==="module"?s:n||o)(a,{liveMode:t.live,exportNamespace:`#${t.id}`,fileName:`${e.document.url?.split("#")?.[0]||""}#${t.id}`,parserParams:p,compilerParams:f,runtimeParams:d}),l.set(c,u)}return u}function ei(i){let t=this,{webqit:{oohtml:{configs:{SCOPED_JS:e}}}}=t;[...i?.querySelectorAll(e.scriptSelector)||[]].forEach(r=>{ti.call(t,e,r)})}function pr(i={}){let{config:t,window:e}=X.call(this,"data-binding",i,{attr:{render:"render",itemIndex:"data-key"},tokens:{nodeType:"processing-instruction",tagStart:"?{",tagEnd:"}?",stateStart:"; [=",stateEnd:"]"},advanced:Rt({runtimeParams:{spec:{handler:n=>{}}}})});({CONTEXT_API:t.CONTEXT_API,BINDINGS_API:t.BINDINGS_API,HTML_IMPORTS:t.HTML_IMPORTS}=e.webqit.oohtml.configs),t.attrSelector=`[${e.CSS.escape(t.attr.render)}]`;let r=(n,o)=>{let s=`starts-with(., "${n}")`,a=`substring(., string-length(.) - string-length("${o}") + 1) = "${o}"`;return`${s} and ${a}`};t.discreteBindingsSelector=`comment()[${r(t.tokens.tagStart,t.tokens.tagEnd)}]`,sn.call(e,t)}function sn(i){let t=this,{webqit:{realdom:e}}=t;e.realtime(t.document).query(i.attrSelector,r=>{ri.call(this,...r.exits),ln.call(t,i,...r.entrants),queueMicrotask(()=>{})},{id:"data-binding:attr",live:!0,subtree:"cross-roots",timing:"sync",eventDetails:!0,staticSensitivity:!0}),e.realtime(t.document).query(`(${i.discreteBindingsSelector})`,r=>{ri.call(this,...r.exits),an.call(t,i,...r.entrants),queueMicrotask(()=>{})},{id:"data-binding:descrete",live:!0,subtree:"cross-roots",timing:"sync"})}function ii(i,t){let{webqit:{realdom:e,Observer:r,DOMBindingsContext:n}}=this;if(E(t).has("data-binding"))return E(t).get("data-binding");let o=Object.create(null),s=new AbortController;o.$exec__=(c,l,...u)=>{(()=>{try{c[l](...u)}catch(f){throw new Error(`Error executing "${l}()": ${f.message} at ${f.cause}`)}})()},o.$assign__=(c,l,u)=>{(()=>{try{c[l]=u}catch(f){throw new Error(`Error executing "${l} = ${u}": ${f.message} at ${f.cause}`)}})()},r.intercept(o,{get:(c,l,u)=>{if(!(c.key in o)){let p={...n.createRequest(c.key),live:!0,signal:s.signal};t[i.CONTEXT_API.api.contexts].request(p,f=>{r.set(o,c.key,f)})}return u(o[c.key]??(c.key in globalThis?globalThis[c.key]:void 0))},has:(c,l,u)=>u(!0)});let a={scope:o,abortController:s,bindings:new Map};return E(t).set("data-binding",a),a}function ri(...i){for(let t of i){let e=t.nodeName==="#text"?t.parentNode:t,{bindings:r,abortController:n}=E(e).get("data-binding")||{};if(!r?.has(t))return;r.get(t).liveProgramHandle.abort(),r.get(t).signals?.forEach(o=>o.abort()),r.delete(t),r.size||(n.abort(),E(e).delete("data-binding"))}}function ni(i,t){let e=i.tokens.tagStart.split("").map(l=>`\\${l}`).join(""),r=i.tokens.tagEnd.split("").map(l=>`\\${l}`).join(""),n=i.tokens.stateStart.split("").map(l=>l===" "?"(?:\\s+)?":`\\${l}`).join(""),o=i.tokens.stateEnd.split("").map(l=>`\\${l}`).join(""),s=`^${e}(.*?)(?:${n}(\\d+)${o}(?:\\s+)?)?${r}$`,[,a,c]=t.match(new RegExp(s));return{raw:t,expr:a,span:parseInt(c??0)}}async function an(i,...t){let e=this,r=t.reduce((n,o)=>{if(o.isBound)return n;let s=ni(i,o.nodeValue),a=o;if(s.span){if(a=o.nextSibling,a?.nodeName!=="#text"||a.nodeValue.length<s.span)return n;a.nodeValue.length>s.span&&a.splitText(s.span)}else a=o.ownerDocument.createTextNode(""),o.after(a);a.isBound=!0;let c=o;return e.webqit.env!=="server"&&(c.remove(),c=null),n.concat({textNode:a,template:s,anchorNode:c})},[]);for(let{textNode:n,template:o,anchorNode:s}of r){let a=oi.call(e,i,o.expr),{scope:c,bindings:l}=ii.call(this,i,n.parentNode);Object.defineProperty(n,"$oohtml_internal_databinding_anchorNode",{value:s,configurable:!0});try{l.set(n,{liveProgramHandle:await(await a.bind(n,c)).execute()})}catch(u){console.log(u)}}}var ur=new Map;function oi(i,t){if(ur.has(t))return ur.get(t);let e=`let content = ((${t}) ?? '') + '';`;e+="$assign__(this, 'nodeValue', content);",e+=`if ( this.$oohtml_internal_databinding_anchorNode ) { $assign__(this.$oohtml_internal_databinding_anchorNode, 'nodeValue', "${i.tokens.tagStart}${Wt(t)}${i.tokens.stateStart}" + content.length + "${i.tokens.stateEnd} ${i.tokens.tagEnd}"); }`;let{webqit:{LiveScript:r,AsyncLiveScript:n}}=this,{parserParams:o,compilerParams:s,runtimeParams:a}=i.advanced,c=new(r||n)(e,{parserParams:o,compilerParams:s,runtimeParams:a});return ur.set(t,c),c}async function ln(i,...t){for(let e of t){let r=si.call(this,i,e.getAttribute(i.attr.render)),{scope:n,bindings:o}=ii.call(this,i,e),s=[];Object.defineProperty(e,"$oohtml_internal_databinding_signals",{value:s,configurable:!0});try{o.set(e,{signals:s,liveProgramHandle:await(await r.bind(e,n)).execute()})}catch(a){console.log(a)}}}var fr=new Map;function si(i,t){if(fr.has(t))return fr.get(t);let e={},r=-1,n=ft(t,";").map(p=>{let[f,d]=ft(p,":").map(y=>y.trim()),m=f[0],w=f.slice(1).trim(),v=`(${d})`,g=`(${v} ?? '')`;if(m==="&")return w.startsWith("--")?`$exec__(this.style, 'setProperty', "${Wt(w)}", ${g});`:`$assign__(this.style, "${Wt(w)}", ${g});`;if(m==="%")return`$exec__(this.classList, 'toggle', "${Wt(w)}", !!${v});`;if(m==="~")return w.startsWith("?")?`$exec__(this, 'toggleAttribute', "${Wt(w.substring(1).trim())}", !!${v});`:`$exec__(this, 'setAttribute', "${Wt(w)}", ${g});`;if(m==="#"){if(e[w])throw new Error(`Duplicate binding: ${f}.`);if(e[w]=!0,w==="text")return`$assign__(this, 'textContent', ${g});`;if(w==="html")return`$assign__(this, 'innerHTML', ${g});`;if(w==="items"){let[y,x]=ft(d,"/");if(!x)throw new Error(`Invalid ${m}items spec: ${p}; no import specifier.`);let[S,h,b,_]=y.trim().match(/(.*?[\)\s+])(of|in)([\(\{\[\s+].*)/i)||[];if(!S)throw new Error(`Invalid ${m}items spec: ${p}.`);if(h.startsWith("(")?h=h.trim().slice(1,-1).split(",").map(T=>T.trim()):h=[h],h.length>(b==="in"?3:2))throw new Error(`Invalid ${m}items spec: ${p}.`);let O=b==="in"?h[2]:h[1]||"$index__";return`
-                let $iteratee__ = ${_};
-                let $import__ = this.${i.HTML_IMPORTS.api.import}( ${x.trim()}, true );
+        };`;
+    globalThis.webqit.$useLiveTWorker = new Worker(`data:text/javascript;base64,${btoa(workerScriptText)}`);
+  }
+  return new Promise((res) => {
+    let messageChannel = new MessageChannel();
+    webqit.$useLiveTWorker.postMessage({ action, input, params }, [messageChannel.port2]);
+    messageChannel.port1.onmessage = (e) => {
+      const result = e.data;
+      if (action === "transform")
+        patchToString(result);
+      res(result);
+    };
+  });
+}
+
+// node_modules/@webqit/util/obj/get.js
+function get_default(ctxt, path2, trap = {}, reciever = {}) {
+  path2 = from_default(path2).slice();
+  var _ctxt = ctxt;
+  while (!isUndefined_default(_ctxt) && !isNull_default(_ctxt) && path2.length) {
+    var _key = path2.shift();
+    if (!(trap.get ? trap.get(_ctxt, _key) : isTypeObject_default(_ctxt) ? _key in _ctxt : _ctxt[_key])) {
+      reciever.exists = false;
+      return;
+    }
+    _ctxt = trap.get ? trap.get(_ctxt, _key) : _ctxt[_key];
+  }
+  reciever.exists = true;
+  return _ctxt;
+}
+
+// node_modules/@webqit/util/obj/set.js
+function set_default(obj, path2, val, buildTree = {}, trap = {}) {
+  const _set = (target2, key, val2) => {
+    if (trap.set) {
+      return trap.set(target2, key, val2);
+    } else {
+      if (isNumeric_default(path2[i]) && isArray_default(target2)) {
+        target2.push(val2);
+      } else {
+        target2[key] = val2;
+      }
+      return true;
+    }
+  };
+  path2 = from_default(path2);
+  var target = obj;
+  for (var i = 0; i < path2.length; i++) {
+    if (i < path2.length - 1) {
+      if (!target || !isTypeObject_default(target) && !isFunction_default(target)) {
+        return false;
+      }
+      var branch = get_default(target, path2[i], trap);
+      if (!isTypeObject_default(branch)) {
+        if (trap.buildTree === false) {
+          return false;
+        }
+        branch = isFunction_default(trap.buildTree) ? trap.buildTree(i) : isNumeric_default(path2[i + 1]) ? [] : {};
+        var branchSuccess = _set(target, path2[i], branch);
+        if (!branchSuccess) {
+          return false;
+        }
+      }
+      target = branch;
+    } else {
+      return _set(target, path2[i], val);
+    }
+  }
+}
+
+// node_modules/@webqit/realdom/src/Scheduler.js
+var Scheduler = class {
+  constructor(window2, synthesis = false) {
+    Object.defineProperty(this, "window", { value: window2 });
+    Object.defineProperty(this, "readCallbacks", { value: /* @__PURE__ */ new Set() });
+    Object.defineProperty(this, "writeCallbacks", { value: /* @__PURE__ */ new Set() });
+    Object.defineProperty(this, "_synthesis", { value: 0, writable: true });
+    if (!synthesis && this.window.requestAnimationFrame) {
+      this._loop();
+    } else {
+      this._synthesis++;
+    }
+  }
+  get synthesis() {
+    return this._synthesis;
+  }
+  async synthesizeWhile(callback) {
+    this._synthesis++;
+    this._fulfill();
+    const returnValue = await callback();
+    this._synthesis--;
+    return returnValue;
+  }
+  _fulfill() {
+    for (const callback of this.readCallbacks) {
+      callback();
+      this.readCallbacks.delete(callback);
+    }
+    for (const callback of this.writeCallbacks) {
+      callback();
+      this.writeCallbacks.delete(callback);
+    }
+  }
+  _loop() {
+    this.window.requestAnimationFrame(() => {
+      this._fulfill();
+      this._loop();
+    });
+  }
+  onread(callback, withPromise = false) {
+    if (withPromise) {
+      return new Promise((resolve) => {
+        if (this.synthesis) {
+          resolve(callback());
+        } else {
+          this.readCallbacks.add(() => {
+            resolve(callback());
+          });
+        }
+      });
+    }
+    if (this.synthesis) {
+      Promise.resolve().then(callback);
+    } else {
+      this.readCallbacks.add(callback);
+    }
+  }
+  onwrite(callback, withPromise = false) {
+    if (withPromise) {
+      return new Promise((resolve) => {
+        if (this.synthesis) {
+          resolve(callback());
+        } else {
+          this.writeCallbacks.add(() => {
+            resolve(callback());
+          });
+        }
+      });
+    }
+    if (this.synthesis) {
+      Promise.resolve().then(callback);
+    } else {
+      this.writeCallbacks.add(callback);
+    }
+  }
+  cycle(onread, onwrite, prevTransaction) {
+    this.onread(() => {
+      const readReturn = onread(prevTransaction);
+      const callWrite = (readReturn2) => {
+        if (readReturn2 === void 0)
+          return;
+        this.onwrite(() => {
+          const writeReturn = onwrite(readReturn2, prevTransaction);
+          const repeatTransaction = (writeReturn2) => {
+            if (writeReturn2 === void 0)
+              return;
+            this.cycle(onread, onwrite, writeReturn2);
+          };
+          if (writeReturn instanceof Promise) {
+            writeReturn.then(repeatTransaction);
+          } else {
+            repeatTransaction(writeReturn);
+          }
+        });
+      };
+      if (readReturn instanceof Promise) {
+        readReturn.then(callWrite);
+      } else {
+        callWrite(readReturn);
+      }
+    });
+  }
+};
+
+// node_modules/@webqit/realdom/src/realtime/Util.js
+function isXpath(expr) {
+  return (expr = expr.trim()) && expr.startsWith("(") && expr.endsWith(")");
+}
+function xpathQuery(window2, context, expr, subtree2 = true) {
+  expr = (Array.isArray(expr) ? expr : [expr]).map((x) => (x + "").replace("(", subtree2 ? "(.//" : "(./")).join("|");
+  let nodes = [], node;
+  try {
+    const result = window2.document.evaluate(expr, context, null, window2.XPathResult.ANY_TYPE);
+    while (node = result.iterateNext())
+      nodes.push(node);
+  } catch (e) {
+  }
+  return nodes;
+}
+function xpathMatch(window2, node, expr) {
+  expr = (Array.isArray(expr) ? expr : [expr]).map((x) => (x + "").replace("(", "(self::")).join("|");
+  try {
+    return window2.document.evaluate(`${expr}`, node, null, window2.XPathResult.BOOLEAN_TYPE).booleanValue;
+  } catch (e) {
+  }
+}
+function containsNode(window2, a, b, crossRoots = false, testCache = null) {
+  const prevTest = testCache?.get(a)?.get(b);
+  if (typeof prevTest !== "undefined")
+    return prevTest;
+  const response = (val) => {
+    if (!testCache?.has(a))
+      testCache?.set(a, /* @__PURE__ */ new WeakMap());
+    testCache?.get(a)?.set(b, val);
+    return val;
+  };
+  const rootNodeA = a.getRootNode();
+  const rootNodeB = b.getRootNode();
+  if (rootNodeA === rootNodeB)
+    return response(a.contains(b));
+  if (crossRoots && rootNodeB instanceof window2.ShadowRoot)
+    return response(containsNode(window2, a, rootNodeB.host, crossRoots, testCache));
+  return response(false);
+}
+function splitOuter(str, delim = "|") {
+  return [...str].reduce(([quote, depth, splits, skip], x) => {
+    if (!quote && depth === 0 && (Array.isArray(delim) ? delim : [delim]).includes(x)) {
+      return [quote, depth, [""].concat(splits)];
+    }
+    if (!quote && ["(", "[", "{"].includes(x) && !splits[0].endsWith("\\"))
+      depth++;
+    if (!quote && [")", "]", "}"].includes(x) && !splits[0].endsWith("\\"))
+      depth--;
+    if (['"', "'", "`"].includes(x) && !splits[0].endsWith("\\")) {
+      quote = quote === x ? null : quote || x;
+    }
+    splits[0] += x;
+    return [quote, depth, splits];
+  }, [null, 0, [""]])[2].reverse();
+}
+
+// node_modules/@webqit/realdom/src/realtime/DOMSpec.js
+var DOMSpec = class {
+  constructor(content) {
+    this.content = content;
+    this.type = typeof content === "string" ? "selector" : "instance";
+    this.kind = this.type === "instance" ? null : isXpath(content) ? "xpath" : "css";
+    if (this.kind === "xpath") {
+      this.isXpathAttr = splitOuter(content.trim().slice(1, -1), "@").length > 1;
+    }
+  }
+  toString() {
+    return this.content;
+  }
+};
+
+// node_modules/@webqit/realdom/src/realtime/Realtime.js
+var Realtime = class {
+  constructor(context, namespace, window2) {
+    this.context = context;
+    this.namespace = namespace;
+    this.window = context.defaultView || context.ownerDocument?.defaultView || window2;
+    this.document = this.window.document;
+    this.webqit = this.window.webqit;
+    Object.defineProperty(this, "#", { value: {} });
+  }
+  resolveArgs(args) {
+    if (isFunction_default(args[0])) {
+      args = [[], ...args];
+    } else if (isObject_default(args[0]) && !(args[0] instanceof DOMSpec) && args.length === 1) {
+      args = [[], void 0, args[0]];
+    } else if (isObject_default(args[1]) && args.length === 2) {
+      args = [from_default(args[0], false), void 0, args[1]];
+    } else {
+      args[0] = from_default(args[0], false);
+    }
+    if (args[0].filter((x) => typeof x !== "string" && !(x instanceof DOMSpec) && !(x instanceof this.window.Node)).length) {
+      throw new Error(`Argument #2 must be either a string or a Node object, or a list of those.`);
+    }
+    args[0] = args[0].map((s) => s instanceof DOMSpec ? s : new DOMSpec(s));
+    return args;
+  }
+  registry(...args) {
+    return wq(this.window, "realdom", this.namespace, ...args);
+  }
+  createSignalGenerator() {
+    return {
+      generate() {
+        this.lastController?.abort();
+        this.lastController = new AbortController();
+        const flags = { signal: this.lastController.signal };
+        return flags;
+      },
+      disconnect() {
+        this.lastController?.abort();
+      }
+    };
+  }
+  forEachMatchingContext(interceptionTiming, record_s, callback) {
+    const { window: window2 } = this, deferreds = /* @__PURE__ */ new Set(), testCache = /* @__PURE__ */ new WeakMap();
+    for (const [registration, deferred] of this.registry(interceptionTiming)) {
+      let $records = [].concat(record_s).filter((record) => containsNode(window2, registration.context, record.target, registration.params.subtree === "cross-roots", testCache));
+      if (!$records.length)
+        continue;
+      const args = [registration, Array.isArray(record_s) ? $records : $records[0]];
+      if (deferred)
+        deferreds.add(args);
+      else
+        callback.call(window2, ...args);
+    }
+    for (const args of deferreds)
+      callback.call(window2, ...args);
+    deferreds.clear();
+  }
+  disconnectables(signal, ...objects) {
+    const disconnectable = { disconnect() {
+      objects.forEach((d) => d && isFunction_default(d.disconnect) && d.disconnect() || isFunction_default(d) && d() || isObject_default(d) && (d.disconnected = true));
+    } };
+    if (signal)
+      signal.addEventListener("abort", () => disconnectable.disconnect());
+    return disconnectable;
+  }
+};
+
+// node_modules/@webqit/realdom/src/realtime/AttrRealtime.js
+var AttrRealtime = class extends Realtime {
+  type = "attr";
+  constructor(context, ...args) {
+    super(context, "attr", ...args);
+  }
+  get(spec, callback = void 0, params = {}) {
+    const originalFilterIsString = typeof spec === "string" || spec instanceof DOMSpec;
+    [spec = [], callback = void 0, params = {}] = this.resolveArgs(arguments);
+    const { context } = this;
+    const records = attrIntersection(context, spec);
+    if (!callback)
+      return records;
+    const signalGenerator = params.lifecycleSignals && this.createSignalGenerator();
+    if (!originalFilterIsString) {
+      const flags = signalGenerator?.generate() || {};
+      callback(records, flags, context);
+    } else {
+      for (const record of records) {
+        const flags = signalGenerator ? signalGenerator.generate() : {};
+        callback(record, flags, context);
+      }
+    }
+    if (params.live) {
+      if (signalGenerator) {
+        params = { ...params, signalGenerator };
+      }
+      const disconnectable_live = this.observe(originalFilterIsString ? spec[0] : spec, callback, { newValue: true, ...params });
+      return this.disconnectables(params.signal, disconnectable_live);
+    }
+  }
+  observe(spec, callback, params = {}) {
+    const originalFilterIsString = typeof spec === "string" || spec instanceof DOMSpec;
+    [spec = [], callback, params = {}] = this.resolveArgs(arguments);
+    if (["sync", "intercept"].includes(params.timing))
+      return this.observeSync(originalFilterIsString ? spec[0] : spec, callback, params);
+    if (params.timing && params.timing !== "async")
+      throw new Error(`Timing option "${params.timing}" invalid.`);
+    const { context, window: window2, webqit: webqit2 } = this;
+    if (params.eventDetails && !webqit2.realdom.attrInterceptionHooks?.intercepting) {
+      attrInterception.call(window2, "intercept", () => {
+      });
+    }
+    const disconnectable = new window2.MutationObserver((records) => {
+      records = dedupAndIgnoreInternals(records).map((rcd) => withAttrEventDetails.call(window2, rcd));
+      dispatch.call(window2, registration, records, context);
+    });
+    const $params = { attributes: true, attributeOldValue: params.oldValue, subtree: params.subtree && true };
+    if (spec.length) {
+      $params.attributeFilter = spec.map((a) => a + "");
+    }
+    disconnectable.observe(context, $params);
+    const signalGenerator = params.signalGenerator || params.lifecycleSignals && this.createSignalGenerator();
+    const registration = { context, spec, callback, params, atomics: /* @__PURE__ */ new Map(), originalFilterIsString, signalGenerator, disconnectable };
+    return this.disconnectables(params.signal, disconnectable, signalGenerator);
+  }
+  observeSync(spec, callback, params = {}) {
+    const originalFilterIsString = typeof spec === "string" || spec instanceof DOMSpec;
+    [spec, callback, params = {}] = this.resolveArgs(arguments);
+    const { context, window: window2 } = this;
+    if (params.timing && !["sync", "intercept"].includes(params.timing))
+      throw new Error(`Timing option "${params.timing}" invalid.`);
+    const interceptionTiming = params.timing === "intercept" ? "intercept" : "sync";
+    if (!this.registry(interceptionTiming).size) {
+      attrInterception.call(window2, interceptionTiming, (records) => {
+        this.forEachMatchingContext(interceptionTiming, records, dispatch);
+      });
+    }
+    const disconnectable = { disconnect() {
+      registry2.delete(registration);
+    } };
+    const signalGenerator = params.signalGenerator || params.lifecycleSignals && this.createSignalGenerator();
+    const registration = { context, spec, callback, params, atomics: /* @__PURE__ */ new Map(), originalFilterIsString, signalGenerator, disconnectable };
+    const registry2 = this.registry(interceptionTiming);
+    registry2.set(registration, !!registration.params.deferred);
+    return this.disconnectables(params.signal, disconnectable, signalGenerator);
+  }
+};
+function dedupAndIgnoreInternals(records) {
+  return records.reduce((rcds, rcd, i) => {
+    if (rcds[i - 1]?.attributeName === rcd.attributeName)
+      return rcds;
+    if (wq(rcd.target, "realdom", "internalAttrInteractions").get(rcd.attributeName))
+      return rcds;
+    return rcds.concat(rcd);
+  }, []);
+}
+function dispatch(registration, records) {
+  const { context, spec, callback, params, atomics, originalFilterIsString, signalGenerator } = registration;
+  if (!params.subtree) {
+    records = records.filter((r) => {
+      return r.target === context;
+    });
+  }
+  if (!records.length)
+    return;
+  const $spec = spec.map((a) => a + "");
+  if (params.atomic && !atomics.size) {
+    records = attrIntersection(context, spec, records);
+  } else if (params.timing !== "async" && spec.length) {
+    records = records.filter((r) => $spec.includes(r.name));
+  }
+  if (!records.length)
+    return;
+  if (!(params.newValue === null && params.oldValue === null && params.eventDetails)) {
+    records = records.map((rcd) => {
+      let exclusion;
+      if (!params.eventDetails) {
+        ({ event: exclusion, ...rcd } = rcd);
+      }
+      if (!params.oldValue && "oldValue" in rcd) {
+        ({ oldValue: exclusion, ...rcd } = rcd);
+      }
+      if (!params.newValue && "value" in rcd) {
+        ({ value: exclusion, ...rcd } = rcd);
+      } else if (params.newValue && typeof rcd.value === "undefined") {
+        rcd = { ...rcd, value: internalAttrInteraction(rcd.target, rcd.name, () => rcd.target.getAttribute(rcd.name)) };
+      }
+      return rcd;
+    });
+  }
+  if (params.atomic) {
+    records.forEach((record) => atomics.set(record.name, record));
+    records = Array.from(atomics.entries()).map(([, value]) => value);
+  }
+  const record_s = originalFilterIsString ? records[0] : records;
+  const flags = signalGenerator ? signalGenerator.generate() : {};
+  callback(record_s, flags, context);
+}
+function internalAttrInteraction(node, attrName, callback) {
+  const savedAttrLocking = wq(node, "realdom", "internalAttrInteractions").get(attrName);
+  wq(node, "realdom", "internalAttrInteractions").set(attrName, true);
+  const value = callback();
+  wq(node, "realdom", "internalAttrInteractions").set(attrName, savedAttrLocking);
+  return value;
+}
+function attrIntersection(context, spec, records = []) {
+  const _type = { event: null, type: "attribute" };
+  if (spec.length) {
+    return spec.map((attrName) => {
+      attrName = attrName + "";
+      return records.find((r) => r.name === attrName) || { target: context, name: attrName, value: internalAttrInteraction(context, attrName, () => context.getAttribute(attrName)), ..._type };
+    });
+  }
+  const attrs = Array.from(context.attributes);
+  return attrs.map((attr) => {
+    return records.find((r) => r.name === attr.nodeName) || { target: context, name: attr.nodeName, value: internalAttrInteraction(context, attr.nodeName, () => attr.nodeValue), ..._type };
+  });
+}
+function withAttrEventDetails({ target, attributeName, value, oldValue }) {
+  const window2 = this, registry2 = window2.webqit.realdom.attrInterceptionRecords?.get(target) || {};
+  const event = registry2[attributeName]?.[0] || "mutation";
+  const record = { target, name: attributeName, value, oldValue, type: "observation", event };
+  return record;
+}
+function attrInterception(timing, callback) {
+  const window2 = this;
+  const { webqit: webqit2, document: document2, Element } = window2;
+  if (!webqit2.realdom.attrInterceptionHooks) {
+    Object.defineProperty(webqit2.realdom, "attrInterceptionHooks", { value: /* @__PURE__ */ new Map() });
+  }
+  if (!webqit2.realdom.attrInterceptionHooks.has(timing)) {
+    webqit2.realdom.attrInterceptionHooks.set(timing, /* @__PURE__ */ new Set());
+  }
+  webqit2.realdom.attrInterceptionHooks.get(timing).add(callback);
+  const rm = () => webqit2.realdom.attrInterceptionHooks.get(timing).delete(callback);
+  if (webqit2.realdom.attrInterceptionHooks?.intercepting)
+    return rm;
+  console.warn(`Attr mutation APIs are now being intercepted.`);
+  webqit2.realdom.attrInterceptionHooks.intercepting = true;
+  Object.defineProperty(webqit2.realdom, "attrInterceptionRecords", { value: /* @__PURE__ */ new Map() });
+  const attrIntercept = (record, defaultAction) => {
+    if (!webqit2.realdom.attrInterceptionRecords.has(record.target)) {
+      webqit2.realdom.attrInterceptionRecords.set(record.target, {});
+    }
+    const registry2 = webqit2.realdom.attrInterceptionRecords.get(record.target);
+    registry2[record.name] = registry2[record.name] || [];
+    registry2[record.name].unshift(record.event);
+    if (wq(record.target, "realdom", "internalAttrInteractions").get(record.name))
+      return defaultAction();
+    webqit2.realdom.attrInterceptionHooks.get("intercept")?.forEach((callback2) => callback2([record]));
+    const returnValue = defaultAction();
+    webqit2.realdom.attrInterceptionHooks.get("sync")?.forEach((callback2) => callback2([record]));
+    return returnValue;
+  };
+  const mo = new window2.MutationObserver((records) => {
+    records = records.filter((rcd) => {
+      const registry2 = window2.webqit.realdom.attrInterceptionRecords?.get(rcd.target) || {};
+      return !registry2[rcd.attributeName]?.shift();
+    });
+    records = dedupAndIgnoreInternals(records).map((rcd) => withAttrEventDetails.call(window2, rcd));
+    if (!records.length)
+      return;
+    webqit2.realdom.attrInterceptionHooks.get("intercept")?.forEach((callback2) => callback2(records));
+    webqit2.realdom.attrInterceptionHooks.get("sync")?.forEach((callback2) => callback2(records));
+  });
+  mo.observe(document2, { attributes: true, subtree: true, attributeOldValue: true });
+  const originalApis = /* @__PURE__ */ Object.create(null);
+  ["setAttribute", "removeAttribute", "toggleAttribute"].forEach((apiName) => {
+    originalApis[apiName] = Element.prototype[apiName];
+    Element.prototype[apiName] = function(...args) {
+      let value, oldValue = internalAttrInteraction(this, args[0], () => this.getAttribute(args[0]));
+      if (["setAttribute", "toggleAttribute"].includes(apiName)) {
+        value = args[1];
+      }
+      if (apiName === "toggleAttribute" && value === void 0) {
+        value = oldValue === null ? true : false;
+      }
+      const record = { target: this, name: args[0], value, oldValue, type: "interception", event: [this, apiName] };
+      const exec3 = () => originalApis[apiName].call(this, ...args);
+      return attrIntercept(record, exec3);
+    };
+  });
+  return rm;
+}
+
+// node_modules/@webqit/realdom/src/realtime/DOMRealtime.js
+var DOMRealtime = class extends Realtime {
+  constructor(context, ...args) {
+    super(context, "tree", ...args);
+  }
+  attr(filter, callback = void 0, params = {}) {
+    const { context, window: window2 } = this;
+    return new AttrRealtime(context, window2).get(...arguments);
+  }
+  query(spec, callback = void 0, params = {}) {
+    [spec, callback = void 0, params = {}] = this.resolveArgs(arguments);
+    const { context } = this;
+    const records = /* @__PURE__ */ new Map(), getRecord = (target) => {
+      if (!records.has(target)) {
+        records.set(target, { target, entrants: [], exits: [], type: "query", event: null });
+      }
+      return records.get(target);
+    };
+    if (!params.generation || params.generation === "entrants") {
+      if (!spec.length) {
+        [...context.children].forEach((node) => getRecord(context).entrants.push(node));
+      } else if (spec.every((s) => s.type === "selector")) {
+        const [cssSelectors, xpathQueries] = spec.reduce(([css, xpath], s) => {
+          return s.kind === "xpath" ? [css, xpath.concat(s)] : [css.concat(s), xpath];
+        }, [[], []]);
+        const matches = [];
+        if (params.subtree) {
+          if (cssSelectors.length) {
+            matches.push(...context.querySelectorAll(cssSelectors.join(",")));
+          }
+          if (xpathQueries.length) {
+            matches.push(...xpathQuery(this.window, context, xpathQueries));
+          }
+        } else {
+          if (cssSelectors.length) {
+            matches.push(...[...context.children].filter((node) => node.matches(cssSelectors)));
+          }
+          if (xpathQueries.length) {
+            matches.push(...xpathQuery(this.window, context, xpathQueries, false));
+          }
+        }
+        matches.forEach((node) => getRecord(node.parentNode || context).entrants.push(node));
+      }
+    }
+    if (!callback)
+      return records;
+    const disconnectable = { disconnected: false };
+    const signalGenerator = callback && params.lifecycleSignals && this.createSignalGenerator();
+    for (const [, record] of records) {
+      if (disconnectable.disconnected)
+        break;
+      const flags = signalGenerator?.generate() || {};
+      callback(record, flags, context);
+    }
+    if (params.live) {
+      if (signalGenerator) {
+        params = { ...params, signalGenerator };
+      }
+      const disconnectable_live = this.observe(spec, callback, params);
+      return this.disconnectables(params.signal, disconnectable, disconnectable_live);
+    }
+    return this.disconnectables(params.signal, disconnectable, signalGenerator);
+  }
+  children(spec, callback = void 0, params = {}) {
+    [spec, callback = void 0, params = {}] = this.resolveArgs(arguments);
+    return this.query(spec, callback, { ...params, subtree: false });
+  }
+  subtree(spec, callback = void 0, params = {}) {
+    [spec, callback = void 0, params = {}] = this.resolveArgs(arguments);
+    return this.query(spec, callback, { ...params, subtree: true });
+  }
+  observe(spec, callback, params = {}) {
+    [spec, callback, params = {}] = this.resolveArgs(arguments);
+    if (["sync", "intercept"].includes(params.timing))
+      return this.observeSync(spec, callback, params);
+    if (params.timing && params.timing !== "async")
+      throw new Error(`Timing option "${params.timing}" invalid.`);
+    const { context, window: window2, webqit: webqit2, document: document2 } = this;
+    if (params.eventDetails) {
+      webqit2.realdom.domInterceptionRecordsAlwaysOn = true;
+    }
+    if ((document2.readyState === "loading" || webqit2.realdom.domInterceptionRecordsAlwaysOn) && !webqit2.realdom.domInterceptionHooks?.intercepting) {
+      domInterception.call(window2, "sync", () => {
+      });
+    }
+    const disconnectable = new window2.MutationObserver((records) => records.forEach((record) => {
+      dispatch2.call(window2, registration, withEventDetails.call(window2, record), context);
+    }));
+    disconnectable.observe(context, { childList: true, subtree: params.subtree && true });
+    const signalGenerator = params.signalGenerator || params.lifecycleSignals && this.createSignalGenerator();
+    const registration = { context, spec, callback, params, signalGenerator, disconnectable };
+    if (params.staticSensitivity) {
+      const disconnectable_attr = staticSensitivity.call(window2, registration);
+      return this.disconnectables(params.signal, disconnectable, signalGenerator, disconnectable_attr);
+    }
+    return this.disconnectables(params.signal, disconnectable, signalGenerator);
+  }
+  observeSync(spec, callback, params = {}) {
+    [spec, callback, params = {}] = this.resolveArgs(arguments);
+    const { context, window: window2 } = this;
+    if (params.timing && !["sync", "intercept"].includes(params.timing))
+      throw new Error(`Timing option "${params.timing}" invalid.`);
+    const interceptionTiming = params.timing === "intercept" ? "intercept" : "sync";
+    if (!this.registry(interceptionTiming).size) {
+      domInterception.call(window2, interceptionTiming, (record) => {
+        this.forEachMatchingContext(interceptionTiming, record, dispatch2);
+      });
+    }
+    const mo = new window2.MutationObserver((records) => records.forEach((record) => {
+      if (Array.isArray((record = withEventDetails.call(window2, record)).event))
+        return;
+      dispatch2.call(window2, registration, record, context);
+    }));
+    mo.observe(context, { childList: true, subtree: params.subtree && true });
+    const disconnectable = { disconnect() {
+      registry2.delete(registration);
+      mo.disconnect();
+    } };
+    const signalGenerator = params.signalGenerator || params.lifecycleSignals && this.createSignalGenerator();
+    const registration = { context, spec, callback, params, signalGenerator, disconnectable };
+    const registry2 = this.registry(interceptionTiming);
+    registry2.set(registration, !!registration.params.deferred);
+    if (params.staticSensitivity) {
+      const disconnectable_attr = staticSensitivity.call(window2, registration);
+      return this.disconnectables(params.signal, disconnectable, signalGenerator, disconnectable_attr);
+    }
+    return this.disconnectables(params.signal, disconnectable, signalGenerator);
+  }
+  track(elements, callback, params = {}) {
+    params = { subtree: true, ...params };
+    return this.observe(elements, (record) => {
+      if (record.entrants.length)
+        callback(true, Array.isArray(elements) ? record.entrants : record.entrants[0]);
+      if (record.exits.length)
+        callback(false, Array.isArray(elements) ? record.exits : record.exits[0]);
+    }, params);
+  }
+};
+function staticSensitivity(registration) {
+  const window2 = this;
+  const { context, spec, callback, params, signalGenerator } = registration;
+  const cssSelectors = spec.filter((s) => s.kind === "css");
+  const parseDot = (selector) => selector.match(/\.([\w-]+)/g)?.length ? ["class"] : [];
+  const parseHash = (selector) => selector.match(/#([\w-]+)/g)?.length ? ["id"] : [];
+  const parse2 = (selector) => [...selector.matchAll(/\[([^\=\]]+)(\=[^\]]+)?\]/g)].map((x) => x[1]).concat(parseDot(selector)).concat(parseHash(selector));
+  if (!(registration.$attrs = Array.from(new Set(cssSelectors.filter((s) => (s + "").includes("[")).reduce((attrs, selector) => attrs.concat(parse2(selector + "")), [])))).length)
+    return;
+  const entrants = /* @__PURE__ */ new Set(), exits = /* @__PURE__ */ new Set();
+  entrants.push = (val) => (exits.delete(val), entrants.add(val));
+  exits.push = (val) => (entrants.delete(val), exits.add(val));
+  registration.$deliveryCache = { entrants, exits };
+  return new AttrRealtime(context, window2).observe(registration.$attrs, (_records) => {
+    const records = /* @__PURE__ */ new Map(), getRecord = (target) => {
+      if (!records.has(target)) {
+        records.set(target, { target, entrants: [], exits: [], type: "static", event: null });
+      }
+      return records.get(target);
+    };
+    const matchesCache = /* @__PURE__ */ new WeakMap();
+    const matches = (node) => {
+      if (!matchesCache.has(node)) {
+        matchesCache.set(node, cssSelectors.some((s) => node.matches(s + "")));
+      }
+      return matchesCache.get(node);
+    };
+    for (const _record of _records) {
+      ["entrants", "exits"].forEach((generation) => {
+        if (params.generation && generation !== params.generation)
+          return;
+        if (registration.$deliveryCache[generation].has(_record.target) || (generation === "entrants" ? !matches(_record.target) : matches(_record.target)))
+          return;
+        registration.$deliveryCache[generation].push(_record.target);
+        getRecord(_record.target)[generation].push(_record.target);
+        getRecord(_record.target).event = _record.event;
+      });
+    }
+    for (const [, record] of records) {
+      const flags = signalGenerator?.generate() || {};
+      callback(record, flags, context);
+    }
+  }, { subtree: params.subtree, timing: params.timing, eventDetails: params.eventDetails });
+}
+function dispatch2(registration, _record) {
+  const { context, spec, callback, params, signalGenerator, $deliveryCache } = registration;
+  const record = { ..._record, entrants: [], exits: [] };
+  if (!params.eventDetails) {
+    delete record.event;
+  }
+  ["entrants", "exits"].forEach((generation) => {
+    if (params.generation && generation !== params.generation)
+      return;
+    if (spec.length) {
+      record[generation] = nodesIntersection.call(this, spec, params.subtree === "cross-roots", _record[generation], _record.event !== "parse");
+    } else {
+      record[generation] = [..._record[generation]];
+    }
+    if (!$deliveryCache)
+      return;
+    for (const node of record[generation]) {
+      $deliveryCache[generation].push(node);
+    }
+  });
+  if (!record.entrants.length && !record.exits.length)
+    return;
+  const flags = signalGenerator?.generate() || {};
+  callback(record, flags, context);
+}
+function nodesIntersection(spec, crossRoots, sources, deepIntersect) {
+  sources = Array.isArray(sources) ? sources : [...sources];
+  const match = (sources2, s) => {
+    if (s.type === "selector") {
+      let matches = s.isXpathAttr ? [] : sources2.filter((source) => s.kind === "xpath" ? xpathMatch(this, source, s + "") : source.matches && source.matches(s + ""));
+      if (deepIntersect || s.isXpathAttr) {
+        matches = sources2.reduce((collection, source) => {
+          if (s.kind === "xpath") {
+            return [...collection, ...xpathQuery(this, source, s, deepIntersect)];
+          }
+          return source.querySelectorAll ? [...collection, ...source.querySelectorAll(s + "")] : collection;
+        }, matches);
+      }
+      if (matches.length)
+        return matches;
+    } else {
+      if (sources2.includes(s.content) || deepIntersect && sources2.some((source) => containsNode(this, source, s.content, crossRoots))) {
+        return [s.content];
+      }
+    }
+  };
+  if (!sources.$$searchCache) {
+    sources.$$searchCache = /* @__PURE__ */ new Map();
+  }
+  return spec.reduce((matches, s) => {
+    let _matches;
+    if (sources.$$searchCache.has(s.content)) {
+      _matches = sources.$$searchCache.get(s.content);
+    } else {
+      _matches = match(sources, s) || [];
+      if (s.type === "instance") {
+        sources.$$searchCache.set(s.content, _matches);
+      }
+    }
+    return matches.concat(_matches);
+  }, []);
+}
+function withEventDetails({ target, addedNodes, removedNodes }) {
+  let window2 = this, event;
+  event = from_default(addedNodes).reduce((prev, node) => prev || window2.webqit.realdom.domInterceptionRecords?.get(node), null);
+  event = from_default(removedNodes).reduce((prev, node) => prev || window2.webqit.realdom.domInterceptionRecords?.get(node), event);
+  event = event || window2.document.readyState === "loading" && "parse" || "mutation";
+  return { target, entrants: addedNodes, exits: removedNodes, type: "observation", event };
+}
+function domInterception(timing, callback) {
+  const window2 = this;
+  const { webqit: webqit2, document: document2, Node, CharacterData, Element, HTMLElement, HTMLTemplateElement, DocumentFragment } = window2;
+  if (!webqit2.realdom.domInterceptionHooks) {
+    Object.defineProperty(webqit2.realdom, "domInterceptionHooks", { value: /* @__PURE__ */ new Map() });
+  }
+  if (!webqit2.realdom.domInterceptionNoRecurse) {
+    Object.defineProperty(webqit2.realdom, "domInterceptionNoRecurse", { value: /* @__PURE__ */ new Map() });
+  }
+  if (!webqit2.realdom.domInterceptionHooks.has(timing)) {
+    webqit2.realdom.domInterceptionHooks.set(timing, /* @__PURE__ */ new Set());
+  }
+  webqit2.realdom.domInterceptionHooks.get(timing).add(callback);
+  const rm = () => webqit2.realdom.domInterceptionHooks.get(timing).delete(callback);
+  if (webqit2.realdom.domInterceptionHooks?.intercepting)
+    return rm;
+  console.warn(`DOM mutation APIs are now being intercepted.`);
+  webqit2.realdom.domInterceptionHooks.intercepting = true;
+  Object.defineProperty(webqit2.realdom, "domInterceptionRecords", { value: /* @__PURE__ */ new Map() });
+  const noRecurse = (node, method, callback2) => {
+    webqit2.realdom.domInterceptionNoRecurse.set(node, method);
+    const returnValue = callback2();
+    webqit2.realdom.domInterceptionNoRecurse.delete(node);
+    return returnValue;
+  };
+  const intercept2 = (record, defaultAction) => {
+    record.entrants.concat(record.exits).forEach((node) => {
+      clearTimeout(webqit2.realdom.domInterceptionRecords.get(node)?.timeout);
+      webqit2.realdom.domInterceptionRecords.set(node, record.event);
+      const timeout = setTimeout(() => {
+        webqit2.realdom.domInterceptionRecords.delete(node);
+      }, 0);
+      Object.defineProperty(record.event, "timeout", { value: timeout, configurable: true });
+    });
+    webqit2.realdom.domInterceptionHooks.get("intercept")?.forEach((callback2) => callback2(record));
+    const returnValue = defaultAction();
+    webqit2.realdom.domInterceptionHooks.get("sync")?.forEach((callback2) => callback2(record));
+    return returnValue;
+  };
+  const _apiNames = {
+    ShadowRoot: ["innerHTML", "setHTMLUnsafe"],
+    DocumentFragment: ["replaceChildren", "append", "prepend"],
+    Document: ["replaceChildren", "append", "prepend"],
+    HTMLElement: ["outerText", "innerText"],
+    Element: ["append", "prepend", "before", "after", "insertAdjacentElement", "insertAdjacentHTML", "remove", "replaceChildren", "replaceWith", "setHTMLUnsafe", "innerHTML", "outerHTML"],
+    CharacterData: ["before", "after", "remove", "replaceWith"],
+    Node: ["insertBefore", "replaceChild", "removeChild", "appendChild", "textContent", "nodeValue"]
+  };
+  const _apiOriginals = {
+    ShadowRoot: /* @__PURE__ */ Object.create(null),
+    DocumentFragment: /* @__PURE__ */ Object.create(null),
+    Document: /* @__PURE__ */ Object.create(null),
+    HTMLElement: /* @__PURE__ */ Object.create(null),
+    Element: /* @__PURE__ */ Object.create(null),
+    CharacterData: /* @__PURE__ */ Object.create(null),
+    Node: /* @__PURE__ */ Object.create(null)
+  };
+  const _apiNamesUnique = new Set(Object.values(_apiNames).reduce((all, apis) => all.concat(apis), []));
+  _apiNamesUnique.forEach((apiName) => {
+    Object.keys(_apiNames).forEach((DOMClassName) => {
+      if (!_apiNames[DOMClassName].includes(apiName))
+        return;
+      const _apiOriginal = Object.getOwnPropertyDescriptor(window2[DOMClassName].prototype, apiName);
+      if (!_apiOriginal)
+        return;
+      Object.defineProperty(window2[DOMClassName].prototype, apiName, "value" in _apiOriginal ? { ..._apiOriginal, value: method } : { ..._apiOriginal, set: setter });
+      _apiOriginals[DOMClassName][apiName] = _apiOriginal;
+    });
+    function method(...args) {
+      const DOMClassName = Object.keys(_apiOriginals).find((name) => this instanceof window2[name] && apiName in _apiOriginals[name]);
+      const $apiOriginals = _apiOriginals[DOMClassName];
+      let exec3 = () => $apiOriginals[apiName].value.call(this, ...args);
+      if (webqit2.realdom.domInterceptionNoRecurse.get(this) === apiName)
+        return exec3();
+      let exits = [], entrants = [], target = this;
+      if (["insertBefore"].includes(apiName)) {
+        entrants = [args[0]];
+      } else if (["insertAdjacentElement", "insertAdjacentHTML"].includes(apiName)) {
+        entrants = [args[1]];
+        if (["beforebegin", "afterend"].includes(args[0])) {
+          target = this.parentNode;
+        }
+      } else if (["setHTMLUnsafe", "replaceChildren"].includes(apiName)) {
+        exits = [...this.childNodes];
+        entrants = apiName === "replaceChildren" ? [...args] : [args[0]];
+      } else if (["replaceWith", "remove"].includes(apiName)) {
+        exits = [this];
+        entrants = apiName === "replaceWith" ? [...args] : [];
+        target = this.parentNode;
+      } else if (["replaceChild"].includes(apiName)) {
+        exits = [args[1]];
+        entrants = [args[0]];
+      } else if (["removeChild"].includes(apiName)) {
+        exits = [...args];
+      } else {
+        entrants = [...args];
+        if (["before", "after"].includes(apiName)) {
+          target = this.parentNode;
+        }
+      }
+      let apiNameFinal = apiName;
+      if (["insertAdjacentHTML", "setHTMLUnsafe"].includes(apiName)) {
+        let tempNodeName = this.nodeName;
+        if (apiName === "insertAdjacentHTML" && ["beforebegin", "afterend"].includes(args[0])) {
+          if (!this.parentNode)
+            return $apiOriginals[apiName].value.call(this, ...args);
+          tempNodeName = this.parentNode.nodeName;
+        }
+        const temp = document2.createElement(tempNodeName.includes("-") ? "div" : tempNodeName);
+        $apiOriginals.setHTMLUnsafe.value.call(temp, entrants[0], apiName === "setHTMLUnsafe" ? args[1] : {});
+        entrants = [...temp.childNodes];
+        if (apiName === "insertAdjacentHTML") {
+          apiNameFinal = "insertAdjacentElement";
+          args[1] = new DocumentFragment();
+          noRecurse(args[1], "append", () => args[1].append(...temp.childNodes));
+        } else {
+          apiNameFinal = "replaceChildren";
+          args = [...temp.childNodes];
+        }
+      }
+      if (!target)
+        return exec3();
+      const record = { target, entrants, exits, type: "interception", event: [this, apiName] };
+      return intercept2(record, () => {
+        return $apiOriginals[apiNameFinal].value.call(this, ...args);
+      });
+    }
+    function setter(value) {
+      const DOMClassName = Object.keys(_apiOriginals).find((name) => this instanceof window2[name] && apiName in _apiOriginals[name]);
+      const $apiOriginals = _apiOriginals[DOMClassName];
+      let exec3 = () => $apiOriginals[apiName].set.call(this, value);
+      if (this instanceof HTMLScriptElement || webqit2.realdom.domInterceptionNoRecurse.get(this) === apiName)
+        return exec3();
+      let exits = [], entrants = [], target = this;
+      if (["outerHTML", "outerText"].includes(apiName)) {
+        exits = [this];
+        target = this.parentNode;
+      } else {
+        if (this instanceof HTMLTemplateElement) {
+          target = this.content;
+          exits = [...this.content.childNodes];
+        } else {
+          exits = [...this.childNodes];
+        }
+      }
+      if (["outerHTML", "innerHTML"].includes(apiName)) {
+        let tempNodeName = this.nodeName;
+        if (apiName === "outerHTML") {
+          if (!this.parentNode)
+            return exec3();
+          tempNodeName = this.parentNode.nodeName;
+        }
+        const temp = document2.createElement(tempNodeName.includes("-") ? "div" : tempNodeName);
+        noRecurse(temp, apiName, () => temp[apiName] = value);
+        entrants = this instanceof HTMLTemplateElement ? [...temp.content.childNodes] : [...temp.childNodes];
+        if (this instanceof HTMLTemplateElement && this.hasAttribute("src") || this instanceof ShadowRoot) {
+          const getScripts = (nodes) => nodes.reduce((scripts, el) => {
+            if (el instanceof HTMLScriptElement)
+              return scripts.concat(el);
+            if (el instanceof HTMLTemplateElement)
+              return scripts.concat(getScripts([el.content]));
+            scripts = scripts.concat(getScripts([...el.querySelectorAll?.("template") || []].map((t) => t.content)));
+            return scripts.concat(...el.querySelectorAll?.("script") || []);
+          }, []);
+          for (const script of getScripts(entrants)) {
+            if (this instanceof ShadowRoot) {
+              script.setAttribute("data-handling", "manual");
+              continue;
+            }
+            const $script = document2.createElement("script");
+            [...script.attributes].forEach((attr) => $script.setAttribute(attr.name, attr.value));
+            $script.textContent = script.textContent;
+            noRecurse(script, "replaceWith", () => script.replaceWith($script));
+          }
+        }
+        if (apiName === "outerHTML") {
+          value = new DocumentFragment();
+          noRecurse(value, "append", () => value.append(...entrants));
+          exec3 = () => noRecurse(this, "replaceWith", () => Element.prototype.replaceWith.call(this, value));
+        } else {
+          if (this instanceof HTMLTemplateElement) {
+            exec3 = () => noRecurse(this.content, "replaceChildren", () => this.content.replaceChildren(...entrants));
+          } else {
+            exec3 = () => noRecurse(this, "replaceChildren", () => Element.prototype.replaceChildren.call(this, ...entrants));
+          }
+        }
+      }
+      const record = { target, entrants, exits, type: "interception", event: [this, apiName] };
+      return intercept2(record, exec3);
+    }
+  });
+  return rm;
+}
+
+// node_modules/@webqit/realdom/src/polyfills.js
+function polyfills_default() {
+  CSS_escape.call(this);
+  Node_isConnected.call(this);
+  Element_matches.call(this);
+}
+function CSS_escape() {
+  const window2 = this;
+  if (!window2.CSS) {
+    window2.CSS = {};
+  }
+  if (!window2.CSS.escape) {
+    window2.CSS.escape = (str) => str.replace(/([\:@\~\$\&])/g, "\\$1");
+  }
+}
+function Node_isConnected() {
+  const window2 = this;
+  if (!("isConnected" in window2.Node.prototype)) {
+    Object.defineProperty(window2.Node.prototype, "isConnected", { get: function() {
+      return !this.ownerDocument || !(this.ownerDocument.compareDocumentPosition(this) & this.DOCUMENT_POSITION_DISCONNECTED);
+    } });
+  }
+}
+function Element_matches() {
+  const window2 = this;
+  if (!window2.Element.prototype.matches) {
+    window2.Element.prototype.matches = window2.Element.prototype.matchesSelector || window2.Element.prototype.mozMatchesSelector || window2.Element.prototype.msMatchesSelector || window2.Element.prototype.oMatchesSelector || window2.Element.prototype.webkitMatchesSelector || function(s) {
+      var matches = (this.document || this.ownerDocument).querySelectorAll(s), i = matches.length;
+      while (--i >= 0 && matches.item(i) !== this) {
+      }
+      return i > -1;
+    };
+  }
+}
+
+// node_modules/@webqit/realdom/src/index.js
+function src_default() {
+  const window2 = this;
+  if (!window2.webqit)
+    window2.webqit = {};
+  if (window2.webqit.realdom)
+    return window2.webqit.realdom;
+  window2.webqit.realdom = {};
+  polyfills_default.call(window2);
+  window2.webqit.realdom.meta = (...args) => meta.call(window2, ...args);
+  window2.webqit.realdom.ready = (...args) => ready.call(window2, ...args);
+  window2.webqit.realdom.realtime = (context, namespace = "dom") => {
+    if (namespace === "dom")
+      return new DOMRealtime(context, window2);
+    if (namespace === "attr")
+      return new AttrRealtime(context, window2);
+  };
+  const scheduler = new Scheduler(window2);
+  window2.webqit.realdom.schedule = (type, ...args) => {
+    return scheduler[`on${type}`](...args);
+  };
+  window2.webqit.realdom.synthesizeWhile = (...args) => {
+    return scheduler.synthesizeWhile(...args);
+  };
+  return window2.webqit.realdom;
+}
+function ready(...args) {
+  let timing = "interactive", callback;
+  if (isString_default(args[0])) {
+    timing = args[0];
+    if (isFunction_default(args[1])) {
+      callback = args[1];
+    }
+  } else if (isFunction_default(args[0])) {
+    callback = args[0];
+  }
+  const timings = { interactive: ["interactive", "complete"], complete: ["complete"] };
+  if (!timings[timing])
+    throw new Error(`Invalid ready-state timing: ${timing}.`);
+  const window2 = this;
+  if (!callback) {
+    if (!window2.webqit.realdom.readyStatePromises) {
+      window2.webqit.realdom.readyStatePromises = {
+        interactive: new Promise((res) => ready.call(this, "interactive", res)),
+        complete: new Promise((res) => ready.call(this, "complete", res))
+      };
+    }
+    return window2.webqit.realdom.readyStatePromises[timing];
+  }
+  if (timings[timing].includes(window2.document.readyState))
+    return callback(window2);
+  if (!window2.webqit.realdom.readyStateCallbacks) {
+    window2.webqit.realdom.readyStateCallbacks = { interactive: [], complete: [] };
+    window2.document.addEventListener("readystatechange", () => {
+      const state = window2.document.readyState;
+      for (const callback2 of window2.webqit.realdom.readyStateCallbacks[state].splice(0)) {
+        callback2(window2);
+      }
+    }, false);
+  }
+  window2.webqit.realdom.readyStateCallbacks[timing].push(callback);
+}
+function meta(name) {
+  const window2 = this;
+  let _content = {}, _el;
+  if (_el = window2.document.querySelector(`meta[name="${name}"]`)) {
+    _content = (_el.content || "").split(";").filter((v) => v).reduce((_metaVars, directive) => {
+      const directiveSplit = directive.split("=").map((d) => d.trim());
+      set_default(_metaVars, directiveSplit[0].split("."), directiveSplit[1] === "true" ? true : directiveSplit[1] === "false" ? false : isNumeric_default(directiveSplit[1]) ? parseInt(directiveSplit[1]) : directiveSplit[1]);
+      return _metaVars;
+    }, {});
+  }
+  return { get name() {
+    return name;
+  }, get content() {
+    return _el.content;
+  }, json() {
+    return JSON.parse(JSON.stringify(_content));
+  } };
+}
+
+// node_modules/@webqit/util/str/toTitle.js
+function toTitle_default(str, strict) {
+  if (typeof str !== "string") {
+    return str;
+  }
+  return str.replace(/\w\S*/g, function(txt) {
+    return txt.charAt(0).toUpperCase() + (typeof strict !== void 0 && strict ? txt.substr(1).toLowerCase() : txt.substr(1));
+  });
+}
+
+// src/util.js
+var _wq2 = (target, ...args) => wq(target, "oohtml", ...args);
+var env3 = {};
+function _init(name, $config, $defaults) {
+  const window2 = this, realdom = src_default.call(window2);
+  env3.window = window2;
+  if (!window2.webqitConfig) {
+    window2.webqitConfig = realdom.meta("webqit").json();
+  }
+  window2.webqit || (window2.webqit = {});
+  window2.webqit.oohtml || (window2.webqit.oohtml = {});
+  window2.webqit.oohtml.configs || (window2.webqit.oohtml.configs = {});
+  const configKey = name.toUpperCase().replace("-", "_");
+  if (!window2.webqit.oohtml.configs[configKey]) {
+    window2.webqit.oohtml.configs[configKey] = {};
+    const config = window2.webqit.oohtml.configs[configKey];
+    merge_default(2, config, $defaults, $config, realdom.meta(name).json());
+    if (window2.webqitConfig.prefix) {
+      Object.keys(config).forEach((main) => {
+        Object.keys(config[main]).forEach((key) => {
+          if (main === "api" && typeof config[main][key] === "string") {
+            config[main][key] = `${window2.webqitConfig.prefix}${toTitle_default(config[main][key])}`;
+          } else if (["attr", "elements"].includes(main) && config[main][key]?.startsWith("data-") === false) {
+            config[main][key] = `${window2.webqitConfig.prefix}-${config[main][key]}`;
+          }
+        });
+      });
+    }
+  }
+  return { config: window2.webqit.oohtml.configs[configKey], realdom, window: window2 };
+}
+function getInternalAttrInteraction(node, attrName) {
+  return wq(node, "realdom", "internalAttrInteractions").get(attrName);
+}
+function internalAttrInteraction2(node, attrName, callback) {
+  const savedAttrLocking = wq(node, "realdom", "internalAttrInteractions").get(attrName);
+  wq(node, "realdom", "internalAttrInteractions").set(attrName, true);
+  const value = callback();
+  wq(node, "realdom", "internalAttrInteractions").set(attrName, savedAttrLocking);
+  return value;
+}
+function _splitOuter(str, delim) {
+  return [...str].reduce(([quote, depth, splits], x) => {
+    if (!quote && depth === 0 && (Array.isArray(delim) ? delim : [delim]).includes(x)) {
+      return [quote, depth, [""].concat(splits)];
+    }
+    if (!quote && ["(", "[", "{"].includes(x) && !splits[0].endsWith("\\"))
+      depth++;
+    if (!quote && [")", "]", "}"].includes(x) && !splits[0].endsWith("\\"))
+      depth--;
+    if (['"', "'", "`"].includes(x) && !splits[0].endsWith("\\")) {
+      quote = quote === x ? null : quote || x;
+    }
+    splits[0] += x;
+    return [quote, depth, splits];
+  }, [null, 0, [""]])[2].reverse();
+}
+var _uniqId = () => (0 | Math.random() * 9e6).toString(36);
+var hashTable = /* @__PURE__ */ new Map();
+function _toHash(val) {
+  let hash;
+  if (!(hash = hashTable.get(val))) {
+    hash = _uniqId();
+    hashTable.set(val, hash);
+  }
+  return hash;
+}
+function _fromHash(hash) {
+  let val;
+  hashTable.forEach((_hash, _val) => {
+    if (_hash === hash)
+      val = _val;
+  });
+  return val;
+}
+
+// src/context-api/_DOMContextRequestEvent.js
+function DOMContextRequestEvent_default() {
+  const { window: window2 } = env3, { webqit: webqit2 } = window2;
+  if (webqit2.DOMContextRequestEvent)
+    return webqit2.DOMContextRequestEvent;
+  class DOMContextRequestEvent extends window2.Event {
+    constructor(...args) {
+      const callback = args.pop();
+      if (typeof callback !== "function")
+        throw new Error(`Callback must be provided.`);
+      const options = args.pop();
+      if (!options?.kind)
+        throw new Error(`"options.kind" must be specified.`);
+      const eventNames = ["contextrequest", "contextclaim"];
+      const type = args.pop() || eventNames[0];
+      if (!eventNames.includes(type))
+        throw new Error(`Invalid event type. Must be one of: ${eventNames.join(",")}`);
+      const { kind, detail, targetContext, live, signal, diff, ...otherOpts } = options;
+      super(type, { ...otherOpts, bubbles: otherOpts.bubbles !== false });
+      Object.defineProperty(this, "callback", { get: () => callback });
+      Object.defineProperty(this, "kind", { get: () => kind });
+      Object.defineProperty(this, "targetContext", { get: () => targetContext });
+      Object.defineProperty(this, "detail", { get: () => detail });
+      Object.defineProperty(this, "live", { get: () => live });
+      Object.defineProperty(this, "signal", { get: () => signal });
+      Object.defineProperty(this, "diff", { get: () => diff });
+      Object.defineProperty(this, "options", { get: () => otherOpts });
+      Object.defineProperty(this, "meta", { value: {} });
+    }
+    get target() {
+      return super.target || this.meta.target;
+    }
+    get answered() {
+      return this.meta.answered || false;
+    }
+    respondWith(response) {
+      this.meta.answered = true;
+      if (this.diff) {
+        if ("_prevValue" in this && this._prevValue === response)
+          return;
+        Object.defineProperty(this, "_prevValue", { value: response, configurable: true });
+      }
+      return this.callback(response);
+    }
+  }
+  webqit2.DOMContextRequestEvent = DOMContextRequestEvent;
+  return DOMContextRequestEvent;
+}
+
+// src/context-api/DOMContextResponse.js
+var DOMContextResponse = class extends AbortController {
+  constructor(callback) {
+    super();
+    callback((response) => {
+      const { window: { webqit: { Observer: Observer2 } } } = env3;
+      Observer2.defineProperty(this, "value", { value: response, configurable: true, enumerable: true });
+    }, this);
+  }
+};
+
+// src/context-api/DuplicateContextError.js
+var DuplicateContextError = class extends Error {
+};
+
+// src/context-api/DOMContexts.js
+var DOMContexts = class {
+  static instance(host) {
+    return _wq2(host).get("contexts::instance") || new this(host);
+    ;
+  }
+  constructor(host) {
+    _wq2(host).get(`contexts::instance`)?.dispose();
+    _wq2(host).set(`contexts::instance`, this);
+    const priv = { host, contexts: /* @__PURE__ */ new Set() };
+    Object.defineProperty(this, "#", { get: () => priv });
+  }
+  [Symbol.iterator]() {
+    return this["#"].contexts[Symbol.iterator]();
+  }
+  get length() {
+    return this["#"].contexts.size;
+  }
+  find(...args) {
+    return [...this["#"].contexts].find((ctx) => {
+      if (typeof args[0] === "function")
+        return args[0](ctx);
+      return ctx.constructor.kind === args[0] && (!args[1] || ctx.detail === args[1]);
+    });
+  }
+  attach(ctx) {
+    if (!(ctx instanceof DOMContext))
+      throw new TypeError(`Context is not a valid DOMContext instance.`);
+    if (this.find(ctx.constructor.kind, ctx.detail)) {
+      throw new DuplicateContextError(`Context of same kind "${ctx.constructor.kind}"${ctx.detail ? ` and detail "${ctx.detail}"` : ""} already exists.`);
+    }
+    this["#"].contexts.add(ctx);
+    ctx.initialize(this["#"].host);
+  }
+  detach(ctx) {
+    ctx.dispose(this["#"].host);
+    this["#"].contexts.delete(ctx);
+  }
+  request(...args) {
+    return new DOMContextResponse((emitter, responseInstance) => {
+      if (typeof args[args.length - 1] !== "function") {
+        if (!args[args.length - 1]) {
+          args[args.length - 1] = emitter;
+        } else {
+          args.push(emitter);
+        }
+      }
+      let options;
+      if ((options = args.find((arg) => typeof arg === "object" && arg)) && options.live) {
+        if (options.signal)
+          options.signal.addEventListener("abort", () => responseInstance.abort());
+        args[args.indexOf(options)] = { ...options, signal: responseInstance.signal };
+      }
+      const event = new (DOMContextRequestEvent_default())(...args);
+      this["#"].host.dispatchEvent(event);
+    });
+  }
+};
+
+// src/context-api/DOMContext.js
+var _DOMContext = class {
+  static createRequest() {
+    return { kind: this.kind };
+  }
+  constructor(detail = null) {
+    Object.defineProperty(this, "detail", { get: () => detail });
+    Object.defineProperty(this, "subscriptions", { value: /* @__PURE__ */ new Set() });
+  }
+  get configs() {
+    const { window: { webqit: { oohtml: { configs } } } } = env3;
+    return configs;
+  }
+  get name() {
+    return [env3.window.Document, env3.window.ShadowRoot].some((x) => this.host instanceof x) ? Infinity : this.host.getAttribute(this.configs.CONTEXT_API.attr.contextname);
+  }
+  subscribed(event) {
+  }
+  handle(event) {
+  }
+  unsubscribed(event) {
+  }
+  matchEvent(event) {
+    return event.kind === this.constructor.kind && (!event.targetContext || event.targetContext === this.name);
+  }
+  handleEvent(event) {
+    if (this.disposed || typeof event.respondWith !== "function")
+      return;
+    if (event.type === "contextclaim") {
+      if (!(event.detail instanceof _DOMContext) || event.target === this.host)
+        return;
+      const claims = /* @__PURE__ */ new Set();
+      this.subscriptions.forEach((subscriptionEvent) => {
+        if (!event.target.contains(subscriptionEvent.target) || !event.detail.matchEvent(subscriptionEvent))
+          return;
+        this.subscriptions.delete(subscriptionEvent);
+        this.unsubscribed(subscriptionEvent);
+        claims.add(subscriptionEvent);
+      });
+      if (claims.size) {
+        return event.respondWith(claims);
+      }
+    }
+    if (event.type === "contextrequest") {
+      if (!this.matchEvent(event))
+        return;
+      if (event.live) {
+        this.subscriptions.add(event);
+        this.subscribed(event);
+        event.signal?.addEventListener("abort", () => {
+          this.subscriptions.delete(event);
+          this.unsubscribed(event);
+        });
+      }
+      event.stopPropagation();
+      return this.handle(event);
+    }
+  }
+  initialize(host) {
+    this.host = host;
+    this.disposed = false;
+    host.addEventListener("contextrequest", this);
+    host.addEventListener("contextclaim", this);
+    const { value: claims } = DOMContexts.instance(host).request("contextclaim", { kind: this.constructor.kind, detail: this });
+    claims?.forEach((subscriptionEvent) => {
+      this.subscriptions.add(subscriptionEvent);
+      this.subscribed(subscriptionEvent);
+      this.handle(subscriptionEvent);
+    });
+    return this;
+  }
+  dispose(host) {
+    this.disposed = true;
+    host.removeEventListener("contextrequest", this);
+    host.removeEventListener("contextclaim", this);
+    this.subscriptions.forEach((subscriptionEvent) => {
+      this.subscriptions.delete(subscriptionEvent);
+      this.unsubscribed(subscriptionEvent);
+      const { target } = subscriptionEvent;
+      subscriptionEvent.meta.answered = false;
+      target.dispatchEvent(subscriptionEvent);
+    });
+    return this;
+  }
+};
+var DOMContext = _DOMContext;
+__publicField(DOMContext, "kind");
+
+// src/namespaced-html/DOMNamingContext.js
+var DOMNamingContext = class extends DOMContext {
+  static createRequest(detail = null) {
+    const request = super.createRequest();
+    if (detail?.startsWith("@")) {
+      const [targetContext, ...detail2] = detail2.slice(1).split("/").map((s) => s.trim());
+      request.targetContext = targetContext;
+      request.detail = detail2.join("/");
+    } else {
+      request.detail = detail;
+    }
+    return request;
+  }
+  get namespaceObj() {
+    return this.host[this.configs.NAMESPACED_HTML.api.namespace];
+  }
+  handle(event) {
+    const { window: { webqit: { Observer: Observer2 } } } = env3;
+    event.meta.controller?.abort();
+    if (!(event.detail || "").trim())
+      return event.respondWith(Observer2.unproxy(this.namespaceObj));
+    let path2 = (event.detail || "").split("/").map((x) => x.trim()).filter((x) => x);
+    if (!path2.length)
+      return event.respondWith();
+    path2 = path2.join(`/${this.configs.NAMESPACED_HTML.api.namespace}/`)?.split("/") || [];
+    event.meta.controller = Observer2.reduce(this.namespaceObj, path2, Observer2.get, (descriptor) => {
+      if (this.disposed)
+        return;
+      event.respondWith(descriptor.value);
+    }, { live: event.live, signal: event.signal, descripted: true });
+  }
+  unsubscribed(event) {
+    event.meta.controller?.abort();
+  }
+};
+__publicField(DOMNamingContext, "kind", "namespace");
+
+// src/namespaced-html/index.js
+function init($config = {}) {
+  const { config, window: window2 } = _init.call(this, "namespaced-html", $config, {
+    attr: { namespace: "namespace", lid: "id" },
+    api: { namespace: "namespace" },
+    tokens: { lidrefPrefix: "~", lidrefSeparator: ":" },
+    target: { className: ":target", eventName: ":target", scrolling: true }
+  });
+  config.lidSelector = `[${window2.CSS.escape(config.attr.lid)}]`;
+  config.namespaceSelector = `[${window2.CSS.escape(config.attr.namespace)}]`;
+  window2.webqit.DOMNamingContext = DOMNamingContext;
+  exposeAPIs.call(window2, config);
+  realtime.call(window2, config);
+}
+function lidUtil(config) {
+  const { lidrefPrefix, lidrefSeparator } = config.tokens;
+  return {
+    escape(str, mode = 1) {
+      return [...str].map((x) => !/\w/.test(x) ? mode === 2 ? `\\\\${x}` : `\\${x}` : x).join("");
+    },
+    lidrefPrefix(escapeMode = 0) {
+      return escapeMode ? this.escape(lidrefPrefix, escapeMode) : lidrefPrefix;
+    },
+    lidrefSeparator(escapeMode = 0) {
+      return escapeMode ? this.escape(lidrefSeparator, escapeMode) : lidrefSeparator;
+    },
+    isUuid(str, escapeMode = 0) {
+      return str.startsWith(this.lidrefPrefix(escapeMode)) && str.includes(this.lidrefSeparator(escapeMode));
+    },
+    toUuid(hash, lid, escapeMode = 0) {
+      return hash.endsWith("-root") ? lid : `${this.lidrefPrefix(escapeMode)}${hash}${this.lidrefSeparator(escapeMode)}${lid}`;
+    },
+    uuidToId(str, escapeMode = 0) {
+      return this.isUuid(str) ? str.split(this.lidrefSeparator(escapeMode))[1] : str;
+    },
+    uuidToLidref(str, escapeMode = 0) {
+      return this.isUuid(str) ? `${this.lidrefPrefix(escapeMode)}${str.split(this.lidrefSeparator(escapeMode))[1]}` : str;
+    }
+  };
+}
+function rewriteSelector(selectorText, namespaceUUID, scopeSelector = null, escapeMode = 0) {
+  const window2 = this, { webqit: { oohtml: { configs: { NAMESPACED_HTML: config } } } } = window2;
+  const $lidUtil = lidUtil(config);
+  const regex = new RegExp(`${scopeSelector ? `:scope|` : ""}#(${$lidUtil.lidrefPrefix(escapeMode + 1)})?([\\w]+${$lidUtil.lidrefSeparator(escapeMode + 1)})?((?:[\\w-]|\\\\.)+)`, "g");
+  const [cat1, cat2] = _splitOuter(selectorText, ",").reduce(([cat12, cat22], selector) => {
+    let quotesMatch, hadScopeSelector;
+    selector = selector.replace(regex, (match, lidrefPrefixMatch, lidrefSeparatorMatch, id, index) => {
+      if (!quotesMatch) {
+        quotesMatch = [...selector.matchAll(/(["'])(?:(?=(\\?))\2.)*?\1/g)];
+      }
+      if (quotesMatch.some((q) => index > q.index && index + match.length < q.index + q[0].length))
+        return match;
+      if (match === ":scope") {
+        hadScopeSelector = true;
+        return scopeSelector;
+      }
+      const isLidref = lidrefPrefixMatch && !lidrefSeparatorMatch;
+      const isUuid = lidrefPrefixMatch && lidrefSeparatorMatch;
+      if (isUuid) {
+        return `#${$lidUtil.escape(match.replace("#", ""), 1)}`;
+      }
+      if (isLidref) {
+        if (config.attr.lid === "id" && namespaceUUID && !namespaceUUID.endsWith("-root")) {
+          return `#${$lidUtil.toUuid(namespaceUUID, id, 1)}`;
+        }
+      }
+      let rewrite;
+      if (config.attr.lid === "id") {
+        rewrite = `:is(#${id},[id^="${$lidUtil.lidrefPrefix(escapeMode)}"][id$="${$lidUtil.lidrefSeparator(escapeMode)}${id}"])`;
+      } else {
+        rewrite = `:is(#${id},[${window2.CSS.escape(config.attr.lid)}="${id}"])`;
+      }
+      return isLidref ? `:is(${rewrite}):not(${scopeSelector ? scopeSelector + " " : ""}${config.namespaceSelector} *)` : rewrite;
+    });
+    return hadScopeSelector ? [cat12, cat22.concat(selector)] : [cat12.concat(selector), cat22];
+  }, [[], []]);
+  let newSelectorText;
+  if (scopeSelector && cat1.length) {
+    newSelectorText = [cat1.length > 1 ? `${scopeSelector} :is(${cat1.join(", ")})` : `${scopeSelector} ${cat1[0]}`, cat2.join(", ")].filter((x) => x).join(", ");
+  } else {
+    newSelectorText = [...cat1, ...cat2].join(", ");
+  }
+  return newSelectorText;
+}
+function getOwnNamespaceObject(node) {
+  const window2 = this;
+  if (!_wq2(node).has("namespace")) {
+    const namespaceObj = /* @__PURE__ */ Object.create(null);
+    _wq2(node).set("namespace", namespaceObj);
+    const isDocumentRoot = [window2.Document, window2.ShadowRoot].some((x) => node instanceof x);
+    Object.defineProperty(namespaceObj, Symbol.toStringTag, {
+      get() {
+        return isDocumentRoot ? "RootNamespaceRegistry" : "NamespaceRegistry";
+      }
+    });
+  }
+  return _wq2(node).get("namespace");
+}
+function getOwnerNamespaceObject(node, forID = false) {
+  const window2 = this, { webqit: { oohtml: { configs: { NAMESPACED_HTML: config } } } } = window2;
+  const isDocumentRoot = [window2.Document, window2.ShadowRoot].some((x) => node instanceof x);
+  return getOwnNamespaceObject.call(window2, isDocumentRoot ? node : (forID ? node.parentNode : node)?.closest?.(config.namespaceSelector) || node.getRootNode());
+}
+function getNamespaceUUID(namespaceObj) {
+  const isDocumentRoot = Object.prototype.toString.call(namespaceObj) === "[object RootNamespaceRegistry]";
+  return (_fromHash(namespaceObj) || _toHash(namespaceObj)) + (isDocumentRoot ? "-root" : "");
+}
+function exposeAPIs(config) {
+  const window2 = this, { webqit: { Observer: Observer2 } } = window2;
+  [window2.Document.prototype, window2.Element.prototype, window2.ShadowRoot.prototype].forEach((prototype) => {
+    const type = prototype === window2.Document.prototype ? "Document" : prototype === window2.ShadowRoot.prototype ? "ShadowRoot" : "Element";
+    if (config.api.namespace in prototype) {
+      throw new Error(`The ${type} prototype already has a "${config.api.namespace}" API!`);
+    }
+    Object.defineProperty(prototype, config.api.namespace, {
+      get: function() {
+        return Observer2.proxy(getOwnNamespaceObject.call(window2, this));
+      }
+    });
+  });
+}
+function realtime(config) {
+  const window2 = this, { webqit: { Observer: Observer2, realdom, oohtml: { configs }, DOMNamingContext: DOMNamingContext2 } } = window2;
+  const idRefsAttrs = ["aria-owns", "aria-controls", "aria-labelledby", "aria-describedby", "aria-flowto"];
+  const idRefAttrs = ["for", "list", "form", "aria-activedescendant", "aria-details", "aria-errormessage", "popovertarget"];
+  const attrList = [config.attr.lid, ...idRefsAttrs, ...idRefAttrs];
+  const relMap = { id: "id", for: "htmlFor", "aria-owns": "ariaOwns", "aria-controls": "ariaControls", "aria-labelledby": "ariaLabelledBy", "aria-describedby": "ariaDescribedBy", "aria-flowto": "ariaFlowto", "aria-activedescendant": "ariaActiveDescendant", "aria-details": "ariaDetails", "aria-errormessage": "ariaErrorMessage", "popovertarget": "popoverTargetElement" };
+  const $lidUtil = lidUtil(config);
+  const uuidsToLidrefs = (node, attrName, getter) => {
+    if (!getInternalAttrInteraction(node, attrName) && _wq2(node, "attrOriginals").has(attrName)) {
+      return _wq2(node, "attrOriginals").get(attrName);
+    }
+    const value = getter();
+    if (getInternalAttrInteraction(node, attrName))
+      return value;
+    return value && value.split(" ").map((x) => (x = x.trim()) && (attrName === config.attr.lid ? $lidUtil.uuidToId : $lidUtil.uuidToLidref).call($lidUtil, x)).join(" ");
+  };
+  const getElementByIdDescr = Object.getOwnPropertyDescriptor(window2.Document.prototype, "getElementById");
+  Object.defineProperty(window2.Document.prototype, "getElementById", {
+    ...getElementByIdDescr,
+    value(id) {
+      return this.querySelector(`#${id}`);
+    }
+  });
+  for (const queryApi of ["querySelector", "querySelectorAll"]) {
+    for (const nodeApi of [window2.Document, window2.Element]) {
+      const querySelectorDescr = Object.getOwnPropertyDescriptor(nodeApi.prototype, queryApi);
+      Object.defineProperty(nodeApi.prototype, queryApi, {
+        ...querySelectorDescr,
+        value(selector) {
+          return querySelectorDescr.value.call(this, rewriteSelector.call(window2, selector, getNamespaceUUID(getOwnNamespaceObject.call(window2, this))));
+        }
+      });
+    }
+  }
+  const getAttributeDescr = Object.getOwnPropertyDescriptor(window2.Element.prototype, "getAttribute");
+  Object.defineProperty(window2.Element.prototype, "getAttribute", {
+    ...getAttributeDescr,
+    value(attrName) {
+      const getter = () => getAttributeDescr.value.call(this, attrName);
+      return attrList.includes(attrName) && !_wq2(this, "lock").get(attrName) ? uuidsToLidrefs(this, attrName, getter) : getter();
+    }
+  });
+  const propertyDescr = Object.getOwnPropertyDescriptor(window2.Attr.prototype, "value");
+  Object.defineProperty(window2.Attr.prototype, "value", {
+    ...propertyDescr,
+    get() {
+      const getter = () => propertyDescr.get.call(this);
+      return attrList.includes(this.name) ? uuidsToLidrefs(this.ownerElement, this.name, getter) : getter();
+    }
+  });
+  const propertyDescr2 = Object.getOwnPropertyDescriptor(window2.Node.prototype, "nodeValue");
+  Object.defineProperty(window2.Node.prototype, "nodeValue", {
+    ...propertyDescr2,
+    get() {
+      const getter = () => propertyDescr2.get.call(this);
+      return this instanceof window2.Attr && attrList.includes(this.name) ? uuidsToLidrefs(this.ownerElement, this.name, getter) : getter();
+    }
+  });
+  for (const attrName of attrList) {
+    if (!(attrName in relMap))
+      continue;
+    const domApis = attrName === "for" ? [window2.HTMLLabelElement, window2.HTMLOutputElement] : attrName === "popovertarget" ? [window2.HTMLButtonElement, window2.HTMLInputElement] : [window2.Element];
+    for (const domApi of domApis) {
+      const propertyDescr3 = Object.getOwnPropertyDescriptor(domApi.prototype, relMap[attrName]);
+      if (!propertyDescr3)
+        continue;
+      Object.defineProperty(domApi.prototype, relMap[attrName], {
+        ...propertyDescr3,
+        get() {
+          const getter = () => propertyDescr3.get.call(this, attrName);
+          return uuidsToLidrefs(this, attrName, getter);
+        }
+      });
+    }
+  }
+  if (config.attr.lid !== "id") {
+    Object.defineProperty(window2.Element.prototype, config.attr.lid, {
+      configurable: true,
+      enumerable: true,
+      get() {
+        return this.getAttribute(config.attr.lid);
+      },
+      set(value) {
+        return this.setAttribute(config.attr.lid, value);
+      }
+    });
+  }
+  const attrChange = (entry, attrName, value, callback) => {
+    return internalAttrInteraction2(entry, attrName, () => {
+      if (typeof value === "function")
+        value = value();
+      return callback(value);
+    });
+  };
+  const setupBinding = (entry, attrName, value, newNamespaceObj = null) => {
+    attrChange(entry, attrName, value, (value2) => {
+      const isLidAttr = attrName === config.attr.lid;
+      const namespaceObj = newNamespaceObj || getOwnerNamespaceObject.call(window2, entry, isLidAttr);
+      const namespaceUUID = getNamespaceUUID(namespaceObj);
+      if (isLidAttr) {
+        const id = $lidUtil.uuidToId(value2);
+        if (Observer2.get(namespaceObj, id) !== entry) {
+          const uuid = $lidUtil.toUuid(namespaceUUID, id);
+          if (uuid !== value2) {
+            entry.setAttribute("id", uuid);
+          }
+          Observer2.set(namespaceObj, id, entry);
+        }
+      } else {
+        _wq2(entry, "attrOriginals").set(attrName, value2);
+        const newAttrValue = value2.split(" ").map((idref) => (idref = idref.trim()) && $lidUtil.isUuid(idref) ? idref : $lidUtil.toUuid(namespaceUUID, idref)).join(" ");
+        entry.setAttribute(attrName, newAttrValue);
+        _wq2(namespaceObj).set("idrefs", _wq2(namespaceObj).get("idrefs") || /* @__PURE__ */ new Set());
+        _wq2(namespaceObj).get("idrefs").add(entry);
+      }
+    });
+  };
+  const cleanupBinding = (entry, attrName, oldValue, prevNamespaceObj = null) => {
+    attrChange(entry, attrName, oldValue, (oldValue2) => {
+      const isLidAttr = attrName === config.attr.lid;
+      const namespaceObj = prevNamespaceObj || getOwnerNamespaceObject.call(window2, entry, isLidAttr);
+      if (isLidAttr) {
+        const id = $lidUtil.uuidToId(oldValue2);
+        if (Observer2.get(namespaceObj, id) === entry) {
+          Observer2.deleteProperty(namespaceObj, id);
+        }
+      } else {
+        const newAttrValue = _wq2(entry, "attrOriginals").get(attrName);
+        if (entry.hasAttribute(attrName))
+          entry.setAttribute(attrName, newAttrValue);
+        _wq2(namespaceObj).get("idrefs")?.delete(entry);
+      }
+    });
+  };
+  realdom.realtime(window2.document).query(config.namespaceSelector, (record) => {
+    const reAssociate = (entry, attrName, oldNamespaceObj, newNamespaceObj) => {
+      if (!entry.hasAttribute(attrName))
+        return;
+      const attrValue = () => entry.getAttribute(attrName);
+      cleanupBinding(entry, attrName, attrValue, oldNamespaceObj);
+      if (entry.isConnected) {
+        setupBinding(entry, attrName, _wq2(entry, "attrOriginals").get(attrName) || attrValue, newNamespaceObj);
+      }
+    };
+    record.exits.forEach((entry) => {
+      if (entry.isConnected) {
+        const namespaceObj = getOwnNamespaceObject.call(window2, entry);
+        for (const node of /* @__PURE__ */ new Set([...Object.values(namespaceObj), ..._wq2(namespaceObj).get("idrefs") || []])) {
+          for (const attrName of attrList) {
+            reAssociate(node, attrName, namespaceObj);
+          }
+        }
+      }
+      const contextsApi = entry[configs.CONTEXT_API.api.contexts];
+      const ctx = contextsApi.find(DOMNamingContext2.kind);
+      if (ctx) {
+        contextsApi.detach(ctx);
+      }
+    });
+    record.entrants.forEach((entry) => {
+      let newSuperNamespaceObj;
+      const superNamespaceObj = getOwnerNamespaceObject.call(window2, entry, true);
+      for (const node of /* @__PURE__ */ new Set([...Object.values(superNamespaceObj), ..._wq2(superNamespaceObj).get("idrefs") || []])) {
+        if ((newSuperNamespaceObj = getOwnerNamespaceObject.call(window2, node, true)) === superNamespaceObj)
+          continue;
+        for (const attrName of attrList) {
+          reAssociate(node, attrName, superNamespaceObj, newSuperNamespaceObj);
+        }
+      }
+      const contextsApi = entry[configs.CONTEXT_API.api.contexts];
+      if (!contextsApi.find(DOMNamingContext2.kind)) {
+        contextsApi.attach(new DOMNamingContext2());
+      }
+    });
+  }, { id: "namespace-html:namespace", live: true, subtree: "cross-roots", timing: "sync", staticSensitivity: true, eventDetails: true });
+  realdom.realtime(window2.document).query(`[${attrList.map((attrName) => window2.CSS.escape(attrName)).join("],[")}]`, (record) => {
+    const namespaceNodesToTest = { forID: /* @__PURE__ */ new Map(), forOther: /* @__PURE__ */ new Map() };
+    for (const attrName of attrList) {
+      const _namespaceNodesToTest = attrName === config.attr.lid ? namespaceNodesToTest.forID : namespaceNodesToTest.forOther;
+      record.exits.forEach((entry) => {
+        if (!entry.hasAttribute(attrName))
+          return;
+        let namespaceNodeToTest = _namespaceNodesToTest.get(entry);
+        if (typeof namespaceNodeToTest === "undefined") {
+          namespaceNodeToTest = (attrName === config.attr.lid ? entry.parentNode : entry)?.closest?.(config.namespaceSelector) || entry.getRootNode().host;
+          _namespaceNodesToTest.set(entry, namespaceNodeToTest);
+        }
+        if (namespaceNodeToTest && !namespaceNodeToTest.isConnected)
+          return;
+        cleanupBinding(entry, attrName, () => entry.getAttribute(attrName));
+      });
+      record.entrants.forEach((entry) => {
+        if (!entry.hasAttribute(attrName))
+          return;
+        setupBinding(entry, attrName, () => entry.getAttribute(attrName));
+      });
+    }
+    namespaceNodesToTest.forID.clear();
+    namespaceNodesToTest.forOther.clear();
+  }, { id: "namespace-html:attrs", live: true, subtree: "cross-roots", timing: "sync" });
+  realdom.realtime(window2.document, "attr").observe(attrList, (records) => {
+    for (const record of records) {
+      if (record.oldValue && record.value !== record.oldValue) {
+        cleanupBinding(record.target, record.name, record.oldValue);
+      }
+      if (record.value && record.value !== record.oldValue) {
+        setupBinding(record.target, record.name, record.value);
+      }
+    }
+  }, { id: "namespace-html:attr(attrs)", subtree: "cross-roots", timing: "sync", newValue: true, oldValue: true });
+  let prevTarget;
+  const activateTarget = () => {
+    if (!window2.location.hash?.startsWith(`#${$lidUtil.lidrefPrefix()}`))
+      return;
+    const path2 = window2.location.hash?.substring(`#${$lidUtil.lidrefPrefix()}`.length).split("/").map((s) => s.trim()).filter((s) => s) || [];
+    const currTarget = path2.reduce((prev, segment) => prev && prev[config.api.namespace][segment], window2.document);
+    if (prevTarget && config.target.className) {
+      prevTarget.classList.toggle(config.target.className, false);
+    }
+    if (currTarget && currTarget !== window2.document) {
+      if (config.target.className) {
+        currTarget.classList.toggle(config.target.className, true);
+      }
+      if (config.target.eventName) {
+        currTarget.dispatchEvent(new window2.CustomEvent(config.target.eventName));
+      }
+      if (config.target.scrolling && path2.length > 1) {
+        currTarget.scrollIntoView();
+      }
+      prevTarget = currTarget;
+    }
+  };
+  window2.addEventListener("hashchange", activateTarget);
+  realdom.ready(activateTarget);
+}
+
+// src/scoped-js/index.js
+function init2({ advanced = {}, ...$config }) {
+  const { config, window: window2 } = _init.call(this, "scoped-js", $config, {
+    script: { retention: "retain", mimeTypes: "module|text/javascript|application/javascript", timing: "auto" },
+    api: { scripts: "scripts" },
+    advanced: resolveParams(advanced)
+  });
+  const customTypes = Array.isArray(config.script.mimeTypes) ? config.script.mimeTypes : config.script.mimeTypes.split("|").filter((t) => t);
+  config.scriptSelector = customTypes.map((t) => `script[type="${window2.CSS.escape(t)}"]:not([oohtmlignore])`).concat(`script:not([type])`).join(",");
+  window2.webqit.oohtml.Script = {
+    compileCache: [/* @__PURE__ */ new Map(), /* @__PURE__ */ new Map()],
+    execute: execute.bind(window2, config)
+  };
+  exposeAPIs2.call(window2, config);
+  realtime2.call(window2, config);
+}
+function exposeAPIs2(config) {
+  const window2 = this, { webqit: { nextKeyword: nextKeyword2, matchPrologDirective: matchPrologDirective2 } } = window2;
+  const scriptsMap = /* @__PURE__ */ new Map();
+  if (config.api.scripts in window2.Element.prototype) {
+    throw new Error(`The "Element" class already has a "${config.api.scripts}" property!`);
+  }
+  [window2.ShadowRoot.prototype, window2.Element.prototype].forEach((proto) => {
+    Object.defineProperty(proto, config.api.scripts, { get: function() {
+      if (!scriptsMap.has(this)) {
+        scriptsMap.set(this, []);
+      }
+      return scriptsMap.get(this);
+    } });
+  });
+  Object.defineProperties(window2.HTMLScriptElement.prototype, {
+    scoped: {
+      configurable: true,
+      get() {
+        return this.hasAttribute("scoped");
+      },
+      set(value) {
+        this.toggleAttribute("scoped", value);
+      }
+    },
+    live: {
+      configurable: true,
+      get() {
+        if (this.liveProgramHandle)
+          return true;
+        const scriptContents = nextKeyword2(this.oohtml__textContent || this.textContent || "", 0, 0);
+        return matchPrologDirective2(scriptContents, true);
+      }
+    }
+  });
+}
+async function execute(config, execHash) {
+  const window2 = this, { realdom } = window2.webqit;
+  const exec3 = _fromHash(execHash);
+  if (!exec3)
+    throw new Error(`Argument must be a valid exec hash.`);
+  const { script, compiledScript, thisContext } = exec3;
+  if (config.script.retention === "dispose") {
+    script.remove();
+  } else if (config.script.retention === "hidden") {
+    script.textContent = `"source hidden"`;
+  } else {
+    setTimeout(async () => {
+      script.textContent = await compiledScript.toString();
+    }, 0);
+  }
+  const varScope = script.scoped ? thisContext : script.getRootNode();
+  if (!_wq2(varScope).has("scriptEnv")) {
+    _wq2(varScope).set("scriptEnv", /* @__PURE__ */ Object.create(null));
+  }
+  const liveProgramHandle = await (await compiledScript.bind(thisContext, _wq2(varScope).get("scriptEnv"))).execute();
+  if (script.live) {
+    Object.defineProperty(script, "liveProgramHandle", { value: liveProgramHandle });
+  }
+  realdom.realtime(window2.document).observe(script, () => {
+    if (script.live) {
+      liveProgramHandle.abort();
+    }
+    if (thisContext instanceof window2.Element) {
+      thisContext[config.api.scripts]?.splice(thisContext[config.api.scripts].indexOf(script, 1));
+    }
+  }, { id: "scoped-js:script-exits", subtree: "cross-roots", timing: "sync", generation: "exits" });
+}
+function realtime2(config) {
+  const inBrowser = Object.getOwnPropertyDescriptor(globalThis, "window")?.get?.toString().includes("[native code]") ?? false;
+  const window2 = this, { webqit: { oohtml, realdom } } = window2;
+  if (!window2.HTMLScriptElement.supports) {
+    window2.HTMLScriptElement.supports = (type) => ["text/javascript", "application/javascript"].includes(type);
+  }
+  const handled = /* @__PURE__ */ new WeakSet();
+  realdom.realtime(window2.document).query(config.scriptSelector, (record) => {
+    record.entrants.forEach((script) => {
+      if (handled.has(script) || script.hasAttribute("oohtmlno") || !inBrowser && !script.hasAttribute("ssr"))
+        return;
+      const compiledScript = compileScript.call(window2, config, script);
+      if (!compiledScript)
+        return;
+      handled.add(script);
+      const thisContext = script.scoped ? script.parentNode || record.target : script.type === "module" ? void 0 : window2;
+      if (script.scoped) {
+        thisContext[config.api.scripts].push(script);
+      }
+      const execHash = _toHash({ script, compiledScript, thisContext });
+      const manualHandling = record.type === "query" || script.type && !window2.HTMLScriptElement.supports(script.type) || script.getAttribute("data-handling") === "manual";
+      if (manualHandling || config.script.timing === "manual") {
+        oohtml.Script.execute(execHash);
+      } else {
+        script.textContent = `webqit.oohtml.Script.execute( '${execHash}' );`;
+      }
+    });
+  }, { id: "scoped-js:script-entries", live: true, subtree: "cross-roots", timing: "intercept", generation: "entrants", eventDetails: true });
+}
+function compileScript(config, script) {
+  const window2 = this, { webqit: { oohtml, LiveScript: LiveScript2, AsyncLiveScript: AsyncLiveScript2, LiveModule: LiveModule2 } } = window2;
+  let textContent = script.textContent.trim();
+  if (textContent.startsWith("/*@oohtml*/if(false){") && textContent.endsWith("}/*@oohtml*/")) {
+    textContent = textContent.slice(21, -12);
+    Object.defineProperty(script, "oohtml__textContent", { value: textContent });
+  }
+  if (!textContent.trim().length)
+    return;
+  const sourceHash = _toHash(textContent);
+  const compileCache = oohtml.Script.compileCache[script.live ? 0 : 1];
+  let compiledScript;
+  if (!(compiledScript = compileCache.get(sourceHash))) {
+    const { parserParams: parserParams2, compilerParams, runtimeParams: runtimeParams2 } = config.advanced;
+    compiledScript = new (script.type === "module" ? LiveModule2 : LiveScript2 || AsyncLiveScript2)(textContent, {
+      liveMode: script.live,
+      exportNamespace: `#${script.id}`,
+      fileName: `${window2.document.url?.split("#")?.[0] || ""}#${script.id}`,
+      parserParams: parserParams2,
+      compilerParams,
+      runtimeParams: runtimeParams2
+    });
+    compileCache.set(sourceHash, compiledScript);
+  }
+  return compiledScript;
+}
+function idleCompiler(node) {
+  const window2 = this, { webqit: { oohtml: { configs: { SCOPED_JS: config } } } } = window2;
+  [...node?.querySelectorAll(config.scriptSelector) || []].forEach((script) => {
+    compileScript.call(window2, config, script);
+  });
+}
+
+// src/data-binding/index.js
+function init3($config = {}) {
+  const { config, window: window2 } = _init.call(this, "data-binding", $config, {
+    attr: { render: "render", itemIndex: "data-key" },
+    tokens: { nodeType: "processing-instruction", tagStart: "?{", tagEnd: "}?", stateStart: "; [=", stateEnd: "]" },
+    advanced: resolveParams({ runtimeParams: { spec: { handler: (e) => {
+    } } } })
+  });
+  ({ CONTEXT_API: config.CONTEXT_API, BINDINGS_API: config.BINDINGS_API, HTML_IMPORTS: config.HTML_IMPORTS } = window2.webqit.oohtml.configs);
+  config.attrSelector = `[${window2.CSS.escape(config.attr.render)}]`;
+  const discreteBindingsMatch = (start, end) => {
+    const starting = `starts-with(., "${start}")`;
+    const ending = `substring(., string-length(.) - string-length("${end}") + 1) = "${end}"`;
+    return `${starting} and ${ending}`;
+  };
+  config.discreteBindingsSelector = `comment()[${discreteBindingsMatch(config.tokens.tagStart, config.tokens.tagEnd)}]`;
+  realtime3.call(window2, config);
+}
+function realtime3(config) {
+  const window2 = this, { webqit: { realdom } } = window2;
+  realdom.realtime(window2.document).query(config.attrSelector, (record) => {
+    record.exits.forEach((e) => {
+      if (!e.isConnected && e.getAttribute(config.attr.render)?.includes("@@disconnected")) {
+        e.dispatchEvent(new Event("@disconnected"));
+      }
+    });
+    cleanup.call(this, ...record.exits);
+    mountInlineBindings.call(window2, config, ...record.entrants);
+    queueMicrotask(() => {
+    });
+  }, { id: "data-binding:attr", live: true, subtree: "cross-roots", timing: "sync", eventDetails: true, staticSensitivity: true });
+  realdom.realtime(window2.document).query(`(${config.discreteBindingsSelector})`, (record) => {
+    cleanup.call(this, ...record.exits);
+    mountDiscreteBindings.call(window2, config, ...record.entrants);
+    queueMicrotask(() => {
+    });
+  }, { id: "data-binding:descrete", live: true, subtree: "cross-roots", timing: "sync" });
+}
+function createDynamicScope(config, root) {
+  const { webqit: { realdom, Observer: Observer2, DOMBindingsContext: DOMBindingsContext2 } } = this;
+  if (_wq2(root).has("data-binding"))
+    return _wq2(root).get("data-binding");
+  const scope = /* @__PURE__ */ Object.create(null), abortController = new AbortController();
+  scope["$exec__"] = (target, prop, ...args) => {
+    const exec3 = () => {
+      try {
+        target[prop](...args);
+      } catch (e) {
+        throw new Error(`Error executing "${prop}()": ${e.message} at ${e.cause}`);
+      }
+    };
+    exec3();
+  };
+  scope["$assign__"] = (target, prop, val) => {
+    const exec3 = () => {
+      try {
+        target[prop] = val;
+      } catch (e) {
+        throw new Error(`Error executing "${prop} = ${val}": ${e.message} at ${e.cause}`);
+      }
+    };
+    exec3();
+  };
+  Observer2.intercept(scope, {
+    get: (e, recieved, next) => {
+      if (!(e.key in scope)) {
+        const request = { ...DOMBindingsContext2.createRequest(e.key), live: true, signal: abortController.signal };
+        root[config.CONTEXT_API.api.contexts].request(request, (value) => {
+          Observer2.set(scope, e.key, value);
+        });
+      }
+      return next(scope[e.key] ?? (e.key in globalThis ? globalThis[e.key] : void 0));
+    },
+    has: (e, recieved, next) => {
+      return next(true);
+    }
+  });
+  const instance = { scope, abortController, bindings: /* @__PURE__ */ new Map() };
+  _wq2(root).set("data-binding", instance);
+  return instance;
+}
+function cleanup(...entries) {
+  for (const node of entries) {
+    const root = node.nodeName === "#text" ? node.parentNode : node;
+    const { bindings, abortController } = _wq2(root).get("data-binding") || {};
+    if (!bindings?.has(node))
+      return;
+    bindings.get(node).liveProgramHandle.abort();
+    bindings.get(node).signals?.forEach((s) => s.abort());
+    bindings.delete(node);
+    if (!bindings.size) {
+      abortController.abort();
+      _wq2(root).delete("data-binding");
+    }
+  }
+}
+function patternMatch(config, str) {
+  const tagStart = config.tokens.tagStart.split("").map((x) => `\\${x}`).join("");
+  const tagEnd = config.tokens.tagEnd.split("").map((x) => `\\${x}`).join("");
+  const stateStart = config.tokens.stateStart.split("").map((x) => x === " " ? `(?:\\s+)?` : `\\${x}`).join("");
+  const stateEnd = config.tokens.stateEnd.split("").map((x) => `\\${x}`).join("");
+  const pattern = `^${tagStart}(.*?)(?:${stateStart}(\\d+)${stateEnd}(?:\\s+)?)?${tagEnd}$`;
+  const [, expr, span] = str.match(new RegExp(pattern));
+  return { raw: str, expr, span: parseInt(span ?? 0) };
+}
+async function mountDiscreteBindings(config, ...entries) {
+  const window2 = this;
+  const instances = entries.reduce((instances2, node) => {
+    if (node.isBound)
+      return instances2;
+    const template = patternMatch(config, node.nodeValue);
+    let textNode = node;
+    if (template.span) {
+      textNode = node.nextSibling;
+      if (textNode?.nodeName !== "#text" || textNode.nodeValue.length < template.span)
+        return instances2;
+      if (textNode.nodeValue.length > template.span) {
+        textNode.splitText(template.span);
+      }
+    } else {
+      textNode = node.ownerDocument.createTextNode("");
+      node.after(textNode);
+    }
+    textNode.isBound = true;
+    let anchorNode = node;
+    if (window2.webqit.env !== "server") {
+      anchorNode.remove();
+      anchorNode = null;
+    }
+    return instances2.concat({ textNode, template, anchorNode });
+  }, []);
+  for (const { textNode, template, anchorNode } of instances) {
+    const compiled = compileDiscreteBindings.call(window2, config, template.expr);
+    const { scope, bindings } = createDynamicScope.call(this, config, textNode.parentNode);
+    Object.defineProperty(textNode, "$oohtml_internal_databinding_anchorNode", { value: anchorNode, configurable: true });
+    try {
+      bindings.set(textNode, { liveProgramHandle: await (await compiled.bind(textNode, scope)).execute() });
+    } catch (e) {
+      console.log(e);
+    }
+  }
+}
+var discreteParseCache = /* @__PURE__ */ new Map();
+function compileDiscreteBindings(config, str) {
+  if (discreteParseCache.has(str))
+    return discreteParseCache.get(str);
+  let source = `let content = ((${str}) ?? '') + '';`;
+  source += `$assign__(this, 'nodeValue', content);`;
+  source += `if ( this.$oohtml_internal_databinding_anchorNode ) { $assign__(this.$oohtml_internal_databinding_anchorNode, 'nodeValue', "${config.tokens.tagStart}${escDouble(str)}${config.tokens.stateStart}" + content.length + "${config.tokens.stateEnd} ${config.tokens.tagEnd}"); }`;
+  const { webqit: { LiveScript: LiveScript2, AsyncLiveScript: AsyncLiveScript2 } } = this;
+  const { parserParams: parserParams2, compilerParams, runtimeParams: runtimeParams2 } = config.advanced;
+  const compiled = new (LiveScript2 || AsyncLiveScript2)(source, { parserParams: parserParams2, compilerParams, runtimeParams: runtimeParams2 });
+  discreteParseCache.set(str, compiled);
+  return compiled;
+}
+async function mountInlineBindings(config, ...entries) {
+  for (const node of entries) {
+    const compiled = compileInlineBindings.call(this, config, node.getAttribute(config.attr.render));
+    const { scope, bindings } = createDynamicScope.call(this, config, node);
+    const signals = [];
+    Object.defineProperty(node, "$oohtml_internal_databinding_signals", { value: signals, configurable: true });
+    try {
+      bindings.set(node, { signals, liveProgramHandle: await (await compiled.bind(node, scope)).execute() });
+    } catch (e) {
+      console.log(e);
+    }
+  }
+}
+var inlineParseCache = /* @__PURE__ */ new Map();
+function compileInlineBindings(config, str) {
+  if (inlineParseCache.has(str))
+    return inlineParseCache.get(str);
+  const validation = {};
+  let $event_i = -1;
+  const source = _splitOuter(str, ";").map((str2) => {
+    const [left, right] = _splitOuter(str2, ":").map((x) => x.trim());
+    const directive = left[0], param = left.slice(1).trim();
+    const arg = `(${right})`, $arg = `(${arg} ?? '')`;
+    if (directive === "$") {
+      return `$exec__(this, '${param}', ${arg});`;
+    }
+    if (directive === "&") {
+      if (param.startsWith("--"))
+        return `$exec__(this.style, 'setProperty', "${escDouble(param)}", ${$arg});`;
+      return `$assign__(this.style, "${escDouble(param)}", ${$arg});`;
+    }
+    if (directive === "%")
+      return `$exec__(this.classList, 'toggle', "${escDouble(param)}", !!${arg});`;
+    if (directive === "~") {
+      if (param.startsWith("?"))
+        return `$exec__(this, 'toggleAttribute', "${escDouble(param.substring(1).trim())}", !!${arg});`;
+      return `$exec__(this, 'setAttribute', "${escDouble(param)}", ${$arg});`;
+    }
+    if (directive === "#") {
+      if (validation[param])
+        throw new Error(`Duplicate binding: ${left}.`);
+      validation[param] = true;
+      if (param === "text")
+        return `$assign__(this, 'textContent', ${$arg});`;
+      if (param === "html")
+        return `$assign__(this, 'innerHTML', ${$arg});`;
+      if (param === "items") {
+        const [iterationSpec, importSpec] = _splitOuter(right, "/");
+        if (!importSpec)
+          throw new Error(`Invalid ${directive}items spec: ${str2}; no import specifier.`);
+        let [raw, production, kind, iteratee] = iterationSpec.trim().match(/(.*?[\)\s+])(of|in)([\(\{\[\s+].*)/i) || [];
+        if (!raw)
+          throw new Error(`Invalid ${directive}items spec: ${str2}.`);
+        if (production.startsWith("(")) {
+          production = production.trim().slice(1, -1).split(",").map((x) => x.trim());
+        } else {
+          production = [production];
+        }
+        if (production.length > (kind === "in" ? 3 : 2))
+          throw new Error(`Invalid ${directive}items spec: ${str2}.`);
+        const indices = kind === "in" ? production[2] : production[1] || "$index__";
+        const src = `
+                let $iteratee__ = ${iteratee};
+                let $import__ = this.${config.HTML_IMPORTS.api.import}( ${importSpec.trim()}, true );
                 this.$oohtml_internal_databinding_signals?.push( $import__ );
                 if ( $import__.value && $iteratee__ ) {
                     let $existing__ = new Map;
-                    [ ...this.children ].filter( el => el.matches( '[${i.attr.itemIndex}]' ) ).forEach( x => {
-                        $existing__.set( x.getAttribute( '${i.attr.itemIndex}' ), x );
+                    [ ...this.children ].filter( el => el.matches( '[${config.attr.itemIndex}]' ) ).forEach( x => {
+                        $existing__.set( x.getAttribute( '${config.attr.itemIndex}' ), x );
                     } );
-                    ${O?`let ${O} = -1;`:""}
-                    for ( let ${h[0]} ${b} $iteratee__ ) {
-                        ${O?`${O} ++;`:""}
-                        ${b==="in"&&h[1]?`let /*value*/${h[1]} = $iteratee__[ ${h[0]} ];`:""}
-                        let $itemBinding__ = { ${h.join(", ")} };
+                    ${indices ? `let ${indices} = -1;` : ""}
+                    for ( let ${production[0]} ${kind} $iteratee__ ) {
+                        ${indices ? `${indices} ++;` : ""}
+                        ${kind === "in" && production[1] ? `let /*value*/${production[1]} = $iteratee__[ ${production[0]} ];` : ""}
+                        let $itemBinding__ = { ${production.join(", ")} };
                         
-                        const $key___ = ( ${b==="in"?h[0]:O} ) + '';
+                        const $key___ = ( ${kind === "in" ? production[0] : indices} ) + '';
                         let $itemNode__ = $existing__.get( $key___ );
                         if ( $itemNode__ ) {
                             $existing__.delete( $key___ );
-                            $exec__($itemNode__, '${i.BINDINGS_API.api.bind}', $itemBinding__ );
+                            $exec__($itemNode__, '${config.BINDINGS_API.api.bind}', $itemBinding__ );
                         } else {
                             $itemNode__ = ( Array.isArray( $import__.value ) ? $import__.value[ 0 ] : ( $import__.value instanceof window.HTMLTemplateElement ? $import__.value.content.firstElementChild : $import__.value ) ).cloneNode( true );
-                            $itemNode__.setAttribute( "${i.attr.itemIndex}", $key___ );
-                            $exec__($itemNode__, '${i.BINDINGS_API.api.bind}', $itemBinding__ );
+                            $itemNode__.setAttribute( "${config.attr.itemIndex}", $key___ );
+                            $exec__($itemNode__, '${config.BINDINGS_API.api.bind}', $itemBinding__ );
                             $exec__(this, 'appendChild', $itemNode__ );
                         }
 
-                        if ( ${b==="in"?`!( ${h[0]} in $iteratee__ )`:`typeof ${h[0]} === 'undefined'`} ) { $itemNode__.remove(); }
+                        if ( ${kind === "in" ? `!( ${production[0]} in $iteratee__ )` : `typeof ${production[0]} === 'undefined'`} ) { $itemNode__.remove(); }
                     }
                     $existing__.forEach( x => x.remove() );
                     $existing__.clear();
-                }`}}if(m==="@")return r++,`
-                const handler${r} = event => ${d.startsWith("{")?d:v};
-                this.addEventListener( '${w}', handler${r} );
-                const abort${r} = () => this.removeEventListener( '${w}', handler${r} );
-                this.$oohtml_internal_databinding_signals?.push( { abort: abort${r} } );
-            `;if(m==="$")return`$exec__(this, '${w}', ${v});`;if(p.trim())throw new Error(`Invalid binding: ${p}.`)}).join(`
-`),{webqit:{LiveScript:o,AsyncLiveScript:s}}=this,{parserParams:a,compilerParams:c,runtimeParams:l}=i.advanced,u=new(o||s)(n,{parserParams:a,compilerParams:c,runtimeParams:l});return fr.set(t,u),u}var Wt=i=>i.replace(/"/g,'\\"');function ai(i){let t=this,{webqit:{oohtml:{configs:{DATA_BINDING:e}}}}=t;(i?.matches(e.attrSelector)?[i]:[]).concat([...i?.querySelectorAll(e.attrSelector)||[]]).forEach(r=>{si.call(t,e,r.getAttribute(e.attr.render))}),Lt(t,i,`(${e.discreteBindingsSelector})`).forEach(r=>{let n=ni(e,r.nodeValue);oi.call(t,e,n.expr)})}var et=class extends J{static createRequest(t=null){let e=super.createRequest();if(t?.startsWith("@")){let[r,...n]=n.slice(1).split(".").map(o=>o.trim());e.targetContext=r,e.detail=n.join(".")}else e.detail=t;return e}get bindingsObj(){return this.host[this.configs.BINDINGS_API.api.bindings]}matchEvent(t){return super.matchEvent(t)&&(!t.detail||!this.detail||(Array.isArray(t.detail)?t.detail[0]===this.detail:t.detail===this.detail))}handle(t){if(t.meta.controller?.abort(),!(t.detail+"").trim())return t.respondWith(this.bindingsObj);let{window:{webqit:{Observer:e}}}=D;t.meta.controller=e.reduce(this.bindingsObj,Array.isArray(t.detail)?t.detail:[t.detail],e.get,r=>{this.disposed||t.respondWith(r.value)},{live:t.live,signal:t.signal,descripted:!0})}unsubscribed(t){t.meta.controller?.abort()}};V(et,"kind","bindings");function dr(i={}){let{config:t,window:e}=X.call(this,"bindings-api",i,{attr:{bindingsreflection:"bindings"},api:{bind:"bind",bindings:"bindings"}});e.webqit.DOMBindingsContext=et,cn.call(e,t),fn.call(e,t)}function hr(i,t){let e=this,{webqit:{Observer:r,oohtml:{configs:{CONTEXT_API:n}}}}=e;if(!E(t).has("bindings")){let o=Object.create(null);E(t).set("bindings",o),r.observe(o,s=>{if(t instanceof e.Element){let a=Ee(t.getAttribute(i.attr.bindingsreflection)||""),c=new Map(a);for(let l of s)l.detail?.publish!==!1&&(l.type==="delete"?a.delete(l.key):a.set(l.key,void 0));a.size&&a.size!==c.size?t.setAttribute(i.attr.bindingsreflection,`{ ${[...a.entries()].map(([l,u])=>u===void 0?l:`${l}: ${u}`).join(", ")} }`):a.size||t.toggleAttribute(i.attr.bindingsreflection,!1)}else{let a=t[n.api.contexts];for(let c of s)if(c.type==="delete"){let l=a.find(et.kind,c.key);l&&a.detach(l)}else a.find(et.kind,c.key)||a.attach(new et(c.key))}})}return E(t).get("bindings")}function cn(i){let t=this,{webqit:{Observer:e}}=t;[t.Document.prototype,t.Element.prototype,t.ShadowRoot.prototype].forEach(r=>{let n=r===t.Document.prototype?"Document":r===t.ShadowRoot.prototype?"ShadowRoot":"Element";if(i.api.bind in r)throw new Error(`The ${n} prototype already has a "${i.api.bind}" API!`);if(i.api.bindings in r)throw new Error(`The ${n} prototype already has a "${i.api.bindings}" API!`);Object.defineProperty(r,i.api.bind,{value:function(o,s={}){return un.call(t,i,this,o,s)}}),Object.defineProperty(r,i.api.bindings,{get:function(){return e.proxy(hr.call(t,i,this))}})})}function un(i,t,e,{merge:r,diff:n,publish:o,namespace:s}={}){let a=this,{webqit:{Observer:c}}=a,l=hr.call(this,i,t),u={diff:n,namespace:s,detail:{publish:o}},p=r?[]:Object.keys(l).filter(f=>!(f in e));return c.batch(l,()=>(p.length&&c.deleteProperties(l,p,u),c.set(l,e,u)),u)}function fn(i){let t=this,{webqit:{realdom:e,Observer:r,oohtml:{configs:n}}}=t,o=(a,c)=>{let l=a[n.CONTEXT_API.api.contexts];l.find(et.kind,c)||l.attach(new et(c))},s=(a,c)=>{let l,u=a[n.CONTEXT_API.api.contexts];for(;l=u.find(et.kind,c);)u.detach(l)};e.realtime(t.document).query(`[${t.CSS.escape(i.attr.bindingsreflection)}]`,a=>{a.exits.forEach(c=>s(c)),a.entrants.forEach(c=>{let l=Ee(c.getAttribute(i.attr.bindingsreflection)||""),u=[...l.entries()].filter(([p,f])=>f!==void 0);u.length&&c[i.api.bind](Object.fromEntries(u),{merge:!0,publish:!1});for(let[p]of l)o(c,p)})},{id:"bindings:dom",live:!0,subtree:"cross-roots",timing:"sync",eventDetails:!0}),e.realtime(t.document,"attr").observe(i.attr.bindingsreflection,a=>{let c=hr.call(t,i,a.target),l=Ee(a.value||""),u=Ee(a.oldValue||"");for(let p of new Set([...l.keys(),...u.keys()]))u.has(p)?l.has(p)?l.get(p)!==u.get(p)&&r.set(c,p,l.get(p),{detail:{publish:!1}}):(u.get(p)!==void 0&&r.deleteProperty(c,p,{detail:{publish:!1}}),s(a.target,p)):(l.get(p)!==void 0&&r.set(c,p,l.get(p),{detail:{publish:!1}}),o(a.target,p))},{id:"bindings:attr",subtree:"cross-roots",timing:"sync",newValue:!0,oldValue:!0})}var Ee=i=>(i=i.trim(),new Map(ft(i.slice(1,-1),",").filter(t=>t.trim()).map(t=>ft(t,":").map(e=>e.trim()))));var st=class{static instance(t){return E(t).get("defsmanager::instance")||new this(t)}constructor(t,e=null,r=0){let{window:n}=D,{webqit:{realdom:o,oohtml:{configs:s}}}=n;E(t).get("defsmanager::instance")?.dispose(),E(t).set("defsmanager::instance",this),this.window=n,this.host=t,this.config=s.HTML_IMPORTS,this.parent=e,this.level=r,this.defs=pt(this.host),this.defId=(this.host.getAttribute(this.config.attr.def)||"").trim(),this.validateDefId(this.defId),this.realtimeA=o.realtime(this.host.content).children(a=>{this.expose(a.exits,!1),this.expose(a.entrants,!0)},{live:!0,timing:"sync"}),this.realtimeB=o.realtime(this.host).attr(["src","loading"],(...a)=>this.evaluateLoading(...a),{live:!0,atomic:!0,timing:"sync",lifecycleSignals:!0}),this.realtimeC=this.evalInheritance()}validateDefId(t){if(["@","/","*","#"].some(e=>t.includes(e)))throw new Error(`The export ID "${t}" contains an invalid character.`)}expose(t,e){let{window:r}=D,{webqit:{Observer:n}}=r,o,s=this.defs["#"]||[];t.forEach(a=>{if(!a||a.nodeType!==1)return;let c=a.matches(this.config.templateSelector),l=(a.getAttribute(c?this.config.attr.def:this.config.attr.fragmentdef)||"").trim();e?(c&&l?new st(a,this.host,this.level+1):(s.push(a),o=!0,typeof requestIdleCallback=="function"&&requestIdleCallback(()=>{this.config.idleCompilers?.forEach(u=>u.call(this.window,a))})),l&&(this.validateDefId(l),n.set(this.defs,(!c&&"#"||"")+l,a))):(c&&l?st.instance(a).dispose():(s=s.filter(u=>u!==a),o=!0),l&&n.deleteProperty(this.defs,(!c&&"#"||"")+l))}),o&&n.set(this.defs,"#",s)}evaluateLoading([t,e],{signal:r}){let{window:{webqit:{Observer:n}}}=D,o=(t.value||"").trim();if(!o)return;let s,a=u=>{if(!u)return s;s=u.then(()=>l.remove())},c=(e.value||"").trim(),l=n.intercept(this.defs,"get",async(u,p,f)=>(c==="lazy"&&a(this.load(o,!0)),await a(),f()),{signal:r});c!=="lazy"&&a(this.load(o))}#t=new Set;#e;load(t){let{window:e}=D;if(this.#t.has(t)||(this.#t.add(t),this.#t.size===1&&this.host.content.children.length))return Promise.resolve();this.#e?.controller.abort();let r=new AbortController,n=(s,a)=>this.host.dispatchEvent(new e.CustomEvent(s,{detail:a})),o=e.fetch(t,{signal:r.signal,element:this.host}).then(s=>s.ok?s.text():Promise.reject(s.statusText)).then(s=>(this.host.innerHTML=s.trim(),n("load"),this.host)).catch(s=>(console.error(`Error fetching the bundle at "${t}": ${s.message}`),this.#e=null,n("loaderror"),this.host));return this.#e={request:o,controller:r},o}evalInheritance(){if(!this.parent)return[];let{window:{webqit:{Observer:t}}}=D,e=(this.host.getAttribute(this.config.attr.extends)||"").trim(),r=(this.host.getAttribute(this.config.attr.inherits)||"").trim().split(" ").map(a=>a.trim()).filter(a=>a),n=a=>{a.forEach(c=>{t.get(this.defs,c.key)===c.oldValue&&(["get","set","def"].includes(c.type)?t[c.type.replace("get","set")](this.defs,c.key,c.value):c.type==="delete"&&t.deleteProperty(this.defs,c.key))})},o=[],s=pt(this.parent);return e&&o.push(t.reduce(s,[e,this.config.api.defs,1/0],t.get,n,{live:!0})),r.length&&o.push(t.get(s,r.includes("*")?1/0:r,n,{live:!0})),o}dispose(){this.realtimeA.disconnect(),this.realtimeB.disconnect(),this.realtimeC.forEach(t=>t instanceof Promise?t.then(e=>e.abort()):t.abort()),Object.entries(this.defs).forEach(([t,e])=>{t.startsWith("#")||st.instance(e).dispose()})}};var gt,Y,zt,Bt,dt=class extends J{constructor(){super(...arguments);Ut(this,gt,{});Ut(this,Y,void 0);Ut(this,zt,void 0);Ut(this,Bt,void 0)}static createRequest(e=null){let r=super.createRequest();if(e?.startsWith("/"))r.detail=e,r.targetContext=1/0;else if(e?.startsWith("@")){let[n,...o]=e.slice(1).split(/(?<=\w)(?=\/|#)/).map(s=>s.trim());r.targetContext=n,r.detail=o.join("")}else r.detail=e;return r}get localModules(){return pt(this.host)}get inheritedModules(){return U(this,gt)}handle(e){let{window:{webqit:{Observer:r}}}=D;e.meta.controller?.abort();let n=(e.detail||"").split(/\/|(?<=\w)(?=#)/g).map(s=>s.trim()).filter(s=>s);if(!n.length)return e.respondWith();n=n.join(`/${this.configs.HTML_IMPORTS.api.defs}/`)?.split("/").map(s=>s==="*"?1/0:s)||[];let o={live:e.live,sig_nal:e.signal,descripted:!0};e.meta.controller=r.reduce(U(this,Y),n,r.get,s=>{if(Array.isArray(s)){if(!s.length){e.respondWith();return}for(let a of s)e.respondWith(a)}else e.respondWith(s.value)},o)}unsubscribed(e){e.meta.controller?.abort()}initialize(e){this.host=e;let{window:{webqit:{Observer:r}}}=D,n=()=>{for(let s of new Set([...Object.keys(this.localModules),...Object.keys(this.inheritedModules),...Object.keys(U(this,Y))]))if(!r.has(this.localModules,s)&&!r.has(this.inheritedModules,s))r.deleteProperty(U(this,Y),s);else if(s==="#"&&r.has(this.localModules,s)&&r.has(this.inheritedModules,s))r.set(U(this,Y),s,[...r.get(this.localModules,s),...r.get(this.inheritedModules,s)]);else{let a=r.get(this.localModules,s)||r.get(this.inheritedModules,s);r.get(U(this,Y),s)!==a&&r.set(U(this,Y),s,a)}};It(this,Y,{...this.localModules}),U(this,zt)?.abort(),It(this,zt,r.observe(this.localModules,()=>n("local"),{timing:"sync"}));let o=this.configs.HTML_IMPORTS;if(this.host.matches&&o.attr.importscontext){let s=this.host.ownerDocument.defaultView.webqit.realdom,a;U(this,Bt)?.disconnect(),It(this,Bt,s.realtime(this.host).attr(o.attr.importscontext,(c,{signal:l})=>{let u=(c.value||"").trim();a=u,It(this,gt,{});let p={...this.constructor.createRequest(u?`${u}/*`:"*"),live:!0,signal:l,diff:!0};this.host.parentNode[this.configs.CONTEXT_API.api.contexts].request(p,f=>{f?f.type==="delete"?(delete U(this,gt)[f.key],Reflect.has(this.localModules,f.key)||r.deleteProperty(U(this,Y),f.key)):(U(this,gt)[f.key]=f.value,!Reflect.has(this.localModules,f.key)&&Reflect.get(U(this,Y),f.key)!==f.value&&r.set(U(this,Y),f.key,f.value)):(It(this,gt,{}),n("inherited"))}),n("inherited")},{live:!0,timing:"sync",oldValue:!0,lifecycleSignals:!0}))}return super.initialize(e)}dispose(e){return U(this,zt)?.abort(),U(this,Bt)?.disconnect(),super.dispose(e)}};gt=new WeakMap,Y=new WeakMap,zt=new WeakMap,Bt=new WeakMap,V(dt,"kind","html-imports");function li(){let{window:i}=D,{webqit:t}=i,{realdom:e,oohtml:{configs:r}}=t;if(t.HTMLImportElement)return t.HTMLImportElement;let n=r.HTML_IMPORTS.elements.import.includes("-")?i.HTMLElement:class{};class o extends n{static instance(a){return r.HTML_IMPORTS.elements.import.includes("-")&&a instanceof this?a:E(a).get("import::instance")||new this(a)}constructor(...a){super();let c=a[0]||this;E(c).set("import::instance",this),Object.defineProperty(this,"el",{get:()=>c,configurable:!1});let l={};Object.defineProperty(this,"#",{get:()=>l,configurable:!1}),l.slottedElements=new Set,l.setAnchorNode=u=>(l.anchorNode=u,u),l.live=u=>{if(l.liveImportsRealtime)throw new Error("Import element already in live mode.");let p=this.el.isConnected?this.el.parentNode:l.anchorNode.parentNode;l.liveImportsRealtime=e.realtime(this.el).attr(r.HTML_IMPORTS.attr.ref,(f,{signal:d})=>{l.moduleRef=f.value;let m=l.moduleRef.includes("#")?l.moduleRef:`${l.moduleRef}#`,w={...dt.createRequest(m),live:d&&!0,signal:d,diff:!m.endsWith("#")};p[r.CONTEXT_API.api.contexts].request(w,v=>{u((v instanceof i.HTMLTemplateElement?[...v.content.children]:Array.isArray(v)?v:v&&[v])||[])})},{live:!0,timing:"sync",lifecycleSignals:!0}),l.autoDestroyRealtime=e.realtime(i.document).track(p,()=>{l.die()},{subtree:"cross-roots",timing:"sync",generation:"exits"})},l.die=()=>{l.autoDestroyRealtime?.disconnect(),l.liveImportsRealtime?.disconnect(),l.liveImportsRealtime=null},l.hydrate=(u,p)=>{u.replaceWith(l.setAnchorNode(this.createAnchorNode())),l.live(f=>{if(l.originalsRemapped)return this.fill(f);let d=f.map((m,w)=>({el:m,fragmentDef:m.getAttribute(r.HTML_IMPORTS.attr.fragmentdef)||"",tagName:m.tagName,i:w}));p.forEach((m,w)=>{let v=m.tagName,g=m.getAttribute(r.HTML_IMPORTS.attr.fragmentdef)||"",y=(w++,d.find(x=>x.tagName===v&&x.fragmentDef===g&&x.i===w));y&&E(m).set("original@imports",y.el),E(m).set("slot@imports",this.el),l.slottedElements.add(m)}),l.originalsRemapped=!0})},l.autoRestore=(u=null)=>{l.autoRestoreRealtime?.disconnect(),u&&u();let p=()=>{this.el.isConnected||(this.el.setAttribute("data-nodecount",0),l.internalMutation=!0,l.anchorNode.replaceWith(this.el),l.internalMutation=!1,l.setAnchorNode(null))};if(!l.slottedElements.size)return p();let f=e.realtime(l.anchorNode.parentNode).observe([...l.slottedElements],d=>{if(d.exits.forEach(m=>{E(m).delete("slot@imports"),l.slottedElements.delete(m)}),!l.slottedElements.size){if(f.disconnect(),!d.target.isConnected)return;p()}},{subtree:"cross-roots",timing:"sync",generation:"exits"});l.autoRestoreRealtime=f},l.connectedCallback=()=>{l.internalMutation||l.live(u=>this.fill(u))},l.disconnectedCallback=()=>{l.internalMutation||l.die()}}createAnchorNode(){if(i.webqit.env!=="server")return i.document.createTextNode("");let a=i.document.createElement("div");a.textContent=this.el.outerHTML;let c=i.document.createComment(a.innerHTML);return E(c).set("isAnchorNode",!0),c}fill(a,c){!this.el.isConnected&&(!this["#"].anchorNode||!this["#"].anchorNode.isConnected)||(Array.isArray(a)&&(a=new Set(a)),this.el.setAttribute("data-nodecount",a.size),this["#"].autoRestore(()=>{if(this["#"].slottedElements.forEach(l=>{let u=E(l).get("original@imports");a.has(u)?a.delete(u):(this["#"].slottedElements.delete(l),l.remove())}),a.size&&this.el.isConnected){let l=this["#"].setAnchorNode(this.createAnchorNode());this["#"].internalMutation=!0,this.el.replaceWith(l),this["#"].internalMutation=!1}a.forEach(l=>{let u=l.cloneNode(!0);u.hasAttribute(r.HTML_IMPORTS.attr.fragmentdef)||u.toggleAttribute(r.HTML_IMPORTS.attr.fragmentdef,!0),E(u).set("original@imports",l),E(u).set("slot@imports",this.el),this["#"].slottedElements.add(u),this["#"].anchorNode.before(u)})}))}empty(){this["#"].slottedElements.forEach(a=>a.remove())}get anchorNode(){return this["#"].anchorNode}get moduleRef(){return this["#"].moduleRef}get slottedElements(){return this["#"].slottedElements}}return r.HTML_IMPORTS.elements.import.includes("-")&&customElements.define(r.HTML_IMPORTS.elements.import,o),t.HTMLImportElement=o,o}function mr(i={}){let{config:t,window:e}=X.call(this,"html-imports",i,{elements:{import:"import"},attr:{def:"def",extends:"extends",inherits:"inherits",ref:"ref",importscontext:"importscontext"},api:{def:"def",defs:"defs",import:"import"}});t.attr.fragmentdef||(t.attr.fragmentdef=t.attr.def),t.templateSelector=`template[${e.CSS.escape(t.attr.def)}]`,t.importsContextSelector=`[${e.CSS.escape(t.attr.importscontext)}]`,t.slottedElementsSelector=`[${e.CSS.escape(t.attr.fragmentdef)}]:not(template)`;let r=(n,o)=>{let s=`starts-with(., "${n}")`,a=`substring(., string-length(.) - string-length("${o}") + 1) = "${o}"`;return`${s} and ${a}`};t.anchorNodeSelector=`comment()[${r(`&lt;${t.elements.import}`,`&lt;/${t.elements.import}&gt;`)}]`,e.webqit.HTMLImportsContext=dt,e.webqit.HTMLImportElement=li(),pn.call(e,t),dn.call(e,t)}function pt(i,t=!0){if(!E(i).has("defs")&&t){let e=Object.create(null);E(i).set("defs",e)}return E(i).get("defs")}function pn(i){let t=this,{webqit:{oohtml:{configs:e}}}=t;if(i.api.def in t.HTMLTemplateElement.prototype)throw new Error(`The "HTMLTemplateElement" prototype already has a "${i.api.def}" API!`);if(i.api.defs in t.HTMLTemplateElement.prototype)throw new Error(`The "HTMLTemplateElement" prototype already has a "${i.api.defs}" API!`);Object.defineProperty(t.HTMLTemplateElement.prototype,i.api.def,{get:function(){return this.getAttribute(i.attr.def)}}),Object.defineProperty(t.HTMLTemplateElement.prototype,i.api.defs,{get:function(){return pt(this)}}),Object.defineProperty(t.HTMLTemplateElement.prototype,"scoped",{configurable:!0,get(){return this.hasAttribute("scoped")},set(n){this.toggleAttribute("scoped",n)}}),[t.Document.prototype,t.Element.prototype,t.ShadowRoot.prototype].forEach(n=>{let o=n===t.Document.prototype?"Document":n===t.ShadowRoot.prototype?"ShadowRoot":"Element";if(i.api.import in n)throw new Error(`The ${o} prototype already has a "${i.api.import}" API!`);if(i.api.defs in n)throw new Error(`The ${o} prototype already has a "${i.api.defs}" API!`);Object.defineProperty(n,i.api.defs,{get:function(){return pt(this)}}),Object.defineProperty(n,i.api.import,{value:function(s,a=!1,c=null){return r(this,...arguments)}})});function r(n,o,s=!1,a=null){let c={};typeof s=="function"?(a=s,s=!1):typeof s=="object"&&s?c={...s,...c}:c={live:s};let l={...dt.createRequest(o),...c};return n[e.CONTEXT_API.api.contexts].request(l,a)}}function dn(i){let t=this,{webqit:{Observer:e,realdom:r,oohtml:{configs:n},HTMLImportElement:o,HTMLImportsContext:s}}=t,a=u=>{let p=u[n.CONTEXT_API.api.contexts];p.find(s.kind)||p.attach(new s)},c=u=>{let p=u[n.CONTEXT_API.api.contexts],f=p.find(s.kind);f&&(!u.isConnected||!u.matches?.(i.importsContextSelector)&&!Object.keys(f.localModules).length)&&p.detach(f)};r.realtime(t.document).query([i.templateSelector,i.importsContextSelector],u=>{u.entrants.forEach(p=>{if(p.matches(i.templateSelector)){let f=st.instance(p);f.ownerContext=p.scoped?p.parentNode:p.getRootNode();let d=pt(f.ownerContext);f.defId&&e.set(d,f.defId,p),a(f.ownerContext)}else a(p)}),u.exits.forEach(p=>{if(p.matches(i.templateSelector)){let f=st.instance(p),d=pt(f.ownerContext);f.defId&&f.ownerContext.isConnected&&e.deleteProperty(d,f.defId),c(f.ownerContext)}else c(p)})},{id:"imports:template/importscontext",live:!0,subtree:"cross-roots",timing:"sync",staticSensitivity:!0,eventDetails:!0}),r.realtime(t.document).query(i.elements.import,u=>{u.entrants.forEach(p=>l(p,!0,u)),u.exits.forEach(p=>l(p,!1,u))},{id:"imports:import",live:!0,subtree:"cross-roots",timing:"sync",deferred:!0});function l(u,p){let f=o.instance(u);p?f["#"].connectedCallback():f["#"].disconnectedCallback()}t.webqit.env!=="server"&&r.realtime(t.document).query(`(${i.anchorNodeSelector})`,u=>{u.entrants.forEach(p=>{if(E(p).get("isAnchorNode"))return;let f=t.document.createElement("div");f.innerHTML=p.nodeValue,f.innerHTML=f.firstChild.textContent;let d=f.firstChild,m=parseInt(d.getAttribute("data-nodecount")),w=new Set,v=p;for(;(v=v.previousElementSibling)&&v.matches(i.slottedElementsSelector)&&m--;)w.add(v);o.instance(d)["#"].hydrate(p,w)})},{id:"imports:hydration",live:!0,subtree:"cross-roots",timing:"sync"})}function gr(i={}){let{config:t,window:e}=X.call(this,"context-api",i,{elements:{roots:"root,webflo-embedded"},attr:{contextname:"contextname"},api:{contexts:"contexts"}}),r=new Map,n=e.EventTarget.prototype.dispatchEvent;Object.defineProperty(e.EventTarget.prototype,"dispatchEvent",{value:function(...o){let s=o[0],a=this?.closest?.(t.elements.roots)||this.getRootNode?.();if(["contextclaim","contextrequest"].includes(s.type)&&a){s.meta&&(s.meta.target=this);let c=u=>{if(u.stopImmediatePropagation(),u.meta&&(u.meta.target=u.target),!u.answered){if(r.get(a)||r.set(a,new Set),u.type==="contextrequest"&&u.live)r.get(a).add(u);else if(u.type==="contextclaim"){let p=new Set;return r.get(a).forEach(f=>{!u.target.contains(f.target)||!u.detail?.matchEvent?.(f)||(r.get(a).delete(f),p.add(f))}),r.get(a).size||r.delete(a),u.respondWith?.(p)}}};a.addEventListener(s.type,c);let l=n.call(this,...o);return a.removeEventListener(s.type,c),l}return n.call(this,...o)}}),e.webqit.DOMContexts=mt,e.webqit.DOMContext=J,e.webqit.DOMContextRequestEvent=Se(),e.webqit.DOMContextResponse=Tt,e.webqit.DuplicateContextError=Ct,hn.call(e,t)}function hn(i){let t=this;[t.Document.prototype,t.Element.prototype,t.ShadowRoot.prototype].forEach(e=>{let r=e===t.Document.prototype?"Document":e===t.ShadowRoot.prototype?"ShadowRoot":"Element";if(i.api.contexts in e)throw new Error(`The ${r} prototype already has a "${i.api.contexts}" API!`);Object.defineProperty(e,i.api.contexts,{get:function(){return mt.instance(this)}})})}function br({advanced:i={},...t}){let{config:e,window:r}=X.call(this,"scoped-css",t,{api:{styleSheets:"styleSheets"},style:{retention:"retain",mimeTypes:"text/css",strategy:null}});e.styleSelector=(Array.isArray(e.style.mimeTypes)?e.style.mimeTypes:e.style.mimeTypes.split("|")).concat("").reduce((n,o)=>{let s=o?`[type="${r.CSS.escape(o)}"]`:":not([type])";return n.concat(`style${s}`)},[]).join(","),r.webqit.oohtml.Style={compileCache:new Map},mn.call(r,e),gn.call(r,e)}function mn(i){let t=this,e=new Map;[t.Element.prototype].forEach(r=>{let n="Element";if(i.api.styleSheets in r)throw new Error(`The ${n} prototype already has a "${i.api.styleSheets}" API!`);Object.defineProperty(r,i.api.styleSheets,{get:function(){return e.has(this)||e.set(this,[]),e.get(this)}})}),Object.defineProperty(t.HTMLStyleElement.prototype,"scoped",{configurable:!0,get(){return this.hasAttribute("scoped")},set(r){this.toggleAttribute("scoped",r)}})}function gn(i){let t=this,{webqit:{oohtml:e,realdom:r}}=t,n=Object.getOwnPropertyDescriptor(globalThis,"window")?.get?.toString().includes("[native code]")??!1;t.CSS.supports||(t.CSS.supports=()=>!1);let o=new WeakSet;r.realtime(t.document).query(i.styleSelector,s=>{s.entrants.forEach(a=>{if(o.has(a))return;o.add(a);let c=Pt(a.textContent),l=CSS.supports("selector(:has(a,b))"),u=a.scoped&&(l?`:has(> style[rand-${c}])`:`[rand-${c}]`),p=a.scoped&&t.CSSScopeRule&&!1,f=a.scoped&&a.parentNode||a.getRootNode();if(f instanceof t.Element){if(f[i.api.styleSheets].push(a),!n)return;(l?a:f).toggleAttribute(`rand-${c}`,!0)}if(!!n)if(a.scoped&&a.hasAttribute("shared")){let d;(d=e.Style.compileCache.get(c))||(d=yn.call(t,a,null,p,u),e.Style.compileCache.set(c,d)),Object.defineProperty(a,"sheet",{value:d,configurable:!0}),a.textContent=`
-/*[ Shared style sheet ]*/
-`}else{let d=()=>{let m=$e(Ft.call(t,f));yr.call(this,a.sheet,m,!p&&u)};a.isConnected?d():setTimeout(()=>{d()},0)}})},{id:"scoped-css",live:!0,subtree:"cross-roots",timing:"intercept",generation:"entrants"})}function yn(i,t,e,r){let n=this,o=i.textContent,s,a=e&&r?`@scope (${r}) {
-${o.trim()}
-}`:o.trim();try{s=new n.CSSStyleSheet,s.replaceSync(a),yr.call(this,s,t,!e&&r);let c=()=>i.getRootNode().adoptedStyleSheets.push(s);i.isConnected?c():setTimeout(()=>{c()},0)}catch{let l=n.document.createElement("style");i.after(l),l.textContent=a,s=l.sheet,yr.call(this,s,t,!e&&r)}return s}function yr(i,t,e=null){let r=i?.cssRules.length||-1;for(let n=0;n<r;++n){let o=i.cssRules[n];o instanceof CSSImportRule||ci.call(this,o,t,e)}}function ci(i,t,e=null){if(i instanceof CSSStyleRule){ui.call(this,i,t,e);return}if([window.CSSScopeRule,window.CSSMediaRule,window.CSSContainerRule,window.CSSSupportsRule,window.CSSLayerBlockRule].some(r=>r&&i instanceof r)){let r=i.cssRules.length;for(let n=0;n<r;++n)ci.call(this,i.cssRules[n],t,e)}}function ui(i,t,e=null){let r=lr.call(this,i.selectorText,t,e,1);if(i.selectorText=r,i.cssRules){let n=i.cssRules.length;for(let o=0;o<n;++o)ui.call(this,i.cssRules[o],t)}}function wr(i,t={}){this.webqit||(this.webqit={}),Object.assign(this.webqit,i),gr.call(this,t.CONTEXT_API||{}),dr.call(this,t.BINDINGS_API||{}),mr.call(this,{...t.HTML_IMPORTS||{},idleCompilers:[ei,ai]}),ar.call(this,t.NAMESPACED_HTML||{}),pr.call(this,t.DATA_BINDING||{}),br.call(this,t.SCOPED_CSS||{}),cr.call(this,t.SCOPED_JS||{})}wr.call(window,Ke);
+                }`;
+        return src;
+      }
+    }
+    if (directive === "@") {
+      if (param === "@connected") {
+        return `${arg};`;
+      }
+      $event_i++;
+      return `
+                const handler${$event_i} = event => ${right.startsWith("{") ? right : arg};
+                this.addEventListener( '${param}', handler${$event_i}${param === "@disconnected" ? ", { once: true }" : ""} );
+                const abort${$event_i} = () => this.removeEventListener( '${param}', handler${$event_i} );
+                this.$oohtml_internal_databinding_signals?.push( { abort: abort${$event_i} } );
+            `;
+    }
+    if (str2.trim())
+      throw new Error(`Invalid binding: ${str2}.`);
+  }).join(`
+`);
+  const { webqit: { LiveScript: LiveScript2, AsyncLiveScript: AsyncLiveScript2 } } = this;
+  const { parserParams: parserParams2, compilerParams, runtimeParams: runtimeParams2 } = config.advanced;
+  const compiled = new (LiveScript2 || AsyncLiveScript2)(source, { parserParams: parserParams2, compilerParams, runtimeParams: runtimeParams2 });
+  inlineParseCache.set(str, compiled);
+  return compiled;
+}
+var escDouble = (str) => str.replace(/"/g, '\\"');
+function idleCompiler2(node) {
+  const window2 = this, { webqit: { oohtml: { configs: { DATA_BINDING: config } } } } = window2;
+  (node?.matches(config.attrSelector) ? [node] : []).concat([...node?.querySelectorAll(config.attrSelector) || []]).forEach((node2) => {
+    compileInlineBindings.call(window2, config, node2.getAttribute(config.attr.render));
+  });
+  xpathQuery(window2, node, `(${config.discreteBindingsSelector})`).forEach((node2) => {
+    const template = patternMatch(config, node2.nodeValue);
+    compileDiscreteBindings.call(window2, config, template.expr);
+  });
+}
+
+// src/bindings-api/DOMBindingsContext.js
+var DOMBindingsContext = class extends DOMContext {
+  static createRequest(detail = null) {
+    const request = super.createRequest();
+    if (detail?.startsWith("@")) {
+      const [targetContext, ...detail2] = detail2.slice(1).split(".").map((s) => s.trim());
+      request.targetContext = targetContext;
+      request.detail = detail2.join(".");
+    } else {
+      request.detail = detail;
+    }
+    return request;
+  }
+  get bindingsObj() {
+    return this.host[this.configs.BINDINGS_API.api.bindings];
+  }
+  matchEvent(event) {
+    return super.matchEvent(event) && (!event.detail || !this.detail || (Array.isArray(event.detail) ? event.detail[0] === this.detail : event.detail === this.detail));
+  }
+  handle(event) {
+    event.meta.controller?.abort();
+    if (!(event.detail + "").trim())
+      return event.respondWith(this.bindingsObj);
+    const { window: { webqit: { Observer: Observer2 } } } = env3;
+    event.meta.controller = Observer2.reduce(this.bindingsObj, Array.isArray(event.detail) ? event.detail : [event.detail], Observer2.get, (descriptor) => {
+      if (this.disposed)
+        return;
+      event.respondWith(descriptor.value);
+    }, { live: event.live, signal: event.signal, descripted: true });
+  }
+  unsubscribed(event) {
+    event.meta.controller?.abort();
+  }
+};
+__publicField(DOMBindingsContext, "kind", "bindings");
+
+// src/bindings-api/index.js
+function init4($config = {}) {
+  const { config, window: window2 } = _init.call(this, "bindings-api", $config, {
+    attr: { bindingsreflection: "bindings" },
+    api: { bind: "bind", bindings: "bindings" }
+  });
+  window2.webqit.DOMBindingsContext = DOMBindingsContext;
+  exposeAPIs3.call(window2, config);
+  realtime4.call(window2, config);
+}
+function getBindings(config, node) {
+  const window2 = this, { webqit: { Observer: Observer2, oohtml: { configs: { CONTEXT_API: ctxConfig } } } } = window2;
+  if (!_wq2(node).has("bindings")) {
+    const bindingsObj = /* @__PURE__ */ Object.create(null);
+    _wq2(node).set("bindings", bindingsObj);
+    Observer2.observe(bindingsObj, (mutations) => {
+      if (node instanceof window2.Element) {
+        const bindingsParse = parseBindingsAttr(node.getAttribute(config.attr.bindingsreflection) || "");
+        const bindingsParseBefore = new Map(bindingsParse);
+        for (const m of mutations) {
+          if (m.detail?.publish !== false) {
+            if (m.type === "delete")
+              bindingsParse.delete(m.key);
+            else
+              bindingsParse.set(m.key, void 0);
+          }
+        }
+        if (bindingsParse.size && bindingsParse.size !== bindingsParseBefore.size) {
+          node.setAttribute(config.attr.bindingsreflection, `{ ${[...bindingsParse.entries()].map(([key, value]) => value === void 0 ? key : `${key}: ${value}`).join(", ")} }`);
+        } else if (!bindingsParse.size)
+          node.toggleAttribute(config.attr.bindingsreflection, false);
+      } else {
+        const contextsApi = node[ctxConfig.api.contexts];
+        for (const m of mutations) {
+          if (m.type === "delete") {
+            const ctx = contextsApi.find(DOMBindingsContext.kind, m.key);
+            if (ctx)
+              contextsApi.detach(ctx);
+          } else if (!contextsApi.find(DOMBindingsContext.kind, m.key)) {
+            contextsApi.attach(new DOMBindingsContext(m.key));
+          }
+        }
+      }
+    });
+  }
+  return _wq2(node).get("bindings");
+}
+function exposeAPIs3(config) {
+  const window2 = this, { webqit: { Observer: Observer2 } } = window2;
+  [window2.Document.prototype, window2.Element.prototype, window2.ShadowRoot.prototype].forEach((prototype) => {
+    const type = prototype === window2.Document.prototype ? "Document" : prototype === window2.ShadowRoot.prototype ? "ShadowRoot" : "Element";
+    if (config.api.bind in prototype) {
+      throw new Error(`The ${type} prototype already has a "${config.api.bind}" API!`);
+    }
+    if (config.api.bindings in prototype) {
+      throw new Error(`The ${type} prototype already has a "${config.api.bindings}" API!`);
+    }
+    Object.defineProperty(prototype, config.api.bind, { value: function(bindings, options = {}) {
+      return applyBindings.call(window2, config, this, bindings, options);
+    } });
+    Object.defineProperty(prototype, config.api.bindings, { get: function() {
+      return Observer2.proxy(getBindings.call(window2, config, this));
+    } });
+  });
+}
+function applyBindings(config, target, bindings, { merge, diff, publish, namespace } = {}) {
+  const window2 = this, { webqit: { Observer: Observer2 } } = window2;
+  const bindingsObj = getBindings.call(this, config, target);
+  const $params = { diff, namespace, detail: { publish } };
+  const exitingKeys = merge ? [] : Object.keys(bindingsObj).filter((key) => !(key in bindings));
+  return Observer2.batch(bindingsObj, () => {
+    if (exitingKeys.length) {
+      Observer2.deleteProperties(bindingsObj, exitingKeys, $params);
+    }
+    return Observer2.set(bindingsObj, bindings, $params);
+  }, $params);
+}
+function realtime4(config) {
+  const window2 = this, { webqit: { realdom, Observer: Observer2, oohtml: { configs } } } = window2;
+  const attachBindingsContext = (host, key) => {
+    const contextsApi = host[configs.CONTEXT_API.api.contexts];
+    if (!contextsApi.find(DOMBindingsContext.kind, key)) {
+      contextsApi.attach(new DOMBindingsContext(key));
+    }
+  };
+  const detachBindingsContext = (host, key) => {
+    let ctx, contextsApi = host[configs.CONTEXT_API.api.contexts];
+    while (ctx = contextsApi.find(DOMBindingsContext.kind, key))
+      contextsApi.detach(ctx);
+  };
+  realdom.realtime(window2.document).query(`[${window2.CSS.escape(config.attr.bindingsreflection)}]`, (record) => {
+    record.exits.forEach((entry) => detachBindingsContext(entry));
+    record.entrants.forEach((entry) => {
+      const bindingsParse = parseBindingsAttr(entry.getAttribute(config.attr.bindingsreflection) || "");
+      const newData = [...bindingsParse.entries()].filter(([k, v]) => v !== void 0);
+      if (newData.length)
+        entry[config.api.bind](Object.fromEntries(newData), { merge: true, publish: false });
+      for (const [key] of bindingsParse) {
+        attachBindingsContext(entry, key);
+      }
+    });
+  }, { id: "bindings:dom", live: true, subtree: "cross-roots", timing: "sync", eventDetails: true });
+  realdom.realtime(window2.document, "attr").observe(config.attr.bindingsreflection, (record) => {
+    const bindingsObj = getBindings.call(window2, config, record.target);
+    const bindingsParse = parseBindingsAttr(record.value || "");
+    const oldBindings = parseBindingsAttr(record.oldValue || "");
+    for (const key of /* @__PURE__ */ new Set([...bindingsParse.keys(), ...oldBindings.keys()])) {
+      if (!oldBindings.has(key)) {
+        if (bindingsParse.get(key) !== void 0)
+          Observer2.set(bindingsObj, key, bindingsParse.get(key), { detail: { publish: false } });
+        attachBindingsContext(record.target, key);
+      } else if (!bindingsParse.has(key)) {
+        if (oldBindings.get(key) !== void 0)
+          Observer2.deleteProperty(bindingsObj, key, { detail: { publish: false } });
+        detachBindingsContext(record.target, key);
+      } else if (bindingsParse.get(key) !== oldBindings.get(key)) {
+        Observer2.set(bindingsObj, key, bindingsParse.get(key), { detail: { publish: false } });
+      }
+    }
+  }, { id: "bindings:attr", subtree: "cross-roots", timing: "sync", newValue: true, oldValue: true });
+}
+var parseBindingsAttr = (str) => {
+  str = str.trim();
+  return new Map(_splitOuter(str.slice(1, -1), ",").filter((s) => s.trim()).map((_str) => {
+    return _splitOuter(_str, ":").map((s) => s.trim());
+  }));
+};
+
+// src/html-imports/HTMLModule.js
+var HTMLModule = class {
+  static instance(host) {
+    return _wq2(host).get("defsmanager::instance") || new this(host);
+  }
+  constructor(host, parent = null, level = 0) {
+    const { window: window2 } = env3, { webqit: { realdom, oohtml: { configs } } } = window2;
+    _wq2(host).get(`defsmanager::instance`)?.dispose();
+    _wq2(host).set(`defsmanager::instance`, this);
+    this.window = window2;
+    this.host = host;
+    this.config = configs.HTML_IMPORTS;
+    this.parent = parent;
+    this.level = level;
+    this.defs = getDefs(this.host);
+    this.defId = (this.host.getAttribute(this.config.attr.def) || "").trim();
+    this.validateDefId(this.defId);
+    this.realtimeA = realdom.realtime(this.host.content).children((record) => {
+      this.expose(record.exits, false);
+      this.expose(record.entrants, true);
+    }, { live: true, timing: "sync" });
+    this.realtimeB = realdom.realtime(this.host).attr(["src", "loading"], (...args) => this.evaluateLoading(...args), {
+      live: true,
+      atomic: true,
+      timing: "sync",
+      lifecycleSignals: true
+    });
+    this.realtimeC = this.evalInheritance();
+  }
+  validateDefId(defId) {
+    if (["@", "/", "*", "#"].some((token) => defId.includes(token))) {
+      throw new Error(`The export ID "${defId}" contains an invalid character.`);
+    }
+  }
+  expose(entries, isConnected) {
+    const { window: window2 } = env3, { webqit: { Observer: Observer2 } } = window2;
+    let dirty, allFragments = this.defs["#"] || [];
+    entries.forEach((entry) => {
+      if (!entry || entry.nodeType !== 1)
+        return;
+      const isTemplate = entry.matches(this.config.templateSelector);
+      const defId = (entry.getAttribute(isTemplate ? this.config.attr.def : this.config.attr.fragmentdef) || "").trim();
+      if (isConnected) {
+        if (isTemplate && defId) {
+          new HTMLModule(entry, this.host, this.level + 1);
+        } else {
+          allFragments.push(entry);
+          dirty = true;
+          if (typeof requestIdleCallback === "function") {
+            requestIdleCallback(() => {
+              this.config.idleCompilers?.forEach((callback) => callback.call(this.window, entry));
+            });
+          }
+        }
+        if (defId) {
+          this.validateDefId(defId);
+          Observer2.set(this.defs, (!isTemplate && "#" || "") + defId, entry);
+        }
+      } else {
+        if (isTemplate && defId) {
+          HTMLModule.instance(entry).dispose();
+        } else {
+          allFragments = allFragments.filter((x) => x !== entry);
+          dirty = true;
+        }
+        if (defId)
+          Observer2.deleteProperty(this.defs, (!isTemplate && "#" || "") + defId);
+      }
+    });
+    if (dirty)
+      Observer2.set(this.defs, "#", allFragments);
+  }
+  evaluateLoading([record1, record2], { signal }) {
+    const { window: { webqit: { Observer: Observer2 } } } = env3;
+    const src = (record1.value || "").trim();
+    if (!src)
+      return;
+    let $loadingPromise, loadingPromise = (promise) => {
+      if (!promise)
+        return $loadingPromise;
+      $loadingPromise = promise.then(() => interception.remove());
+    };
+    const loading = (record2.value || "").trim();
+    const interception = Observer2.intercept(this.defs, "get", async (descriptor, recieved, next) => {
+      if (loading === "lazy") {
+        loadingPromise(this.load(src, true));
+      }
+      await loadingPromise();
+      return next();
+    }, { signal });
+    if (loading !== "lazy") {
+      loadingPromise(this.load(src));
+    }
+  }
+  #fetchedURLs = /* @__PURE__ */ new Set();
+  #fetchInFlight;
+  load(src) {
+    const { window: window2 } = env3;
+    if (this.#fetchedURLs.has(src)) {
+      return Promise.resolve();
+    }
+    this.#fetchedURLs.add(src);
+    if (this.#fetchedURLs.size === 1 && this.host.content.children.length) {
+      return Promise.resolve();
+    }
+    this.#fetchInFlight?.controller.abort();
+    const controller = new AbortController();
+    const fire = (type, detail) => this.host.dispatchEvent(new window2.CustomEvent(type, { detail }));
+    const request = window2.fetch(src, { signal: controller.signal, element: this.host }).then((response) => {
+      return response.ok ? response.text() : Promise.reject(response.statusText);
+    }).then((content) => {
+      this.host.innerHTML = content.trim();
+      fire("load");
+      return this.host;
+    }).catch((e) => {
+      console.error(`Error fetching the bundle at "${src}": ${e.message}`);
+      this.#fetchInFlight = null;
+      fire("loaderror");
+      return this.host;
+    });
+    this.#fetchInFlight = { request, controller };
+    return request;
+  }
+  evalInheritance() {
+    if (!this.parent)
+      return [];
+    const { window: { webqit: { Observer: Observer2 } } } = env3;
+    let extendedId = (this.host.getAttribute(this.config.attr.extends) || "").trim();
+    let inheritedIds = (this.host.getAttribute(this.config.attr.inherits) || "").trim().split(" ").map((id) => id.trim()).filter((x) => x);
+    const handleInherited = (records) => {
+      records.forEach((record) => {
+        if (Observer2.get(this.defs, record.key) !== record.oldValue)
+          return;
+        if (["get", "set", "def"].includes(record.type)) {
+          Observer2[record.type.replace("get", "set")](this.defs, record.key, record.value);
+        } else if (record.type === "delete") {
+          Observer2.deleteProperty(this.defs, record.key);
+        }
+      });
+    };
+    const realtimes = [];
+    const parentDefsObj = getDefs(this.parent);
+    if (extendedId) {
+      realtimes.push(Observer2.reduce(parentDefsObj, [extendedId, this.config.api.defs, Infinity], Observer2.get, handleInherited, { live: true }));
+    }
+    if (inheritedIds.length) {
+      realtimes.push(Observer2.get(parentDefsObj, inheritedIds.includes("*") ? Infinity : inheritedIds, handleInherited, { live: true }));
+    }
+    return realtimes;
+  }
+  dispose() {
+    this.realtimeA.disconnect();
+    this.realtimeB.disconnect();
+    this.realtimeC.forEach((r) => r instanceof Promise ? r.then((r2) => r2.abort()) : r.abort());
+    Object.entries(this.defs).forEach(([key, entry]) => {
+      if (key.startsWith("#"))
+        return;
+      HTMLModule.instance(entry).dispose();
+    });
+  }
+};
+
+// src/html-imports/HTMLImportsContext.js
+var _inheritedModules, _modules, _controller1, _controller2;
+var HTMLImportsContext = class extends DOMContext {
+  constructor() {
+    super(...arguments);
+    __privateAdd(this, _inheritedModules, {});
+    __privateAdd(this, _modules, void 0);
+    __privateAdd(this, _controller1, void 0);
+    __privateAdd(this, _controller2, void 0);
+  }
+  static createRequest(detail = null) {
+    const request = super.createRequest();
+    if (detail?.startsWith("/")) {
+      request.detail = detail;
+      request.targetContext = Infinity;
+    } else if (detail?.startsWith("@")) {
+      const [targetContext, ..._detail] = detail.slice(1).split(/(?<=\w)(?=\/|#)/).map((s) => s.trim());
+      request.targetContext = targetContext;
+      request.detail = _detail.join("");
+    } else {
+      request.detail = detail;
+    }
+    return request;
+  }
+  get localModules() {
+    return getDefs(this.host);
+  }
+  get inheritedModules() {
+    return __privateGet(this, _inheritedModules);
+  }
+  handle(event) {
+    const { window: { webqit: { Observer: Observer2 } } } = env3;
+    event.meta.controller?.abort();
+    let path2 = (event.detail || "").split(/\/|(?<=\w)(?=#)/g).map((x) => x.trim()).filter((x) => x);
+    if (!path2.length)
+      return event.respondWith();
+    path2 = path2.join(`/${this.configs.HTML_IMPORTS.api.defs}/`)?.split("/").map((x) => x === "*" ? Infinity : x) || [];
+    const options = { live: event.live, sig_nal: event.signal, descripted: true };
+    event.meta.controller = Observer2.reduce(__privateGet(this, _modules), path2, Observer2.get, (m) => {
+      if (Array.isArray(m)) {
+        if (!m.length) {
+          event.respondWith();
+          return;
+        }
+        for (const n of m) {
+          event.respondWith(n);
+        }
+      } else {
+        event.respondWith(m.value);
+      }
+    }, options);
+  }
+  unsubscribed(event) {
+    event.meta.controller?.abort();
+  }
+  initialize(host) {
+    this.host = host;
+    const { window: { webqit: { Observer: Observer2 } } } = env3;
+    const resolve = () => {
+      for (const key of /* @__PURE__ */ new Set([...Object.keys(this.localModules), ...Object.keys(this.inheritedModules), ...Object.keys(__privateGet(this, _modules))])) {
+        if (!Observer2.has(this.localModules, key) && !Observer2.has(this.inheritedModules, key)) {
+          Observer2.deleteProperty(__privateGet(this, _modules), key);
+        } else if (key === "#" && Observer2.has(this.localModules, key) && Observer2.has(this.inheritedModules, key)) {
+          Observer2.set(__privateGet(this, _modules), key, [...Observer2.get(this.localModules, key), ...Observer2.get(this.inheritedModules, key)]);
+        } else {
+          const _module = Observer2.get(this.localModules, key) || Observer2.get(this.inheritedModules, key);
+          if (Observer2.get(__privateGet(this, _modules), key) !== _module) {
+            Observer2.set(__privateGet(this, _modules), key, _module);
+          }
+        }
+      }
+    };
+    __privateSet(this, _modules, { ...this.localModules });
+    __privateGet(this, _controller1)?.abort();
+    __privateSet(this, _controller1, Observer2.observe(this.localModules, () => resolve("local"), { timing: "sync" }));
+    const $config = this.configs.HTML_IMPORTS;
+    if (this.host.matches && $config.attr.importscontext) {
+      const realdom = this.host.ownerDocument.defaultView.webqit.realdom;
+      let prevRef;
+      __privateGet(this, _controller2)?.disconnect();
+      __privateSet(this, _controller2, realdom.realtime(this.host).attr($config.attr.importscontext, (record, { signal }) => {
+        const moduleRef = (record.value || "").trim();
+        prevRef = moduleRef;
+        __privateSet(this, _inheritedModules, {});
+        const request = { ...this.constructor.createRequest(moduleRef ? `${moduleRef}/*` : "*"), live: true, signal, diff: true };
+        this.host.parentNode[this.configs.CONTEXT_API.api.contexts].request(request, (m) => {
+          if (!m) {
+            __privateSet(this, _inheritedModules, {});
+            resolve("inherited");
+          } else if (m.type === "delete") {
+            delete __privateGet(this, _inheritedModules)[m.key];
+            if (!Reflect.has(this.localModules, m.key)) {
+              Observer2.deleteProperty(__privateGet(this, _modules), m.key);
+            }
+          } else {
+            __privateGet(this, _inheritedModules)[m.key] = m.value;
+            if (!Reflect.has(this.localModules, m.key) && Reflect.get(__privateGet(this, _modules), m.key) !== m.value) {
+              Observer2.set(__privateGet(this, _modules), m.key, m.value);
+            }
+          }
+        });
+        resolve("inherited");
+      }, { live: true, timing: "sync", oldValue: true, lifecycleSignals: true }));
+    }
+    return super.initialize(host);
+  }
+  dispose(host) {
+    __privateGet(this, _controller1)?.abort();
+    __privateGet(this, _controller2)?.disconnect();
+    return super.dispose(host);
+  }
+};
+_inheritedModules = new WeakMap();
+_modules = new WeakMap();
+_controller1 = new WeakMap();
+_controller2 = new WeakMap();
+__publicField(HTMLImportsContext, "kind", "html-imports");
+
+// src/html-imports/_HTMLImportElement.js
+function HTMLImportElement_default() {
+  const { window: window2 } = env3, { webqit: webqit2 } = window2, { realdom, oohtml: { configs } } = webqit2;
+  if (webqit2.HTMLImportElement)
+    return webqit2.HTMLImportElement;
+  const BaseElement = configs.HTML_IMPORTS.elements.import.includes("-") ? window2.HTMLElement : class {
+  };
+  class HTMLImportElement extends BaseElement {
+    static instance(node) {
+      if (configs.HTML_IMPORTS.elements.import.includes("-") && node instanceof this)
+        return node;
+      return _wq2(node).get("import::instance") || new this(node);
+    }
+    constructor(...args) {
+      super();
+      const el = args[0] || this;
+      _wq2(el).set("import::instance", this);
+      Object.defineProperty(this, "el", { get: () => el, configurable: false });
+      const priv = {};
+      Object.defineProperty(this, "#", { get: () => priv, configurable: false });
+      priv.slottedElements = /* @__PURE__ */ new Set();
+      priv.setAnchorNode = (anchorNode) => {
+        priv.anchorNode = anchorNode;
+        return anchorNode;
+      };
+      priv.live = (callback) => {
+        if (priv.liveImportsRealtime)
+          throw new Error(`Import element already in live mode.`);
+        const parentNode = this.el.isConnected ? this.el.parentNode : priv.anchorNode.parentNode;
+        priv.liveImportsRealtime = realdom.realtime(this.el).attr(configs.HTML_IMPORTS.attr.ref, (record, { signal }) => {
+          priv.moduleRef = record.value;
+          const moduleRef = priv.moduleRef.includes("#") ? priv.moduleRef : `${priv.moduleRef}#`;
+          const request = { ...HTMLImportsContext.createRequest(moduleRef), live: signal && true, signal, diff: !moduleRef.endsWith("#") };
+          parentNode[configs.CONTEXT_API.api.contexts].request(request, (response) => {
+            callback((response instanceof window2.HTMLTemplateElement ? [...response.content.children] : Array.isArray(response) ? response : response && [response]) || []);
+          });
+        }, { live: true, timing: "sync", lifecycleSignals: true });
+        priv.autoDestroyRealtime = realdom.realtime(window2.document).track(parentNode, () => {
+          priv.die();
+        }, { subtree: "cross-roots", timing: "sync", generation: "exits" });
+      };
+      priv.die = () => {
+        priv.autoDestroyRealtime?.disconnect();
+        priv.liveImportsRealtime?.disconnect();
+        priv.liveImportsRealtime = null;
+      };
+      priv.hydrate = (anchorNode, slottedElements) => {
+        anchorNode.replaceWith(priv.setAnchorNode(this.createAnchorNode()));
+        priv.live((fragments) => {
+          if (priv.originalsRemapped)
+            return this.fill(fragments);
+          const identifiersMap = fragments.map((fragment, i) => ({ el: fragment, fragmentDef: fragment.getAttribute(configs.HTML_IMPORTS.attr.fragmentdef) || "", tagName: fragment.tagName, i }));
+          slottedElements.forEach((slottedElement, i) => {
+            const tagName = slottedElement.tagName, fragmentDef = slottedElement.getAttribute(configs.HTML_IMPORTS.attr.fragmentdef) || "";
+            const originalsMatch = (i++, identifiersMap.find((fragmentIdentifiers) => fragmentIdentifiers.tagName === tagName && fragmentIdentifiers.fragmentDef === fragmentDef && fragmentIdentifiers.i === i));
+            if (originalsMatch)
+              _wq2(slottedElement).set("original@imports", originalsMatch.el);
+            _wq2(slottedElement).set("slot@imports", this.el);
+            priv.slottedElements.add(slottedElement);
+          });
+          priv.originalsRemapped = true;
+        });
+      };
+      priv.autoRestore = (callback = null) => {
+        priv.autoRestoreRealtime?.disconnect();
+        if (callback)
+          callback();
+        const restore = () => {
+          if (this.el.isConnected)
+            return;
+          this.el.setAttribute("data-nodecount", 0);
+          priv.internalMutation = true;
+          priv.anchorNode.replaceWith(this.el);
+          priv.internalMutation = false;
+          priv.setAnchorNode(null);
+        };
+        if (!priv.slottedElements.size)
+          return restore();
+        const autoRestoreRealtime = realdom.realtime(priv.anchorNode.parentNode).observe([...priv.slottedElements], (record) => {
+          record.exits.forEach((outgoingNode) => {
+            _wq2(outgoingNode).delete("slot@imports");
+            priv.slottedElements.delete(outgoingNode);
+          });
+          if (!priv.slottedElements.size) {
+            autoRestoreRealtime.disconnect();
+            if (!record.target.isConnected)
+              return;
+            restore();
+          }
+        }, { subtree: "cross-roots", timing: "sync", generation: "exits" });
+        priv.autoRestoreRealtime = autoRestoreRealtime;
+      };
+      priv.connectedCallback = () => {
+        if (priv.internalMutation)
+          return;
+        priv.live((fragments) => this.fill(fragments));
+      };
+      priv.disconnectedCallback = () => {
+        if (priv.internalMutation)
+          return;
+        priv.die();
+      };
+    }
+    createAnchorNode() {
+      if (window2.webqit.env !== "server") {
+        return window2.document.createTextNode("");
+      }
+      const escapeElement = window2.document.createElement("div");
+      escapeElement.textContent = this.el.outerHTML;
+      const anchorNode = window2.document.createComment(escapeElement.innerHTML);
+      _wq2(anchorNode).set("isAnchorNode", true);
+      return anchorNode;
+    }
+    fill(slottableElements, r) {
+      if (!this.el.isConnected && (!this["#"].anchorNode || !this["#"].anchorNode.isConnected)) {
+        return;
+      }
+      if (Array.isArray(slottableElements)) {
+        slottableElements = new Set(slottableElements);
+      }
+      this.el.setAttribute("data-nodecount", slottableElements.size);
+      this["#"].autoRestore(() => {
+        this["#"].slottedElements.forEach((slottedElement) => {
+          const slottedElementOriginal = _wq2(slottedElement).get("original@imports");
+          if (slottableElements.has(slottedElementOriginal)) {
+            slottableElements.delete(slottedElementOriginal);
+          } else {
+            this["#"].slottedElements.delete(slottedElement);
+            slottedElement.remove();
+          }
+        });
+        if (slottableElements.size && this.el.isConnected) {
+          const newAnchorNode = this["#"].setAnchorNode(this.createAnchorNode());
+          this["#"].internalMutation = true;
+          this.el.replaceWith(newAnchorNode);
+          this["#"].internalMutation = false;
+        }
+        slottableElements.forEach((slottableElement) => {
+          const slottableElementClone = slottableElement.cloneNode(true);
+          if (!slottableElementClone.hasAttribute(configs.HTML_IMPORTS.attr.fragmentdef)) {
+            slottableElementClone.toggleAttribute(configs.HTML_IMPORTS.attr.fragmentdef, true);
+          }
+          _wq2(slottableElementClone).set("original@imports", slottableElement);
+          _wq2(slottableElementClone).set("slot@imports", this.el);
+          this["#"].slottedElements.add(slottableElementClone);
+          this["#"].anchorNode.before(slottableElementClone);
+        });
+      });
+    }
+    empty() {
+      this["#"].slottedElements.forEach((slottedElement) => slottedElement.remove());
+    }
+    get anchorNode() {
+      return this["#"].anchorNode;
+    }
+    get moduleRef() {
+      return this["#"].moduleRef;
+    }
+    get slottedElements() {
+      return this["#"].slottedElements;
+    }
+  }
+  if (configs.HTML_IMPORTS.elements.import.includes("-")) {
+    customElements.define(configs.HTML_IMPORTS.elements.import, HTMLImportElement);
+  }
+  webqit2.HTMLImportElement = HTMLImportElement;
+  return HTMLImportElement;
+}
+
+// src/html-imports/index.js
+function init5($config = {}) {
+  const { config, window: window2 } = _init.call(this, "html-imports", $config, {
+    elements: { import: "import" },
+    attr: { def: "def", extends: "extends", inherits: "inherits", ref: "ref", importscontext: "importscontext" },
+    api: { def: "def", defs: "defs", import: "import" }
+  });
+  if (!config.attr.fragmentdef) {
+    config.attr.fragmentdef = config.attr.def;
+  }
+  config.templateSelector = `template[${window2.CSS.escape(config.attr.def)}]`;
+  config.importsContextSelector = `[${window2.CSS.escape(config.attr.importscontext)}]`;
+  config.slottedElementsSelector = `[${window2.CSS.escape(config.attr.fragmentdef)}]:not(template)`;
+  const anchorNodeMatch = (start, end) => {
+    const starting = `starts-with(., "${start}")`;
+    const ending = `substring(., string-length(.) - string-length("${end}") + 1) = "${end}"`;
+    return `${starting} and ${ending}`;
+  };
+  config.anchorNodeSelector = `comment()[${anchorNodeMatch(`&lt;${config.elements.import}`, `&lt;/${config.elements.import}&gt;`)}]`;
+  window2.webqit.HTMLImportsContext = HTMLImportsContext;
+  window2.webqit.HTMLImportElement = HTMLImportElement_default();
+  exposeAPIs4.call(window2, config);
+  realtime5.call(window2, config);
+}
+function getDefs(node, autoCreate = true) {
+  if (!_wq2(node).has("defs") && autoCreate) {
+    const defs = /* @__PURE__ */ Object.create(null);
+    _wq2(node).set("defs", defs);
+  }
+  return _wq2(node).get("defs");
+}
+function exposeAPIs4(config) {
+  const window2 = this, { webqit: { oohtml: { configs } } } = window2;
+  if (config.api.def in window2.HTMLTemplateElement.prototype) {
+    throw new Error(`The "HTMLTemplateElement" prototype already has a "${config.api.def}" API!`);
+  }
+  if (config.api.defs in window2.HTMLTemplateElement.prototype) {
+    throw new Error(`The "HTMLTemplateElement" prototype already has a "${config.api.defs}" API!`);
+  }
+  Object.defineProperty(window2.HTMLTemplateElement.prototype, config.api.def, {
+    get: function() {
+      return this.getAttribute(config.attr.def);
+    }
+  });
+  Object.defineProperty(window2.HTMLTemplateElement.prototype, config.api.defs, {
+    get: function() {
+      return getDefs(this);
+    }
+  });
+  Object.defineProperty(window2.HTMLTemplateElement.prototype, "scoped", {
+    configurable: true,
+    get() {
+      return this.hasAttribute("scoped");
+    },
+    set(value) {
+      this.toggleAttribute("scoped", value);
+    }
+  });
+  [window2.Document.prototype, window2.Element.prototype, window2.ShadowRoot.prototype].forEach((prototype) => {
+    const type = prototype === window2.Document.prototype ? "Document" : prototype === window2.ShadowRoot.prototype ? "ShadowRoot" : "Element";
+    if (config.api.import in prototype) {
+      throw new Error(`The ${type} prototype already has a "${config.api.import}" API!`);
+    }
+    if (config.api.defs in prototype) {
+      throw new Error(`The ${type} prototype already has a "${config.api.defs}" API!`);
+    }
+    Object.defineProperty(prototype, config.api.defs, {
+      get: function() {
+        return getDefs(this);
+      }
+    });
+    Object.defineProperty(prototype, config.api.import, {
+      value: function(ref, live = false, callback = null) {
+        return importRequest(this, ...arguments);
+      }
+    });
+  });
+  function importRequest(context, ref, live = false, callback = null) {
+    let options = {};
+    if (typeof live === "function") {
+      callback = live;
+      live = false;
+    } else if (typeof live === "object" && live) {
+      options = { ...live, ...options };
+    } else {
+      options = { live };
+    }
+    const request = { ...HTMLImportsContext.createRequest(ref), ...options };
+    return context[configs.CONTEXT_API.api.contexts].request(request, callback);
+  }
+}
+function realtime5(config) {
+  const window2 = this, { webqit: { Observer: Observer2, realdom, oohtml: { configs }, HTMLImportElement, HTMLImportsContext: HTMLImportsContext2 } } = window2;
+  const attachImportsContext = (host) => {
+    const contextsApi = host[configs.CONTEXT_API.api.contexts];
+    if (!contextsApi.find(HTMLImportsContext2.kind)) {
+      contextsApi.attach(new HTMLImportsContext2());
+    }
+  };
+  const detachImportsContext = (host) => {
+    const contextsApi = host[configs.CONTEXT_API.api.contexts];
+    const ctx = contextsApi.find(HTMLImportsContext2.kind);
+    if (ctx && (!host.isConnected || !host.matches?.(config.importsContextSelector) && !Object.keys(ctx.localModules).length)) {
+      contextsApi.detach(ctx);
+    }
+  };
+  realdom.realtime(window2.document).query([config.templateSelector, config.importsContextSelector], (record) => {
+    record.entrants.forEach((entry) => {
+      if (entry.matches(config.templateSelector)) {
+        const htmlModule = HTMLModule.instance(entry);
+        htmlModule.ownerContext = entry.scoped ? entry.parentNode : entry.getRootNode();
+        const ownerContextModulesObj = getDefs(htmlModule.ownerContext);
+        if (htmlModule.defId) {
+          Observer2.set(ownerContextModulesObj, htmlModule.defId, entry);
+        }
+        attachImportsContext(htmlModule.ownerContext);
+      } else {
+        attachImportsContext(entry);
+      }
+    });
+    record.exits.forEach((entry) => {
+      if (entry.matches(config.templateSelector)) {
+        const htmlModule = HTMLModule.instance(entry);
+        const ownerContextModulesObj = getDefs(htmlModule.ownerContext);
+        if (htmlModule.defId && htmlModule.ownerContext.isConnected) {
+          Observer2.deleteProperty(ownerContextModulesObj, htmlModule.defId);
+        }
+        detachImportsContext(htmlModule.ownerContext);
+      } else {
+        detachImportsContext(entry);
+      }
+    });
+  }, { id: "imports:template/importscontext", live: true, subtree: "cross-roots", timing: "sync", staticSensitivity: true, eventDetails: true });
+  realdom.realtime(window2.document).query(config.elements.import, (record) => {
+    record.entrants.forEach((node) => handleRealtime(node, true, record));
+    record.exits.forEach((node) => handleRealtime(node, false, record));
+  }, { id: "imports:import", live: true, subtree: "cross-roots", timing: "sync", deferred: true });
+  function handleRealtime(entry, connectedState) {
+    const elInstance = HTMLImportElement.instance(entry);
+    if (connectedState) {
+      elInstance["#"].connectedCallback();
+    } else {
+      elInstance["#"].disconnectedCallback();
+    }
+  }
+  if (window2.webqit.env === "server")
+    return;
+  realdom.realtime(window2.document).query(`(${config.anchorNodeSelector})`, (record) => {
+    record.entrants.forEach((anchorNode) => {
+      if (_wq2(anchorNode).get("isAnchorNode"))
+        return;
+      const reviver = window2.document.createElement("div");
+      reviver.innerHTML = anchorNode.nodeValue;
+      reviver.innerHTML = reviver.firstChild.textContent;
+      const importEl = reviver.firstChild;
+      let nodecount = parseInt(importEl.getAttribute("data-nodecount"));
+      const slottedElements = /* @__PURE__ */ new Set();
+      let slottedElement = anchorNode;
+      while ((slottedElement = slottedElement.previousElementSibling) && slottedElement.matches(config.slottedElementsSelector) && nodecount--) {
+        slottedElements.add(slottedElement);
+      }
+      HTMLImportElement.instance(importEl)["#"].hydrate(anchorNode, slottedElements);
+    });
+  }, { id: "imports:hydration", live: true, subtree: "cross-roots", timing: "sync" });
+}
+
+// src/context-api/index.js
+function init6($config = {}) {
+  const { config, window: window2 } = _init.call(this, "context-api", $config, {
+    elements: { roots: "root,webflo-embedded" },
+    attr: { contextname: "contextname" },
+    api: { contexts: "contexts" }
+  });
+  const waitListMappings = /* @__PURE__ */ new Map(), dispatchEvent = window2.EventTarget.prototype.dispatchEvent;
+  Object.defineProperty(window2.EventTarget.prototype, "dispatchEvent", { value: function(...args) {
+    const event = args[0], rootNode = this?.closest?.(config.elements.roots) || this.getRootNode?.();
+    if (["contextclaim", "contextrequest"].includes(event.type) && rootNode) {
+      if (event.meta)
+        event.meta.target = this;
+      const temp = (event2) => {
+        event2.stopImmediatePropagation();
+        if (event2.meta)
+          event2.meta.target = event2.target;
+        if (event2.answered)
+          return;
+        if (!waitListMappings.get(rootNode))
+          waitListMappings.set(rootNode, /* @__PURE__ */ new Set());
+        if (event2.type === "contextrequest" && event2.live) {
+          waitListMappings.get(rootNode).add(event2);
+        } else if (event2.type === "contextclaim") {
+          const claims = /* @__PURE__ */ new Set();
+          waitListMappings.get(rootNode).forEach((subscriptionEvent) => {
+            if (!event2.target.contains(subscriptionEvent.target) || !event2.detail?.matchEvent?.(subscriptionEvent))
+              return;
+            waitListMappings.get(rootNode).delete(subscriptionEvent);
+            claims.add(subscriptionEvent);
+          });
+          if (!waitListMappings.get(rootNode).size)
+            waitListMappings.delete(rootNode);
+          return event2.respondWith?.(claims);
+        }
+      };
+      rootNode.addEventListener(event.type, temp);
+      const returnValue = dispatchEvent.call(this, ...args);
+      rootNode.removeEventListener(event.type, temp);
+      return returnValue;
+    }
+    return dispatchEvent.call(this, ...args);
+  } });
+  window2.webqit.DOMContexts = DOMContexts;
+  window2.webqit.DOMContext = DOMContext;
+  window2.webqit.DOMContextRequestEvent = DOMContextRequestEvent_default();
+  window2.webqit.DOMContextResponse = DOMContextResponse;
+  window2.webqit.DuplicateContextError = DuplicateContextError;
+  exposeAPIs5.call(window2, config);
+}
+function exposeAPIs5(config) {
+  const window2 = this;
+  [window2.Document.prototype, window2.Element.prototype, window2.ShadowRoot.prototype].forEach((prototype) => {
+    const type = prototype === window2.Document.prototype ? "Document" : prototype === window2.ShadowRoot.prototype ? "ShadowRoot" : "Element";
+    if (config.api.contexts in prototype) {
+      throw new Error(`The ${type} prototype already has a "${config.api.contexts}" API!`);
+    }
+    Object.defineProperty(prototype, config.api.contexts, { get: function() {
+      return DOMContexts.instance(this);
+    } });
+  });
+}
+
+// src/scoped-css/index.js
+function init7({ advanced = {}, ...$config }) {
+  const { config, window: window2 } = _init.call(this, "scoped-css", $config, {
+    api: { styleSheets: "styleSheets" },
+    style: { retention: "retain", mimeTypes: "text/css", strategy: null }
+  });
+  config.styleSelector = (Array.isArray(config.style.mimeTypes) ? config.style.mimeTypes : config.style.mimeTypes.split("|")).concat("").reduce((selector, mm) => {
+    const qualifier = mm ? `[type="${window2.CSS.escape(mm)}"]` : ":not([type])";
+    return selector.concat(`style${qualifier}`);
+  }, []).join(",");
+  window2.webqit.oohtml.Style = {
+    compileCache: /* @__PURE__ */ new Map()
+  };
+  exposeAPIs6.call(window2, config);
+  realtime6.call(window2, config);
+}
+function exposeAPIs6(config) {
+  const window2 = this, styleSheetsMap = /* @__PURE__ */ new Map();
+  [window2.Element.prototype].forEach((prototype) => {
+    const type = "Element";
+    if (config.api.styleSheets in prototype) {
+      throw new Error(`The ${type} prototype already has a "${config.api.styleSheets}" API!`);
+    }
+    Object.defineProperty(prototype, config.api.styleSheets, { get: function() {
+      if (!styleSheetsMap.has(this)) {
+        styleSheetsMap.set(this, []);
+      }
+      return styleSheetsMap.get(this);
+    } });
+  });
+  Object.defineProperty(window2.HTMLStyleElement.prototype, "scoped", {
+    configurable: true,
+    get() {
+      return this.hasAttribute("scoped");
+    },
+    set(value) {
+      this.toggleAttribute("scoped", value);
+    }
+  });
+}
+function realtime6(config) {
+  const window2 = this, { webqit: { oohtml, realdom } } = window2;
+  const inBrowser = Object.getOwnPropertyDescriptor(globalThis, "window")?.get?.toString().includes("[native code]") ?? false;
+  if (!window2.CSS.supports) {
+    window2.CSS.supports = () => false;
+  }
+  const handled = /* @__PURE__ */ new WeakSet();
+  realdom.realtime(window2.document).query(config.styleSelector, (record) => {
+    record.entrants.forEach((style) => {
+      if (handled.has(style))
+        return;
+      handled.add(style);
+      const sourceHash = _toHash(style.textContent);
+      const supportsHAS = CSS.supports("selector(:has(a,b))");
+      const scopeSelector = style.scoped && (supportsHAS ? `:has(> style[rand-${sourceHash}])` : `[rand-${sourceHash}]`);
+      const supportsScope = style.scoped && window2.CSSScopeRule && false;
+      const scopeRoot = style.scoped && style.parentNode || style.getRootNode();
+      if (scopeRoot instanceof window2.Element) {
+        scopeRoot[config.api.styleSheets].push(style);
+        if (!inBrowser)
+          return;
+        (supportsHAS ? style : scopeRoot).toggleAttribute(`rand-${sourceHash}`, true);
+      }
+      if (!inBrowser)
+        return;
+      if (style.scoped && style.hasAttribute("shared")) {
+        let compiledSheet;
+        if (!(compiledSheet = oohtml.Style.compileCache.get(sourceHash))) {
+          compiledSheet = createAdoptableStylesheet.call(window2, style, null, supportsScope, scopeSelector);
+          oohtml.Style.compileCache.set(sourceHash, compiledSheet);
+        }
+        Object.defineProperty(style, "sheet", { value: compiledSheet, configurable: true });
+        style.textContent = "\n/*[ Shared style sheet ]*/\n";
+      } else {
+        const transform2 = () => {
+          const namespaceUUID = getNamespaceUUID(getOwnerNamespaceObject.call(window2, scopeRoot));
+          upgradeSheet.call(this, style.sheet, namespaceUUID, !supportsScope && scopeSelector);
+        };
+        if (style.isConnected) {
+          transform2();
+        } else {
+          setTimeout(() => {
+            transform2();
+          }, 0);
+        }
+      }
+    });
+  }, { id: "scoped-css", live: true, subtree: "cross-roots", timing: "intercept", generation: "entrants" });
+}
+function createAdoptableStylesheet(style, namespaceUUID, supportsScope, scopeSelector) {
+  const window2 = this, textContent = style.textContent;
+  let styleSheet, cssText = supportsScope && scopeSelector ? `@scope (${scopeSelector}) {
+${textContent.trim()}
+}` : textContent.trim();
+  try {
+    styleSheet = new window2.CSSStyleSheet();
+    styleSheet.replaceSync(cssText);
+    upgradeSheet.call(this, styleSheet, namespaceUUID, !supportsScope && scopeSelector);
+    const adopt = () => style.getRootNode().adoptedStyleSheets.push(styleSheet);
+    if (style.isConnected) {
+      adopt();
+    } else {
+      setTimeout(() => {
+        adopt();
+      }, 0);
+    }
+  } catch (e) {
+    const styleCopy = window2.document.createElement("style");
+    style.after(styleCopy);
+    styleCopy.textContent = cssText;
+    styleSheet = styleCopy.sheet;
+    upgradeSheet.call(this, styleSheet, namespaceUUID, !supportsScope && scopeSelector);
+  }
+  return styleSheet;
+}
+function upgradeSheet(styleSheet, namespaceUUID, scopeSelector = null) {
+  const l = styleSheet?.cssRules.length || -1;
+  for (let i = 0; i < l; ++i) {
+    const cssRule = styleSheet.cssRules[i];
+    if (cssRule instanceof CSSImportRule) {
+      continue;
+    }
+    upgradeRule.call(this, cssRule, namespaceUUID, scopeSelector);
+  }
+}
+function upgradeRule(cssRule, namespaceUUID, scopeSelector = null) {
+  if (cssRule instanceof CSSStyleRule) {
+    upgradeSelector.call(this, cssRule, namespaceUUID, scopeSelector);
+    return;
+  }
+  if ([window.CSSScopeRule, window.CSSMediaRule, window.CSSContainerRule, window.CSSSupportsRule, window.CSSLayerBlockRule].some((type) => type && cssRule instanceof type)) {
+    const l = cssRule.cssRules.length;
+    for (let i = 0; i < l; ++i) {
+      upgradeRule.call(this, cssRule.cssRules[i], namespaceUUID, scopeSelector);
+    }
+  }
+}
+function upgradeSelector(cssRule, namespaceUUID, scopeSelector = null) {
+  const newSelectorText = rewriteSelector.call(this, cssRule.selectorText, namespaceUUID, scopeSelector, 1);
+  cssRule.selectorText = newSelectorText;
+  if (cssRule.cssRules) {
+    const l = cssRule.cssRules.length;
+    for (let i = 0; i < l; ++i) {
+      upgradeSelector.call(this, cssRule.cssRules[i], namespaceUUID);
+    }
+  }
+}
+
+// src/init.js
+function init8(UseLive, configs = {}) {
+  if (!this.webqit) {
+    this.webqit = {};
+  }
+  Object.assign(this.webqit, UseLive);
+  init6.call(this, configs.CONTEXT_API || {});
+  init4.call(this, configs.BINDINGS_API || {});
+  init5.call(this, { ...configs.HTML_IMPORTS || {}, idleCompilers: [idleCompiler, idleCompiler2] });
+  init.call(this, configs.NAMESPACED_HTML || {});
+  init3.call(this, configs.DATA_BINDING || {});
+  init7.call(this, configs.SCOPED_CSS || {});
+  init2.call(this, configs.SCOPED_JS || {});
+}
+
+// src/index.lite.js
+init8.call(window, index_lite_exports);
 //# sourceMappingURL=main.lite.js.map

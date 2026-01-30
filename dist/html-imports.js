@@ -1,2 +1,2173 @@
-var lt=Object.defineProperty;var ft=(n,e,r)=>e in n?lt(n,e,{enumerable:!0,configurable:!0,writable:!0,value:r}):n[e]=r;var ye=(n,e,r)=>(ft(n,typeof e!="symbol"?e+"":e,r),r),He=(n,e,r)=>{if(!e.has(n))throw TypeError("Cannot "+r)};var T=(n,e,r)=>(He(n,e,"read from private field"),r?r.call(n):e.get(n)),oe=(n,e,r)=>{if(e.has(n))throw TypeError("Cannot add the same private member more than once");e instanceof WeakSet?e.add(n):e.set(n,r)},ee=(n,e,r,t)=>(He(n,e,"write to private field"),t?t.call(n,r):e.set(n,r),r);function v(n){return!Array.isArray(n)&&typeof n=="object"&&n}function y(n){return Array.isArray(n)}function te(n){return typeof n=="function"}function se(n){return n===null||n===""}function U(n){return arguments.length&&(n===void 0||typeof n>"u")}function S(n){return Array.isArray(n)||typeof n=="object"&&n||te(n)}function Ae(n){return se(n)||U(n)||n===!1||n===0||S(n)&&!Object.keys(n).length}function b(n){return te(n)||n&&{}.toString.call(n)==="[object function]"}function le(n){return n instanceof Number||typeof n=="number"}function q(n){return le(n)||n!==!0&&n!==!1&&n!==null&&n!==""&&!isNaN(n*1)}function re(n){return n instanceof String||typeof n=="string"&&n!==null}function Ee(n){return!re(n)&&!U(n.length)}function we(n,...e){return e.forEach(r=>{n.indexOf(r)<0&&n.push(r)}),n}function Te(t,e){e=e||Object.prototype,e=e&&!y(e)?[e]:e;for(var r=[],t=t;t&&(!e||e.indexOf(t)<0)&&t.name!=="default";)r.push(t),t=t?Object.getPrototypeOf(t):null;return r}function Ce(n,e){var r=[];return Te(n,e).forEach(t=>{we(r,...Object.getOwnPropertyNames(t))}),r}function k(n,e,r=!1,t=!1,o=!1){var s=0,i=n.shift();if((q(i)||i===!0||i===!1)&&(s=i,i=n.shift()),!n.length)throw new Error("_merge() requires two or more array/objects.");return n.forEach((l,u)=>{!S(l)&&!b(l)||(r?Ce(l):Object.keys(l)).forEach(f=>{if(!!e(f,i,l,u)){var a=i[f],m=l[f];if((y(a)&&y(m)||v(a)&&v(m))&&(s===!0||s>0))i[f]=y(a)&&y(m)?[]:{},k([q(s)?s-1:s,i[f],a,m],e,r,t,o);else if(y(i)&&y(l))t?i[f]=m:i.push(m);else try{o?Object.defineProperty(i,f,Object.getOwnPropertyDescriptor(l,f)):i[f]=l[f]}catch{}}})}),i}function fe(...n){return k(n,(e,r,t)=>!0,!1,!1,!1)}function P(n,...e){if(!n||!["object","function"].includes(typeof n))throw new Error("Argument #1 must be of type object");let r=n[Symbol.for("wq")];if(r||(r=new _e,Object.defineProperty(n,Symbol.for("wq"),{value:r,enumerable:!1,configurable:!1,writable:!1})),!e.length)return r;let t,o;for(;t=e.shift();)(o=r)&&!(r=r.get(t))&&(r=new _e,o.set(t,r));return r}var _e=class extends Map{};function M(n,e=!0){return y(n)?n:!e&&v(n)?[n]:n!==!1&&n!==0&&Ae(n)?[]:Ee(n)?Array.prototype.slice.call(n):v(n)?Object.values(n):[n]}function ae(n,e,r={},t={}){e=M(e).slice();for(var o=n;!U(o)&&!se(o)&&e.length;){var s=e.shift();if(!(r.get?r.get(o,s):S(o)?s in o:o[s])){t.exists=!1;return}o=r.get?r.get(o,s):o[s]}return t.exists=!0,o}function Me(n,e,r,t={},o={}){let s=(a,m,c)=>o.set?o.set(a,m,c):(q(e[l])&&y(a)?a.push(c):a[m]=c,!0);e=M(e);for(var i=n,l=0;l<e.length;l++)if(l<e.length-1){if(!i||!S(i)&&!b(i))return!1;var u=ae(i,e[l],o);if(!S(u)){if(o.buildTree===!1)return!1;u=b(o.buildTree)?o.buildTree(l):q(e[l+1])?[]:{};var f=s(i,e[l],u);if(!f)return!1}i=u}else return s(i,e[l],r)}var ce=class{constructor(e,r=!1){Object.defineProperty(this,"window",{value:e}),Object.defineProperty(this,"readCallbacks",{value:new Set}),Object.defineProperty(this,"writeCallbacks",{value:new Set}),Object.defineProperty(this,"_synthesis",{value:0,writable:!0}),!r&&this.window.requestAnimationFrame?this._loop():this._synthesis++}get synthesis(){return this._synthesis}async synthesizeWhile(e){this._synthesis++,this._fulfill();let r=await e();return this._synthesis--,r}_fulfill(){for(let e of this.readCallbacks)e(),this.readCallbacks.delete(e);for(let e of this.writeCallbacks)e(),this.writeCallbacks.delete(e)}_loop(){this.window.requestAnimationFrame(()=>{this._fulfill(),this._loop()})}onread(e,r=!1){if(r)return new Promise(t=>{this.synthesis?t(e()):this.readCallbacks.add(()=>{t(e())})});this.synthesis?Promise.resolve().then(e):this.readCallbacks.add(e)}onwrite(e,r=!1){if(r)return new Promise(t=>{this.synthesis?t(e()):this.writeCallbacks.add(()=>{t(e())})});this.synthesis?Promise.resolve().then(e):this.writeCallbacks.add(e)}cycle(e,r,t){this.onread(()=>{let o=e(t),s=i=>{i!==void 0&&this.onwrite(()=>{let l=r(i,t),u=f=>{f!==void 0&&this.cycle(e,r,f)};l instanceof Promise?l.then(u):u(l)})};o instanceof Promise?o.then(s):s(o)})}};function Ue(n){return(n=n.trim())&&n.startsWith("(")&&n.endsWith(")")}function xe(n,e,r,t=!0){r=(Array.isArray(r)?r:[r]).map(i=>(i+"").replace("(",t?"(.//":"(./")).join("|");let o=[],s;try{let i=n.document.evaluate(r,e,null,n.XPathResult.ANY_TYPE);for(;s=i.iterateNext();)o.push(s)}catch{}return o}function Ve(n,e,r){r=(Array.isArray(r)?r:[r]).map(t=>(t+"").replace("(","(self::")).join("|");try{return n.document.evaluate(`${r}`,e,null,n.XPathResult.BOOLEAN_TYPE).booleanValue}catch{}}function ue(n,e,r,t=!1,o=null){let s=o?.get(e)?.get(r);if(typeof s<"u")return s;let i=f=>(o?.has(e)||o?.set(e,new WeakMap),o?.get(e)?.set(r,f),f),l=e.getRootNode(),u=r.getRootNode();return l===u?i(e.contains(r)):t&&u instanceof n.ShadowRoot?i(ue(n,e,u.host,t,o)):i(!1)}function Be(n,e="|"){return[...n].reduce(([r,t,o,s],i)=>!r&&t===0&&(Array.isArray(e)?e:[e]).includes(i)?[r,t,[""].concat(o)]:(!r&&["(","[","{"].includes(i)&&!o[0].endsWith("\\")&&t++,!r&&[")","]","}"].includes(i)&&!o[0].endsWith("\\")&&t--,['"',"'","`"].includes(i)&&!o[0].endsWith("\\")&&(r=r===i?null:r||i),o[0]+=i,[r,t,o]),[null,0,[""]])[2].reverse()}var L=class{constructor(e){this.content=e,this.type=typeof e=="string"?"selector":"instance",this.kind=this.type==="instance"?null:Ue(e)?"xpath":"css",this.kind==="xpath"&&(this.isXpathAttr=Be(e.trim().slice(1,-1),"@").length>1)}toString(){return this.content}};var Z=class{constructor(e,r,t){this.context=e,this.namespace=r,this.window=e.defaultView||e.ownerDocument?.defaultView||t,this.document=this.window.document,this.webqit=this.window.webqit,Object.defineProperty(this,"#",{value:{}})}resolveArgs(e){if(b(e[0])?e=[[],...e]:v(e[0])&&!(e[0]instanceof L)&&e.length===1?e=[[],void 0,e[0]]:v(e[1])&&e.length===2?e=[M(e[0],!1),void 0,e[1]]:e[0]=M(e[0],!1),e[0].filter(r=>typeof r!="string"&&!(r instanceof L)&&!(r instanceof this.window.Node)).length)throw new Error("Argument #2 must be either a string or a Node object, or a list of those.");return e[0]=e[0].map(r=>r instanceof L?r:new L(r)),e}registry(...e){return P(this.window,"realdom",this.namespace,...e)}createSignalGenerator(){return{generate(){return this.lastController?.abort(),this.lastController=new AbortController,{signal:this.lastController.signal}},disconnect(){this.lastController?.abort()}}}forEachMatchingContext(e,r,t){let{window:o}=this,s=new Set,i=new WeakMap;for(let[l,u]of this.registry(e)){let f=[].concat(r).filter(m=>ue(o,l.context,m.target,l.params.subtree==="cross-roots",i));if(!f.length)continue;let a=[l,Array.isArray(r)?f:f[0]];u?s.add(a):t.call(o,...a)}for(let l of s)t.call(o,...l);s.clear()}disconnectables(e,...r){let t={disconnect(){r.forEach(o=>o&&b(o.disconnect)&&o.disconnect()||b(o)&&o()||v(o)&&(o.disconnected=!0))}};return e&&e.addEventListener("abort",()=>t.disconnect()),t}};var z=class extends Z{type="attr";constructor(e,...r){super(e,"attr",...r)}get(e,r=void 0,t={}){let o=typeof e=="string"||e instanceof L;[e=[],r=void 0,t={}]=this.resolveArgs(arguments);let{context:s}=this,i=Qe(s,e);if(!r)return i;let l=t.lifecycleSignals&&this.createSignalGenerator();if(o)for(let u of i){let f=l?l.generate():{};r(u,f,s)}else{let u=l?.generate()||{};r(i,u,s)}if(t.live){l&&(t={...t,signalGenerator:l});let u=this.observe(o?e[0]:e,r,{newValue:!0,...t});return this.disconnectables(t.signal,u)}}observe(e,r,t={}){let o=typeof e=="string"||e instanceof L;if([e=[],r,t={}]=this.resolveArgs(arguments),["sync","intercept"].includes(t.timing))return this.observeSync(o?e[0]:e,r,t);if(t.timing&&t.timing!=="async")throw new Error(`Timing option "${t.timing}" invalid.`);let{context:s,window:i,webqit:l}=this;t.eventDetails&&!l.realdom.attrInterceptionHooks?.intercepting&&ze.call(i,"intercept",()=>{});let u=new i.MutationObserver(c=>{c=Xe(c).map(d=>Je.call(i,d)),Ge.call(i,m,c,s)}),f={attributes:!0,attributeOldValue:t.oldValue,subtree:t.subtree&&!0};e.length&&(f.attributeFilter=e.map(c=>c+"")),u.observe(s,f);let a=t.signalGenerator||t.lifecycleSignals&&this.createSignalGenerator(),m={context:s,spec:e,callback:r,params:t,atomics:new Map,originalFilterIsString:o,signalGenerator:a,disconnectable:u};return this.disconnectables(t.signal,u,a)}observeSync(e,r,t={}){let o=typeof e=="string"||e instanceof L;[e,r,t={}]=this.resolveArgs(arguments);let{context:s,window:i}=this;if(t.timing&&!["sync","intercept"].includes(t.timing))throw new Error(`Timing option "${t.timing}" invalid.`);let l=t.timing==="intercept"?"intercept":"sync";this.registry(l).size||ze.call(i,l,c=>{this.forEachMatchingContext(l,c,Ge)});let u={disconnect(){m.delete(a)}},f=t.signalGenerator||t.lifecycleSignals&&this.createSignalGenerator(),a={context:s,spec:e,callback:r,params:t,atomics:new Map,originalFilterIsString:o,signalGenerator:f,disconnectable:u},m=this.registry(l);return m.set(a,!!a.params.deferred),this.disconnectables(t.signal,u,f)}};function Xe(n){return n.reduce((e,r,t)=>e[t-1]?.attributeName===r.attributeName||P(r.target,"realdom","internalAttrInteractions").get(r.attributeName)?e:e.concat(r),[])}function Ge(n,e){let{context:r,spec:t,callback:o,params:s,atomics:i,originalFilterIsString:l,signalGenerator:u}=n;if(s.subtree||(e=e.filter(c=>c.target===r)),!e.length)return;let f=t.map(c=>c+"");if(s.atomic&&!i.size?e=Qe(r,t,e):s.timing!=="async"&&t.length&&(e=e.filter(c=>f.includes(c.name))),!e.length)return;s.newValue===null&&s.oldValue===null&&s.eventDetails||(e=e.map(c=>{let d;return s.eventDetails||({event:d,...c}=c),!s.oldValue&&"oldValue"in c&&({oldValue:d,...c}=c),!s.newValue&&"value"in c?{value:d,...c}=c:s.newValue&&typeof c.value>"u"&&(c={...c,value:ve(c.target,c.name,()=>c.target.getAttribute(c.name))}),c})),s.atomic&&(e.forEach(c=>i.set(c.name,c)),e=Array.from(i.entries()).map(([,c])=>c));let a=l?e[0]:e,m=u?u.generate():{};o(a,m,r)}function ve(n,e,r){let t=P(n,"realdom","internalAttrInteractions").get(e);P(n,"realdom","internalAttrInteractions").set(e,!0);let o=r();return P(n,"realdom","internalAttrInteractions").set(e,t),o}function Qe(n,e,r=[]){let t={event:null,type:"attribute"};return e.length?e.map(s=>(s=s+"",r.find(i=>i.name===s)||{target:n,name:s,value:ve(n,s,()=>n.getAttribute(s)),...t})):Array.from(n.attributes).map(s=>r.find(i=>i.name===s.nodeName)||{target:n,name:s.nodeName,value:ve(n,s.nodeName,()=>s.nodeValue),...t})}function Je({target:n,attributeName:e,value:r,oldValue:t}){let i=(this.webqit.realdom.attrInterceptionRecords?.get(n)||{})[e]?.[0]||"mutation";return{target:n,name:e,value:r,oldValue:t,type:"observation",event:i}}function ze(n,e){let r=this,{webqit:t,document:o,Element:s}=r;t.realdom.attrInterceptionHooks||Object.defineProperty(t.realdom,"attrInterceptionHooks",{value:new Map}),t.realdom.attrInterceptionHooks.has(n)||t.realdom.attrInterceptionHooks.set(n,new Set),t.realdom.attrInterceptionHooks.get(n).add(e);let i=()=>t.realdom.attrInterceptionHooks.get(n).delete(e);if(t.realdom.attrInterceptionHooks?.intercepting)return i;console.warn("Attr mutation APIs are now being intercepted."),t.realdom.attrInterceptionHooks.intercepting=!0,Object.defineProperty(t.realdom,"attrInterceptionRecords",{value:new Map});let l=(a,m)=>{t.realdom.attrInterceptionRecords.has(a.target)||t.realdom.attrInterceptionRecords.set(a.target,{});let c=t.realdom.attrInterceptionRecords.get(a.target);if(c[a.name]=c[a.name]||[],c[a.name].unshift(a.event),P(a.target,"realdom","internalAttrInteractions").get(a.name))return m();t.realdom.attrInterceptionHooks.get("intercept")?.forEach(p=>p([a]));let d=m();return t.realdom.attrInterceptionHooks.get("sync")?.forEach(p=>p([a])),d};new r.MutationObserver(a=>{a=a.filter(m=>!(r.webqit.realdom.attrInterceptionRecords?.get(m.target)||{})[m.attributeName]?.shift()),a=Xe(a).map(m=>Je.call(r,m)),a.length&&(t.realdom.attrInterceptionHooks.get("intercept")?.forEach(m=>m(a)),t.realdom.attrInterceptionHooks.get("sync")?.forEach(m=>m(a)))}).observe(o,{attributes:!0,subtree:!0,attributeOldValue:!0});let f=Object.create(null);return["setAttribute","removeAttribute","toggleAttribute"].forEach(a=>{f[a]=s.prototype[a],s.prototype[a]=function(...m){let c,d=ve(this,m[0],()=>this.getAttribute(m[0]));["setAttribute","toggleAttribute"].includes(a)&&(c=m[1]),a==="toggleAttribute"&&c===void 0&&(c=d===null);let p={target:this,name:m[0],value:c,oldValue:d,type:"interception",event:[this,a]};return l(p,()=>f[a].call(this,...m))}}),i}var me=class extends Z{constructor(e,...r){super(e,"tree",...r)}attr(e,r=void 0,t={}){let{context:o,window:s}=this;return new z(o,s).get(...arguments)}query(e,r=void 0,t={}){[e,r=void 0,t={}]=this.resolveArgs(arguments);let{context:o}=this,s=new Map,i=f=>(s.has(f)||s.set(f,{target:f,entrants:[],exits:[],type:"query",event:null}),s.get(f));if(!t.generation||t.generation==="entrants"){if(!e.length)[...o.children].forEach(f=>i(o).entrants.push(f));else if(e.every(f=>f.type==="selector")){let[f,a]=e.reduce(([c,d],p)=>p.kind==="xpath"?[c,d.concat(p)]:[c.concat(p),d],[[],[]]),m=[];t.subtree?(f.length&&m.push(...o.querySelectorAll(f.join(","))),a.length&&m.push(...xe(this.window,o,a))):(f.length&&m.push(...[...o.children].filter(c=>c.matches(f))),a.length&&m.push(...xe(this.window,o,a,!1))),m.forEach(c=>i(c.parentNode||o).entrants.push(c))}}if(!r)return s;let l={disconnected:!1},u=r&&t.lifecycleSignals&&this.createSignalGenerator();for(let[,f]of s){if(l.disconnected)break;let a=u?.generate()||{};r(f,a,o)}if(t.live){u&&(t={...t,signalGenerator:u});let f=this.observe(e,r,t);return this.disconnectables(t.signal,l,f)}return this.disconnectables(t.signal,l,u)}children(e,r=void 0,t={}){return[e,r=void 0,t={}]=this.resolveArgs(arguments),this.query(e,r,{...t,subtree:!1})}subtree(e,r=void 0,t={}){return[e,r=void 0,t={}]=this.resolveArgs(arguments),this.query(e,r,{...t,subtree:!0})}observe(e,r,t={}){if([e,r,t={}]=this.resolveArgs(arguments),["sync","intercept"].includes(t.timing))return this.observeSync(e,r,t);if(t.timing&&t.timing!=="async")throw new Error(`Timing option "${t.timing}" invalid.`);let{context:o,window:s,webqit:i,document:l}=this;t.eventDetails&&(i.realdom.domInterceptionRecordsAlwaysOn=!0),(l.readyState==="loading"||i.realdom.domInterceptionRecordsAlwaysOn)&&!i.realdom.domInterceptionHooks?.intercepting&&Ke.call(s,"sync",()=>{});let u=new s.MutationObserver(m=>m.forEach(c=>{Pe.call(s,a,Ze.call(s,c),o)}));u.observe(o,{childList:!0,subtree:t.subtree&&!0});let f=t.signalGenerator||t.lifecycleSignals&&this.createSignalGenerator(),a={context:o,spec:e,callback:r,params:t,signalGenerator:f,disconnectable:u};if(t.staticSensitivity){let m=Ye.call(s,a);return this.disconnectables(t.signal,u,f,m)}return this.disconnectables(t.signal,u,f)}observeSync(e,r,t={}){[e,r,t={}]=this.resolveArgs(arguments);let{context:o,window:s}=this;if(t.timing&&!["sync","intercept"].includes(t.timing))throw new Error(`Timing option "${t.timing}" invalid.`);let i=t.timing==="intercept"?"intercept":"sync";this.registry(i).size||Ke.call(s,i,c=>{this.forEachMatchingContext(i,c,Pe)});let l=new s.MutationObserver(c=>c.forEach(d=>{Array.isArray((d=Ze.call(s,d)).event)||Pe.call(s,a,d,o)}));l.observe(o,{childList:!0,subtree:t.subtree&&!0});let u={disconnect(){m.delete(a),l.disconnect()}},f=t.signalGenerator||t.lifecycleSignals&&this.createSignalGenerator(),a={context:o,spec:e,callback:r,params:t,signalGenerator:f,disconnectable:u},m=this.registry(i);if(m.set(a,!!a.params.deferred),t.staticSensitivity){let c=Ye.call(s,a);return this.disconnectables(t.signal,u,f,c)}return this.disconnectables(t.signal,u,f)}track(e,r,t={}){return t={subtree:!0,...t},this.observe(e,o=>{o.entrants.length&&r(!0,Array.isArray(e)?o.entrants:o.entrants[0]),o.exits.length&&r(!1,Array.isArray(e)?o.exits:o.exits[0])},t)}};function Ye(n){let e=this,{context:r,spec:t,callback:o,params:s,signalGenerator:i}=n,l=t.filter(d=>d.kind==="css"),u=d=>d.match(/\.([\w-]+)/g)?.length?["class"]:[],f=d=>d.match(/#([\w-]+)/g)?.length?["id"]:[],a=d=>[...d.matchAll(/\[([^\=\]]+)(\=[^\]]+)?\]/g)].map(p=>p[1]).concat(u(d)).concat(f(d));if(!(n.$attrs=Array.from(new Set(l.filter(d=>(d+"").includes("[")).reduce((d,p)=>d.concat(a(p+"")),[])))).length)return;let m=new Set,c=new Set;return m.push=d=>(c.delete(d),m.add(d)),c.push=d=>(m.delete(d),c.add(d)),n.$deliveryCache={entrants:m,exits:c},new z(r,e).observe(n.$attrs,d=>{let p=new Map,_=w=>(p.has(w)||p.set(w,{target:w,entrants:[],exits:[],type:"static",event:null}),p.get(w)),E=new WeakMap,h=w=>(E.has(w)||E.set(w,l.some(A=>w.matches(A+""))),E.get(w));for(let w of d)["entrants","exits"].forEach(A=>{s.generation&&A!==s.generation||n.$deliveryCache[A].has(w.target)||(A==="entrants"?!h(w.target):h(w.target))||(n.$deliveryCache[A].push(w.target),_(w.target)[A].push(w.target),_(w.target).event=w.event)});for(let[,w]of p){let A=i?.generate()||{};o(w,A,r)}},{subtree:s.subtree,timing:s.timing,eventDetails:s.eventDetails})}function Pe(n,e){let{context:r,spec:t,callback:o,params:s,signalGenerator:i,$deliveryCache:l}=n,u={...e,entrants:[],exits:[]};if(s.eventDetails||delete u.event,["entrants","exits"].forEach(a=>{if(!(s.generation&&a!==s.generation)&&(t.length?u[a]=At.call(this,t,s.subtree==="cross-roots",e[a],e.event!=="parse"):u[a]=[...e[a]],!!l))for(let m of u[a])l[a].push(m)}),!u.entrants.length&&!u.exits.length)return;let f=i?.generate()||{};o(u,f,r)}function At(n,e,r,t){r=Array.isArray(r)?r:[...r];let o=(s,i)=>{if(i.type==="selector"){let l=i.isXpathAttr?[]:s.filter(u=>i.kind==="xpath"?Ve(this,u,i+""):u.matches&&u.matches(i+""));if((t||i.isXpathAttr)&&(l=s.reduce((u,f)=>i.kind==="xpath"?[...u,...xe(this,f,i,t)]:f.querySelectorAll?[...u,...f.querySelectorAll(i+"")]:u,l)),l.length)return l}else if(s.includes(i.content)||t&&s.some(l=>ue(this,l,i.content,e)))return[i.content]};return r.$$searchCache||(r.$$searchCache=new Map),n.reduce((s,i)=>{let l;return r.$$searchCache.has(i.content)?l=r.$$searchCache.get(i.content):(l=o(r,i)||[],i.type==="instance"&&r.$$searchCache.set(i.content,l)),s.concat(l)},[])}function Ze({target:n,addedNodes:e,removedNodes:r}){let t=this,o;return o=M(e).reduce((s,i)=>s||t.webqit.realdom.domInterceptionRecords?.get(i),null),o=M(r).reduce((s,i)=>s||t.webqit.realdom.domInterceptionRecords?.get(i),o),o=o||t.document.readyState==="loading"&&"parse"||"mutation",{target:n,entrants:e,exits:r,type:"observation",event:o}}function Ke(n,e){let r=this,{webqit:t,document:o,Node:s,CharacterData:i,Element:l,HTMLElement:u,HTMLTemplateElement:f,DocumentFragment:a}=r;t.realdom.domInterceptionHooks||Object.defineProperty(t.realdom,"domInterceptionHooks",{value:new Map}),t.realdom.domInterceptionNoRecurse||Object.defineProperty(t.realdom,"domInterceptionNoRecurse",{value:new Map}),t.realdom.domInterceptionHooks.has(n)||t.realdom.domInterceptionHooks.set(n,new Set),t.realdom.domInterceptionHooks.get(n).add(e);let m=()=>t.realdom.domInterceptionHooks.get(n).delete(e);if(t.realdom.domInterceptionHooks?.intercepting)return m;console.warn("DOM mutation APIs are now being intercepted."),t.realdom.domInterceptionHooks.intercepting=!0,Object.defineProperty(t.realdom,"domInterceptionRecords",{value:new Map});let c=(h,w,A)=>{t.realdom.domInterceptionNoRecurse.set(h,w);let g=A();return t.realdom.domInterceptionNoRecurse.delete(h),g},d=(h,w)=>{h.entrants.concat(h.exits).forEach(g=>{clearTimeout(t.realdom.domInterceptionRecords.get(g)?.timeout),t.realdom.domInterceptionRecords.set(g,h.event);let R=setTimeout(()=>{t.realdom.domInterceptionRecords.delete(g)},0);Object.defineProperty(h.event,"timeout",{value:R,configurable:!0})}),t.realdom.domInterceptionHooks.get("intercept")?.forEach(g=>g(h));let A=w();return t.realdom.domInterceptionHooks.get("sync")?.forEach(g=>g(h)),A},p={ShadowRoot:["innerHTML","setHTMLUnsafe"],DocumentFragment:["replaceChildren","append","prepend"],Document:["replaceChildren","append","prepend"],HTMLElement:["outerText","innerText"],Element:["append","prepend","before","after","insertAdjacentElement","insertAdjacentHTML","remove","replaceChildren","replaceWith","setHTMLUnsafe","innerHTML","outerHTML"],CharacterData:["before","after","remove","replaceWith"],Node:["insertBefore","replaceChild","removeChild","appendChild","textContent","nodeValue"]},_={ShadowRoot:Object.create(null),DocumentFragment:Object.create(null),Document:Object.create(null),HTMLElement:Object.create(null),Element:Object.create(null),CharacterData:Object.create(null),Node:Object.create(null)};return new Set(Object.values(p).reduce((h,w)=>h.concat(w),[])).forEach(h=>{Object.keys(p).forEach(g=>{if(!p[g].includes(h))return;let R=Object.getOwnPropertyDescriptor(r[g].prototype,h);!R||(Object.defineProperty(r[g].prototype,h,"value"in R?{...R,value:w}:{...R,set:A}),_[g][h]=R)});function w(...g){let R=Object.keys(_).find(N=>this instanceof r[N]&&h in _[N]),K=_[R],$=()=>K[h].value.call(this,...g);if(t.realdom.domInterceptionNoRecurse.get(this)===h)return $();let H=[],C=[],D=this;["insertBefore"].includes(h)?C=[g[0]]:["insertAdjacentElement","insertAdjacentHTML"].includes(h)?(C=[g[1]],["beforebegin","afterend"].includes(g[0])&&(D=this.parentNode)):["setHTMLUnsafe","replaceChildren"].includes(h)?(H=[...this.childNodes],C=h==="replaceChildren"?[...g]:[g[0]]):["replaceWith","remove"].includes(h)?(H=[this],C=h==="replaceWith"?[...g]:[],D=this.parentNode):["replaceChild"].includes(h)?(H=[g[1]],C=[g[0]]):["removeChild"].includes(h)?H=[...g]:(C=[...g],["before","after"].includes(h)&&(D=this.parentNode));let ge=h;if(["insertAdjacentHTML","setHTMLUnsafe"].includes(h)){let N=this.nodeName;if(h==="insertAdjacentHTML"&&["beforebegin","afterend"].includes(g[0])){if(!this.parentNode)return K[h].value.call(this,...g);N=this.parentNode.nodeName}let G=o.createElement(N.includes("-")?"div":N);K.setHTMLUnsafe.value.call(G,C[0],h==="setHTMLUnsafe"?g[1]:{}),C=[...G.childNodes],h==="insertAdjacentHTML"?(ge="insertAdjacentElement",g[1]=new a,c(g[1],"append",()=>g[1].append(...G.childNodes))):(ge="replaceChildren",g=[...G.childNodes])}return D?d({target:D,entrants:C,exits:H,type:"interception",event:[this,h]},()=>K[ge].value.call(this,...g)):$()}function A(g){let R=Object.keys(_).find(J=>this instanceof r[J]&&h in _[J]),K=_[R],$=()=>K[h].set.call(this,g);if(this instanceof HTMLScriptElement||t.realdom.domInterceptionNoRecurse.get(this)===h)return $();let H=[],C=[],D=this;if(["outerHTML","outerText"].includes(h)?(H=[this],D=this.parentNode):this instanceof f?(D=this.content,H=[...this.content.childNodes]):H=[...this.childNodes],["outerHTML","innerHTML"].includes(h)){let J=this.nodeName;if(h==="outerHTML"){if(!this.parentNode)return $();J=this.parentNode.nodeName}let N=o.createElement(J.includes("-")?"div":J);if(c(N,h,()=>N[h]=g),C=this instanceof f?[...N.content.childNodes]:[...N.childNodes],this instanceof f&&this.hasAttribute("src")||this instanceof ShadowRoot){let G=Y=>Y.reduce((W,F)=>F instanceof HTMLScriptElement?W.concat(F):F instanceof f?W.concat(G([F.content])):(W=W.concat(G([...F.querySelectorAll?.("template")||[]].map(st=>st.content))),W.concat(...F.querySelectorAll?.("script")||[])),[]);for(let Y of G(C)){if(this instanceof ShadowRoot){Y.setAttribute("data-handling","manual");continue}let W=o.createElement("script");[...Y.attributes].forEach(F=>W.setAttribute(F.name,F.value)),W.textContent=Y.textContent,c(Y,"replaceWith",()=>Y.replaceWith(W))}}h==="outerHTML"?(g=new a,c(g,"append",()=>g.append(...C)),$=()=>c(this,"replaceWith",()=>l.prototype.replaceWith.call(this,g))):this instanceof f?$=()=>c(this.content,"replaceChildren",()=>this.content.replaceChildren(...C)):$=()=>c(this,"replaceChildren",()=>l.prototype.replaceChildren.call(this,...C))}return d({target:D,entrants:C,exits:H,type:"interception",event:[this,h]},$)}}),m}function et(){Et.call(this),Tt.call(this),Ct.call(this)}function Et(){let n=this;n.CSS||(n.CSS={}),n.CSS.escape||(n.CSS.escape=e=>e.replace(/([\:@\~\$\&])/g,"\\$1"))}function Tt(){let n=this;"isConnected"in n.Node.prototype||Object.defineProperty(n.Node.prototype,"isConnected",{get:function(){return!this.ownerDocument||!(this.ownerDocument.compareDocumentPosition(this)&this.DOCUMENT_POSITION_DISCONNECTED)}})}function Ct(){let n=this;n.Element.prototype.matches||(n.Element.prototype.matches=n.Element.prototype.matchesSelector||n.Element.prototype.mozMatchesSelector||n.Element.prototype.msMatchesSelector||n.Element.prototype.oMatchesSelector||n.Element.prototype.webkitMatchesSelector||function(e){for(var r=(this.document||this.ownerDocument).querySelectorAll(e),t=r.length;--t>=0&&r.item(t)!==this;);return t>-1})}function tt(){let n=this;if(n.webqit||(n.webqit={}),n.webqit.realdom)return n.webqit.realdom;n.webqit.realdom={},et.call(n),n.webqit.realdom.meta=(...r)=>St.call(n,...r),n.webqit.realdom.ready=(...r)=>Le.call(n,...r),n.webqit.realdom.realtime=(r,t="dom")=>{if(t==="dom")return new me(r,n);if(t==="attr")return new z(r,n)};let e=new ce(n);return n.webqit.realdom.schedule=(r,...t)=>e[`on${r}`](...t),n.webqit.realdom.synthesizeWhile=(...r)=>e.synthesizeWhile(...r),n.webqit.realdom}function Le(...n){let e="interactive",r;re(n[0])?(e=n[0],b(n[1])&&(r=n[1])):b(n[0])&&(r=n[0]);let t={interactive:["interactive","complete"],complete:["complete"]};if(!t[e])throw new Error(`Invalid ready-state timing: ${e}.`);let o=this;if(!r)return o.webqit.realdom.readyStatePromises||(o.webqit.realdom.readyStatePromises={interactive:new Promise(s=>Le.call(this,"interactive",s)),complete:new Promise(s=>Le.call(this,"complete",s))}),o.webqit.realdom.readyStatePromises[e];if(t[e].includes(o.document.readyState))return r(o);o.webqit.realdom.readyStateCallbacks||(o.webqit.realdom.readyStateCallbacks={interactive:[],complete:[]},o.document.addEventListener("readystatechange",()=>{let s=o.document.readyState;for(let i of o.webqit.realdom.readyStateCallbacks[s].splice(0))i(o)},!1)),o.webqit.realdom.readyStateCallbacks[e].push(r)}function St(n){let e=this,r={},t;return(t=e.document.querySelector(`meta[name="${n}"]`))&&(r=(t.content||"").split(";").filter(o=>o).reduce((o,s)=>{let i=s.split("=").map(l=>l.trim());return Me(o,i[0].split("."),i[1]==="true"?!0:i[1]==="false"?!1:q(i[1])?parseInt(i[1]):i[1]),o},{})),{get name(){return n},get content(){return t.content},json(){return JSON.parse(JSON.stringify(r))}}}function Oe(n,e){return typeof n!="string"?n:n.replace(/\w\S*/g,function(r){return r.charAt(0).toUpperCase()+(typeof e!==void 0&&e?r.substr(1).toLowerCase():r.substr(1))})}var x=(n,...e)=>P(n,"oohtml",...e),O={};function nt(n,e,r){let t=this,o=tt.call(t);O.window=t,t.webqitConfig||(t.webqitConfig=o.meta("webqit").json()),t.webqit||(t.webqit={}),t.webqit.oohtml||(t.webqit.oohtml={}),t.webqit.oohtml.configs||(t.webqit.oohtml.configs={});let s=n.toUpperCase().replace("-","_");if(!t.webqit.oohtml.configs[s]){t.webqit.oohtml.configs[s]={};let i=t.webqit.oohtml.configs[s];fe(2,i,r,e,o.meta(n).json()),t.webqitConfig.prefix&&Object.keys(i).forEach(l=>{Object.keys(i[l]).forEach(u=>{l==="api"&&typeof i[l][u]=="string"?i[l][u]=`${t.webqitConfig.prefix}${Oe(i[l][u])}`:["attr","elements"].includes(l)&&i[l][u]?.startsWith("data-")===!1&&(i[l][u]=`${t.webqitConfig.prefix}-${i[l][u]}`)})})}return{config:t.webqit.oohtml.configs[s],realdom:o,window:t}}var j=class{static instance(e){return x(e).get("defsmanager::instance")||new this(e)}constructor(e,r=null,t=0){let{window:o}=O,{webqit:{realdom:s,oohtml:{configs:i}}}=o;x(e).get("defsmanager::instance")?.dispose(),x(e).set("defsmanager::instance",this),this.window=o,this.host=e,this.config=i.HTML_IMPORTS,this.parent=r,this.level=t,this.defs=V(this.host),this.defId=(this.host.getAttribute(this.config.attr.def)||"").trim(),this.validateDefId(this.defId),this.realtimeA=s.realtime(this.host.content).children(l=>{this.expose(l.exits,!1),this.expose(l.entrants,!0)},{live:!0,timing:"sync"}),this.realtimeB=s.realtime(this.host).attr(["src","loading"],(...l)=>this.evaluateLoading(...l),{live:!0,atomic:!0,timing:"sync",lifecycleSignals:!0}),this.realtimeC=this.evalInheritance()}validateDefId(e){if(["@","/","*","#"].some(r=>e.includes(r)))throw new Error(`The export ID "${e}" contains an invalid character.`)}expose(e,r){let{window:t}=O,{webqit:{Observer:o}}=t,s,i=this.defs["#"]||[];e.forEach(l=>{if(!l||l.nodeType!==1)return;let u=l.matches(this.config.templateSelector),f=(l.getAttribute(u?this.config.attr.def:this.config.attr.fragmentdef)||"").trim();r?(u&&f?new j(l,this.host,this.level+1):(i.push(l),s=!0,typeof requestIdleCallback=="function"&&requestIdleCallback(()=>{this.config.idleCompilers?.forEach(a=>a.call(this.window,l))})),f&&(this.validateDefId(f),o.set(this.defs,(!u&&"#"||"")+f,l))):(u&&f?j.instance(l).dispose():(i=i.filter(a=>a!==l),s=!0),f&&o.deleteProperty(this.defs,(!u&&"#"||"")+f))}),s&&o.set(this.defs,"#",i)}evaluateLoading([e,r],{signal:t}){let{window:{webqit:{Observer:o}}}=O,s=(e.value||"").trim();if(!s)return;let i,l=a=>{if(!a)return i;i=a.then(()=>f.remove())},u=(r.value||"").trim(),f=o.intercept(this.defs,"get",async(a,m,c)=>(u==="lazy"&&l(this.load(s,!0)),await l(),c()),{signal:t});u!=="lazy"&&l(this.load(s))}#e=new Set;#t;load(e){let{window:r}=O;if(this.#e.has(e)||(this.#e.add(e),this.#e.size===1&&this.host.content.children.length))return Promise.resolve();this.#t?.controller.abort();let t=new AbortController,o=(i,l)=>this.host.dispatchEvent(new r.CustomEvent(i,{detail:l})),s=r.fetch(e,{signal:t.signal,element:this.host}).then(i=>i.ok?i.text():Promise.reject(i.statusText)).then(i=>(this.host.innerHTML=i.trim(),o("load"),this.host)).catch(i=>(console.error(`Error fetching the bundle at "${e}": ${i.message}`),this.#t=null,o("loaderror"),this.host));return this.#t={request:s,controller:t},s}evalInheritance(){if(!this.parent)return[];let{window:{webqit:{Observer:e}}}=O,r=(this.host.getAttribute(this.config.attr.extends)||"").trim(),t=(this.host.getAttribute(this.config.attr.inherits)||"").trim().split(" ").map(l=>l.trim()).filter(l=>l),o=l=>{l.forEach(u=>{e.get(this.defs,u.key)===u.oldValue&&(["get","set","def"].includes(u.type)?e[u.type.replace("get","set")](this.defs,u.key,u.value):u.type==="delete"&&e.deleteProperty(this.defs,u.key))})},s=[],i=V(this.parent);return r&&s.push(e.reduce(i,[r,this.config.api.defs,1/0],e.get,o,{live:!0})),t.length&&s.push(e.get(i,t.includes("*")?1/0:t,o,{live:!0})),s}dispose(){this.realtimeA.disconnect(),this.realtimeB.disconnect(),this.realtimeC.forEach(e=>e instanceof Promise?e.then(r=>r.abort()):e.abort()),Object.entries(this.defs).forEach(([e,r])=>{e.startsWith("#")||j.instance(r).dispose()})}};function it(){let{window:n}=O,{webqit:e}=n;if(e.DOMContextRequestEvent)return e.DOMContextRequestEvent;class r extends n.Event{constructor(...o){let s=o.pop();if(typeof s!="function")throw new Error("Callback must be provided.");let i=o.pop();if(!i?.kind)throw new Error('"options.kind" must be specified.');let l=["contextrequest","contextclaim"],u=o.pop()||l[0];if(!l.includes(u))throw new Error(`Invalid event type. Must be one of: ${l.join(",")}`);let{kind:f,detail:a,targetContext:m,live:c,signal:d,diff:p,..._}=i;super(u,{..._,bubbles:_.bubbles!==!1}),Object.defineProperty(this,"callback",{get:()=>s}),Object.defineProperty(this,"kind",{get:()=>f}),Object.defineProperty(this,"targetContext",{get:()=>m}),Object.defineProperty(this,"detail",{get:()=>a}),Object.defineProperty(this,"live",{get:()=>c}),Object.defineProperty(this,"signal",{get:()=>d}),Object.defineProperty(this,"diff",{get:()=>p}),Object.defineProperty(this,"options",{get:()=>_}),Object.defineProperty(this,"meta",{value:{}})}get target(){return super.target||this.meta.target}get answered(){return this.meta.answered||!1}respondWith(o){if(this.meta.answered=!0,this.diff){if("_prevValue"in this&&this._prevValue===o)return;Object.defineProperty(this,"_prevValue",{value:o,configurable:!0})}return this.callback(o)}}return e.DOMContextRequestEvent=r,r}var de=class extends AbortController{constructor(e){super(),e(r=>{let{window:{webqit:{Observer:t}}}=O;t.defineProperty(this,"value",{value:r,configurable:!0,enumerable:!0})},this)}};var he=class extends Error{};var pe=class{static instance(e){return x(e).get("contexts::instance")||new this(e)}constructor(e){x(e).get("contexts::instance")?.dispose(),x(e).set("contexts::instance",this);let r={host:e,contexts:new Set};Object.defineProperty(this,"#",{get:()=>r})}[Symbol.iterator](){return this["#"].contexts[Symbol.iterator]()}get length(){return this["#"].contexts.size}find(...e){return[...this["#"].contexts].find(r=>typeof e[0]=="function"?e[0](r):r.constructor.kind===e[0]&&(!e[1]||r.detail===e[1]))}attach(e){if(!(e instanceof X))throw new TypeError("Context is not a valid DOMContext instance.");if(this.find(e.constructor.kind,e.detail))throw new he(`Context of same kind "${e.constructor.kind}"${e.detail?` and detail "${e.detail}"`:""} already exists.`);this["#"].contexts.add(e),e.initialize(this["#"].host)}detach(e){e.dispose(this["#"].host),this["#"].contexts.delete(e)}request(...e){return new de((r,t)=>{typeof e[e.length-1]!="function"&&(e[e.length-1]?e.push(r):e[e.length-1]=r);let o;(o=e.find(i=>typeof i=="object"&&i))&&o.live&&(o.signal&&o.signal.addEventListener("abort",()=>t.abort()),e[e.indexOf(o)]={...o,signal:t.signal});let s=new(it())(...e);this["#"].host.dispatchEvent(s)})}};var Re=class{static createRequest(){return{kind:this.kind}}constructor(e=null){Object.defineProperty(this,"detail",{get:()=>e}),Object.defineProperty(this,"subscriptions",{value:new Set})}get configs(){let{window:{webqit:{oohtml:{configs:e}}}}=O;return e}get name(){return[O.window.Document,O.window.ShadowRoot].some(e=>this.host instanceof e)?1/0:this.host.getAttribute(this.configs.CONTEXT_API.attr.contextname)}subscribed(e){}handle(e){}unsubscribed(e){}matchEvent(e){return e.kind===this.constructor.kind&&(!e.targetContext||e.targetContext===this.name)}handleEvent(e){if(!(this.disposed||typeof e.respondWith!="function")){if(e.type==="contextclaim"){if(!(e.detail instanceof Re)||e.target===this.host)return;let r=new Set;if(this.subscriptions.forEach(t=>{!e.target.contains(t.target)||!e.detail.matchEvent(t)||(this.subscriptions.delete(t),this.unsubscribed(t),r.add(t))}),r.size)return e.respondWith(r)}if(e.type==="contextrequest")return this.matchEvent(e)?(e.live&&(this.subscriptions.add(e),this.subscribed(e),e.signal?.addEventListener("abort",()=>{this.subscriptions.delete(e),this.unsubscribed(e)})),e.stopPropagation(),this.handle(e)):void 0}}initialize(e){this.host=e,this.disposed=!1,e.addEventListener("contextrequest",this),e.addEventListener("contextclaim",this);let{value:r}=pe.instance(e).request("contextclaim",{kind:this.constructor.kind,detail:this});return r?.forEach(t=>{this.subscriptions.add(t),this.subscribed(t),this.handle(t)}),this}dispose(e){return this.disposed=!0,e.removeEventListener("contextrequest",this),e.removeEventListener("contextclaim",this),this.subscriptions.forEach(r=>{this.subscriptions.delete(r),this.unsubscribed(r);let{target:t}=r;r.meta.answered=!1,t.dispatchEvent(r)}),this}},X=Re;ye(X,"kind");var Q,I,ne,ie,B=class extends X{constructor(){super(...arguments);oe(this,Q,{});oe(this,I,void 0);oe(this,ne,void 0);oe(this,ie,void 0)}static createRequest(r=null){let t=super.createRequest();if(r?.startsWith("/"))t.detail=r,t.targetContext=1/0;else if(r?.startsWith("@")){let[o,...s]=r.slice(1).split(/(?<=\w)(?=\/|#)/).map(i=>i.trim());t.targetContext=o,t.detail=s.join("")}else t.detail=r;return t}get localModules(){return V(this.host)}get inheritedModules(){return T(this,Q)}handle(r){let{window:{webqit:{Observer:t}}}=O;r.meta.controller?.abort();let o=(r.detail||"").split(/\/|(?<=\w)(?=#)/g).map(i=>i.trim()).filter(i=>i);if(!o.length)return r.respondWith();o=o.join(`/${this.configs.HTML_IMPORTS.api.defs}/`)?.split("/").map(i=>i==="*"?1/0:i)||[];let s={live:r.live,sig_nal:r.signal,descripted:!0};r.meta.controller=t.reduce(T(this,I),o,t.get,i=>{if(Array.isArray(i)){if(!i.length){r.respondWith();return}for(let l of i)r.respondWith(l)}else r.respondWith(i.value)},s)}unsubscribed(r){r.meta.controller?.abort()}initialize(r){this.host=r;let{window:{webqit:{Observer:t}}}=O,o=()=>{for(let i of new Set([...Object.keys(this.localModules),...Object.keys(this.inheritedModules),...Object.keys(T(this,I))]))if(!t.has(this.localModules,i)&&!t.has(this.inheritedModules,i))t.deleteProperty(T(this,I),i);else if(i==="#"&&t.has(this.localModules,i)&&t.has(this.inheritedModules,i))t.set(T(this,I),i,[...t.get(this.localModules,i),...t.get(this.inheritedModules,i)]);else{let l=t.get(this.localModules,i)||t.get(this.inheritedModules,i);t.get(T(this,I),i)!==l&&t.set(T(this,I),i,l)}};ee(this,I,{...this.localModules}),T(this,ne)?.abort(),ee(this,ne,t.observe(this.localModules,()=>o("local"),{timing:"sync"}));let s=this.configs.HTML_IMPORTS;if(this.host.matches&&s.attr.importscontext){let i=this.host.ownerDocument.defaultView.webqit.realdom,l;T(this,ie)?.disconnect(),ee(this,ie,i.realtime(this.host).attr(s.attr.importscontext,(u,{signal:f})=>{let a=(u.value||"").trim();l=a,ee(this,Q,{});let m={...this.constructor.createRequest(a?`${a}/*`:"*"),live:!0,signal:f,diff:!0};this.host.parentNode[this.configs.CONTEXT_API.api.contexts].request(m,c=>{c?c.type==="delete"?(delete T(this,Q)[c.key],Reflect.has(this.localModules,c.key)||t.deleteProperty(T(this,I),c.key)):(T(this,Q)[c.key]=c.value,!Reflect.has(this.localModules,c.key)&&Reflect.get(T(this,I),c.key)!==c.value&&t.set(T(this,I),c.key,c.value)):(ee(this,Q,{}),o("inherited"))}),o("inherited")},{live:!0,timing:"sync",oldValue:!0,lifecycleSignals:!0}))}return super.initialize(r)}dispose(r){return T(this,ne)?.abort(),T(this,ie)?.disconnect(),super.dispose(r)}};Q=new WeakMap,I=new WeakMap,ne=new WeakMap,ie=new WeakMap,ye(B,"kind","html-imports");function ot(){let{window:n}=O,{webqit:e}=n,{realdom:r,oohtml:{configs:t}}=e;if(e.HTMLImportElement)return e.HTMLImportElement;let o=t.HTML_IMPORTS.elements.import.includes("-")?n.HTMLElement:class{};class s extends o{static instance(l){return t.HTML_IMPORTS.elements.import.includes("-")&&l instanceof this?l:x(l).get("import::instance")||new this(l)}constructor(...l){super();let u=l[0]||this;x(u).set("import::instance",this),Object.defineProperty(this,"el",{get:()=>u,configurable:!1});let f={};Object.defineProperty(this,"#",{get:()=>f,configurable:!1}),f.slottedElements=new Set,f.setAnchorNode=a=>(f.anchorNode=a,a),f.live=a=>{if(f.liveImportsRealtime)throw new Error("Import element already in live mode.");let m=this.el.isConnected?this.el.parentNode:f.anchorNode.parentNode;f.liveImportsRealtime=r.realtime(this.el).attr(t.HTML_IMPORTS.attr.ref,(c,{signal:d})=>{f.moduleRef=c.value;let p=f.moduleRef.includes("#")?f.moduleRef:`${f.moduleRef}#`,_={...B.createRequest(p),live:d&&!0,signal:d,diff:!p.endsWith("#")};m[t.CONTEXT_API.api.contexts].request(_,E=>{a((E instanceof n.HTMLTemplateElement?[...E.content.children]:Array.isArray(E)?E:E&&[E])||[])})},{live:!0,timing:"sync",lifecycleSignals:!0}),f.autoDestroyRealtime=r.realtime(n.document).track(m,()=>{f.die()},{subtree:"cross-roots",timing:"sync",generation:"exits"})},f.die=()=>{f.autoDestroyRealtime?.disconnect(),f.liveImportsRealtime?.disconnect(),f.liveImportsRealtime=null},f.hydrate=(a,m)=>{a.replaceWith(f.setAnchorNode(this.createAnchorNode())),f.live(c=>{if(f.originalsRemapped)return this.fill(c);let d=c.map((p,_)=>({el:p,fragmentDef:p.getAttribute(t.HTML_IMPORTS.attr.fragmentdef)||"",tagName:p.tagName,i:_}));m.forEach((p,_)=>{let E=p.tagName,h=p.getAttribute(t.HTML_IMPORTS.attr.fragmentdef)||"",w=(_++,d.find(A=>A.tagName===E&&A.fragmentDef===h&&A.i===_));w&&x(p).set("original@imports",w.el),x(p).set("slot@imports",this.el),f.slottedElements.add(p)}),f.originalsRemapped=!0})},f.autoRestore=(a=null)=>{f.autoRestoreRealtime?.disconnect(),a&&a();let m=()=>{this.el.isConnected||(this.el.setAttribute("data-nodecount",0),f.internalMutation=!0,f.anchorNode.replaceWith(this.el),f.internalMutation=!1,f.setAnchorNode(null))};if(!f.slottedElements.size)return m();let c=r.realtime(f.anchorNode.parentNode).observe([...f.slottedElements],d=>{if(d.exits.forEach(p=>{x(p).delete("slot@imports"),f.slottedElements.delete(p)}),!f.slottedElements.size){if(c.disconnect(),!d.target.isConnected)return;m()}},{subtree:"cross-roots",timing:"sync",generation:"exits"});f.autoRestoreRealtime=c},f.connectedCallback=()=>{f.internalMutation||f.live(a=>this.fill(a))},f.disconnectedCallback=()=>{f.internalMutation||f.die()}}createAnchorNode(){if(n.webqit.env!=="server")return n.document.createTextNode("");let l=n.document.createElement("div");l.textContent=this.el.outerHTML;let u=n.document.createComment(l.innerHTML);return x(u).set("isAnchorNode",!0),u}fill(l,u){!this.el.isConnected&&(!this["#"].anchorNode||!this["#"].anchorNode.isConnected)||(Array.isArray(l)&&(l=new Set(l)),this.el.setAttribute("data-nodecount",l.size),this["#"].autoRestore(()=>{if(this["#"].slottedElements.forEach(f=>{let a=x(f).get("original@imports");l.has(a)?l.delete(a):(this["#"].slottedElements.delete(f),f.remove())}),l.size&&this.el.isConnected){let f=this["#"].setAnchorNode(this.createAnchorNode());this["#"].internalMutation=!0,this.el.replaceWith(f),this["#"].internalMutation=!1}l.forEach(f=>{let a=f.cloneNode(!0);a.hasAttribute(t.HTML_IMPORTS.attr.fragmentdef)||a.toggleAttribute(t.HTML_IMPORTS.attr.fragmentdef,!0),x(a).set("original@imports",f),x(a).set("slot@imports",this.el),this["#"].slottedElements.add(a),this["#"].anchorNode.before(a)})}))}empty(){this["#"].slottedElements.forEach(l=>l.remove())}get anchorNode(){return this["#"].anchorNode}get moduleRef(){return this["#"].moduleRef}get slottedElements(){return this["#"].slottedElements}}return t.HTML_IMPORTS.elements.import.includes("-")&&customElements.define(t.HTML_IMPORTS.elements.import,s),e.HTMLImportElement=s,s}function Ne(n={}){let{config:e,window:r}=nt.call(this,"html-imports",n,{elements:{import:"import"},attr:{def:"def",extends:"extends",inherits:"inherits",ref:"ref",importscontext:"importscontext"},api:{def:"def",defs:"defs",import:"import"}});e.attr.fragmentdef||(e.attr.fragmentdef=e.attr.def),e.templateSelector=`template[${r.CSS.escape(e.attr.def)}]`,e.importsContextSelector=`[${r.CSS.escape(e.attr.importscontext)}]`,e.slottedElementsSelector=`[${r.CSS.escape(e.attr.fragmentdef)}]:not(template)`;let t=(o,s)=>{let i=`starts-with(., "${o}")`,l=`substring(., string-length(.) - string-length("${s}") + 1) = "${s}"`;return`${i} and ${l}`};e.anchorNodeSelector=`comment()[${t(`&lt;${e.elements.import}`,`&lt;/${e.elements.import}&gt;`)}]`,r.webqit.HTMLImportsContext=B,r.webqit.HTMLImportElement=ot(),qt.call(r,e),Pt.call(r,e)}function V(n,e=!0){if(!x(n).has("defs")&&e){let r=Object.create(null);x(n).set("defs",r)}return x(n).get("defs")}function qt(n){let e=this,{webqit:{oohtml:{configs:r}}}=e;if(n.api.def in e.HTMLTemplateElement.prototype)throw new Error(`The "HTMLTemplateElement" prototype already has a "${n.api.def}" API!`);if(n.api.defs in e.HTMLTemplateElement.prototype)throw new Error(`The "HTMLTemplateElement" prototype already has a "${n.api.defs}" API!`);Object.defineProperty(e.HTMLTemplateElement.prototype,n.api.def,{get:function(){return this.getAttribute(n.attr.def)}}),Object.defineProperty(e.HTMLTemplateElement.prototype,n.api.defs,{get:function(){return V(this)}}),Object.defineProperty(e.HTMLTemplateElement.prototype,"scoped",{configurable:!0,get(){return this.hasAttribute("scoped")},set(o){this.toggleAttribute("scoped",o)}}),[e.Document.prototype,e.Element.prototype,e.ShadowRoot.prototype].forEach(o=>{let s=o===e.Document.prototype?"Document":o===e.ShadowRoot.prototype?"ShadowRoot":"Element";if(n.api.import in o)throw new Error(`The ${s} prototype already has a "${n.api.import}" API!`);if(n.api.defs in o)throw new Error(`The ${s} prototype already has a "${n.api.defs}" API!`);Object.defineProperty(o,n.api.defs,{get:function(){return V(this)}}),Object.defineProperty(o,n.api.import,{value:function(i,l=!1,u=null){return t(this,...arguments)}})});function t(o,s,i=!1,l=null){let u={};typeof i=="function"?(l=i,i=!1):typeof i=="object"&&i?u={...i,...u}:u={live:i};let f={...B.createRequest(s),...u};return o[r.CONTEXT_API.api.contexts].request(f,l)}}function Pt(n){let e=this,{webqit:{Observer:r,realdom:t,oohtml:{configs:o},HTMLImportElement:s,HTMLImportsContext:i}}=e,l=a=>{let m=a[o.CONTEXT_API.api.contexts];m.find(i.kind)||m.attach(new i)},u=a=>{let m=a[o.CONTEXT_API.api.contexts],c=m.find(i.kind);c&&(!a.isConnected||!a.matches?.(n.importsContextSelector)&&!Object.keys(c.localModules).length)&&m.detach(c)};t.realtime(e.document).query([n.templateSelector,n.importsContextSelector],a=>{a.entrants.forEach(m=>{if(m.matches(n.templateSelector)){let c=j.instance(m);c.ownerContext=m.scoped?m.parentNode:m.getRootNode();let d=V(c.ownerContext);c.defId&&r.set(d,c.defId,m),l(c.ownerContext)}else l(m)}),a.exits.forEach(m=>{if(m.matches(n.templateSelector)){let c=j.instance(m),d=V(c.ownerContext);c.defId&&c.ownerContext.isConnected&&r.deleteProperty(d,c.defId),u(c.ownerContext)}else u(m)})},{id:"imports:template/importscontext",live:!0,subtree:"cross-roots",timing:"sync",staticSensitivity:!0,eventDetails:!0}),t.realtime(e.document).query(n.elements.import,a=>{a.entrants.forEach(m=>f(m,!0,a)),a.exits.forEach(m=>f(m,!1,a))},{id:"imports:import",live:!0,subtree:"cross-roots",timing:"sync",deferred:!0});function f(a,m){let c=s.instance(a);m?c["#"].connectedCallback():c["#"].disconnectedCallback()}e.webqit.env!=="server"&&t.realtime(e.document).query(`(${n.anchorNodeSelector})`,a=>{a.entrants.forEach(m=>{if(x(m).get("isAnchorNode"))return;let c=e.document.createElement("div");c.innerHTML=m.nodeValue,c.innerHTML=c.firstChild.textContent;let d=c.firstChild,p=parseInt(d.getAttribute("data-nodecount")),_=new Set,E=m;for(;(E=E.previousElementSibling)&&E.matches(n.slottedElementsSelector)&&p--;)_.add(E);s.instance(d)["#"].hydrate(m,_)})},{id:"imports:hydration",live:!0,subtree:"cross-roots",timing:"sync"})}Ne.call(window);
+var __defProp = Object.defineProperty;
+var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __publicField = (obj, key, value) => {
+  __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
+  return value;
+};
+var __accessCheck = (obj, member, msg) => {
+  if (!member.has(obj))
+    throw TypeError("Cannot " + msg);
+};
+var __privateGet = (obj, member, getter) => {
+  __accessCheck(obj, member, "read from private field");
+  return getter ? getter.call(obj) : member.get(obj);
+};
+var __privateAdd = (obj, member, value) => {
+  if (member.has(obj))
+    throw TypeError("Cannot add the same private member more than once");
+  member instanceof WeakSet ? member.add(obj) : member.set(obj, value);
+};
+var __privateSet = (obj, member, value, setter) => {
+  __accessCheck(obj, member, "write to private field");
+  setter ? setter.call(obj, value) : member.set(obj, value);
+  return value;
+};
+
+// node_modules/@webqit/util/js/isObject.js
+function isObject_default(val) {
+  return !Array.isArray(val) && typeof val === "object" && val;
+}
+
+// node_modules/@webqit/util/js/isArray.js
+function isArray_default(val) {
+  return Array.isArray(val);
+}
+
+// node_modules/@webqit/util/js/isTypeFunction.js
+function isTypeFunction_default(val) {
+  return typeof val === "function";
+}
+
+// node_modules/@webqit/util/js/isNull.js
+function isNull_default(val) {
+  return val === null || val === "";
+}
+
+// node_modules/@webqit/util/js/isUndefined.js
+function isUndefined_default(val) {
+  return arguments.length && (val === void 0 || typeof val === "undefined");
+}
+
+// node_modules/@webqit/util/js/isTypeObject.js
+function isTypeObject_default(val) {
+  return Array.isArray(val) || typeof val === "object" && val || isTypeFunction_default(val);
+}
+
+// node_modules/@webqit/util/js/isEmpty.js
+function isEmpty_default(val) {
+  return isNull_default(val) || isUndefined_default(val) || val === false || val === 0 || isTypeObject_default(val) && !Object.keys(val).length;
+}
+
+// node_modules/@webqit/util/js/isFunction.js
+function isFunction_default(val) {
+  return isTypeFunction_default(val) || val && {}.toString.call(val) === "[object function]";
+}
+
+// node_modules/@webqit/util/js/isNumber.js
+function isNumber_default(val) {
+  return val instanceof Number || typeof val === "number";
+}
+
+// node_modules/@webqit/util/js/isNumeric.js
+function isNumeric_default(val) {
+  return isNumber_default(val) || val !== true && val !== false && val !== null && val !== "" && !isNaN(val * 1);
+}
+
+// node_modules/@webqit/util/js/isString.js
+function isString_default(val) {
+  return val instanceof String || typeof val === "string" && val !== null;
+}
+
+// node_modules/@webqit/util/js/isTypeArray.js
+function isTypeArray_default(val) {
+  return !isString_default(val) && !isUndefined_default(val.length);
+}
+
+// node_modules/@webqit/util/arr/pushUnique.js
+function pushUnique_default(arr, ...items) {
+  items.forEach((itm) => {
+    if (arr.indexOf(itm) < 0) {
+      arr.push(itm);
+    }
+  });
+  return arr;
+}
+
+// node_modules/@webqit/util/obj/getPrototypeChain.js
+function getPrototypeChain_default(obj, until) {
+  until = until || Object.prototype;
+  until = until && !isArray_default(until) ? [until] : until;
+  var prototypalChain = [];
+  var obj = obj;
+  while (obj && (!until || until.indexOf(obj) < 0) && obj.name !== "default") {
+    prototypalChain.push(obj);
+    obj = obj ? Object.getPrototypeOf(obj) : null;
+  }
+  return prototypalChain;
+}
+
+// node_modules/@webqit/util/obj/getAllPropertyNames.js
+function getAllPropertyNames_default(obj, until) {
+  var keysAll = [];
+  getPrototypeChain_default(obj, until).forEach((obj2) => {
+    pushUnique_default(keysAll, ...Object.getOwnPropertyNames(obj2));
+  });
+  return keysAll;
+}
+
+// node_modules/@webqit/util/obj/mergeCallback.js
+function mergeCallback(objs, callback, deepProps = false, isReplace = false, withSymbols = false) {
+  var depth = 0;
+  var obj1 = objs.shift();
+  if (isNumeric_default(obj1) || obj1 === true || obj1 === false) {
+    depth = obj1;
+    obj1 = objs.shift();
+  }
+  if (!objs.length) {
+    throw new Error("_merge() requires two or more array/objects.");
+  }
+  objs.forEach((obj2, i) => {
+    if (!isTypeObject_default(obj2) && !isFunction_default(obj2)) {
+      return;
+    }
+    (deepProps ? getAllPropertyNames_default(obj2) : Object.keys(obj2)).forEach((key) => {
+      if (!callback(key, obj1, obj2, i)) {
+        return;
+      }
+      var valAtObj1 = obj1[key];
+      var valAtObj2 = obj2[key];
+      if ((isArray_default(valAtObj1) && isArray_default(valAtObj2) || isObject_default(valAtObj1) && isObject_default(valAtObj2)) && (depth === true || depth > 0)) {
+        obj1[key] = isArray_default(valAtObj1) && isArray_default(valAtObj2) ? [] : {};
+        mergeCallback([isNumeric_default(depth) ? depth - 1 : depth, obj1[key], valAtObj1, valAtObj2], callback, deepProps, isReplace, withSymbols);
+      } else {
+        if (isArray_default(obj1) && isArray_default(obj2)) {
+          if (isReplace) {
+            obj1[key] = valAtObj2;
+          } else {
+            obj1.push(valAtObj2);
+          }
+        } else {
+          try {
+            if (withSymbols) {
+              Object.defineProperty(obj1, key, Object.getOwnPropertyDescriptor(obj2, key));
+            } else {
+              obj1[key] = obj2[key];
+            }
+          } catch (e) {
+          }
+        }
+      }
+    });
+  });
+  return obj1;
+}
+
+// node_modules/@webqit/util/obj/merge.js
+function merge_default(...objs) {
+  return mergeCallback(objs, (k, obj1, obj2) => {
+    return true;
+  }, false, false, false);
+}
+
+// node_modules/@webqit/util/js/wq.js
+function wq(obj, ...namespaces) {
+  if (!obj || !["object", "function"].includes(typeof obj)) {
+    throw new Error(`Argument #1 must be of type object`);
+  }
+  let wq2 = obj[Symbol.for("wq")];
+  if (!wq2) {
+    wq2 = new WQInternals();
+    Object.defineProperty(obj, Symbol.for("wq"), {
+      value: wq2,
+      enumerable: false,
+      configurable: false,
+      writable: false
+    });
+  }
+  if (!namespaces.length) {
+    return wq2;
+  }
+  let _ns, _wq2;
+  while (_ns = namespaces.shift()) {
+    if ((_wq2 = wq2) && !(wq2 = wq2.get(_ns))) {
+      wq2 = new WQInternals();
+      _wq2.set(_ns, wq2);
+    }
+  }
+  return wq2;
+}
+var WQInternals = class extends Map {
+};
+
+// node_modules/@webqit/util/arr/from.js
+function from_default(val, castObject = true) {
+  if (isArray_default(val)) {
+    return val;
+  }
+  ;
+  if (!castObject && isObject_default(val)) {
+    return [val];
+  }
+  ;
+  if (val !== false && val !== 0 && isEmpty_default(val)) {
+    return [];
+  }
+  ;
+  if (isTypeArray_default(val)) {
+    return Array.prototype.slice.call(val);
+  }
+  ;
+  if (isObject_default(val)) {
+    return Object.values(val);
+  }
+  ;
+  return [val];
+}
+
+// node_modules/@webqit/util/obj/get.js
+function get_default(ctxt, path, trap = {}, reciever = {}) {
+  path = from_default(path).slice();
+  var _ctxt = ctxt;
+  while (!isUndefined_default(_ctxt) && !isNull_default(_ctxt) && path.length) {
+    var _key = path.shift();
+    if (!(trap.get ? trap.get(_ctxt, _key) : isTypeObject_default(_ctxt) ? _key in _ctxt : _ctxt[_key])) {
+      reciever.exists = false;
+      return;
+    }
+    _ctxt = trap.get ? trap.get(_ctxt, _key) : _ctxt[_key];
+  }
+  reciever.exists = true;
+  return _ctxt;
+}
+
+// node_modules/@webqit/util/obj/set.js
+function set_default(obj, path, val, buildTree = {}, trap = {}) {
+  const _set = (target2, key, val2) => {
+    if (trap.set) {
+      return trap.set(target2, key, val2);
+    } else {
+      if (isNumeric_default(path[i]) && isArray_default(target2)) {
+        target2.push(val2);
+      } else {
+        target2[key] = val2;
+      }
+      return true;
+    }
+  };
+  path = from_default(path);
+  var target = obj;
+  for (var i = 0; i < path.length; i++) {
+    if (i < path.length - 1) {
+      if (!target || !isTypeObject_default(target) && !isFunction_default(target)) {
+        return false;
+      }
+      var branch = get_default(target, path[i], trap);
+      if (!isTypeObject_default(branch)) {
+        if (trap.buildTree === false) {
+          return false;
+        }
+        branch = isFunction_default(trap.buildTree) ? trap.buildTree(i) : isNumeric_default(path[i + 1]) ? [] : {};
+        var branchSuccess = _set(target, path[i], branch);
+        if (!branchSuccess) {
+          return false;
+        }
+      }
+      target = branch;
+    } else {
+      return _set(target, path[i], val);
+    }
+  }
+}
+
+// node_modules/@webqit/realdom/src/Scheduler.js
+var Scheduler = class {
+  constructor(window2, synthesis = false) {
+    Object.defineProperty(this, "window", { value: window2 });
+    Object.defineProperty(this, "readCallbacks", { value: /* @__PURE__ */ new Set() });
+    Object.defineProperty(this, "writeCallbacks", { value: /* @__PURE__ */ new Set() });
+    Object.defineProperty(this, "_synthesis", { value: 0, writable: true });
+    if (!synthesis && this.window.requestAnimationFrame) {
+      this._loop();
+    } else {
+      this._synthesis++;
+    }
+  }
+  get synthesis() {
+    return this._synthesis;
+  }
+  async synthesizeWhile(callback) {
+    this._synthesis++;
+    this._fulfill();
+    const returnValue = await callback();
+    this._synthesis--;
+    return returnValue;
+  }
+  _fulfill() {
+    for (const callback of this.readCallbacks) {
+      callback();
+      this.readCallbacks.delete(callback);
+    }
+    for (const callback of this.writeCallbacks) {
+      callback();
+      this.writeCallbacks.delete(callback);
+    }
+  }
+  _loop() {
+    this.window.requestAnimationFrame(() => {
+      this._fulfill();
+      this._loop();
+    });
+  }
+  onread(callback, withPromise = false) {
+    if (withPromise) {
+      return new Promise((resolve) => {
+        if (this.synthesis) {
+          resolve(callback());
+        } else {
+          this.readCallbacks.add(() => {
+            resolve(callback());
+          });
+        }
+      });
+    }
+    if (this.synthesis) {
+      Promise.resolve().then(callback);
+    } else {
+      this.readCallbacks.add(callback);
+    }
+  }
+  onwrite(callback, withPromise = false) {
+    if (withPromise) {
+      return new Promise((resolve) => {
+        if (this.synthesis) {
+          resolve(callback());
+        } else {
+          this.writeCallbacks.add(() => {
+            resolve(callback());
+          });
+        }
+      });
+    }
+    if (this.synthesis) {
+      Promise.resolve().then(callback);
+    } else {
+      this.writeCallbacks.add(callback);
+    }
+  }
+  cycle(onread, onwrite, prevTransaction) {
+    this.onread(() => {
+      const readReturn = onread(prevTransaction);
+      const callWrite = (readReturn2) => {
+        if (readReturn2 === void 0)
+          return;
+        this.onwrite(() => {
+          const writeReturn = onwrite(readReturn2, prevTransaction);
+          const repeatTransaction = (writeReturn2) => {
+            if (writeReturn2 === void 0)
+              return;
+            this.cycle(onread, onwrite, writeReturn2);
+          };
+          if (writeReturn instanceof Promise) {
+            writeReturn.then(repeatTransaction);
+          } else {
+            repeatTransaction(writeReturn);
+          }
+        });
+      };
+      if (readReturn instanceof Promise) {
+        readReturn.then(callWrite);
+      } else {
+        callWrite(readReturn);
+      }
+    });
+  }
+};
+
+// node_modules/@webqit/realdom/src/realtime/Util.js
+function isXpath(expr) {
+  return (expr = expr.trim()) && expr.startsWith("(") && expr.endsWith(")");
+}
+function xpathQuery(window2, context, expr, subtree = true) {
+  expr = (Array.isArray(expr) ? expr : [expr]).map((x) => (x + "").replace("(", subtree ? "(.//" : "(./")).join("|");
+  let nodes = [], node;
+  try {
+    const result = window2.document.evaluate(expr, context, null, window2.XPathResult.ANY_TYPE);
+    while (node = result.iterateNext())
+      nodes.push(node);
+  } catch (e) {
+  }
+  return nodes;
+}
+function xpathMatch(window2, node, expr) {
+  expr = (Array.isArray(expr) ? expr : [expr]).map((x) => (x + "").replace("(", "(self::")).join("|");
+  try {
+    return window2.document.evaluate(`${expr}`, node, null, window2.XPathResult.BOOLEAN_TYPE).booleanValue;
+  } catch (e) {
+  }
+}
+function containsNode(window2, a, b, crossRoots = false, testCache = null) {
+  const prevTest = testCache?.get(a)?.get(b);
+  if (typeof prevTest !== "undefined")
+    return prevTest;
+  const response = (val) => {
+    if (!testCache?.has(a))
+      testCache?.set(a, /* @__PURE__ */ new WeakMap());
+    testCache?.get(a)?.set(b, val);
+    return val;
+  };
+  const rootNodeA = a.getRootNode();
+  const rootNodeB = b.getRootNode();
+  if (rootNodeA === rootNodeB)
+    return response(a.contains(b));
+  if (crossRoots && rootNodeB instanceof window2.ShadowRoot)
+    return response(containsNode(window2, a, rootNodeB.host, crossRoots, testCache));
+  return response(false);
+}
+function splitOuter(str, delim = "|") {
+  return [...str].reduce(([quote, depth, splits, skip], x) => {
+    if (!quote && depth === 0 && (Array.isArray(delim) ? delim : [delim]).includes(x)) {
+      return [quote, depth, [""].concat(splits)];
+    }
+    if (!quote && ["(", "[", "{"].includes(x) && !splits[0].endsWith("\\"))
+      depth++;
+    if (!quote && [")", "]", "}"].includes(x) && !splits[0].endsWith("\\"))
+      depth--;
+    if (['"', "'", "`"].includes(x) && !splits[0].endsWith("\\")) {
+      quote = quote === x ? null : quote || x;
+    }
+    splits[0] += x;
+    return [quote, depth, splits];
+  }, [null, 0, [""]])[2].reverse();
+}
+
+// node_modules/@webqit/realdom/src/realtime/DOMSpec.js
+var DOMSpec = class {
+  constructor(content) {
+    this.content = content;
+    this.type = typeof content === "string" ? "selector" : "instance";
+    this.kind = this.type === "instance" ? null : isXpath(content) ? "xpath" : "css";
+    if (this.kind === "xpath") {
+      this.isXpathAttr = splitOuter(content.trim().slice(1, -1), "@").length > 1;
+    }
+  }
+  toString() {
+    return this.content;
+  }
+};
+
+// node_modules/@webqit/realdom/src/realtime/Realtime.js
+var Realtime = class {
+  constructor(context, namespace, window2) {
+    this.context = context;
+    this.namespace = namespace;
+    this.window = context.defaultView || context.ownerDocument?.defaultView || window2;
+    this.document = this.window.document;
+    this.webqit = this.window.webqit;
+    Object.defineProperty(this, "#", { value: {} });
+  }
+  resolveArgs(args) {
+    if (isFunction_default(args[0])) {
+      args = [[], ...args];
+    } else if (isObject_default(args[0]) && !(args[0] instanceof DOMSpec) && args.length === 1) {
+      args = [[], void 0, args[0]];
+    } else if (isObject_default(args[1]) && args.length === 2) {
+      args = [from_default(args[0], false), void 0, args[1]];
+    } else {
+      args[0] = from_default(args[0], false);
+    }
+    if (args[0].filter((x) => typeof x !== "string" && !(x instanceof DOMSpec) && !(x instanceof this.window.Node)).length) {
+      throw new Error(`Argument #2 must be either a string or a Node object, or a list of those.`);
+    }
+    args[0] = args[0].map((s) => s instanceof DOMSpec ? s : new DOMSpec(s));
+    return args;
+  }
+  registry(...args) {
+    return wq(this.window, "realdom", this.namespace, ...args);
+  }
+  createSignalGenerator() {
+    return {
+      generate() {
+        this.lastController?.abort();
+        this.lastController = new AbortController();
+        const flags = { signal: this.lastController.signal };
+        return flags;
+      },
+      disconnect() {
+        this.lastController?.abort();
+      }
+    };
+  }
+  forEachMatchingContext(interceptionTiming, record_s, callback) {
+    const { window: window2 } = this, deferreds = /* @__PURE__ */ new Set(), testCache = /* @__PURE__ */ new WeakMap();
+    for (const [registration, deferred] of this.registry(interceptionTiming)) {
+      let $records = [].concat(record_s).filter((record) => containsNode(window2, registration.context, record.target, registration.params.subtree === "cross-roots", testCache));
+      if (!$records.length)
+        continue;
+      const args = [registration, Array.isArray(record_s) ? $records : $records[0]];
+      if (deferred)
+        deferreds.add(args);
+      else
+        callback.call(window2, ...args);
+    }
+    for (const args of deferreds)
+      callback.call(window2, ...args);
+    deferreds.clear();
+  }
+  disconnectables(signal, ...objects) {
+    const disconnectable = { disconnect() {
+      objects.forEach((d) => d && isFunction_default(d.disconnect) && d.disconnect() || isFunction_default(d) && d() || isObject_default(d) && (d.disconnected = true));
+    } };
+    if (signal)
+      signal.addEventListener("abort", () => disconnectable.disconnect());
+    return disconnectable;
+  }
+};
+
+// node_modules/@webqit/realdom/src/realtime/AttrRealtime.js
+var AttrRealtime = class extends Realtime {
+  type = "attr";
+  constructor(context, ...args) {
+    super(context, "attr", ...args);
+  }
+  get(spec, callback = void 0, params = {}) {
+    const originalFilterIsString = typeof spec === "string" || spec instanceof DOMSpec;
+    [spec = [], callback = void 0, params = {}] = this.resolveArgs(arguments);
+    const { context } = this;
+    const records = attrIntersection(context, spec);
+    if (!callback)
+      return records;
+    const signalGenerator = params.lifecycleSignals && this.createSignalGenerator();
+    if (!originalFilterIsString) {
+      const flags = signalGenerator?.generate() || {};
+      callback(records, flags, context);
+    } else {
+      for (const record of records) {
+        const flags = signalGenerator ? signalGenerator.generate() : {};
+        callback(record, flags, context);
+      }
+    }
+    if (params.live) {
+      if (signalGenerator) {
+        params = { ...params, signalGenerator };
+      }
+      const disconnectable_live = this.observe(originalFilterIsString ? spec[0] : spec, callback, { newValue: true, ...params });
+      return this.disconnectables(params.signal, disconnectable_live);
+    }
+  }
+  observe(spec, callback, params = {}) {
+    const originalFilterIsString = typeof spec === "string" || spec instanceof DOMSpec;
+    [spec = [], callback, params = {}] = this.resolveArgs(arguments);
+    if (["sync", "intercept"].includes(params.timing))
+      return this.observeSync(originalFilterIsString ? spec[0] : spec, callback, params);
+    if (params.timing && params.timing !== "async")
+      throw new Error(`Timing option "${params.timing}" invalid.`);
+    const { context, window: window2, webqit } = this;
+    if (params.eventDetails && !webqit.realdom.attrInterceptionHooks?.intercepting) {
+      attrInterception.call(window2, "intercept", () => {
+      });
+    }
+    const disconnectable = new window2.MutationObserver((records) => {
+      records = dedupAndIgnoreInternals(records).map((rcd) => withAttrEventDetails.call(window2, rcd));
+      dispatch.call(window2, registration, records, context);
+    });
+    const $params = { attributes: true, attributeOldValue: params.oldValue, subtree: params.subtree && true };
+    if (spec.length) {
+      $params.attributeFilter = spec.map((a) => a + "");
+    }
+    disconnectable.observe(context, $params);
+    const signalGenerator = params.signalGenerator || params.lifecycleSignals && this.createSignalGenerator();
+    const registration = { context, spec, callback, params, atomics: /* @__PURE__ */ new Map(), originalFilterIsString, signalGenerator, disconnectable };
+    return this.disconnectables(params.signal, disconnectable, signalGenerator);
+  }
+  observeSync(spec, callback, params = {}) {
+    const originalFilterIsString = typeof spec === "string" || spec instanceof DOMSpec;
+    [spec, callback, params = {}] = this.resolveArgs(arguments);
+    const { context, window: window2 } = this;
+    if (params.timing && !["sync", "intercept"].includes(params.timing))
+      throw new Error(`Timing option "${params.timing}" invalid.`);
+    const interceptionTiming = params.timing === "intercept" ? "intercept" : "sync";
+    if (!this.registry(interceptionTiming).size) {
+      attrInterception.call(window2, interceptionTiming, (records) => {
+        this.forEachMatchingContext(interceptionTiming, records, dispatch);
+      });
+    }
+    const disconnectable = { disconnect() {
+      registry.delete(registration);
+    } };
+    const signalGenerator = params.signalGenerator || params.lifecycleSignals && this.createSignalGenerator();
+    const registration = { context, spec, callback, params, atomics: /* @__PURE__ */ new Map(), originalFilterIsString, signalGenerator, disconnectable };
+    const registry = this.registry(interceptionTiming);
+    registry.set(registration, !!registration.params.deferred);
+    return this.disconnectables(params.signal, disconnectable, signalGenerator);
+  }
+};
+function dedupAndIgnoreInternals(records) {
+  return records.reduce((rcds, rcd, i) => {
+    if (rcds[i - 1]?.attributeName === rcd.attributeName)
+      return rcds;
+    if (wq(rcd.target, "realdom", "internalAttrInteractions").get(rcd.attributeName))
+      return rcds;
+    return rcds.concat(rcd);
+  }, []);
+}
+function dispatch(registration, records) {
+  const { context, spec, callback, params, atomics, originalFilterIsString, signalGenerator } = registration;
+  if (!params.subtree) {
+    records = records.filter((r) => {
+      return r.target === context;
+    });
+  }
+  if (!records.length)
+    return;
+  const $spec = spec.map((a) => a + "");
+  if (params.atomic && !atomics.size) {
+    records = attrIntersection(context, spec, records);
+  } else if (params.timing !== "async" && spec.length) {
+    records = records.filter((r) => $spec.includes(r.name));
+  }
+  if (!records.length)
+    return;
+  if (!(params.newValue === null && params.oldValue === null && params.eventDetails)) {
+    records = records.map((rcd) => {
+      let exclusion;
+      if (!params.eventDetails) {
+        ({ event: exclusion, ...rcd } = rcd);
+      }
+      if (!params.oldValue && "oldValue" in rcd) {
+        ({ oldValue: exclusion, ...rcd } = rcd);
+      }
+      if (!params.newValue && "value" in rcd) {
+        ({ value: exclusion, ...rcd } = rcd);
+      } else if (params.newValue && typeof rcd.value === "undefined") {
+        rcd = { ...rcd, value: internalAttrInteraction(rcd.target, rcd.name, () => rcd.target.getAttribute(rcd.name)) };
+      }
+      return rcd;
+    });
+  }
+  if (params.atomic) {
+    records.forEach((record) => atomics.set(record.name, record));
+    records = Array.from(atomics.entries()).map(([, value]) => value);
+  }
+  const record_s = originalFilterIsString ? records[0] : records;
+  const flags = signalGenerator ? signalGenerator.generate() : {};
+  callback(record_s, flags, context);
+}
+function internalAttrInteraction(node, attrName, callback) {
+  const savedAttrLocking = wq(node, "realdom", "internalAttrInteractions").get(attrName);
+  wq(node, "realdom", "internalAttrInteractions").set(attrName, true);
+  const value = callback();
+  wq(node, "realdom", "internalAttrInteractions").set(attrName, savedAttrLocking);
+  return value;
+}
+function attrIntersection(context, spec, records = []) {
+  const _type = { event: null, type: "attribute" };
+  if (spec.length) {
+    return spec.map((attrName) => {
+      attrName = attrName + "";
+      return records.find((r) => r.name === attrName) || { target: context, name: attrName, value: internalAttrInteraction(context, attrName, () => context.getAttribute(attrName)), ..._type };
+    });
+  }
+  const attrs = Array.from(context.attributes);
+  return attrs.map((attr) => {
+    return records.find((r) => r.name === attr.nodeName) || { target: context, name: attr.nodeName, value: internalAttrInteraction(context, attr.nodeName, () => attr.nodeValue), ..._type };
+  });
+}
+function withAttrEventDetails({ target, attributeName, value, oldValue }) {
+  const window2 = this, registry = window2.webqit.realdom.attrInterceptionRecords?.get(target) || {};
+  const event = registry[attributeName]?.[0] || "mutation";
+  const record = { target, name: attributeName, value, oldValue, type: "observation", event };
+  return record;
+}
+function attrInterception(timing, callback) {
+  const window2 = this;
+  const { webqit, document, Element } = window2;
+  if (!webqit.realdom.attrInterceptionHooks) {
+    Object.defineProperty(webqit.realdom, "attrInterceptionHooks", { value: /* @__PURE__ */ new Map() });
+  }
+  if (!webqit.realdom.attrInterceptionHooks.has(timing)) {
+    webqit.realdom.attrInterceptionHooks.set(timing, /* @__PURE__ */ new Set());
+  }
+  webqit.realdom.attrInterceptionHooks.get(timing).add(callback);
+  const rm = () => webqit.realdom.attrInterceptionHooks.get(timing).delete(callback);
+  if (webqit.realdom.attrInterceptionHooks?.intercepting)
+    return rm;
+  console.warn(`Attr mutation APIs are now being intercepted.`);
+  webqit.realdom.attrInterceptionHooks.intercepting = true;
+  Object.defineProperty(webqit.realdom, "attrInterceptionRecords", { value: /* @__PURE__ */ new Map() });
+  const attrIntercept = (record, defaultAction) => {
+    if (!webqit.realdom.attrInterceptionRecords.has(record.target)) {
+      webqit.realdom.attrInterceptionRecords.set(record.target, {});
+    }
+    const registry = webqit.realdom.attrInterceptionRecords.get(record.target);
+    registry[record.name] = registry[record.name] || [];
+    registry[record.name].unshift(record.event);
+    if (wq(record.target, "realdom", "internalAttrInteractions").get(record.name))
+      return defaultAction();
+    webqit.realdom.attrInterceptionHooks.get("intercept")?.forEach((callback2) => callback2([record]));
+    const returnValue = defaultAction();
+    webqit.realdom.attrInterceptionHooks.get("sync")?.forEach((callback2) => callback2([record]));
+    return returnValue;
+  };
+  const mo = new window2.MutationObserver((records) => {
+    records = records.filter((rcd) => {
+      const registry = window2.webqit.realdom.attrInterceptionRecords?.get(rcd.target) || {};
+      return !registry[rcd.attributeName]?.shift();
+    });
+    records = dedupAndIgnoreInternals(records).map((rcd) => withAttrEventDetails.call(window2, rcd));
+    if (!records.length)
+      return;
+    webqit.realdom.attrInterceptionHooks.get("intercept")?.forEach((callback2) => callback2(records));
+    webqit.realdom.attrInterceptionHooks.get("sync")?.forEach((callback2) => callback2(records));
+  });
+  mo.observe(document, { attributes: true, subtree: true, attributeOldValue: true });
+  const originalApis = /* @__PURE__ */ Object.create(null);
+  ["setAttribute", "removeAttribute", "toggleAttribute"].forEach((apiName) => {
+    originalApis[apiName] = Element.prototype[apiName];
+    Element.prototype[apiName] = function(...args) {
+      let value, oldValue = internalAttrInteraction(this, args[0], () => this.getAttribute(args[0]));
+      if (["setAttribute", "toggleAttribute"].includes(apiName)) {
+        value = args[1];
+      }
+      if (apiName === "toggleAttribute" && value === void 0) {
+        value = oldValue === null ? true : false;
+      }
+      const record = { target: this, name: args[0], value, oldValue, type: "interception", event: [this, apiName] };
+      const exec = () => originalApis[apiName].call(this, ...args);
+      return attrIntercept(record, exec);
+    };
+  });
+  return rm;
+}
+
+// node_modules/@webqit/realdom/src/realtime/DOMRealtime.js
+var DOMRealtime = class extends Realtime {
+  constructor(context, ...args) {
+    super(context, "tree", ...args);
+  }
+  attr(filter, callback = void 0, params = {}) {
+    const { context, window: window2 } = this;
+    return new AttrRealtime(context, window2).get(...arguments);
+  }
+  query(spec, callback = void 0, params = {}) {
+    [spec, callback = void 0, params = {}] = this.resolveArgs(arguments);
+    const { context } = this;
+    const records = /* @__PURE__ */ new Map(), getRecord = (target) => {
+      if (!records.has(target)) {
+        records.set(target, { target, entrants: [], exits: [], type: "query", event: null });
+      }
+      return records.get(target);
+    };
+    if (!params.generation || params.generation === "entrants") {
+      if (!spec.length) {
+        [...context.children].forEach((node) => getRecord(context).entrants.push(node));
+      } else if (spec.every((s) => s.type === "selector")) {
+        const [cssSelectors, xpathQueries] = spec.reduce(([css, xpath], s) => {
+          return s.kind === "xpath" ? [css, xpath.concat(s)] : [css.concat(s), xpath];
+        }, [[], []]);
+        const matches = [];
+        if (params.subtree) {
+          if (cssSelectors.length) {
+            matches.push(...context.querySelectorAll(cssSelectors.join(",")));
+          }
+          if (xpathQueries.length) {
+            matches.push(...xpathQuery(this.window, context, xpathQueries));
+          }
+        } else {
+          if (cssSelectors.length) {
+            matches.push(...[...context.children].filter((node) => node.matches(cssSelectors)));
+          }
+          if (xpathQueries.length) {
+            matches.push(...xpathQuery(this.window, context, xpathQueries, false));
+          }
+        }
+        matches.forEach((node) => getRecord(node.parentNode || context).entrants.push(node));
+      }
+    }
+    if (!callback)
+      return records;
+    const disconnectable = { disconnected: false };
+    const signalGenerator = callback && params.lifecycleSignals && this.createSignalGenerator();
+    for (const [, record] of records) {
+      if (disconnectable.disconnected)
+        break;
+      const flags = signalGenerator?.generate() || {};
+      callback(record, flags, context);
+    }
+    if (params.live) {
+      if (signalGenerator) {
+        params = { ...params, signalGenerator };
+      }
+      const disconnectable_live = this.observe(spec, callback, params);
+      return this.disconnectables(params.signal, disconnectable, disconnectable_live);
+    }
+    return this.disconnectables(params.signal, disconnectable, signalGenerator);
+  }
+  children(spec, callback = void 0, params = {}) {
+    [spec, callback = void 0, params = {}] = this.resolveArgs(arguments);
+    return this.query(spec, callback, { ...params, subtree: false });
+  }
+  subtree(spec, callback = void 0, params = {}) {
+    [spec, callback = void 0, params = {}] = this.resolveArgs(arguments);
+    return this.query(spec, callback, { ...params, subtree: true });
+  }
+  observe(spec, callback, params = {}) {
+    [spec, callback, params = {}] = this.resolveArgs(arguments);
+    if (["sync", "intercept"].includes(params.timing))
+      return this.observeSync(spec, callback, params);
+    if (params.timing && params.timing !== "async")
+      throw new Error(`Timing option "${params.timing}" invalid.`);
+    const { context, window: window2, webqit, document } = this;
+    if (params.eventDetails) {
+      webqit.realdom.domInterceptionRecordsAlwaysOn = true;
+    }
+    if ((document.readyState === "loading" || webqit.realdom.domInterceptionRecordsAlwaysOn) && !webqit.realdom.domInterceptionHooks?.intercepting) {
+      domInterception.call(window2, "sync", () => {
+      });
+    }
+    const disconnectable = new window2.MutationObserver((records) => records.forEach((record) => {
+      dispatch2.call(window2, registration, withEventDetails.call(window2, record), context);
+    }));
+    disconnectable.observe(context, { childList: true, subtree: params.subtree && true });
+    const signalGenerator = params.signalGenerator || params.lifecycleSignals && this.createSignalGenerator();
+    const registration = { context, spec, callback, params, signalGenerator, disconnectable };
+    if (params.staticSensitivity) {
+      const disconnectable_attr = staticSensitivity.call(window2, registration);
+      return this.disconnectables(params.signal, disconnectable, signalGenerator, disconnectable_attr);
+    }
+    return this.disconnectables(params.signal, disconnectable, signalGenerator);
+  }
+  observeSync(spec, callback, params = {}) {
+    [spec, callback, params = {}] = this.resolveArgs(arguments);
+    const { context, window: window2 } = this;
+    if (params.timing && !["sync", "intercept"].includes(params.timing))
+      throw new Error(`Timing option "${params.timing}" invalid.`);
+    const interceptionTiming = params.timing === "intercept" ? "intercept" : "sync";
+    if (!this.registry(interceptionTiming).size) {
+      domInterception.call(window2, interceptionTiming, (record) => {
+        this.forEachMatchingContext(interceptionTiming, record, dispatch2);
+      });
+    }
+    const mo = new window2.MutationObserver((records) => records.forEach((record) => {
+      if (Array.isArray((record = withEventDetails.call(window2, record)).event))
+        return;
+      dispatch2.call(window2, registration, record, context);
+    }));
+    mo.observe(context, { childList: true, subtree: params.subtree && true });
+    const disconnectable = { disconnect() {
+      registry.delete(registration);
+      mo.disconnect();
+    } };
+    const signalGenerator = params.signalGenerator || params.lifecycleSignals && this.createSignalGenerator();
+    const registration = { context, spec, callback, params, signalGenerator, disconnectable };
+    const registry = this.registry(interceptionTiming);
+    registry.set(registration, !!registration.params.deferred);
+    if (params.staticSensitivity) {
+      const disconnectable_attr = staticSensitivity.call(window2, registration);
+      return this.disconnectables(params.signal, disconnectable, signalGenerator, disconnectable_attr);
+    }
+    return this.disconnectables(params.signal, disconnectable, signalGenerator);
+  }
+  track(elements, callback, params = {}) {
+    params = { subtree: true, ...params };
+    return this.observe(elements, (record) => {
+      if (record.entrants.length)
+        callback(true, Array.isArray(elements) ? record.entrants : record.entrants[0]);
+      if (record.exits.length)
+        callback(false, Array.isArray(elements) ? record.exits : record.exits[0]);
+    }, params);
+  }
+};
+function staticSensitivity(registration) {
+  const window2 = this;
+  const { context, spec, callback, params, signalGenerator } = registration;
+  const cssSelectors = spec.filter((s) => s.kind === "css");
+  const parseDot = (selector) => selector.match(/\.([\w-]+)/g)?.length ? ["class"] : [];
+  const parseHash = (selector) => selector.match(/#([\w-]+)/g)?.length ? ["id"] : [];
+  const parse = (selector) => [...selector.matchAll(/\[([^\=\]]+)(\=[^\]]+)?\]/g)].map((x) => x[1]).concat(parseDot(selector)).concat(parseHash(selector));
+  if (!(registration.$attrs = Array.from(new Set(cssSelectors.filter((s) => (s + "").includes("[")).reduce((attrs, selector) => attrs.concat(parse(selector + "")), [])))).length)
+    return;
+  const entrants = /* @__PURE__ */ new Set(), exits = /* @__PURE__ */ new Set();
+  entrants.push = (val) => (exits.delete(val), entrants.add(val));
+  exits.push = (val) => (entrants.delete(val), exits.add(val));
+  registration.$deliveryCache = { entrants, exits };
+  return new AttrRealtime(context, window2).observe(registration.$attrs, (_records) => {
+    const records = /* @__PURE__ */ new Map(), getRecord = (target) => {
+      if (!records.has(target)) {
+        records.set(target, { target, entrants: [], exits: [], type: "static", event: null });
+      }
+      return records.get(target);
+    };
+    const matchesCache = /* @__PURE__ */ new WeakMap();
+    const matches = (node) => {
+      if (!matchesCache.has(node)) {
+        matchesCache.set(node, cssSelectors.some((s) => node.matches(s + "")));
+      }
+      return matchesCache.get(node);
+    };
+    for (const _record of _records) {
+      ["entrants", "exits"].forEach((generation) => {
+        if (params.generation && generation !== params.generation)
+          return;
+        if (registration.$deliveryCache[generation].has(_record.target) || (generation === "entrants" ? !matches(_record.target) : matches(_record.target)))
+          return;
+        registration.$deliveryCache[generation].push(_record.target);
+        getRecord(_record.target)[generation].push(_record.target);
+        getRecord(_record.target).event = _record.event;
+      });
+    }
+    for (const [, record] of records) {
+      const flags = signalGenerator?.generate() || {};
+      callback(record, flags, context);
+    }
+  }, { subtree: params.subtree, timing: params.timing, eventDetails: params.eventDetails });
+}
+function dispatch2(registration, _record) {
+  const { context, spec, callback, params, signalGenerator, $deliveryCache } = registration;
+  const record = { ..._record, entrants: [], exits: [] };
+  if (!params.eventDetails) {
+    delete record.event;
+  }
+  ["entrants", "exits"].forEach((generation) => {
+    if (params.generation && generation !== params.generation)
+      return;
+    if (spec.length) {
+      record[generation] = nodesIntersection.call(this, spec, params.subtree === "cross-roots", _record[generation], _record.event !== "parse");
+    } else {
+      record[generation] = [..._record[generation]];
+    }
+    if (!$deliveryCache)
+      return;
+    for (const node of record[generation]) {
+      $deliveryCache[generation].push(node);
+    }
+  });
+  if (!record.entrants.length && !record.exits.length)
+    return;
+  const flags = signalGenerator?.generate() || {};
+  callback(record, flags, context);
+}
+function nodesIntersection(spec, crossRoots, sources, deepIntersect) {
+  sources = Array.isArray(sources) ? sources : [...sources];
+  const match = (sources2, s) => {
+    if (s.type === "selector") {
+      let matches = s.isXpathAttr ? [] : sources2.filter((source) => s.kind === "xpath" ? xpathMatch(this, source, s + "") : source.matches && source.matches(s + ""));
+      if (deepIntersect || s.isXpathAttr) {
+        matches = sources2.reduce((collection, source) => {
+          if (s.kind === "xpath") {
+            return [...collection, ...xpathQuery(this, source, s, deepIntersect)];
+          }
+          return source.querySelectorAll ? [...collection, ...source.querySelectorAll(s + "")] : collection;
+        }, matches);
+      }
+      if (matches.length)
+        return matches;
+    } else {
+      if (sources2.includes(s.content) || deepIntersect && sources2.some((source) => containsNode(this, source, s.content, crossRoots))) {
+        return [s.content];
+      }
+    }
+  };
+  if (!sources.$$searchCache) {
+    sources.$$searchCache = /* @__PURE__ */ new Map();
+  }
+  return spec.reduce((matches, s) => {
+    let _matches;
+    if (sources.$$searchCache.has(s.content)) {
+      _matches = sources.$$searchCache.get(s.content);
+    } else {
+      _matches = match(sources, s) || [];
+      if (s.type === "instance") {
+        sources.$$searchCache.set(s.content, _matches);
+      }
+    }
+    return matches.concat(_matches);
+  }, []);
+}
+function withEventDetails({ target, addedNodes, removedNodes }) {
+  let window2 = this, event;
+  event = from_default(addedNodes).reduce((prev, node) => prev || window2.webqit.realdom.domInterceptionRecords?.get(node), null);
+  event = from_default(removedNodes).reduce((prev, node) => prev || window2.webqit.realdom.domInterceptionRecords?.get(node), event);
+  event = event || window2.document.readyState === "loading" && "parse" || "mutation";
+  return { target, entrants: addedNodes, exits: removedNodes, type: "observation", event };
+}
+function domInterception(timing, callback) {
+  const window2 = this;
+  const { webqit, document, Node, CharacterData, Element, HTMLElement, HTMLTemplateElement, DocumentFragment } = window2;
+  if (!webqit.realdom.domInterceptionHooks) {
+    Object.defineProperty(webqit.realdom, "domInterceptionHooks", { value: /* @__PURE__ */ new Map() });
+  }
+  if (!webqit.realdom.domInterceptionNoRecurse) {
+    Object.defineProperty(webqit.realdom, "domInterceptionNoRecurse", { value: /* @__PURE__ */ new Map() });
+  }
+  if (!webqit.realdom.domInterceptionHooks.has(timing)) {
+    webqit.realdom.domInterceptionHooks.set(timing, /* @__PURE__ */ new Set());
+  }
+  webqit.realdom.domInterceptionHooks.get(timing).add(callback);
+  const rm = () => webqit.realdom.domInterceptionHooks.get(timing).delete(callback);
+  if (webqit.realdom.domInterceptionHooks?.intercepting)
+    return rm;
+  console.warn(`DOM mutation APIs are now being intercepted.`);
+  webqit.realdom.domInterceptionHooks.intercepting = true;
+  Object.defineProperty(webqit.realdom, "domInterceptionRecords", { value: /* @__PURE__ */ new Map() });
+  const noRecurse = (node, method, callback2) => {
+    webqit.realdom.domInterceptionNoRecurse.set(node, method);
+    const returnValue = callback2();
+    webqit.realdom.domInterceptionNoRecurse.delete(node);
+    return returnValue;
+  };
+  const intercept = (record, defaultAction) => {
+    record.entrants.concat(record.exits).forEach((node) => {
+      clearTimeout(webqit.realdom.domInterceptionRecords.get(node)?.timeout);
+      webqit.realdom.domInterceptionRecords.set(node, record.event);
+      const timeout = setTimeout(() => {
+        webqit.realdom.domInterceptionRecords.delete(node);
+      }, 0);
+      Object.defineProperty(record.event, "timeout", { value: timeout, configurable: true });
+    });
+    webqit.realdom.domInterceptionHooks.get("intercept")?.forEach((callback2) => callback2(record));
+    const returnValue = defaultAction();
+    webqit.realdom.domInterceptionHooks.get("sync")?.forEach((callback2) => callback2(record));
+    return returnValue;
+  };
+  const _apiNames = {
+    ShadowRoot: ["innerHTML", "setHTMLUnsafe"],
+    DocumentFragment: ["replaceChildren", "append", "prepend"],
+    Document: ["replaceChildren", "append", "prepend"],
+    HTMLElement: ["outerText", "innerText"],
+    Element: ["append", "prepend", "before", "after", "insertAdjacentElement", "insertAdjacentHTML", "remove", "replaceChildren", "replaceWith", "setHTMLUnsafe", "innerHTML", "outerHTML"],
+    CharacterData: ["before", "after", "remove", "replaceWith"],
+    Node: ["insertBefore", "replaceChild", "removeChild", "appendChild", "textContent", "nodeValue"]
+  };
+  const _apiOriginals = {
+    ShadowRoot: /* @__PURE__ */ Object.create(null),
+    DocumentFragment: /* @__PURE__ */ Object.create(null),
+    Document: /* @__PURE__ */ Object.create(null),
+    HTMLElement: /* @__PURE__ */ Object.create(null),
+    Element: /* @__PURE__ */ Object.create(null),
+    CharacterData: /* @__PURE__ */ Object.create(null),
+    Node: /* @__PURE__ */ Object.create(null)
+  };
+  const _apiNamesUnique = new Set(Object.values(_apiNames).reduce((all, apis) => all.concat(apis), []));
+  _apiNamesUnique.forEach((apiName) => {
+    Object.keys(_apiNames).forEach((DOMClassName) => {
+      if (!_apiNames[DOMClassName].includes(apiName))
+        return;
+      const _apiOriginal = Object.getOwnPropertyDescriptor(window2[DOMClassName].prototype, apiName);
+      if (!_apiOriginal)
+        return;
+      Object.defineProperty(window2[DOMClassName].prototype, apiName, "value" in _apiOriginal ? { ..._apiOriginal, value: method } : { ..._apiOriginal, set: setter });
+      _apiOriginals[DOMClassName][apiName] = _apiOriginal;
+    });
+    function method(...args) {
+      const DOMClassName = Object.keys(_apiOriginals).find((name) => this instanceof window2[name] && apiName in _apiOriginals[name]);
+      const $apiOriginals = _apiOriginals[DOMClassName];
+      let exec = () => $apiOriginals[apiName].value.call(this, ...args);
+      if (webqit.realdom.domInterceptionNoRecurse.get(this) === apiName)
+        return exec();
+      let exits = [], entrants = [], target = this;
+      if (["insertBefore"].includes(apiName)) {
+        entrants = [args[0]];
+      } else if (["insertAdjacentElement", "insertAdjacentHTML"].includes(apiName)) {
+        entrants = [args[1]];
+        if (["beforebegin", "afterend"].includes(args[0])) {
+          target = this.parentNode;
+        }
+      } else if (["setHTMLUnsafe", "replaceChildren"].includes(apiName)) {
+        exits = [...this.childNodes];
+        entrants = apiName === "replaceChildren" ? [...args] : [args[0]];
+      } else if (["replaceWith", "remove"].includes(apiName)) {
+        exits = [this];
+        entrants = apiName === "replaceWith" ? [...args] : [];
+        target = this.parentNode;
+      } else if (["replaceChild"].includes(apiName)) {
+        exits = [args[1]];
+        entrants = [args[0]];
+      } else if (["removeChild"].includes(apiName)) {
+        exits = [...args];
+      } else {
+        entrants = [...args];
+        if (["before", "after"].includes(apiName)) {
+          target = this.parentNode;
+        }
+      }
+      let apiNameFinal = apiName;
+      if (["insertAdjacentHTML", "setHTMLUnsafe"].includes(apiName)) {
+        let tempNodeName = this.nodeName;
+        if (apiName === "insertAdjacentHTML" && ["beforebegin", "afterend"].includes(args[0])) {
+          if (!this.parentNode)
+            return $apiOriginals[apiName].value.call(this, ...args);
+          tempNodeName = this.parentNode.nodeName;
+        }
+        const temp = document.createElement(tempNodeName.includes("-") ? "div" : tempNodeName);
+        $apiOriginals.setHTMLUnsafe.value.call(temp, entrants[0], apiName === "setHTMLUnsafe" ? args[1] : {});
+        entrants = [...temp.childNodes];
+        if (apiName === "insertAdjacentHTML") {
+          apiNameFinal = "insertAdjacentElement";
+          args[1] = new DocumentFragment();
+          noRecurse(args[1], "append", () => args[1].append(...temp.childNodes));
+        } else {
+          apiNameFinal = "replaceChildren";
+          args = [...temp.childNodes];
+        }
+      }
+      if (!target)
+        return exec();
+      const record = { target, entrants, exits, type: "interception", event: [this, apiName] };
+      return intercept(record, () => {
+        return $apiOriginals[apiNameFinal].value.call(this, ...args);
+      });
+    }
+    function setter(value) {
+      const DOMClassName = Object.keys(_apiOriginals).find((name) => this instanceof window2[name] && apiName in _apiOriginals[name]);
+      const $apiOriginals = _apiOriginals[DOMClassName];
+      let exec = () => $apiOriginals[apiName].set.call(this, value);
+      if (this instanceof HTMLScriptElement || webqit.realdom.domInterceptionNoRecurse.get(this) === apiName)
+        return exec();
+      let exits = [], entrants = [], target = this;
+      if (["outerHTML", "outerText"].includes(apiName)) {
+        exits = [this];
+        target = this.parentNode;
+      } else {
+        if (this instanceof HTMLTemplateElement) {
+          target = this.content;
+          exits = [...this.content.childNodes];
+        } else {
+          exits = [...this.childNodes];
+        }
+      }
+      if (["outerHTML", "innerHTML"].includes(apiName)) {
+        let tempNodeName = this.nodeName;
+        if (apiName === "outerHTML") {
+          if (!this.parentNode)
+            return exec();
+          tempNodeName = this.parentNode.nodeName;
+        }
+        const temp = document.createElement(tempNodeName.includes("-") ? "div" : tempNodeName);
+        noRecurse(temp, apiName, () => temp[apiName] = value);
+        entrants = this instanceof HTMLTemplateElement ? [...temp.content.childNodes] : [...temp.childNodes];
+        if (this instanceof HTMLTemplateElement && this.hasAttribute("src") || this instanceof ShadowRoot) {
+          const getScripts = (nodes) => nodes.reduce((scripts, el) => {
+            if (el instanceof HTMLScriptElement)
+              return scripts.concat(el);
+            if (el instanceof HTMLTemplateElement)
+              return scripts.concat(getScripts([el.content]));
+            scripts = scripts.concat(getScripts([...el.querySelectorAll?.("template") || []].map((t) => t.content)));
+            return scripts.concat(...el.querySelectorAll?.("script") || []);
+          }, []);
+          for (const script of getScripts(entrants)) {
+            if (this instanceof ShadowRoot) {
+              script.setAttribute("data-handling", "manual");
+              continue;
+            }
+            const $script = document.createElement("script");
+            [...script.attributes].forEach((attr) => $script.setAttribute(attr.name, attr.value));
+            $script.textContent = script.textContent;
+            noRecurse(script, "replaceWith", () => script.replaceWith($script));
+          }
+        }
+        if (apiName === "outerHTML") {
+          value = new DocumentFragment();
+          noRecurse(value, "append", () => value.append(...entrants));
+          exec = () => noRecurse(this, "replaceWith", () => Element.prototype.replaceWith.call(this, value));
+        } else {
+          if (this instanceof HTMLTemplateElement) {
+            exec = () => noRecurse(this.content, "replaceChildren", () => this.content.replaceChildren(...entrants));
+          } else {
+            exec = () => noRecurse(this, "replaceChildren", () => Element.prototype.replaceChildren.call(this, ...entrants));
+          }
+        }
+      }
+      const record = { target, entrants, exits, type: "interception", event: [this, apiName] };
+      return intercept(record, exec);
+    }
+  });
+  return rm;
+}
+
+// node_modules/@webqit/realdom/src/polyfills.js
+function polyfills_default() {
+  CSS_escape.call(this);
+  Node_isConnected.call(this);
+  Element_matches.call(this);
+}
+function CSS_escape() {
+  const window2 = this;
+  if (!window2.CSS) {
+    window2.CSS = {};
+  }
+  if (!window2.CSS.escape) {
+    window2.CSS.escape = (str) => str.replace(/([\:@\~\$\&])/g, "\\$1");
+  }
+}
+function Node_isConnected() {
+  const window2 = this;
+  if (!("isConnected" in window2.Node.prototype)) {
+    Object.defineProperty(window2.Node.prototype, "isConnected", { get: function() {
+      return !this.ownerDocument || !(this.ownerDocument.compareDocumentPosition(this) & this.DOCUMENT_POSITION_DISCONNECTED);
+    } });
+  }
+}
+function Element_matches() {
+  const window2 = this;
+  if (!window2.Element.prototype.matches) {
+    window2.Element.prototype.matches = window2.Element.prototype.matchesSelector || window2.Element.prototype.mozMatchesSelector || window2.Element.prototype.msMatchesSelector || window2.Element.prototype.oMatchesSelector || window2.Element.prototype.webkitMatchesSelector || function(s) {
+      var matches = (this.document || this.ownerDocument).querySelectorAll(s), i = matches.length;
+      while (--i >= 0 && matches.item(i) !== this) {
+      }
+      return i > -1;
+    };
+  }
+}
+
+// node_modules/@webqit/realdom/src/index.js
+function src_default() {
+  const window2 = this;
+  if (!window2.webqit)
+    window2.webqit = {};
+  if (window2.webqit.realdom)
+    return window2.webqit.realdom;
+  window2.webqit.realdom = {};
+  polyfills_default.call(window2);
+  window2.webqit.realdom.meta = (...args) => meta.call(window2, ...args);
+  window2.webqit.realdom.ready = (...args) => ready.call(window2, ...args);
+  window2.webqit.realdom.realtime = (context, namespace = "dom") => {
+    if (namespace === "dom")
+      return new DOMRealtime(context, window2);
+    if (namespace === "attr")
+      return new AttrRealtime(context, window2);
+  };
+  const scheduler = new Scheduler(window2);
+  window2.webqit.realdom.schedule = (type, ...args) => {
+    return scheduler[`on${type}`](...args);
+  };
+  window2.webqit.realdom.synthesizeWhile = (...args) => {
+    return scheduler.synthesizeWhile(...args);
+  };
+  return window2.webqit.realdom;
+}
+function ready(...args) {
+  let timing = "interactive", callback;
+  if (isString_default(args[0])) {
+    timing = args[0];
+    if (isFunction_default(args[1])) {
+      callback = args[1];
+    }
+  } else if (isFunction_default(args[0])) {
+    callback = args[0];
+  }
+  const timings = { interactive: ["interactive", "complete"], complete: ["complete"] };
+  if (!timings[timing])
+    throw new Error(`Invalid ready-state timing: ${timing}.`);
+  const window2 = this;
+  if (!callback) {
+    if (!window2.webqit.realdom.readyStatePromises) {
+      window2.webqit.realdom.readyStatePromises = {
+        interactive: new Promise((res) => ready.call(this, "interactive", res)),
+        complete: new Promise((res) => ready.call(this, "complete", res))
+      };
+    }
+    return window2.webqit.realdom.readyStatePromises[timing];
+  }
+  if (timings[timing].includes(window2.document.readyState))
+    return callback(window2);
+  if (!window2.webqit.realdom.readyStateCallbacks) {
+    window2.webqit.realdom.readyStateCallbacks = { interactive: [], complete: [] };
+    window2.document.addEventListener("readystatechange", () => {
+      const state = window2.document.readyState;
+      for (const callback2 of window2.webqit.realdom.readyStateCallbacks[state].splice(0)) {
+        callback2(window2);
+      }
+    }, false);
+  }
+  window2.webqit.realdom.readyStateCallbacks[timing].push(callback);
+}
+function meta(name) {
+  const window2 = this;
+  let _content = {}, _el;
+  if (_el = window2.document.querySelector(`meta[name="${name}"]`)) {
+    _content = (_el.content || "").split(";").filter((v) => v).reduce((_metaVars, directive) => {
+      const directiveSplit = directive.split("=").map((d) => d.trim());
+      set_default(_metaVars, directiveSplit[0].split("."), directiveSplit[1] === "true" ? true : directiveSplit[1] === "false" ? false : isNumeric_default(directiveSplit[1]) ? parseInt(directiveSplit[1]) : directiveSplit[1]);
+      return _metaVars;
+    }, {});
+  }
+  return { get name() {
+    return name;
+  }, get content() {
+    return _el.content;
+  }, json() {
+    return JSON.parse(JSON.stringify(_content));
+  } };
+}
+
+// node_modules/@webqit/util/str/toTitle.js
+function toTitle_default(str, strict) {
+  if (typeof str !== "string") {
+    return str;
+  }
+  return str.replace(/\w\S*/g, function(txt) {
+    return txt.charAt(0).toUpperCase() + (typeof strict !== void 0 && strict ? txt.substr(1).toLowerCase() : txt.substr(1));
+  });
+}
+
+// src/util.js
+var _wq = (target, ...args) => wq(target, "oohtml", ...args);
+var env = {};
+function _init(name, $config, $defaults) {
+  const window2 = this, realdom = src_default.call(window2);
+  env.window = window2;
+  if (!window2.webqitConfig) {
+    window2.webqitConfig = realdom.meta("webqit").json();
+  }
+  window2.webqit || (window2.webqit = {});
+  window2.webqit.oohtml || (window2.webqit.oohtml = {});
+  window2.webqit.oohtml.configs || (window2.webqit.oohtml.configs = {});
+  const configKey = name.toUpperCase().replace("-", "_");
+  if (!window2.webqit.oohtml.configs[configKey]) {
+    window2.webqit.oohtml.configs[configKey] = {};
+    const config = window2.webqit.oohtml.configs[configKey];
+    merge_default(2, config, $defaults, $config, realdom.meta(name).json());
+    if (window2.webqitConfig.prefix) {
+      Object.keys(config).forEach((main) => {
+        Object.keys(config[main]).forEach((key) => {
+          if (main === "api" && typeof config[main][key] === "string") {
+            config[main][key] = `${window2.webqitConfig.prefix}${toTitle_default(config[main][key])}`;
+          } else if (["attr", "elements"].includes(main) && config[main][key]?.startsWith("data-") === false) {
+            config[main][key] = `${window2.webqitConfig.prefix}-${config[main][key]}`;
+          }
+        });
+      });
+    }
+  }
+  return { config: window2.webqit.oohtml.configs[configKey], realdom, window: window2 };
+}
+
+// src/html-imports/HTMLModule.js
+var HTMLModule = class {
+  static instance(host) {
+    return _wq(host).get("defsmanager::instance") || new this(host);
+  }
+  constructor(host, parent = null, level = 0) {
+    const { window: window2 } = env, { webqit: { realdom, oohtml: { configs } } } = window2;
+    _wq(host).get(`defsmanager::instance`)?.dispose();
+    _wq(host).set(`defsmanager::instance`, this);
+    this.window = window2;
+    this.host = host;
+    this.config = configs.HTML_IMPORTS;
+    this.parent = parent;
+    this.level = level;
+    this.defs = getDefs(this.host);
+    this.defId = (this.host.getAttribute(this.config.attr.def) || "").trim();
+    this.validateDefId(this.defId);
+    this.realtimeA = realdom.realtime(this.host.content).children((record) => {
+      this.expose(record.exits, false);
+      this.expose(record.entrants, true);
+    }, { live: true, timing: "sync" });
+    this.realtimeB = realdom.realtime(this.host).attr(["src", "loading"], (...args) => this.evaluateLoading(...args), {
+      live: true,
+      atomic: true,
+      timing: "sync",
+      lifecycleSignals: true
+    });
+    this.realtimeC = this.evalInheritance();
+  }
+  validateDefId(defId) {
+    if (["@", "/", "*", "#"].some((token) => defId.includes(token))) {
+      throw new Error(`The export ID "${defId}" contains an invalid character.`);
+    }
+  }
+  expose(entries, isConnected) {
+    const { window: window2 } = env, { webqit: { Observer } } = window2;
+    let dirty, allFragments = this.defs["#"] || [];
+    entries.forEach((entry) => {
+      if (!entry || entry.nodeType !== 1)
+        return;
+      const isTemplate = entry.matches(this.config.templateSelector);
+      const defId = (entry.getAttribute(isTemplate ? this.config.attr.def : this.config.attr.fragmentdef) || "").trim();
+      if (isConnected) {
+        if (isTemplate && defId) {
+          new HTMLModule(entry, this.host, this.level + 1);
+        } else {
+          allFragments.push(entry);
+          dirty = true;
+          if (typeof requestIdleCallback === "function") {
+            requestIdleCallback(() => {
+              this.config.idleCompilers?.forEach((callback) => callback.call(this.window, entry));
+            });
+          }
+        }
+        if (defId) {
+          this.validateDefId(defId);
+          Observer.set(this.defs, (!isTemplate && "#" || "") + defId, entry);
+        }
+      } else {
+        if (isTemplate && defId) {
+          HTMLModule.instance(entry).dispose();
+        } else {
+          allFragments = allFragments.filter((x) => x !== entry);
+          dirty = true;
+        }
+        if (defId)
+          Observer.deleteProperty(this.defs, (!isTemplate && "#" || "") + defId);
+      }
+    });
+    if (dirty)
+      Observer.set(this.defs, "#", allFragments);
+  }
+  evaluateLoading([record1, record2], { signal }) {
+    const { window: { webqit: { Observer } } } = env;
+    const src = (record1.value || "").trim();
+    if (!src)
+      return;
+    let $loadingPromise, loadingPromise = (promise) => {
+      if (!promise)
+        return $loadingPromise;
+      $loadingPromise = promise.then(() => interception.remove());
+    };
+    const loading = (record2.value || "").trim();
+    const interception = Observer.intercept(this.defs, "get", async (descriptor, recieved, next) => {
+      if (loading === "lazy") {
+        loadingPromise(this.load(src, true));
+      }
+      await loadingPromise();
+      return next();
+    }, { signal });
+    if (loading !== "lazy") {
+      loadingPromise(this.load(src));
+    }
+  }
+  #fetchedURLs = /* @__PURE__ */ new Set();
+  #fetchInFlight;
+  load(src) {
+    const { window: window2 } = env;
+    if (this.#fetchedURLs.has(src)) {
+      return Promise.resolve();
+    }
+    this.#fetchedURLs.add(src);
+    if (this.#fetchedURLs.size === 1 && this.host.content.children.length) {
+      return Promise.resolve();
+    }
+    this.#fetchInFlight?.controller.abort();
+    const controller = new AbortController();
+    const fire = (type, detail) => this.host.dispatchEvent(new window2.CustomEvent(type, { detail }));
+    const request = window2.fetch(src, { signal: controller.signal, element: this.host }).then((response) => {
+      return response.ok ? response.text() : Promise.reject(response.statusText);
+    }).then((content) => {
+      this.host.innerHTML = content.trim();
+      fire("load");
+      return this.host;
+    }).catch((e) => {
+      console.error(`Error fetching the bundle at "${src}": ${e.message}`);
+      this.#fetchInFlight = null;
+      fire("loaderror");
+      return this.host;
+    });
+    this.#fetchInFlight = { request, controller };
+    return request;
+  }
+  evalInheritance() {
+    if (!this.parent)
+      return [];
+    const { window: { webqit: { Observer } } } = env;
+    let extendedId = (this.host.getAttribute(this.config.attr.extends) || "").trim();
+    let inheritedIds = (this.host.getAttribute(this.config.attr.inherits) || "").trim().split(" ").map((id) => id.trim()).filter((x) => x);
+    const handleInherited = (records) => {
+      records.forEach((record) => {
+        if (Observer.get(this.defs, record.key) !== record.oldValue)
+          return;
+        if (["get", "set", "def"].includes(record.type)) {
+          Observer[record.type.replace("get", "set")](this.defs, record.key, record.value);
+        } else if (record.type === "delete") {
+          Observer.deleteProperty(this.defs, record.key);
+        }
+      });
+    };
+    const realtimes = [];
+    const parentDefsObj = getDefs(this.parent);
+    if (extendedId) {
+      realtimes.push(Observer.reduce(parentDefsObj, [extendedId, this.config.api.defs, Infinity], Observer.get, handleInherited, { live: true }));
+    }
+    if (inheritedIds.length) {
+      realtimes.push(Observer.get(parentDefsObj, inheritedIds.includes("*") ? Infinity : inheritedIds, handleInherited, { live: true }));
+    }
+    return realtimes;
+  }
+  dispose() {
+    this.realtimeA.disconnect();
+    this.realtimeB.disconnect();
+    this.realtimeC.forEach((r) => r instanceof Promise ? r.then((r2) => r2.abort()) : r.abort());
+    Object.entries(this.defs).forEach(([key, entry]) => {
+      if (key.startsWith("#"))
+        return;
+      HTMLModule.instance(entry).dispose();
+    });
+  }
+};
+
+// src/context-api/_DOMContextRequestEvent.js
+function DOMContextRequestEvent_default() {
+  const { window: window2 } = env, { webqit } = window2;
+  if (webqit.DOMContextRequestEvent)
+    return webqit.DOMContextRequestEvent;
+  class DOMContextRequestEvent extends window2.Event {
+    constructor(...args) {
+      const callback = args.pop();
+      if (typeof callback !== "function")
+        throw new Error(`Callback must be provided.`);
+      const options = args.pop();
+      if (!options?.kind)
+        throw new Error(`"options.kind" must be specified.`);
+      const eventNames = ["contextrequest", "contextclaim"];
+      const type = args.pop() || eventNames[0];
+      if (!eventNames.includes(type))
+        throw new Error(`Invalid event type. Must be one of: ${eventNames.join(",")}`);
+      const { kind, detail, targetContext, live, signal, diff, ...otherOpts } = options;
+      super(type, { ...otherOpts, bubbles: otherOpts.bubbles !== false });
+      Object.defineProperty(this, "callback", { get: () => callback });
+      Object.defineProperty(this, "kind", { get: () => kind });
+      Object.defineProperty(this, "targetContext", { get: () => targetContext });
+      Object.defineProperty(this, "detail", { get: () => detail });
+      Object.defineProperty(this, "live", { get: () => live });
+      Object.defineProperty(this, "signal", { get: () => signal });
+      Object.defineProperty(this, "diff", { get: () => diff });
+      Object.defineProperty(this, "options", { get: () => otherOpts });
+      Object.defineProperty(this, "meta", { value: {} });
+    }
+    get target() {
+      return super.target || this.meta.target;
+    }
+    get answered() {
+      return this.meta.answered || false;
+    }
+    respondWith(response) {
+      this.meta.answered = true;
+      if (this.diff) {
+        if ("_prevValue" in this && this._prevValue === response)
+          return;
+        Object.defineProperty(this, "_prevValue", { value: response, configurable: true });
+      }
+      return this.callback(response);
+    }
+  }
+  webqit.DOMContextRequestEvent = DOMContextRequestEvent;
+  return DOMContextRequestEvent;
+}
+
+// src/context-api/DOMContextResponse.js
+var DOMContextResponse = class extends AbortController {
+  constructor(callback) {
+    super();
+    callback((response) => {
+      const { window: { webqit: { Observer } } } = env;
+      Observer.defineProperty(this, "value", { value: response, configurable: true, enumerable: true });
+    }, this);
+  }
+};
+
+// src/context-api/DuplicateContextError.js
+var DuplicateContextError = class extends Error {
+};
+
+// src/context-api/DOMContexts.js
+var DOMContexts = class {
+  static instance(host) {
+    return _wq(host).get("contexts::instance") || new this(host);
+    ;
+  }
+  constructor(host) {
+    _wq(host).get(`contexts::instance`)?.dispose();
+    _wq(host).set(`contexts::instance`, this);
+    const priv = { host, contexts: /* @__PURE__ */ new Set() };
+    Object.defineProperty(this, "#", { get: () => priv });
+  }
+  [Symbol.iterator]() {
+    return this["#"].contexts[Symbol.iterator]();
+  }
+  get length() {
+    return this["#"].contexts.size;
+  }
+  find(...args) {
+    return [...this["#"].contexts].find((ctx) => {
+      if (typeof args[0] === "function")
+        return args[0](ctx);
+      return ctx.constructor.kind === args[0] && (!args[1] || ctx.detail === args[1]);
+    });
+  }
+  attach(ctx) {
+    if (!(ctx instanceof DOMContext))
+      throw new TypeError(`Context is not a valid DOMContext instance.`);
+    if (this.find(ctx.constructor.kind, ctx.detail)) {
+      throw new DuplicateContextError(`Context of same kind "${ctx.constructor.kind}"${ctx.detail ? ` and detail "${ctx.detail}"` : ""} already exists.`);
+    }
+    this["#"].contexts.add(ctx);
+    ctx.initialize(this["#"].host);
+  }
+  detach(ctx) {
+    ctx.dispose(this["#"].host);
+    this["#"].contexts.delete(ctx);
+  }
+  request(...args) {
+    return new DOMContextResponse((emitter, responseInstance) => {
+      if (typeof args[args.length - 1] !== "function") {
+        if (!args[args.length - 1]) {
+          args[args.length - 1] = emitter;
+        } else {
+          args.push(emitter);
+        }
+      }
+      let options;
+      if ((options = args.find((arg) => typeof arg === "object" && arg)) && options.live) {
+        if (options.signal)
+          options.signal.addEventListener("abort", () => responseInstance.abort());
+        args[args.indexOf(options)] = { ...options, signal: responseInstance.signal };
+      }
+      const event = new (DOMContextRequestEvent_default())(...args);
+      this["#"].host.dispatchEvent(event);
+    });
+  }
+};
+
+// src/context-api/DOMContext.js
+var _DOMContext = class {
+  static createRequest() {
+    return { kind: this.kind };
+  }
+  constructor(detail = null) {
+    Object.defineProperty(this, "detail", { get: () => detail });
+    Object.defineProperty(this, "subscriptions", { value: /* @__PURE__ */ new Set() });
+  }
+  get configs() {
+    const { window: { webqit: { oohtml: { configs } } } } = env;
+    return configs;
+  }
+  get name() {
+    return [env.window.Document, env.window.ShadowRoot].some((x) => this.host instanceof x) ? Infinity : this.host.getAttribute(this.configs.CONTEXT_API.attr.contextname);
+  }
+  subscribed(event) {
+  }
+  handle(event) {
+  }
+  unsubscribed(event) {
+  }
+  matchEvent(event) {
+    return event.kind === this.constructor.kind && (!event.targetContext || event.targetContext === this.name);
+  }
+  handleEvent(event) {
+    if (this.disposed || typeof event.respondWith !== "function")
+      return;
+    if (event.type === "contextclaim") {
+      if (!(event.detail instanceof _DOMContext) || event.target === this.host)
+        return;
+      const claims = /* @__PURE__ */ new Set();
+      this.subscriptions.forEach((subscriptionEvent) => {
+        if (!event.target.contains(subscriptionEvent.target) || !event.detail.matchEvent(subscriptionEvent))
+          return;
+        this.subscriptions.delete(subscriptionEvent);
+        this.unsubscribed(subscriptionEvent);
+        claims.add(subscriptionEvent);
+      });
+      if (claims.size) {
+        return event.respondWith(claims);
+      }
+    }
+    if (event.type === "contextrequest") {
+      if (!this.matchEvent(event))
+        return;
+      if (event.live) {
+        this.subscriptions.add(event);
+        this.subscribed(event);
+        event.signal?.addEventListener("abort", () => {
+          this.subscriptions.delete(event);
+          this.unsubscribed(event);
+        });
+      }
+      event.stopPropagation();
+      return this.handle(event);
+    }
+  }
+  initialize(host) {
+    this.host = host;
+    this.disposed = false;
+    host.addEventListener("contextrequest", this);
+    host.addEventListener("contextclaim", this);
+    const { value: claims } = DOMContexts.instance(host).request("contextclaim", { kind: this.constructor.kind, detail: this });
+    claims?.forEach((subscriptionEvent) => {
+      this.subscriptions.add(subscriptionEvent);
+      this.subscribed(subscriptionEvent);
+      this.handle(subscriptionEvent);
+    });
+    return this;
+  }
+  dispose(host) {
+    this.disposed = true;
+    host.removeEventListener("contextrequest", this);
+    host.removeEventListener("contextclaim", this);
+    this.subscriptions.forEach((subscriptionEvent) => {
+      this.subscriptions.delete(subscriptionEvent);
+      this.unsubscribed(subscriptionEvent);
+      const { target } = subscriptionEvent;
+      subscriptionEvent.meta.answered = false;
+      target.dispatchEvent(subscriptionEvent);
+    });
+    return this;
+  }
+};
+var DOMContext = _DOMContext;
+__publicField(DOMContext, "kind");
+
+// src/html-imports/HTMLImportsContext.js
+var _inheritedModules, _modules, _controller1, _controller2;
+var HTMLImportsContext = class extends DOMContext {
+  constructor() {
+    super(...arguments);
+    __privateAdd(this, _inheritedModules, {});
+    __privateAdd(this, _modules, void 0);
+    __privateAdd(this, _controller1, void 0);
+    __privateAdd(this, _controller2, void 0);
+  }
+  static createRequest(detail = null) {
+    const request = super.createRequest();
+    if (detail?.startsWith("/")) {
+      request.detail = detail;
+      request.targetContext = Infinity;
+    } else if (detail?.startsWith("@")) {
+      const [targetContext, ..._detail] = detail.slice(1).split(/(?<=\w)(?=\/|#)/).map((s) => s.trim());
+      request.targetContext = targetContext;
+      request.detail = _detail.join("");
+    } else {
+      request.detail = detail;
+    }
+    return request;
+  }
+  get localModules() {
+    return getDefs(this.host);
+  }
+  get inheritedModules() {
+    return __privateGet(this, _inheritedModules);
+  }
+  handle(event) {
+    const { window: { webqit: { Observer } } } = env;
+    event.meta.controller?.abort();
+    let path = (event.detail || "").split(/\/|(?<=\w)(?=#)/g).map((x) => x.trim()).filter((x) => x);
+    if (!path.length)
+      return event.respondWith();
+    path = path.join(`/${this.configs.HTML_IMPORTS.api.defs}/`)?.split("/").map((x) => x === "*" ? Infinity : x) || [];
+    const options = { live: event.live, sig_nal: event.signal, descripted: true };
+    event.meta.controller = Observer.reduce(__privateGet(this, _modules), path, Observer.get, (m) => {
+      if (Array.isArray(m)) {
+        if (!m.length) {
+          event.respondWith();
+          return;
+        }
+        for (const n of m) {
+          event.respondWith(n);
+        }
+      } else {
+        event.respondWith(m.value);
+      }
+    }, options);
+  }
+  unsubscribed(event) {
+    event.meta.controller?.abort();
+  }
+  initialize(host) {
+    this.host = host;
+    const { window: { webqit: { Observer } } } = env;
+    const resolve = () => {
+      for (const key of /* @__PURE__ */ new Set([...Object.keys(this.localModules), ...Object.keys(this.inheritedModules), ...Object.keys(__privateGet(this, _modules))])) {
+        if (!Observer.has(this.localModules, key) && !Observer.has(this.inheritedModules, key)) {
+          Observer.deleteProperty(__privateGet(this, _modules), key);
+        } else if (key === "#" && Observer.has(this.localModules, key) && Observer.has(this.inheritedModules, key)) {
+          Observer.set(__privateGet(this, _modules), key, [...Observer.get(this.localModules, key), ...Observer.get(this.inheritedModules, key)]);
+        } else {
+          const _module = Observer.get(this.localModules, key) || Observer.get(this.inheritedModules, key);
+          if (Observer.get(__privateGet(this, _modules), key) !== _module) {
+            Observer.set(__privateGet(this, _modules), key, _module);
+          }
+        }
+      }
+    };
+    __privateSet(this, _modules, { ...this.localModules });
+    __privateGet(this, _controller1)?.abort();
+    __privateSet(this, _controller1, Observer.observe(this.localModules, () => resolve("local"), { timing: "sync" }));
+    const $config = this.configs.HTML_IMPORTS;
+    if (this.host.matches && $config.attr.importscontext) {
+      const realdom = this.host.ownerDocument.defaultView.webqit.realdom;
+      let prevRef;
+      __privateGet(this, _controller2)?.disconnect();
+      __privateSet(this, _controller2, realdom.realtime(this.host).attr($config.attr.importscontext, (record, { signal }) => {
+        const moduleRef = (record.value || "").trim();
+        prevRef = moduleRef;
+        __privateSet(this, _inheritedModules, {});
+        const request = { ...this.constructor.createRequest(moduleRef ? `${moduleRef}/*` : "*"), live: true, signal, diff: true };
+        this.host.parentNode[this.configs.CONTEXT_API.api.contexts].request(request, (m) => {
+          if (!m) {
+            __privateSet(this, _inheritedModules, {});
+            resolve("inherited");
+          } else if (m.type === "delete") {
+            delete __privateGet(this, _inheritedModules)[m.key];
+            if (!Reflect.has(this.localModules, m.key)) {
+              Observer.deleteProperty(__privateGet(this, _modules), m.key);
+            }
+          } else {
+            __privateGet(this, _inheritedModules)[m.key] = m.value;
+            if (!Reflect.has(this.localModules, m.key) && Reflect.get(__privateGet(this, _modules), m.key) !== m.value) {
+              Observer.set(__privateGet(this, _modules), m.key, m.value);
+            }
+          }
+        });
+        resolve("inherited");
+      }, { live: true, timing: "sync", oldValue: true, lifecycleSignals: true }));
+    }
+    return super.initialize(host);
+  }
+  dispose(host) {
+    __privateGet(this, _controller1)?.abort();
+    __privateGet(this, _controller2)?.disconnect();
+    return super.dispose(host);
+  }
+};
+_inheritedModules = new WeakMap();
+_modules = new WeakMap();
+_controller1 = new WeakMap();
+_controller2 = new WeakMap();
+__publicField(HTMLImportsContext, "kind", "html-imports");
+
+// src/html-imports/_HTMLImportElement.js
+function HTMLImportElement_default() {
+  const { window: window2 } = env, { webqit } = window2, { realdom, oohtml: { configs } } = webqit;
+  if (webqit.HTMLImportElement)
+    return webqit.HTMLImportElement;
+  const BaseElement = configs.HTML_IMPORTS.elements.import.includes("-") ? window2.HTMLElement : class {
+  };
+  class HTMLImportElement extends BaseElement {
+    static instance(node) {
+      if (configs.HTML_IMPORTS.elements.import.includes("-") && node instanceof this)
+        return node;
+      return _wq(node).get("import::instance") || new this(node);
+    }
+    constructor(...args) {
+      super();
+      const el = args[0] || this;
+      _wq(el).set("import::instance", this);
+      Object.defineProperty(this, "el", { get: () => el, configurable: false });
+      const priv = {};
+      Object.defineProperty(this, "#", { get: () => priv, configurable: false });
+      priv.slottedElements = /* @__PURE__ */ new Set();
+      priv.setAnchorNode = (anchorNode) => {
+        priv.anchorNode = anchorNode;
+        return anchorNode;
+      };
+      priv.live = (callback) => {
+        if (priv.liveImportsRealtime)
+          throw new Error(`Import element already in live mode.`);
+        const parentNode = this.el.isConnected ? this.el.parentNode : priv.anchorNode.parentNode;
+        priv.liveImportsRealtime = realdom.realtime(this.el).attr(configs.HTML_IMPORTS.attr.ref, (record, { signal }) => {
+          priv.moduleRef = record.value;
+          const moduleRef = priv.moduleRef.includes("#") ? priv.moduleRef : `${priv.moduleRef}#`;
+          const request = { ...HTMLImportsContext.createRequest(moduleRef), live: signal && true, signal, diff: !moduleRef.endsWith("#") };
+          parentNode[configs.CONTEXT_API.api.contexts].request(request, (response) => {
+            callback((response instanceof window2.HTMLTemplateElement ? [...response.content.children] : Array.isArray(response) ? response : response && [response]) || []);
+          });
+        }, { live: true, timing: "sync", lifecycleSignals: true });
+        priv.autoDestroyRealtime = realdom.realtime(window2.document).track(parentNode, () => {
+          priv.die();
+        }, { subtree: "cross-roots", timing: "sync", generation: "exits" });
+      };
+      priv.die = () => {
+        priv.autoDestroyRealtime?.disconnect();
+        priv.liveImportsRealtime?.disconnect();
+        priv.liveImportsRealtime = null;
+      };
+      priv.hydrate = (anchorNode, slottedElements) => {
+        anchorNode.replaceWith(priv.setAnchorNode(this.createAnchorNode()));
+        priv.live((fragments) => {
+          if (priv.originalsRemapped)
+            return this.fill(fragments);
+          const identifiersMap = fragments.map((fragment, i) => ({ el: fragment, fragmentDef: fragment.getAttribute(configs.HTML_IMPORTS.attr.fragmentdef) || "", tagName: fragment.tagName, i }));
+          slottedElements.forEach((slottedElement, i) => {
+            const tagName = slottedElement.tagName, fragmentDef = slottedElement.getAttribute(configs.HTML_IMPORTS.attr.fragmentdef) || "";
+            const originalsMatch = (i++, identifiersMap.find((fragmentIdentifiers) => fragmentIdentifiers.tagName === tagName && fragmentIdentifiers.fragmentDef === fragmentDef && fragmentIdentifiers.i === i));
+            if (originalsMatch)
+              _wq(slottedElement).set("original@imports", originalsMatch.el);
+            _wq(slottedElement).set("slot@imports", this.el);
+            priv.slottedElements.add(slottedElement);
+          });
+          priv.originalsRemapped = true;
+        });
+      };
+      priv.autoRestore = (callback = null) => {
+        priv.autoRestoreRealtime?.disconnect();
+        if (callback)
+          callback();
+        const restore = () => {
+          if (this.el.isConnected)
+            return;
+          this.el.setAttribute("data-nodecount", 0);
+          priv.internalMutation = true;
+          priv.anchorNode.replaceWith(this.el);
+          priv.internalMutation = false;
+          priv.setAnchorNode(null);
+        };
+        if (!priv.slottedElements.size)
+          return restore();
+        const autoRestoreRealtime = realdom.realtime(priv.anchorNode.parentNode).observe([...priv.slottedElements], (record) => {
+          record.exits.forEach((outgoingNode) => {
+            _wq(outgoingNode).delete("slot@imports");
+            priv.slottedElements.delete(outgoingNode);
+          });
+          if (!priv.slottedElements.size) {
+            autoRestoreRealtime.disconnect();
+            if (!record.target.isConnected)
+              return;
+            restore();
+          }
+        }, { subtree: "cross-roots", timing: "sync", generation: "exits" });
+        priv.autoRestoreRealtime = autoRestoreRealtime;
+      };
+      priv.connectedCallback = () => {
+        if (priv.internalMutation)
+          return;
+        priv.live((fragments) => this.fill(fragments));
+      };
+      priv.disconnectedCallback = () => {
+        if (priv.internalMutation)
+          return;
+        priv.die();
+      };
+    }
+    createAnchorNode() {
+      if (window2.webqit.env !== "server") {
+        return window2.document.createTextNode("");
+      }
+      const escapeElement = window2.document.createElement("div");
+      escapeElement.textContent = this.el.outerHTML;
+      const anchorNode = window2.document.createComment(escapeElement.innerHTML);
+      _wq(anchorNode).set("isAnchorNode", true);
+      return anchorNode;
+    }
+    fill(slottableElements, r) {
+      if (!this.el.isConnected && (!this["#"].anchorNode || !this["#"].anchorNode.isConnected)) {
+        return;
+      }
+      if (Array.isArray(slottableElements)) {
+        slottableElements = new Set(slottableElements);
+      }
+      this.el.setAttribute("data-nodecount", slottableElements.size);
+      this["#"].autoRestore(() => {
+        this["#"].slottedElements.forEach((slottedElement) => {
+          const slottedElementOriginal = _wq(slottedElement).get("original@imports");
+          if (slottableElements.has(slottedElementOriginal)) {
+            slottableElements.delete(slottedElementOriginal);
+          } else {
+            this["#"].slottedElements.delete(slottedElement);
+            slottedElement.remove();
+          }
+        });
+        if (slottableElements.size && this.el.isConnected) {
+          const newAnchorNode = this["#"].setAnchorNode(this.createAnchorNode());
+          this["#"].internalMutation = true;
+          this.el.replaceWith(newAnchorNode);
+          this["#"].internalMutation = false;
+        }
+        slottableElements.forEach((slottableElement) => {
+          const slottableElementClone = slottableElement.cloneNode(true);
+          if (!slottableElementClone.hasAttribute(configs.HTML_IMPORTS.attr.fragmentdef)) {
+            slottableElementClone.toggleAttribute(configs.HTML_IMPORTS.attr.fragmentdef, true);
+          }
+          _wq(slottableElementClone).set("original@imports", slottableElement);
+          _wq(slottableElementClone).set("slot@imports", this.el);
+          this["#"].slottedElements.add(slottableElementClone);
+          this["#"].anchorNode.before(slottableElementClone);
+        });
+      });
+    }
+    empty() {
+      this["#"].slottedElements.forEach((slottedElement) => slottedElement.remove());
+    }
+    get anchorNode() {
+      return this["#"].anchorNode;
+    }
+    get moduleRef() {
+      return this["#"].moduleRef;
+    }
+    get slottedElements() {
+      return this["#"].slottedElements;
+    }
+  }
+  if (configs.HTML_IMPORTS.elements.import.includes("-")) {
+    customElements.define(configs.HTML_IMPORTS.elements.import, HTMLImportElement);
+  }
+  webqit.HTMLImportElement = HTMLImportElement;
+  return HTMLImportElement;
+}
+
+// src/html-imports/index.js
+function init($config = {}) {
+  const { config, window: window2 } = _init.call(this, "html-imports", $config, {
+    elements: { import: "import" },
+    attr: { def: "def", extends: "extends", inherits: "inherits", ref: "ref", importscontext: "importscontext" },
+    api: { def: "def", defs: "defs", import: "import" }
+  });
+  if (!config.attr.fragmentdef) {
+    config.attr.fragmentdef = config.attr.def;
+  }
+  config.templateSelector = `template[${window2.CSS.escape(config.attr.def)}]`;
+  config.importsContextSelector = `[${window2.CSS.escape(config.attr.importscontext)}]`;
+  config.slottedElementsSelector = `[${window2.CSS.escape(config.attr.fragmentdef)}]:not(template)`;
+  const anchorNodeMatch = (start, end) => {
+    const starting = `starts-with(., "${start}")`;
+    const ending = `substring(., string-length(.) - string-length("${end}") + 1) = "${end}"`;
+    return `${starting} and ${ending}`;
+  };
+  config.anchorNodeSelector = `comment()[${anchorNodeMatch(`&lt;${config.elements.import}`, `&lt;/${config.elements.import}&gt;`)}]`;
+  window2.webqit.HTMLImportsContext = HTMLImportsContext;
+  window2.webqit.HTMLImportElement = HTMLImportElement_default();
+  exposeAPIs.call(window2, config);
+  realtime.call(window2, config);
+}
+function getDefs(node, autoCreate = true) {
+  if (!_wq(node).has("defs") && autoCreate) {
+    const defs = /* @__PURE__ */ Object.create(null);
+    _wq(node).set("defs", defs);
+  }
+  return _wq(node).get("defs");
+}
+function exposeAPIs(config) {
+  const window2 = this, { webqit: { oohtml: { configs } } } = window2;
+  if (config.api.def in window2.HTMLTemplateElement.prototype) {
+    throw new Error(`The "HTMLTemplateElement" prototype already has a "${config.api.def}" API!`);
+  }
+  if (config.api.defs in window2.HTMLTemplateElement.prototype) {
+    throw new Error(`The "HTMLTemplateElement" prototype already has a "${config.api.defs}" API!`);
+  }
+  Object.defineProperty(window2.HTMLTemplateElement.prototype, config.api.def, {
+    get: function() {
+      return this.getAttribute(config.attr.def);
+    }
+  });
+  Object.defineProperty(window2.HTMLTemplateElement.prototype, config.api.defs, {
+    get: function() {
+      return getDefs(this);
+    }
+  });
+  Object.defineProperty(window2.HTMLTemplateElement.prototype, "scoped", {
+    configurable: true,
+    get() {
+      return this.hasAttribute("scoped");
+    },
+    set(value) {
+      this.toggleAttribute("scoped", value);
+    }
+  });
+  [window2.Document.prototype, window2.Element.prototype, window2.ShadowRoot.prototype].forEach((prototype) => {
+    const type = prototype === window2.Document.prototype ? "Document" : prototype === window2.ShadowRoot.prototype ? "ShadowRoot" : "Element";
+    if (config.api.import in prototype) {
+      throw new Error(`The ${type} prototype already has a "${config.api.import}" API!`);
+    }
+    if (config.api.defs in prototype) {
+      throw new Error(`The ${type} prototype already has a "${config.api.defs}" API!`);
+    }
+    Object.defineProperty(prototype, config.api.defs, {
+      get: function() {
+        return getDefs(this);
+      }
+    });
+    Object.defineProperty(prototype, config.api.import, {
+      value: function(ref, live = false, callback = null) {
+        return importRequest(this, ...arguments);
+      }
+    });
+  });
+  function importRequest(context, ref, live = false, callback = null) {
+    let options = {};
+    if (typeof live === "function") {
+      callback = live;
+      live = false;
+    } else if (typeof live === "object" && live) {
+      options = { ...live, ...options };
+    } else {
+      options = { live };
+    }
+    const request = { ...HTMLImportsContext.createRequest(ref), ...options };
+    return context[configs.CONTEXT_API.api.contexts].request(request, callback);
+  }
+}
+function realtime(config) {
+  const window2 = this, { webqit: { Observer, realdom, oohtml: { configs }, HTMLImportElement, HTMLImportsContext: HTMLImportsContext2 } } = window2;
+  const attachImportsContext = (host) => {
+    const contextsApi = host[configs.CONTEXT_API.api.contexts];
+    if (!contextsApi.find(HTMLImportsContext2.kind)) {
+      contextsApi.attach(new HTMLImportsContext2());
+    }
+  };
+  const detachImportsContext = (host) => {
+    const contextsApi = host[configs.CONTEXT_API.api.contexts];
+    const ctx = contextsApi.find(HTMLImportsContext2.kind);
+    if (ctx && (!host.isConnected || !host.matches?.(config.importsContextSelector) && !Object.keys(ctx.localModules).length)) {
+      contextsApi.detach(ctx);
+    }
+  };
+  realdom.realtime(window2.document).query([config.templateSelector, config.importsContextSelector], (record) => {
+    record.entrants.forEach((entry) => {
+      if (entry.matches(config.templateSelector)) {
+        const htmlModule = HTMLModule.instance(entry);
+        htmlModule.ownerContext = entry.scoped ? entry.parentNode : entry.getRootNode();
+        const ownerContextModulesObj = getDefs(htmlModule.ownerContext);
+        if (htmlModule.defId) {
+          Observer.set(ownerContextModulesObj, htmlModule.defId, entry);
+        }
+        attachImportsContext(htmlModule.ownerContext);
+      } else {
+        attachImportsContext(entry);
+      }
+    });
+    record.exits.forEach((entry) => {
+      if (entry.matches(config.templateSelector)) {
+        const htmlModule = HTMLModule.instance(entry);
+        const ownerContextModulesObj = getDefs(htmlModule.ownerContext);
+        if (htmlModule.defId && htmlModule.ownerContext.isConnected) {
+          Observer.deleteProperty(ownerContextModulesObj, htmlModule.defId);
+        }
+        detachImportsContext(htmlModule.ownerContext);
+      } else {
+        detachImportsContext(entry);
+      }
+    });
+  }, { id: "imports:template/importscontext", live: true, subtree: "cross-roots", timing: "sync", staticSensitivity: true, eventDetails: true });
+  realdom.realtime(window2.document).query(config.elements.import, (record) => {
+    record.entrants.forEach((node) => handleRealtime(node, true, record));
+    record.exits.forEach((node) => handleRealtime(node, false, record));
+  }, { id: "imports:import", live: true, subtree: "cross-roots", timing: "sync", deferred: true });
+  function handleRealtime(entry, connectedState) {
+    const elInstance = HTMLImportElement.instance(entry);
+    if (connectedState) {
+      elInstance["#"].connectedCallback();
+    } else {
+      elInstance["#"].disconnectedCallback();
+    }
+  }
+  if (window2.webqit.env === "server")
+    return;
+  realdom.realtime(window2.document).query(`(${config.anchorNodeSelector})`, (record) => {
+    record.entrants.forEach((anchorNode) => {
+      if (_wq(anchorNode).get("isAnchorNode"))
+        return;
+      const reviver = window2.document.createElement("div");
+      reviver.innerHTML = anchorNode.nodeValue;
+      reviver.innerHTML = reviver.firstChild.textContent;
+      const importEl = reviver.firstChild;
+      let nodecount = parseInt(importEl.getAttribute("data-nodecount"));
+      const slottedElements = /* @__PURE__ */ new Set();
+      let slottedElement = anchorNode;
+      while ((slottedElement = slottedElement.previousElementSibling) && slottedElement.matches(config.slottedElementsSelector) && nodecount--) {
+        slottedElements.add(slottedElement);
+      }
+      HTMLImportElement.instance(importEl)["#"].hydrate(anchorNode, slottedElements);
+    });
+  }, { id: "imports:hydration", live: true, subtree: "cross-roots", timing: "sync" });
+}
+
+// src/html-imports/targets.browser.js
+init.call(window);
 //# sourceMappingURL=html-imports.js.map
