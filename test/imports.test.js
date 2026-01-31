@@ -31,6 +31,8 @@ describe(`HTML Imports`, function() {
             const templateEl = document.querySelector( 'template' );
             let added = document.createElement( 'div' );
             templateEl.content.appendChild( added );
+
+            await delay( 0 );
             console.log('\n\n\n\n', document.body.outerHTML);
             expect( document.body.children ).to.have.length( 3 );
         } );
@@ -203,11 +205,17 @@ describe(`HTML Imports`, function() {
 
             const routingElement = document.body.firstElementChild;
             expect( routingElement.firstElementChild.nodeName ).to.eq( 'TEXTAREA' );
+            
             routingElement.setAttribute( 'importscontext', 'temp0/temp1/temp2' );
+            await delay( 0 );
             expect( routingElement.firstElementChild.nodeName ).to.eq( 'SELECT' );
+            
             routingElement.removeChild( routingElement.firstElementChild );
+            await delay( 0 );
             expect( routingElement.firstElementChild.nodeName ).to.eq( 'IMPORT' );
+            
             routingElement.setAttribute( 'importscontext', 'temp0' );
+            await delay( 0 );
             expect( routingElement.firstElementChild.nodeName ).to.eq( 'INPUT' );
         } );
         

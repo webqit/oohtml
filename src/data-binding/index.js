@@ -225,7 +225,7 @@ function compileInlineBindings( config, str ) {
                             $existing__.delete( $key___ );
                             $exec__($itemNode__, '${ config.BINDINGS_API.api.bind }', $itemBinding__ );
                         } else {
-                            $itemNode__ = ( Array.isArray( $import__.value ) ? $import__.value[ 0 ] : ( $import__.value instanceof window.HTMLTemplateElement ? $import__.value.content.firstElementChild : $import__.value ) ).cloneNode( true );
+                            $itemNode__ = ( Array.isArray( $import__.value ) ? $import__.value[ 0 ] : ( $import__.value?.nodeName === 'TEMPLATE' ? $import__.value.content.firstElementChild : $import__.value ) ).cloneNode( true );
                             $itemNode__.setAttribute( "${ config.attr.itemIndex }", $key___ );
                             $exec__($itemNode__, '${ config.BINDINGS_API.api.bind }', $itemBinding__ );
                             $exec__(this, 'appendChild', $itemNode__ );

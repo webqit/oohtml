@@ -974,7 +974,9 @@ function set(target, prop, value, receiver = (x) => x, params = {}, def = false)
     const listenerRegistry = ListenerRegistry.getInstance(originalTarget, false, params.namespace);
     if (listenerRegistry)
       listenerRegistry.emit(descriptors, { eventsArePropertyDescriptors: !!def });
-    return receiver(isPropsList(prop) ? descriptors.map((opr) => opr.status) : descriptors[0]?.status);
+    return receiver(
+      isPropsList(prop) ? descriptors.map((opr) => opr.status) : descriptors[0]?.status
+    );
   });
 }
 function defineProperty(target, prop, descriptor, receiver = (x) => x, params = {}) {
@@ -1020,7 +1022,9 @@ function deleteProperty(target, prop, receiver = (x) => x, params = {}) {
     const listenerRegistry = ListenerRegistry.getInstance(originalTarget, false, params.namespace);
     if (listenerRegistry)
       listenerRegistry.emit(descriptors);
-    return receiver(isPropsList(prop) ? descriptors.map((opr) => opr.status) : descriptors[0].status);
+    return receiver(
+      isPropsList(prop) ? descriptors.map((opr) => opr.status) : descriptors[0].status
+    );
   });
 }
 function deleteProperties(target, props, receiver = (x) => x, params = {}) {
@@ -1042,7 +1046,11 @@ function apply(target, thisArgument, argumentsList, receiver = (x) => x, params 
       listenerRegistry?.emit([descriptor], { eventIsArrayMethodDescriptor: true });
     }
     _wq(originalThis).set("$length", originalThis.length);
-    returnValue = batch(originalThis, () => exec(target, "apply", { thisArgument, argumentsList }, receiver, params), params);
+    returnValue = batch(
+      originalThis,
+      () => exec(target, "apply", { thisArgument, argumentsList }, receiver, params),
+      params
+    );
     _wq(originalThis).delete("$length");
   } else {
     returnValue = exec(target, "apply", { thisArgument: originalThis, argumentsList }, receiver, params);
@@ -1524,7 +1532,11 @@ var Signal = class extends _EventTarget {
   signal(name, type = "prop") {
     let signal = this.signals.get(name);
     if (!signal) {
-      signal = new Signal(this, type, type === "object" ? name : _isTypeObject(this.state) ? Observer.get(this.state, name) : void 0);
+      signal = new Signal(
+        this,
+        type,
+        type === "object" ? name : _isTypeObject(this.state) ? Observer.get(this.state, name) : void 0
+      );
       this.signals.set(name, signal);
       if (this.signals.size === 1) {
         this.watchMode();
@@ -2389,7 +2401,12 @@ function compile(sourceType, astTools, source, functionParams = [], params = {})
   } else if (isFunction) {
     if (isSource) {
       if (sourceIsProgram) {
-        source = Node_default.funcExpr(null, functionParams.map((param) => Node_default.identifier(param)), Node_default.blockStmt(liveMode ? [Node_default.literal("use live"), ...source.body] : source.body), isAsync);
+        source = Node_default.funcExpr(
+          null,
+          functionParams.map((param) => Node_default.identifier(param)),
+          Node_default.blockStmt(liveMode ? [Node_default.literal("use live"), ...source.body] : source.body),
+          isAsync
+        );
         source.isLiveFunction = originalProgram.isLiveProgram;
       } else {
         const body = `  ` + source.split(`
@@ -2851,7 +2868,7 @@ function containsNode(window2, a, b, crossRoots = false, testCache = null) {
   const rootNodeB = b.getRootNode();
   if (rootNodeA === rootNodeB)
     return response(a.contains(b));
-  if (crossRoots && rootNodeB instanceof window2.ShadowRoot)
+  if (crossRoots && isShadowRoot(rootNodeB))
     return response(containsNode(window2, a, rootNodeB.host, crossRoots, testCache));
   return response(false);
 }
@@ -2907,7 +2924,7 @@ var Realtime = class {
     } else {
       args[0] = from_default(args[0], false);
     }
-    if (args[0].filter((x) => typeof x !== "string" && !(x instanceof DOMSpec) && !(isObject_default(x) && typeof x.addEventListener === "function")).length) {
+    if (args[0].filter((x) => typeof x !== "string" && !(x instanceof DOMSpec) && !isNode(x)).length) {
       throw new Error(`Argument #2 must be either a string or a Node object, or a list of those.`);
     }
     args[0] = args[0].map((s) => s instanceof DOMSpec ? s : new DOMSpec(s));
@@ -3285,10 +3302,12 @@ var DOMRealtime = class extends Realtime {
       dispatch2.call(window2, registration, record, context);
     }));
     mo.observe(context, { childList: true, subtree: params.subtree && true });
-    const disconnectable = { disconnect() {
-      registry2.delete(registration);
-      mo.disconnect();
-    } };
+    const disconnectable = {
+      disconnect() {
+        registry2.delete(registration);
+        mo.disconnect();
+      }
+    };
     const signalGenerator = params.signalGenerator || params.lifecycleSignals && this.createSignalGenerator();
     const registration = { context, spec, callback, params, signalGenerator, disconnectable };
     const registry2 = this.registry(interceptionTiming);
@@ -3491,7 +3510,7 @@ function domInterception(timing, callback) {
       _apiOriginals[DOMClassName][apiName] = _apiOriginal;
     });
     function method(...args) {
-      const DOMClassName = Object.keys(_apiOriginals).find((name) => this instanceof window2[name] && apiName in _apiOriginals[name]);
+      const DOMClassName = Object.keys(_apiOriginals).find((name) => isNodeInterface(this, name) && apiName in _apiOriginals[name]);
       const $apiOriginals = _apiOriginals[DOMClassName];
       let exec3 = () => $apiOriginals[apiName].value.call(this, ...args);
       if (webqit2.realdom.domInterceptionNoRecurse.get(this) === apiName)
@@ -3550,17 +3569,17 @@ function domInterception(timing, callback) {
       });
     }
     function setter(value) {
-      const DOMClassName = Object.keys(_apiOriginals).find((name) => this instanceof window2[name] && apiName in _apiOriginals[name]);
+      const DOMClassName = Object.keys(_apiOriginals).find((name) => isNodeInterface(this, name) && apiName in _apiOriginals[name]);
       const $apiOriginals = _apiOriginals[DOMClassName];
       let exec3 = () => $apiOriginals[apiName].set.call(this, value);
-      if (this instanceof HTMLScriptElement || webqit2.realdom.domInterceptionNoRecurse.get(this) === apiName)
+      if (isNodeInterface(this, "HTMLScriptElement") || webqit2.realdom.domInterceptionNoRecurse.get(this) === apiName)
         return exec3();
       let exits = [], entrants = [], target = this;
       if (["outerHTML", "outerText"].includes(apiName)) {
         exits = [this];
         target = this.parentNode;
       } else {
-        if (this instanceof HTMLTemplateElement) {
+        if (isNodeInterface(this, "HTMLTemplateElement")) {
           target = this.content;
           exits = [...this.content.childNodes];
         } else {
@@ -3576,18 +3595,18 @@ function domInterception(timing, callback) {
         }
         const temp = document2.createElement(tempNodeName.includes("-") ? "div" : tempNodeName);
         noRecurse(temp, apiName, () => temp[apiName] = value);
-        entrants = this instanceof HTMLTemplateElement ? [...temp.content.childNodes] : [...temp.childNodes];
-        if (this instanceof HTMLTemplateElement && this.hasAttribute("src") || this instanceof ShadowRoot) {
+        entrants = isNodeInterface(this, "HTMLTemplateElement") ? [...temp.content.childNodes] : [...temp.childNodes];
+        if (isNodeInterface(this, "HTMLTemplateElement") && this.hasAttribute("src") || isShadowRoot(this)) {
           const getScripts = (nodes) => nodes.reduce((scripts, el) => {
-            if (el instanceof HTMLScriptElement)
+            if (isNodeInterface(el, "HTMLScriptElement"))
               return scripts.concat(el);
-            if (el instanceof HTMLTemplateElement)
+            if (isNodeInterface(el, "HTMLTemplateElement"))
               return scripts.concat(getScripts([el.content]));
             scripts = scripts.concat(getScripts([...el.querySelectorAll?.("template") || []].map((t) => t.content)));
             return scripts.concat(...el.querySelectorAll?.("script") || []);
           }, []);
           for (const script of getScripts(entrants)) {
-            if (this instanceof ShadowRoot) {
+            if (isShadowRoot(this)) {
               script.setAttribute("data-handling", "manual");
               continue;
             }
@@ -3602,7 +3621,7 @@ function domInterception(timing, callback) {
           noRecurse(value, "append", () => value.append(...entrants));
           exec3 = () => noRecurse(this, "replaceWith", () => Element.prototype.replaceWith.call(this, value));
         } else {
-          if (this instanceof HTMLTemplateElement) {
+          if (isNodeInterface(this, "HTMLTemplateElement")) {
             exec3 = () => noRecurse(this.content, "replaceChildren", () => this.content.replaceChildren(...entrants));
           } else {
             exec3 = () => noRecurse(this, "replaceChildren", () => Element.prototype.replaceChildren.call(this, ...entrants));
@@ -3719,17 +3738,57 @@ function meta(name) {
   if (_el = window2.document.querySelector(`meta[name="${name}"]`)) {
     _content = (_el.content || "").split(";").filter((v) => v).reduce((_metaVars, directive) => {
       const directiveSplit = directive.split("=").map((d) => d.trim());
-      set_default(_metaVars, directiveSplit[0].split("."), directiveSplit[1] === "true" ? true : directiveSplit[1] === "false" ? false : isNumeric_default(directiveSplit[1]) ? parseInt(directiveSplit[1]) : directiveSplit[1]);
+      set_default(
+        _metaVars,
+        directiveSplit[0].split("."),
+        directiveSplit[1] === "true" ? true : directiveSplit[1] === "false" ? false : isNumeric_default(directiveSplit[1]) ? parseInt(directiveSplit[1]) : directiveSplit[1]
+      );
       return _metaVars;
     }, {});
   }
-  return { get name() {
-    return name;
-  }, get content() {
-    return _el.content;
-  }, json() {
-    return JSON.parse(JSON.stringify(_content));
-  } };
+  return {
+    get name() {
+      return name;
+    },
+    get content() {
+      return _el.content;
+    },
+    json() {
+      return JSON.parse(JSON.stringify(_content));
+    }
+  };
+}
+function isNode(value) {
+  return value !== null && typeof value === "object" && typeof value.nodeType === "number" && typeof value.nodeName === "string";
+}
+function isElement(value) {
+  return value?.nodeType === 1;
+}
+function isShadowRoot(value) {
+  return value?.nodeType === 11 && Object.prototype.toString.call(value) === "[object ShadowRoot]";
+}
+function isDocument(value) {
+  return value?.nodeType === 9 && Object.prototype.toString.call(value) === "[object Document]";
+}
+function isCharacterData(value) {
+  const toStringValue = Object.prototype.toString.call(value);
+  return toStringValue === "[object Text]" || toStringValue === "[object Comment]" || toStringValue === "[object CDATASection]" || toStringValue === "[object ProcessingInstruction]";
+}
+function isNodeInterface(value, interfaceName) {
+  if (!isNode(value))
+    return false;
+  if (interfaceName === "ShadowRoot") {
+    return isShadowRoot(value);
+    HTMLUnknownElement;
+  }
+  const toStringValue = Object.prototype.toString.call(value);
+  if (toStringValue === `[object ${interfaceName}]`)
+    return true;
+  if (interfaceName === "DocumentFragment" && isShadowRoot(value))
+    return true;
+  if (interfaceName === "CharacterData" && isCharacterData(value))
+    return true;
+  return (interfaceName === "Node" || interfaceName === "Element" || interfaceName === "HTMLElement") && isElement(value) || interfaceName === "Node" && isNode(value);
 }
 
 // node_modules/@webqit/util/str/toTitle.js
@@ -3955,7 +4014,7 @@ var _DOMContext = class {
     return configs;
   }
   get name() {
-    return [env3.window.Document, env3.window.ShadowRoot].some((x) => this.host instanceof x) ? Infinity : this.host.getAttribute(this.configs.CONTEXT_API.attr.contextname);
+    return isDocument(this.host) || isShadowRoot(this.host) ? Infinity : this.host.getAttribute(this.configs.CONTEXT_API.attr.contextname);
   }
   subscribed(event) {
   }
@@ -4155,7 +4214,7 @@ function getOwnNamespaceObject(node) {
   if (!_wq2(node).has("namespace")) {
     const namespaceObj = /* @__PURE__ */ Object.create(null);
     _wq2(node).set("namespace", namespaceObj);
-    const isDocumentRoot = [window2.Document, window2.ShadowRoot].some((x) => node instanceof x);
+    const isDocumentRoot = isDocument(node) || isShadowRoot(node);
     Object.defineProperty(namespaceObj, Symbol.toStringTag, {
       get() {
         return isDocumentRoot ? "RootNamespaceRegistry" : "NamespaceRegistry";
@@ -4166,7 +4225,7 @@ function getOwnNamespaceObject(node) {
 }
 function getOwnerNamespaceObject(node, forID = false) {
   const window2 = this, { webqit: { oohtml: { configs: { NAMESPACED_HTML: config } } } } = window2;
-  const isDocumentRoot = [window2.Document, window2.ShadowRoot].some((x) => node instanceof x);
+  const isDocumentRoot = isDocument(node) || isShadowRoot(node);
   return getOwnNamespaceObject.call(window2, isDocumentRoot ? node : (forID ? node.parentNode : node)?.closest?.(config.namespaceSelector) || node.getRootNode());
 }
 function getNamespaceUUID(namespaceObj) {
@@ -4446,12 +4505,14 @@ function exposeAPIs2(config) {
     throw new Error(`The "Element" class already has a "${config.api.scripts}" property!`);
   }
   [window2.ShadowRoot.prototype, window2.Element.prototype].forEach((proto) => {
-    Object.defineProperty(proto, config.api.scripts, { get: function() {
-      if (!scriptsMap.has(this)) {
-        scriptsMap.set(this, []);
+    Object.defineProperty(proto, config.api.scripts, {
+      get: function() {
+        if (!scriptsMap.has(this)) {
+          scriptsMap.set(this, []);
+        }
+        return scriptsMap.get(this);
       }
-      return scriptsMap.get(this);
-    } });
+    });
   });
   Object.defineProperties(window2.HTMLScriptElement.prototype, {
     scoped: {
@@ -4501,7 +4562,7 @@ async function execute(config, execHash) {
     if (script.live) {
       liveProgramHandle.abort();
     }
-    if (thisContext instanceof window2.Element) {
+    if (isElement(thisContext)) {
       thisContext[config.api.scripts]?.splice(thisContext[config.api.scripts].indexOf(script, 1));
     }
   }, { id: "scoped-js:script-exits", subtree: "cross-roots", timing: "sync", generation: "exits" });
@@ -4805,7 +4866,7 @@ function compileInlineBindings(config, str) {
                             $existing__.delete( $key___ );
                             $exec__($itemNode__, '${config.BINDINGS_API.api.bind}', $itemBinding__ );
                         } else {
-                            $itemNode__ = ( Array.isArray( $import__.value ) ? $import__.value[ 0 ] : ( $import__.value instanceof window.HTMLTemplateElement ? $import__.value.content.firstElementChild : $import__.value ) ).cloneNode( true );
+                            $itemNode__ = ( Array.isArray( $import__.value ) ? $import__.value[ 0 ] : ( $import__.value?.nodeName === 'TEMPLATE' ? $import__.value.content.firstElementChild : $import__.value ) ).cloneNode( true );
                             $itemNode__.setAttribute( "${config.attr.itemIndex}", $key___ );
                             $exec__($itemNode__, '${config.BINDINGS_API.api.bind}', $itemBinding__ );
                             $exec__(this, 'appendChild', $itemNode__ );
@@ -4905,7 +4966,7 @@ function getBindings(config, node) {
     const bindingsObj = /* @__PURE__ */ Object.create(null);
     _wq2(node).set("bindings", bindingsObj);
     Observer2.observe(bindingsObj, (mutations) => {
-      if (node instanceof window2.Element) {
+      if (isElement(node)) {
         const bindingsParse = parseBindingsAttr(node.getAttribute(config.attr.bindingsreflection) || "");
         const bindingsParseBefore = new Map(bindingsParse);
         for (const m of mutations) {
@@ -4946,12 +5007,16 @@ function exposeAPIs3(config) {
     if (config.api.bindings in prototype) {
       throw new Error(`The ${type} prototype already has a "${config.api.bindings}" API!`);
     }
-    Object.defineProperty(prototype, config.api.bind, { value: function(bindings, options = {}) {
-      return applyBindings.call(window2, config, this, bindings, options);
-    } });
-    Object.defineProperty(prototype, config.api.bindings, { get: function() {
-      return Observer2.proxy(getBindings.call(window2, config, this));
-    } });
+    Object.defineProperty(prototype, config.api.bind, {
+      value: function(bindings, options = {}) {
+        return applyBindings.call(window2, config, this, bindings, options);
+      }
+    });
+    Object.defineProperty(prototype, config.api.bindings, {
+      get: function() {
+        return Observer2.proxy(getBindings.call(window2, config, this));
+      }
+    });
   });
 }
 function applyBindings(config, target, bindings, { merge, diff, publish, namespace } = {}) {
@@ -5306,7 +5371,7 @@ function HTMLImportElement_default() {
   };
   class HTMLImportElement extends BaseElement {
     static instance(node) {
-      if (configs.HTML_IMPORTS.elements.import.includes("-") && node instanceof this)
+      if (configs.HTML_IMPORTS.elements.import.includes("-") && node.nodeName === this.nodeName)
         return node;
       return _wq2(node).get("import::instance") || new this(node);
     }
@@ -5331,7 +5396,7 @@ function HTMLImportElement_default() {
           const moduleRef = priv.moduleRef.includes("#") ? priv.moduleRef : `${priv.moduleRef}#`;
           const request = { ...HTMLImportsContext.createRequest(moduleRef), live: signal && true, signal, diff: !moduleRef.endsWith("#") };
           parentNode[configs.CONTEXT_API.api.contexts].request(request, (response) => {
-            callback((response instanceof window2.HTMLTemplateElement ? [...response.content.children] : Array.isArray(response) ? response : response && [response]) || []);
+            callback((isNodeInterface(response, "HTMLTemplateElement") ? [...response.content.children] : Array.isArray(response) ? response : response && [response]) || []);
           });
         }, { live: true, timing: "sync", lifecycleSignals: true });
         priv.autoDestroyRealtime = realdom.realtime(window2.document).track(parentNode, () => {
@@ -5358,6 +5423,7 @@ function HTMLImportElement_default() {
             priv.slottedElements.add(slottedElement);
           });
           priv.originalsRemapped = true;
+          priv.autoRestore();
         });
       };
       priv.autoRestore = (callback = null) => {
@@ -5752,7 +5818,7 @@ function realtime6(config) {
       const scopeSelector = style.scoped && (supportsHAS ? `:has(> style[rand-${sourceHash}])` : `[rand-${sourceHash}]`);
       const supportsScope = style.scoped && window2.CSSScopeRule && false;
       const scopeRoot = style.scoped && style.parentNode || style.getRootNode();
-      if (scopeRoot instanceof window2.Element) {
+      if (isElement(scopeRoot)) {
         scopeRoot[config.api.styleSheets].push(style);
         if (!inBrowser)
           return;

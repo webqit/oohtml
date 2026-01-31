@@ -2,6 +2,7 @@
 /**
  * @imports
  */
+import { isDocument, isShadowRoot } from '@webqit/realdom';
 import DOMNamingContext from './DOMNamingContext.js';
 import { _wq, _init, _splitOuter, _fromHash, _toHash, getInternalAttrInteraction, internalAttrInteraction } from '../util.js';
 
@@ -122,7 +123,7 @@ export function getOwnNamespaceObject(node) {
 	if (!_wq(node).has('namespace')) {
 		const namespaceObj = Object.create(null);
 		_wq(node).set('namespace', namespaceObj);
-		const isDocumentRoot = [window.Document, window.ShadowRoot].some(x => node instanceof x);
+		const isDocumentRoot = isDocument(node) || isShadowRoot(node);
 		Object.defineProperty(namespaceObj, Symbol.toStringTag, {
 			get() {
 				return isDocumentRoot ? 'RootNamespaceRegistry' : 'NamespaceRegistry';
@@ -140,7 +141,7 @@ export function getOwnNamespaceObject(node) {
  */
 export function getOwnerNamespaceObject(node, forID = false) {
 	const window = this, { webqit: { oohtml: { configs: { NAMESPACED_HTML: config } } } } = window;
-	const isDocumentRoot = [window.Document, window.ShadowRoot].some(x => node instanceof x);
+	const isDocumentRoot = isDocument(node) || isShadowRoot(node);
 	return getOwnNamespaceObject.call(window, isDocumentRoot ? node : ((forID ? node.parentNode : node)?.closest/*can be documentFragment when Shadow DOM*/?.(config.namespaceSelector) || node.getRootNode()));
 }
 

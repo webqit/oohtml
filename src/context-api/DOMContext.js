@@ -2,6 +2,7 @@
 /**
  * @imports
  */
+import { isDocument, isShadowRoot } from '@webqit/realdom';
 import DOMContexts from './DOMContexts.js';
 import { env } from '../util.js';
 
@@ -36,7 +37,7 @@ export default class DOMContext {
     /**
      * @name
      */
-    get name() { return [ env.window.Document, env.window.ShadowRoot ].some( x => this.host instanceof x ) ? Infinity : this.host.getAttribute( this.configs.CONTEXT_API.attr.contextname ); }
+    get name() { return isDocument(this.host) || isShadowRoot(this.host) ? Infinity : this.host.getAttribute( this.configs.CONTEXT_API.attr.contextname ); }
 
     /**
      * @subscribed()

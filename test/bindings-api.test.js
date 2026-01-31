@@ -3,7 +3,7 @@
  * @imports
  */
 import { expect } from 'chai';
-import { createDocument } from './index.js';
+import { createDocument, delay } from './index.js';
 
 describe(`Bindings API`, function() {
 
@@ -19,7 +19,9 @@ describe(`Bindings API`, function() {
         } );
 
         it ( `Bindings objects should be observable...`, async function() {
+            await delay( 200 );
             const { webqit: { Observer } } = window;
+            
             let idReceived = null;
             Observer.observe( document.bindings, records => {
                 idReceived = records[ 0 ].key;

@@ -2,6 +2,7 @@
 /**
  * @imports
  */
+import { isElement } from '@webqit/realdom';
 import { rewriteSelector, getOwnerNamespaceObject, getNamespaceUUID } from '../namespaced-html/index.js';
 import { _init, _toHash } from '../util.js';
 
@@ -76,7 +77,7 @@ function realtime( config ) {
             const scopeSelector = style.scoped && ( supportsHAS ? `:has(> style[rand-${ sourceHash }])` : `[rand-${ sourceHash }]` );
             const supportsScope = style.scoped && window.CSSScopeRule && false/* Disabled for buggy behaviour: rewriting selectorText within an @scope block invalidates the scoping */;
             const scopeRoot = style.scoped && style.parentNode || style.getRootNode();
-            if ( scopeRoot instanceof window.Element ) {
+            if ( isElement(scopeRoot) ) {
                 scopeRoot[ config.api.styleSheets ].push( style );
                 if ( !inBrowser ) return;
                 ( supportsHAS ? style : scopeRoot ).toggleAttribute( `rand-${ sourceHash }`, true );

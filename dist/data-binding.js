@@ -36,63 +36,6 @@ var runtimeParams = {
   apiVersion: 3
 };
 
-// node_modules/@webqit/realdom/src/realtime/Util.js
-function isXpath(expr) {
-  return (expr = expr.trim()) && expr.startsWith("(") && expr.endsWith(")");
-}
-function xpathQuery(window2, context, expr, subtree = true) {
-  expr = (Array.isArray(expr) ? expr : [expr]).map((x) => (x + "").replace("(", subtree ? "(.//" : "(./")).join("|");
-  let nodes = [], node;
-  try {
-    const result = window2.document.evaluate(expr, context, null, window2.XPathResult.ANY_TYPE);
-    while (node = result.iterateNext())
-      nodes.push(node);
-  } catch (e) {
-  }
-  return nodes;
-}
-function xpathMatch(window2, node, expr) {
-  expr = (Array.isArray(expr) ? expr : [expr]).map((x) => (x + "").replace("(", "(self::")).join("|");
-  try {
-    return window2.document.evaluate(`${expr}`, node, null, window2.XPathResult.BOOLEAN_TYPE).booleanValue;
-  } catch (e) {
-  }
-}
-function containsNode(window2, a, b, crossRoots = false, testCache = null) {
-  const prevTest = testCache?.get(a)?.get(b);
-  if (typeof prevTest !== "undefined")
-    return prevTest;
-  const response = (val) => {
-    if (!testCache?.has(a))
-      testCache?.set(a, /* @__PURE__ */ new WeakMap());
-    testCache?.get(a)?.set(b, val);
-    return val;
-  };
-  const rootNodeA = a.getRootNode();
-  const rootNodeB = b.getRootNode();
-  if (rootNodeA === rootNodeB)
-    return response(a.contains(b));
-  if (crossRoots && rootNodeB instanceof window2.ShadowRoot)
-    return response(containsNode(window2, a, rootNodeB.host, crossRoots, testCache));
-  return response(false);
-}
-function splitOuter(str, delim = "|") {
-  return [...str].reduce(([quote, depth, splits, skip], x) => {
-    if (!quote && depth === 0 && (Array.isArray(delim) ? delim : [delim]).includes(x)) {
-      return [quote, depth, [""].concat(splits)];
-    }
-    if (!quote && ["(", "[", "{"].includes(x) && !splits[0].endsWith("\\"))
-      depth++;
-    if (!quote && [")", "]", "}"].includes(x) && !splits[0].endsWith("\\"))
-      depth--;
-    if (['"', "'", "`"].includes(x) && !splits[0].endsWith("\\")) {
-      quote = quote === x ? null : quote || x;
-    }
-    splits[0] += x;
-    return [quote, depth, splits];
-  }, [null, 0, [""]])[2].reverse();
-}
-
 // node_modules/@webqit/util/js/isObject.js
 function isObject_default(val) {
   return !Array.isArray(val) && typeof val === "object" && val;
@@ -488,7 +431,7 @@ var Realtime = class {
     } else {
       args[0] = from_default(args[0], false);
     }
-    if (args[0].filter((x) => typeof x !== "string" && !(x instanceof DOMSpec) && !(isObject_default(x) && typeof x.addEventListener === "function")).length) {
+    if (args[0].filter((x) => typeof x !== "string" && !(x instanceof DOMSpec) && !isNode(x)).length) {
       throw new Error(`Argument #2 must be either a string or a Node object, or a list of those.`);
     }
     args[0] = args[0].map((s) => s instanceof DOMSpec ? s : new DOMSpec(s));
@@ -866,10 +809,12 @@ var DOMRealtime = class extends Realtime {
       dispatch2.call(window2, registration, record, context);
     }));
     mo.observe(context, { childList: true, subtree: params.subtree && true });
-    const disconnectable = { disconnect() {
-      registry.delete(registration);
-      mo.disconnect();
-    } };
+    const disconnectable = {
+      disconnect() {
+        registry.delete(registration);
+        mo.disconnect();
+      }
+    };
     const signalGenerator = params.signalGenerator || params.lifecycleSignals && this.createSignalGenerator();
     const registration = { context, spec, callback, params, signalGenerator, disconnectable };
     const registry = this.registry(interceptionTiming);
@@ -1072,7 +1017,7 @@ function domInterception(timing, callback) {
       _apiOriginals[DOMClassName][apiName] = _apiOriginal;
     });
     function method(...args) {
-      const DOMClassName = Object.keys(_apiOriginals).find((name) => this instanceof window2[name] && apiName in _apiOriginals[name]);
+      const DOMClassName = Object.keys(_apiOriginals).find((name) => isNodeInterface(this, name) && apiName in _apiOriginals[name]);
       const $apiOriginals = _apiOriginals[DOMClassName];
       let exec = () => $apiOriginals[apiName].value.call(this, ...args);
       if (webqit.realdom.domInterceptionNoRecurse.get(this) === apiName)
@@ -1131,17 +1076,17 @@ function domInterception(timing, callback) {
       });
     }
     function setter(value) {
-      const DOMClassName = Object.keys(_apiOriginals).find((name) => this instanceof window2[name] && apiName in _apiOriginals[name]);
+      const DOMClassName = Object.keys(_apiOriginals).find((name) => isNodeInterface(this, name) && apiName in _apiOriginals[name]);
       const $apiOriginals = _apiOriginals[DOMClassName];
       let exec = () => $apiOriginals[apiName].set.call(this, value);
-      if (this instanceof HTMLScriptElement || webqit.realdom.domInterceptionNoRecurse.get(this) === apiName)
+      if (isNodeInterface(this, "HTMLScriptElement") || webqit.realdom.domInterceptionNoRecurse.get(this) === apiName)
         return exec();
       let exits = [], entrants = [], target = this;
       if (["outerHTML", "outerText"].includes(apiName)) {
         exits = [this];
         target = this.parentNode;
       } else {
-        if (this instanceof HTMLTemplateElement) {
+        if (isNodeInterface(this, "HTMLTemplateElement")) {
           target = this.content;
           exits = [...this.content.childNodes];
         } else {
@@ -1157,18 +1102,18 @@ function domInterception(timing, callback) {
         }
         const temp = document.createElement(tempNodeName.includes("-") ? "div" : tempNodeName);
         noRecurse(temp, apiName, () => temp[apiName] = value);
-        entrants = this instanceof HTMLTemplateElement ? [...temp.content.childNodes] : [...temp.childNodes];
-        if (this instanceof HTMLTemplateElement && this.hasAttribute("src") || this instanceof ShadowRoot) {
+        entrants = isNodeInterface(this, "HTMLTemplateElement") ? [...temp.content.childNodes] : [...temp.childNodes];
+        if (isNodeInterface(this, "HTMLTemplateElement") && this.hasAttribute("src") || isShadowRoot(this)) {
           const getScripts = (nodes) => nodes.reduce((scripts, el) => {
-            if (el instanceof HTMLScriptElement)
+            if (isNodeInterface(el, "HTMLScriptElement"))
               return scripts.concat(el);
-            if (el instanceof HTMLTemplateElement)
+            if (isNodeInterface(el, "HTMLTemplateElement"))
               return scripts.concat(getScripts([el.content]));
             scripts = scripts.concat(getScripts([...el.querySelectorAll?.("template") || []].map((t) => t.content)));
             return scripts.concat(...el.querySelectorAll?.("script") || []);
           }, []);
           for (const script of getScripts(entrants)) {
-            if (this instanceof ShadowRoot) {
+            if (isShadowRoot(this)) {
               script.setAttribute("data-handling", "manual");
               continue;
             }
@@ -1183,7 +1128,7 @@ function domInterception(timing, callback) {
           noRecurse(value, "append", () => value.append(...entrants));
           exec = () => noRecurse(this, "replaceWith", () => Element.prototype.replaceWith.call(this, value));
         } else {
-          if (this instanceof HTMLTemplateElement) {
+          if (isNodeInterface(this, "HTMLTemplateElement")) {
             exec = () => noRecurse(this.content, "replaceChildren", () => this.content.replaceChildren(...entrants));
           } else {
             exec = () => noRecurse(this, "replaceChildren", () => Element.prototype.replaceChildren.call(this, ...entrants));
@@ -1300,17 +1245,111 @@ function meta(name) {
   if (_el = window2.document.querySelector(`meta[name="${name}"]`)) {
     _content = (_el.content || "").split(";").filter((v) => v).reduce((_metaVars, directive) => {
       const directiveSplit = directive.split("=").map((d) => d.trim());
-      set_default(_metaVars, directiveSplit[0].split("."), directiveSplit[1] === "true" ? true : directiveSplit[1] === "false" ? false : isNumeric_default(directiveSplit[1]) ? parseInt(directiveSplit[1]) : directiveSplit[1]);
+      set_default(
+        _metaVars,
+        directiveSplit[0].split("."),
+        directiveSplit[1] === "true" ? true : directiveSplit[1] === "false" ? false : isNumeric_default(directiveSplit[1]) ? parseInt(directiveSplit[1]) : directiveSplit[1]
+      );
       return _metaVars;
     }, {});
   }
-  return { get name() {
-    return name;
-  }, get content() {
-    return _el.content;
-  }, json() {
-    return JSON.parse(JSON.stringify(_content));
-  } };
+  return {
+    get name() {
+      return name;
+    },
+    get content() {
+      return _el.content;
+    },
+    json() {
+      return JSON.parse(JSON.stringify(_content));
+    }
+  };
+}
+function isNode(value) {
+  return value !== null && typeof value === "object" && typeof value.nodeType === "number" && typeof value.nodeName === "string";
+}
+function isElement(value) {
+  return value?.nodeType === 1;
+}
+function isShadowRoot(value) {
+  return value?.nodeType === 11 && Object.prototype.toString.call(value) === "[object ShadowRoot]";
+}
+function isCharacterData(value) {
+  const toStringValue = Object.prototype.toString.call(value);
+  return toStringValue === "[object Text]" || toStringValue === "[object Comment]" || toStringValue === "[object CDATASection]" || toStringValue === "[object ProcessingInstruction]";
+}
+function isNodeInterface(value, interfaceName) {
+  if (!isNode(value))
+    return false;
+  if (interfaceName === "ShadowRoot") {
+    return isShadowRoot(value);
+    HTMLUnknownElement;
+  }
+  const toStringValue = Object.prototype.toString.call(value);
+  if (toStringValue === `[object ${interfaceName}]`)
+    return true;
+  if (interfaceName === "DocumentFragment" && isShadowRoot(value))
+    return true;
+  if (interfaceName === "CharacterData" && isCharacterData(value))
+    return true;
+  return (interfaceName === "Node" || interfaceName === "Element" || interfaceName === "HTMLElement") && isElement(value) || interfaceName === "Node" && isNode(value);
+}
+
+// node_modules/@webqit/realdom/src/realtime/Util.js
+function isXpath(expr) {
+  return (expr = expr.trim()) && expr.startsWith("(") && expr.endsWith(")");
+}
+function xpathQuery(window2, context, expr, subtree = true) {
+  expr = (Array.isArray(expr) ? expr : [expr]).map((x) => (x + "").replace("(", subtree ? "(.//" : "(./")).join("|");
+  let nodes = [], node;
+  try {
+    const result = window2.document.evaluate(expr, context, null, window2.XPathResult.ANY_TYPE);
+    while (node = result.iterateNext())
+      nodes.push(node);
+  } catch (e) {
+  }
+  return nodes;
+}
+function xpathMatch(window2, node, expr) {
+  expr = (Array.isArray(expr) ? expr : [expr]).map((x) => (x + "").replace("(", "(self::")).join("|");
+  try {
+    return window2.document.evaluate(`${expr}`, node, null, window2.XPathResult.BOOLEAN_TYPE).booleanValue;
+  } catch (e) {
+  }
+}
+function containsNode(window2, a, b, crossRoots = false, testCache = null) {
+  const prevTest = testCache?.get(a)?.get(b);
+  if (typeof prevTest !== "undefined")
+    return prevTest;
+  const response = (val) => {
+    if (!testCache?.has(a))
+      testCache?.set(a, /* @__PURE__ */ new WeakMap());
+    testCache?.get(a)?.set(b, val);
+    return val;
+  };
+  const rootNodeA = a.getRootNode();
+  const rootNodeB = b.getRootNode();
+  if (rootNodeA === rootNodeB)
+    return response(a.contains(b));
+  if (crossRoots && isShadowRoot(rootNodeB))
+    return response(containsNode(window2, a, rootNodeB.host, crossRoots, testCache));
+  return response(false);
+}
+function splitOuter(str, delim = "|") {
+  return [...str].reduce(([quote, depth, splits, skip], x) => {
+    if (!quote && depth === 0 && (Array.isArray(delim) ? delim : [delim]).includes(x)) {
+      return [quote, depth, [""].concat(splits)];
+    }
+    if (!quote && ["(", "[", "{"].includes(x) && !splits[0].endsWith("\\"))
+      depth++;
+    if (!quote && [")", "]", "}"].includes(x) && !splits[0].endsWith("\\"))
+      depth--;
+    if (['"', "'", "`"].includes(x) && !splits[0].endsWith("\\")) {
+      quote = quote === x ? null : quote || x;
+    }
+    splits[0] += x;
+    return [quote, depth, splits];
+  }, [null, 0, [""]])[2].reverse();
 }
 
 // node_modules/@webqit/util/str/toTitle.js
@@ -1608,7 +1647,7 @@ function compileInlineBindings(config, str) {
                             $existing__.delete( $key___ );
                             $exec__($itemNode__, '${config.BINDINGS_API.api.bind}', $itemBinding__ );
                         } else {
-                            $itemNode__ = ( Array.isArray( $import__.value ) ? $import__.value[ 0 ] : ( $import__.value instanceof window.HTMLTemplateElement ? $import__.value.content.firstElementChild : $import__.value ) ).cloneNode( true );
+                            $itemNode__ = ( Array.isArray( $import__.value ) ? $import__.value[ 0 ] : ( $import__.value?.nodeName === 'TEMPLATE' ? $import__.value.content.firstElementChild : $import__.value ) ).cloneNode( true );
                             $itemNode__.setAttribute( "${config.attr.itemIndex}", $key___ );
                             $exec__($itemNode__, '${config.BINDINGS_API.api.bind}', $itemBinding__ );
                             $exec__(this, 'appendChild', $itemNode__ );

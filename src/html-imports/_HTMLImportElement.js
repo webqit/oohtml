@@ -2,6 +2,7 @@
 /**
  * @imports
  */
+import { isNodeInterface } from '@webqit/realdom';
 import HTMLImportsContext from './HTMLImportsContext.js';
 import { _wq, env } from '../util.js';
 
@@ -26,7 +27,7 @@ export default function () {
          * @returns 
          */
         static instance(node) {
-            if (configs.HTML_IMPORTS.elements.import.includes('-') && (node instanceof this)) return node;
+            if (configs.HTML_IMPORTS.elements.import.includes('-') && (node.nodeName === this.nodeName)) return node;
             return _wq(node).get('import::instance') || new this(node);
         }
 
@@ -57,7 +58,7 @@ export default function () {
                     const moduleRef = priv.moduleRef.includes('#') ? priv.moduleRef : `${priv.moduleRef}#`/* for live children */;
                     const request = { ...HTMLImportsContext.createRequest(moduleRef), live: signal && true, signal, diff: !moduleRef.endsWith('#') };
                     parentNode[configs.CONTEXT_API.api.contexts].request(request, response => {
-                        callback((response instanceof window.HTMLTemplateElement ? [...response.content.children] : (
+                        callback((isNodeInterface(response, 'HTMLTemplateElement') ? [...response.content.children] : (
                             Array.isArray(response) ? response : response && [response]
                         )) || []);
                     });
@@ -88,6 +89,7 @@ export default function () {
                         priv.slottedElements.add(slottedElement);
                     });
                     priv.originalsRemapped = true;
+                    priv.autoRestore();
                 });
             };
 

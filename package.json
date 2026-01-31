@@ -39,12 +39,12 @@
     "version:next": "npm version prerelease --preid=next"
   },
   "dependencies": {
-    "@webqit/realdom": "^2.1.35",
+    "@webqit/realdom": "^2.1.36",
     "@webqit/use-live": "^0.5.49",
     "@webqit/util": "^0.8.16"
   },
   "devDependencies": {
-    "@webqit/oohtml-ssr": "^2.2.1",
+    "@webqit/oohtml-ssr": "^2.2.4",
     "chai": "^4.3.4",
     "coveralls": "^3.1.1",
     "esbuild": "^0.14.43",
