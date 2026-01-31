@@ -3768,7 +3768,7 @@ function isShadowRoot(value) {
   return value?.nodeType === 11 && Object.prototype.toString.call(value) === "[object ShadowRoot]";
 }
 function isDocument(value) {
-  return value?.nodeType === 9 && Object.prototype.toString.call(value) === "[object Document]";
+  return value?.nodeType === 9;
 }
 function isCharacterData(value) {
   const toStringValue = Object.prototype.toString.call(value);
