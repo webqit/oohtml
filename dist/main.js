@@ -12275,7 +12275,6 @@ function compileInlineBindings(config, str) {
     }
     if (directive === "@") {
       if (param === "@connected") {
-        console.log("-------------------", right, "||", right.startsWith("{") ? right.slice(1, -1) : right);
         return `${right.startsWith("{") ? right.slice(1, -1) : right};`;
       }
       $event_i++;
