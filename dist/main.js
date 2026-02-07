@@ -11831,7 +11831,7 @@ function realtime(config) {
         cleanupBinding(entry, attrName, () => entry.getAttribute(attrName));
       });
       record.entrants.forEach((entry) => {
-        if (!entry.hasAttribute(attrName))
+        if (!entry.hasAttribute(attrName) || entry.hasAttribute("namespaceesc"))
           return;
         setupBinding(entry, attrName, () => entry.getAttribute(attrName));
       });
