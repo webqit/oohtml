@@ -379,7 +379,7 @@ function realtime(config) {
 				cleanupBinding(entry, attrName, () => entry.getAttribute(attrName)/* Current resolved value as-is */);
 			});
 			record.entrants.forEach(entry => {
-				if (!entry.hasAttribute(attrName)) return;
+				if (!entry.hasAttribute(attrName) || entry.hasAttribute('namespaceesc')) return;
 				setupBinding(entry, attrName, () => entry.getAttribute(attrName)/* Raw value (as-is) that will be saved as original */);
 			});
 		}
