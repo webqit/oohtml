@@ -368,10 +368,12 @@ var Registry = class {
       ImplementationClass = _wq(globalThis, "observerAPI", "namespaces").get(type + "-" + namespace);
       type += "-" + namespace;
     }
-    if (!_wq(target, "registry").has(type) && createIfNotExists) {
-      _wq(target, "registry").set(type, new ImplementationClass(target));
+    let registry2 = _wq(target, "registry").get(type);
+    if (!registry2 && createIfNotExists) {
+      registry2 = new ImplementationClass(target);
+      _wq(target, "registry").set(type, registry2);
     }
-    return _wq(target, "registry").get(type);
+    return registry2;
   }
   static _namespace(type, namespace, ImplementationClass = null) {
     type += "-" + namespace;
