@@ -233,12 +233,14 @@ function wq(obj, ...namespaces) {
   let wq2 = obj[Symbol.for("wq")];
   if (!wq2) {
     wq2 = new WQInternals();
-    Object.defineProperty(obj, Symbol.for("wq"), {
-      value: wq2,
-      enumerable: false,
-      configurable: false,
-      writable: false
-    });
+    if (Object.isExtensible(obj)) {
+      Object.defineProperty(obj, Symbol.for("wq"), {
+        value: wq2,
+        enumerable: false,
+        configurable: false,
+        writable: false
+      });
+    }
   }
   if (!namespaces.length) {
     return wq2;
@@ -11969,7 +11971,7 @@ function realtime2(config) {
   const handled = /* @__PURE__ */ new WeakSet();
   realdom.realtime(window2.document).query(config.scriptSelector, (record) => {
     record.entrants.forEach((script) => {
-      if (handled.has(script) || script.hasAttribute("oohtmlno") || !inBrowser && !script.hasAttribute("ssr"))
+      if (handled.has(script) || script.hasAttribute("oohtmlignore") || !inBrowser && !script.hasAttribute("ssr"))
         return;
       const compiledScript = compileScript.call(window2, config, script);
       if (!compiledScript)
