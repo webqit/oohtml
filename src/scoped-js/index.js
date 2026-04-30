@@ -83,7 +83,7 @@ function realtime(config) {
     const handled = new WeakSet;
     realdom.realtime(window.document).query(config.scriptSelector, record => {
         record.entrants.forEach(script => {
-            if (handled.has(script) || script.hasAttribute('oohtmlno') || (!inBrowser && !script.hasAttribute('ssr'))) return;
+            if (handled.has(script) || script.hasAttribute('oohtmlignore') || (!inBrowser && !script.hasAttribute('ssr'))) return;
             // Do compilation
             const compiledScript = compileScript.call(window, config, script);
             if (!compiledScript) return;
